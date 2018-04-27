@@ -1,0 +1,14 @@
+{
+  "name": "votebot",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "bookshelf": "^0.13.3",
+    "discord.js": "^11.3.2",
+    "knex": "^0.14.5",
+    "mz": "^2.7.0",
+    "pastebin-js": "^0.5.1",
+    "sqlite3": "^4.0.0"
+  }
+}
