@@ -3,7 +3,7 @@ const o = require("../options");
 
 commands.registerCommand("settings", [o.pm(false), o.perm("ADMINISTRATOR")/*requireRank("configurator")*/], async(data, setting, ...value) => {
   if(value) value = value.join(" ");
-  if(!setting) return await data.msg.reply("Settings: `prefix: string`");
+  if(!setting) return await data.msg.reply("Settings: `prefix: string`, `quote: pastebin id of quotes`");
   if(setting === "prefix") {
     // if(o.requireRank()(data)) // this needs a subcommand system
     if(!value) return await data.msg.reply(`Prefix: \`${data.prefix}\`.`);
@@ -16,7 +16,7 @@ commands.registerCommand("settings", [o.pm(false), o.perm("ADMINISTRATOR")/*requ
     await data.db("guilds").where({"id": data.msg.guild.id}).update({"quotes": value});
     return await data.msg.reply(`Quote pastebin updated to: https://pastebin.com/${value}.`);
   }
-  return await data.msg.reply("Settings: `prefix: string`");
+  return await data.msg.reply("Settings: `prefix: string`, `quote: pastebin id of quotes`");
 });
 
 module.exports = commands;

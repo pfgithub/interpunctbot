@@ -15,10 +15,16 @@ let commands = new Commands;
 async function registerAllCommands() {
   commands.registerCommand("help", [], async(data) => {
     let help = [];
+    let others = 0;
     commands._commands.forEach(cmd => {
-      if(cmd.options.every(option => option(data))) help.push(`${data.prefix}${cmd.cmd}`);
+      if(cmd.cmd instanceof RegExp) return;
+      if(cmd.requirements.every(option => option(data))) help.push(`${data.prefix}${cmd.cmd}`);
+      else others++;
     });
-    return await data.msg.reply(`Commands: \`${help.join`\`, \``}\``);
+    return await data.msg.reply(`Commands: \`${help.join`\`, \``}\` ${others ? ` and ${others} others that you or your server cannot use.` : ""}`);
+  });
+  commands.registerCommand("about", [], async(data) => {
+    await data.msg.reply("This bot does a few things. If it does a thing that it shouldn't, message pfg#4865 with the problem and I will fix it.");
   });
   commands.registerCommands(
     require("./src/commands/ping"),
@@ -29,7 +35,7 @@ async function registerAllCommands() {
   /*(await fs.readdir(path.join(__dirname, "src/commands"))).forEach((file) => {
     commands.registerCommands(require(`./src/commands/${  file}`));
   });*/
-  commands.registerCommand(new RegExp(), [], async(data) => {
+  commands.registerCommand(new RegExp(/.+/), [], async(data) => {
     await data.msg.reply(`Command not found, try \`${data.prefix}help\` for a list of commands`);
   });
 }
@@ -41,9 +47,10 @@ fs.readdirSync(path.join(__dirname, "src/commands"));
 let serverInfo = {};
 
 async function retrieveGuildInfo(msg) {
-  let prefix = msg.guild ? "<" : "";
+  let prefix = msg.guild ? "$" : "";
   let options = [/*o.deleteOriginal(1000)*/];
   let quotesPastebin = "";
+  let disabledCommands = [];
   if(msg.guild) {
     let guild = (await knex("guilds").where({"id": msg.guild.id}))[0];
     if(!guild) {
@@ -51,6 +58,11 @@ async function retrieveGuildInfo(msg) {
     }else{
       prefix = guild.prefix;
       quotesPastebin = guild.quotes;
+      try{
+        disabledCommands = JSON.parse(guild.disabledCommands || "[]");
+      }catch(e) {
+        console.log("Could not parse disabled commands for server ^^");
+      }
     }
   }
   return{
@@ -59,7 +71,8 @@ async function retrieveGuildInfo(msg) {
     "msg": msg,
     "db": knex,
     "pm": !msg.guild,
-    "quotesPastebin": quotesPastebin
+    "quotesPastebin": quotesPastebin,
+    "disabledCommands": disabledCommands
   };
 }
 
@@ -70,19 +83,21 @@ bot.on("ready", async() => {
 });
 
 bot.on("message", async msg => { // TODO remove things like @everyone so people can't use it // message.cleanContent
+  if(msg.author.id === bot.user.id) console.log(`i> ${msg.content}`);
   if(msg.author.bot) return;
+  if(msg.guild) console.log(`I< [${msg.guild.nameAcronym}] <#${msg.channel.name}> \`${msg.author.tag}\`: ${msg.content}`);
+  else console.log(`I< pm: ${msg.author.tag}: ${msg.content}`);
   let info = await retrieveGuildInfo(msg);
-  console.log(msg.content);
-  let handle = prefix => msg.content.startsWith(prefix) ? commands.handleCommand(msg.content.replace(prefix, ""), info) || true : false;
+  let handle = prefix => msg.cleanContent.startsWith(prefix) ? commands.handleCommand(msg.cleanContent.replace(prefix, ""), info) || true : false;
   handle(`${info.prefix  } `) || handle(info.prefix) || handle(`${bot.user.toString()} `) || handle(`${bot.user.toString()}`);
 });
 
 bot.on("guildCreate", (guild) => {
-
+  console.log(`_ Joined guild ${guild.name} (${guild.nameAcronym})`);
 });
 
 bot.on("guildDelete", (guild) => { // forget about the guild at some point in time
-
+  console.log(`_ Left guild ${guild.name} (${guild.nameAcronym})`);
 });
 
 bot.login(config.token);

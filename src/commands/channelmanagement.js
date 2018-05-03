@@ -23,4 +23,19 @@ commands.registerCommand("spaceChannels", [o.pm(false), o.myPerm("MANAGE_CHANNEL
   }
 });
 
+commands.registerCommand("renameChannel", [o.pm(false), o.myPerm("MANAGE_CHANNELS"), o.perm("MANAGE_CHANNELS")/*o.yourPerm("MANAGE_CHANNELS")*/], async(data, channel, ...newname) => {
+  if(!channel) return await data.msg.reply("Usage: renameChannel [#channel], [newname]");
+  if(newname.length === 0) return await data.msg.reply("Usage: renameChannel [channel id], [newname]");
+  newname = newname.join` `.split``.map(c =>
+    c.match(/[A-Z]/) ? String.fromCodePoint(c.codePointAt() + 120159) : c
+  ).join``.split` `.join` `;
+  try{
+    data.msg.guild.channels.get(channel.replace(/[^0-9]/g, "")).setName(newname);
+    return await data.msg.reply(`Renamed <#${channel}> to ${newname}`);
+  }catch(ex) {
+    return await data.msg.reply("Could not rename channel. Maybe you didn't tag the channel right?");
+  }
+});
+
+
 module.exports = commands;

@@ -28,14 +28,15 @@ class Commands {
       if(cbargs == undefined) return; //eslint-disable-line eqeqeq
 
       // if(data.requirements.every(option => option(data))) {
-      if(cmd.requirements.every(option => option(data)))
+      let failureMsg = [];
+      if(cmd.requirements.every(option => option(data) ? true : failureMsg.push(option(data, {"preCheck": command})) && false))
         try{
           return cmd.callback(data, ...args) || true;
         }catch(e) {
           console.log(e);
           return data.msg.reply("An internal error occured while attempting to run this command");
         }
-      return data.msg.reply("This command could not be run because some pre-checks failed. More description is coming in a future update") || true;
+      return data.msg.reply(failureMsg[0].preCheck || "This command could not be run for some reasons") || true;
       // }
     });
   }
