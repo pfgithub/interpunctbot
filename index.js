@@ -46,11 +46,21 @@ fs.readdirSync(path.join(__dirname, "src/commands"));
 
 let serverInfo = {};
 
+function tryParse(json) {
+  try{
+    return JSON.parse(json || "[]");
+  }catch(e) {
+    console.log("Could not parse disabled commands for server ^^");
+    return [];
+  }
+}
+
 async function retrieveGuildInfo(msg) {
   let prefix = msg.guild ? "$" : "";
   let options = [/*o.deleteOriginal(1000)*/];
   let quotesPastebin = "";
   let disabledCommands = [];
+  let rankmojis = [];
   if(msg.guild) {
     let guild = (await knex("guilds").where({"id": msg.guild.id}))[0];
     if(!guild) {
@@ -58,11 +68,8 @@ async function retrieveGuildInfo(msg) {
     }else{
       prefix = guild.prefix;
       quotesPastebin = guild.quotes;
-      try{
-        disabledCommands = JSON.parse(guild.disabledCommands || "[]");
-      }catch(e) {
-        console.log("Could not parse disabled commands for server ^^");
-      }
+      disabledCommands = tryParse(guild.disabledCommands);
+      rankmojis = tryParse(guild.rankmojis);
     }
   }
   return{
@@ -72,7 +79,8 @@ async function retrieveGuildInfo(msg) {
     "db": knex,
     "pm": !msg.guild,
     "quotesPastebin": quotesPastebin,
-    "disabledCommands": disabledCommands
+    "disabledCommands": disabledCommands,
+    "rankmojis": rankmojis
   };
 }
 
@@ -82,14 +90,45 @@ bot.on("ready", async() => {
   bot.user.setActivity(`Skynet Simulator ${(new Date()).getFullYear()+1}`);
 });
 
-bot.on("message", async msg => { // TODO remove things like @everyone so people can't use it // message.cleanContent
+async function checkMojiPerms(msg, info) {
+  // if user.hasPerm(nitro custom emojis) && user.isNitro) {//bypass emoji role check}
+  // Discord doesn't give this information to bot accounts :(
+  let mojimsg = msg.cleanContent;
+  let noPermMojis = [];
+  let noPermMojiReason = [];
+  info.rankmojis.forEach(({rank, moji}) => {
+    if(msg.cleanContent.indexOf(moji) > -1) {
+      if(!msg.member.roles.has(rank)) {
+        mojimsg = mojimsg.split(moji).join`[]`;
+        noPermMojis.push(moji);
+        if(msg.guild.roles.get(rank))
+          noPermMojiReason.push(msg.guild.roles.get(rank).name);
+        else
+          noPermMojiReason.push("a rank that doesn't exist");
+      }
+    }
+  });
+  if(mojimsg !== msg.cleanContent) {
+    let response = await msg.reply(`You do not have permission to use the emoji${noPermMojis.length === 1 ? "" : "s"}: ${noPermMojis.join`, `}. You need <${noPermMojiReason.join`>, <`}> to do that`);
+    response.delete(10*1000);
+    await msg.reply(mojimsg);
+    await msg.delete();
+  }
+}
+
+bot.on("message", async msg => {
+  if(msg.cleanContent.indexOf(`ehxMcVy`) > -1) return await msg.delete();
+
   if(msg.author.id === bot.user.id) console.log(`i> ${msg.content}`);
   if(msg.author.bot) return;
   if(msg.guild) console.log(`I< [${msg.guild.nameAcronym}] <#${msg.channel.name}> \`${msg.author.tag}\`: ${msg.content}`);
   else console.log(`I< pm: ${msg.author.tag}: ${msg.content}`);
+
   let info = await retrieveGuildInfo(msg);
   let handle = prefix => msg.cleanContent.startsWith(prefix) ? commands.handleCommand(msg.cleanContent.replace(prefix, ""), info) || true : false;
   handle(`${info.prefix  } `) || handle(info.prefix) || handle(`${bot.user.toString()} `) || handle(`${bot.user.toString()}`);
+
+  checkMojiPerms(msg, info);
 });
 
 bot.on("guildCreate", (guild) => {
