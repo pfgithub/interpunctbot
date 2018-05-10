@@ -55,16 +55,16 @@ function tryParse(json) {
   }
 }
 
-async function retrieveGuildInfo(msg) {
-  let prefix = msg.guild ? "$" : "";
+async function retrieveGuildInfo(g, msg) {
+  let prefix = g ? "$" : "";
   let options = [/*o.deleteOriginal(1000)*/];
   let quotesPastebin = "";
   let disabledCommands = [];
   let rankmojis = [];
-  if(msg.guild) {
-    let guild = (await knex("guilds").where({"id": msg.guild.id}))[0];
+  if(g) {
+    let guild = (await knex("guilds").where({"id": g.id}))[0];
     if(!guild) {
-      await knex("guilds").insert({"id": msg.guild.id, "prefix": prefix});
+      await knex("guilds").insert({"id": g.id, "prefix": prefix});
     }else{
       prefix = guild.prefix;
       quotesPastebin = guild.quotes;
@@ -77,7 +77,7 @@ async function retrieveGuildInfo(msg) {
     "options": options,
     "msg": msg,
     "db": knex,
-    "pm": !msg.guild,
+    "pm": !g,
     "quotesPastebin": quotesPastebin,
     "disabledCommands": disabledCommands,
     "rankmojis": rankmojis
@@ -90,6 +90,7 @@ bot.on("ready", async() => {
   bot.user.setActivity(`Skynet Simulator ${(new Date()).getFullYear()+1}`);
 });
 
+
 async function checkMojiPerms(msg, info) {
   // if user.hasPerm(nitro custom emojis) && user.isNitro) {//bypass emoji role check}
   // Discord doesn't give this information to bot accounts :(
@@ -99,7 +100,7 @@ async function checkMojiPerms(msg, info) {
   info.rankmojis.forEach(({rank, moji}) => {
     if(msg.cleanContent.indexOf(moji) > -1) {
       if(!msg.member.roles.has(rank)) {
-        mojimsg = mojimsg.split(moji).join`[]`;
+        mojimsg = mojimsg.split(moji).join(`[no perms]`);
         noPermMojis.push(moji);
         if(msg.guild.roles.get(rank))
           noPermMojiReason.push(msg.guild.roles.get(rank).name);
@@ -109,11 +110,17 @@ async function checkMojiPerms(msg, info) {
     }
   });
   if(mojimsg !== msg.cleanContent) {
+    await msg.delete();
     let response = await msg.reply(`You do not have permission to use the emoji${noPermMojis.length === 1 ? "" : "s"}: ${noPermMojis.join`, `}. You need <${noPermMojiReason.join`>, <`}> to do that`);
     response.delete(10*1000);
-    await msg.reply(mojimsg);
-    await msg.delete();
+    let themsg = await msg.reply(mojimsg);
+    themsg.delete(20*1000);
   }
+}
+
+function logMsg({msg, prefix}) {
+  if(msg.guild) console.log(`${prefix}< [${msg.guild.nameAcronym}] <#${msg.channel.name}> \`${msg.author.tag}\`: ${msg.content}`);
+  else console.log(`${prefix}< pm: ${msg.author.tag}: ${msg.content}`);
 }
 
 bot.on("message", async msg => {
@@ -121,14 +128,80 @@ bot.on("message", async msg => {
 
   if(msg.author.id === bot.user.id) console.log(`i> ${msg.content}`);
   if(msg.author.bot) return;
-  if(msg.guild) console.log(`I< [${msg.guild.nameAcronym}] <#${msg.channel.name}> \`${msg.author.tag}\`: ${msg.content}`);
-  else console.log(`I< pm: ${msg.author.tag}: ${msg.content}`);
-
-  let info = await retrieveGuildInfo(msg);
+  logMsg({"prefix": "I", "msg": msg});
+  let info = await retrieveGuildInfo(msg.guild, msg);
   let handle = prefix => msg.cleanContent.startsWith(prefix) ? commands.handleCommand(msg.cleanContent.replace(prefix, ""), info) || true : false;
   handle(`${info.prefix  } `) || handle(info.prefix) || handle(`${bot.user.toString()} `) || handle(`${bot.user.toString()}`);
 
   checkMojiPerms(msg, info);
+});
+
+bot.on("messageUpdate", async(from, msg) => {
+  if(msg.author.bot) return;
+  logMsg({"prefix": "Eo", "msg": from}); logMsg({"prefix": "E2", "msg": msg});
+  let info = await retrieveGuildInfo(msg.guild, msg);
+  checkMojiPerms(msg, info);
+});
+
+function getEmojiKey(emoji) {
+  return (emoji.id) ? `${emoji.name}:${emoji.id}` : emoji.name;
+}
+
+bot.on("raw", async event => {
+  if (event.t !== "MESSAGE_REACTION_ADD") return;
+
+  const { "d": data } = event;
+  const user = bot.users.get(data.user_id);
+  const channel = bot.channels.get(data.channel_id);
+  if(!channel) return;
+  let message;
+  message = await channel.fetchMessage(data.message_id);
+  const emojiKey = getEmojiKey(data.emoji);
+  const reaction = message.reactions.get(emojiKey);
+
+  bot.emit("messageReactionAddCustom", reaction, user, message);
+});
+let rolesToAddToMessages = {};
+
+bot.on("messageReactionAddCustom", async(reaction, user, message) => {
+  if(user.bot) return;
+  console.log(`R= ${reaction.emoji}`);
+  let emoji = reaction.emoji.toString();
+  let info = await retrieveGuildInfo(message.guild);
+  let member = message.guild.member(user);
+  if(member.hasPermission("MANAGE_ROLES") && message.guild.member(bot.user).hasPermission("MANAGE_ROLES")) {
+    let delet = () => {
+      if(rolesToAddToMessages[message.id]) {
+        rolesToAddToMessages[message.id].reaxns.forEach(reaxn => message.reactions.get(reaxn).remove());
+        delete rolesToAddToMessages[message.id];
+      }
+    };
+    info.rankmojis.forEach(async({rank, moji}) => {
+      if(moji !== emoji) return;
+      if(!message.guild.roles.get(rank)) return;
+      if(!rolesToAddToMessages[message.id]) rolesToAddToMessages[message.id] = {"roles": [], "reaxns": []};
+      rolesToAddToMessages[message.id].roles.push(rank);
+      rolesToAddToMessages[message.id].reaxns.push(getEmojiKey((await message.react("✅")).emoji));
+      rolesToAddToMessages[message.id].reaxns.push(getEmojiKey((await message.react("❎")).emoji));
+      setTimeout(delet, 5*1000);
+    });
+    if(emoji === "✅") {
+      if(rolesToAddToMessages[message.id]) {
+        rolesToAddToMessages[message.id].roles.forEach(async rolid => {
+          let role = message.guild.roles.get(rolid);
+          try{
+            await message.member.addRole(role);
+            (await message.reply(`Ranked with ${role.name}`)).delete(10*1000);
+          }catch(e) {
+            (await message.reply(`Could not rank, I need to be above the role you want me to rank with`)).delete(10*1000);
+          }
+        });
+      }
+    }
+    if(emoji === "❎") {
+      delet();
+    }
+  }
 });
 
 bot.on("guildCreate", (guild) => {
@@ -141,6 +214,7 @@ bot.on("guildDelete", (guild) => { // forget about the guild at some point in ti
 
 bot.login(config.token);
 
-// stagingServers- Allow configuration updates and moving things around and stuff
-// Please create a server and do `<stageServer discord.gg/asdf`. Bots can't create servers :(
-// //
+process.on("unhandledRejection", (reason, p) => {
+  console.log("Unhandled Rejection at: Promise", p, "reason:", reason);
+  // application specific logging, throwing an error, or other logic here
+});
