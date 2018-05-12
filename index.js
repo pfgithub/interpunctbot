@@ -3,9 +3,9 @@ const config = require("./config");
 const path = require("path");
 const Commands = require("./src/Commands");
 const o = require("./src/options");
-const knex = require("./src/db");
+const knex = require("./src/db"); // TODO add something so if you delete a message with a command it deletes the result messages or a reaction on the result msg or idk
 
-const {EventEmitter} = require("events");
+const {EventEmitter} = require("events"); // TODO add a thing for warning people like $warn [person] and have it be like 1 warning fine 2 warnings tempmute 3 warnings...and customizeable
 
 const fs = require("mz/fs");
 
@@ -61,6 +61,7 @@ async function retrieveGuildInfo(g, msg) {
   let quotesPastebin = "";
   let disabledCommands = [];
   let rankmojis = [];
+  let rankmojiChannel = "";
   if(g) {
     let guild = (await knex("guilds").where({"id": g.id}))[0];
     if(!guild) {
@@ -70,6 +71,7 @@ async function retrieveGuildInfo(g, msg) {
       quotesPastebin = guild.quotes;
       disabledCommands = tryParse(guild.disabledCommands);
       rankmojis = tryParse(guild.rankmojis);
+      rankmojiChannel = guild.rankmojiChannel;
     }
   }
   return{
@@ -80,14 +82,15 @@ async function retrieveGuildInfo(g, msg) {
     "pm": !g,
     "quotesPastebin": quotesPastebin,
     "disabledCommands": disabledCommands,
-    "rankmojis": rankmojis
+    "rankmojis": rankmojis,
+    "rankmojiChannel": rankmojiChannel
   };
 }
 
 bot.on("ready", async() => {
   console.log("Ready");
-  // bot.guilds
-  bot.user.setActivity(`Skynet Simulator ${(new Date()).getFullYear()+1}`);
+  // bot.user.setActivity(`Skynet Simulator ${(new Date()).getFullYear()+1}`);
+  bot.user.setActivity(`$help`);
 });
 
 
@@ -115,7 +118,9 @@ async function checkMojiPerms(msg, info) {
     response.delete(10*1000);
     let themsg = await msg.reply(mojimsg);
     themsg.delete(20*1000);
+    return false;
   }
+  return true;
 }
 
 function logMsg({msg, prefix}) {
@@ -133,7 +138,12 @@ bot.on("message", async msg => {
   let handle = prefix => msg.cleanContent.startsWith(prefix) ? commands.handleCommand(msg.cleanContent.replace(prefix, ""), info) || true : false;
   handle(`${info.prefix  } `) || handle(info.prefix) || handle(`${bot.user.toString()} `) || handle(`${bot.user.toString()}`);
 
-  checkMojiPerms(msg, info);
+  if(!(await checkMojiPerms(msg, info))) return;
+  // if(msg.channel.id === info.rankmojiChannel) {
+  //   info.rankmojis.forEach(({rank, moji}) => {
+  //     msg.react(msg.guild.emojis.get(moji.split`:`[2].replace(/[^0-9]/g, "")) || moji);
+  //   });
+  // }
 });
 
 bot.on("messageUpdate", async(from, msg) => {
@@ -169,6 +179,7 @@ bot.on("messageReactionAddCustom", async(reaction, user, message) => {
   let emoji = reaction.emoji.toString();
   let info = await retrieveGuildInfo(message.guild);
   let member = message.guild.member(user);
+  if(message.channel.id !== info.rankmojiChannel) return;
   if(member.hasPermission("MANAGE_ROLES") && message.guild.member(bot.user).hasPermission("MANAGE_ROLES")) {
     let delet = () => {
       if(rolesToAddToMessages[message.id]) {
@@ -191,7 +202,7 @@ bot.on("messageReactionAddCustom", async(reaction, user, message) => {
           let role = message.guild.roles.get(rolid);
           try{
             await message.member.addRole(role);
-            (await message.reply(`Ranked with ${role.name}`)).delete(10*1000);
+            await message.reply(`Ranked with ${role.name}`);
           }catch(e) {
             (await message.reply(`Could not rank, I need to be above the role you want me to rank with`)).delete(10*1000);
           }

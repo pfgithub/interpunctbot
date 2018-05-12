@@ -30,7 +30,7 @@ commands.registerCommand("renameChannel", [o.pm(false), o.myPerm("MANAGE_CHANNEL
     c.match(/[A-Z]/) ? String.fromCodePoint(c.codePointAt() + 120159) : c
   ).join``.split` `.join` `;
   try{
-    data.msg.guild.channels.get(channel.replace(/[^0-9]/g, "")).setName(newname);
+    data.msg.guild.channels.get(data.msg.mentions.channels.first().id).setName(newname);
     return await data.msg.reply(`Renamed <#${channel}> to ${newname}`);
   }catch(ex) {
     return await data.msg.reply("Could not rename channel. Maybe you didn't tag the channel right?");

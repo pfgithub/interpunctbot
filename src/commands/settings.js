@@ -13,7 +13,7 @@ function printRankMojis(guild, rankmojis) {
 
 commands.registerCommand("settings", [o.pm(false), o.perm("ADMINISTRATOR")/*requireRank("configurator")*/], async(data, setting, ...value) => {
   if(value) value = value.join(" ");
-  if(!setting) return await data.msg.reply("Settings: `prefix: string`, `quote: pastebin id of quotes`, `rankmojis <add/remove> <rank> <emoji>`");
+  if(!setting) return await data.msg.reply("Settings: `prefix: string`, `quote: pastebin id of quotes`, `rankmojis <add/remove> <rank> <emoji>`, `rankmojiChannel: <#channel>`");
   if(setting === "prefix") {
     // if(o.requireRank()(data)) // this needs a subcommand system
     if(!value) return await data.msg.reply(`Prefix: \`${data.prefix}\`.`);
@@ -25,6 +25,13 @@ commands.registerCommand("settings", [o.pm(false), o.perm("ADMINISTRATOR")/*requ
     // if(!value.match(new RegExp(/^[A-Za-z0-9]$/))) return await data.msg.reply`Invalid pastebin id`;
     await data.db("guilds").where({"id": data.msg.guild.id}).update({"quotes": value});
     return await data.msg.reply(`Quote pastebin updated to: https://pastebin.com/${value}.`);
+  }
+  if(setting === "rankmojiChannel") {
+    if(!value) return await data.msg.reply(`Channel <#${data.rankmojiChannel}>.`);
+    let chanid = data.msg.mentions.channels.first().id;
+    // if(!value.match(new RegExp(/^[A-Za-z0-9]$/))) return await data.msg.reply`Invalid pastebin id`;
+    await data.db("guilds").where({"id": data.msg.guild.id}).update({"rankmojiChannel": chanid});
+    return await data.msg.reply(`rankmojiChannel updated to: <#${chanid}>`);
   }
   if(setting === "rankmojis") {
     if(!o.myPerm("MANAGE_MESSAGES")) return await data.msg.reply(`I need permission to MANAGE_MESAGES to use rankmojis`);
