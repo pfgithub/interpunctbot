@@ -51,7 +51,7 @@ async function registerAllCommands() {
     }
   });
   commands.registerCommand(/crash/, [o.owner()], async(data) => {
-    0/0;
+    throw new Error("Unhandled promise rejection");
   });
   /*(await fs.readdir(path.join(__dirname, "src/commands"))).forEach((file) => {
     commands.registerCommands(require(`./src/commands/${  file}`));
