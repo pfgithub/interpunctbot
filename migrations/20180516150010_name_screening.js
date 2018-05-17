@@ -1,7 +1,7 @@
 
 exports.up = (knex, Promise) => {
   return knex.schema.table("guilds", (t) => {
-    t.string("nameScreening");
+    t.json("nameScreening");
   });
 };
 
