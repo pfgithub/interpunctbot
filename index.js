@@ -66,9 +66,9 @@ let serverInfo = {};
 
 function tryParse(json) {
   try{
-    return JSON.parse(json || "[]");
+    return json;
   }catch(e) {
-    console.log("Could not parse disabled commands for server ^^");
+    console.log(`Could not parse  ^^${JSON.stringify(json)}`);
     return [];
   }
 }
