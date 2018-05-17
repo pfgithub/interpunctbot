@@ -70,6 +70,20 @@ To reset the logs, use
 
 If you accidentally reset the logs, too bad.
 
+## Username Screening and Banning
+
+If you want to autoban people who have certain words in their username, you can use nameScreening
+
+    settings nameScreening add some words to ban
+
+This will autoban anyone who joins with `some` or `words` or `to` or `ban` in their name. Not case sensitive.
+
+Watch out when using short words like `to`, you might accidentally ban someone named **To**mas
+
+    settings nameScreening remove to ban
+
+The ban reason will give a list of words in their name that were in the nameScreening list
+
 ## Quotes
 
 If you want a list of quotes people can search and get random ones, create a pastebin paste with your quote list. Each quote should be seperated by two newlines.
