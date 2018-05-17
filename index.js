@@ -13,6 +13,12 @@ const fs = require("mz/fs");
 
 let commands = new Commands;
 
+let production = process.env.NODE_ENV === "production";
+
+function devlog(...msg) {
+  if(!production) console.log(...msg);
+}
+
 
 async function registerAllCommands() {
   commands.registerCommand("help", [], async(data, cmd) => {
@@ -52,6 +58,9 @@ async function registerAllCommands() {
   });
   commands.registerCommand(/crash/, [o.owner()], async(data) => {
     throw new Error("Unhandled promise rejection");
+  });
+  commands.registerCommand(/guildsIAmOn/, [o.owner()], async(data) => {
+    return await data.msg.reply(`I am on ${bot.guilds.size} guilds`);
   });
   /*(await fs.readdir(path.join(__dirname, "src/commands"))).forEach((file) => {
     commands.registerCommands(require(`./src/commands/${  file}`));
@@ -127,7 +136,7 @@ bot.on("guildMemberAdd", async(member) => { // serverNewMember // member.toStrin
     if(member.bannable) {
       member.ban(`Name contains dissallowed words: ${nameParts.join`, `}`);
     }else{
-      console.log("E>< Could not ban member");
+      devlog("E>< Could not ban member");
     }
   }
 });
@@ -163,8 +172,8 @@ async function checkMojiPerms(msg, info) {
 }
 
 function logMsg({msg, prefix}) {
-  if(msg.guild) console.log(`${prefix}< [${msg.guild.nameAcronym}] <#${msg.channel.name}> \`${msg.author.tag}\`: ${msg.content}`);
-  else console.log(`${prefix}< pm: ${msg.author.tag}: ${msg.content}`);
+  if(msg.guild) devlog(`${prefix}< [${msg.guild.nameAcronym}] <#${msg.channel.name}> \`${msg.author.tag}\`: ${msg.content}`);
+  else devlog(`${prefix}< pm: ${msg.author.tag}: ${msg.content}`);
 }
 
 async function guildLog(id, log) {
@@ -172,7 +181,7 @@ async function guildLog(id, log) {
 }
 
 bot.on("message", async msg => {
-  if(msg.author.id === bot.user.id) console.log(`i> ${msg.content}`);
+  if(msg.author.id === bot.user.id) devlog(`i> ${msg.content}`);
   if(msg.author.bot) return;
   logMsg({"prefix": "I", "msg": msg});
   let info = await retrieveGuildInfo(msg.guild, msg);
@@ -221,9 +230,10 @@ let rolesToAddToMessages = {};
 
 bot.on("messageReactionAddCustom", async(reaction, user, message) => {
   if(user.bot) return;
-  console.log(`R= ${reaction.emoji}`);
+  console.log(`R= ${reaction.emoji}`); // keeping this around because this isn't tested that well, if it crashes it might help
   let emoji = reaction.emoji.toString();
   let info = await retrieveGuildInfo(message.guild);
+  // if(info.logging) try{guildLog(msg.guild.id, `[${moment().format("YYYY-MM-DD HH:mm:ss Z")}] <#${message.channel.name}> \`${message.author.tag}\` Edited Message: ${from.content}`)}catch(e){console.log(e);} // no point
   let member = message.guild.member(user);
   if(message.channel.id !== info.rankmojiChannel) return;
   if(member.hasPermission("MANAGE_ROLES") && message.guild.member(bot.user).hasPermission("MANAGE_ROLES")) {
