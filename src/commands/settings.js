@@ -13,7 +13,7 @@ function printRankMojis(guild, rankmojis) {
 
 commands.registerCommand("settings", [o.pm(false), o.perm("ADMINISTRATOR")/*requireRank("configurator")*/], async(data, setting, ...value) => {
   if(value) value = value.join(" ");
-  if(!setting) return await data.msg.reply("Settings: `prefix: string`, `quote: pastebin id of quotes`, `rankmojis <add/remove> <rank> <emoji>`, `rankmojiChannel <#channel>`, `nameScreening <add/remove> <disallowed name parts...>` `logging <true/false>`");
+  if(!setting) return await data.msg.reply("Settings: `prefix: string`, `quote: pastebin id of quotes`, `rankmoji <add/remove> <rank> <emoji>`, `rankmojiChannel <#channel>`, `nameScreening <add/remove> <disallowed name parts...>` `logging <true/false>`");
   if(setting === "prefix") {
     // if(o.requireRank()(data)) // this needs a subcommand system
     if(!value) return await data.msg.reply(`Prefix: \`${data.prefix}\`.`);
@@ -55,7 +55,7 @@ commands.registerCommand("settings", [o.pm(false), o.perm("ADMINISTRATOR")/*requ
     //   await data.db("guilds").where({"id": data.msg.guild.id}).update({"rankmojis": []});
     //   return await data.msg.reply(`delet'd`);
     // }
-    return await data.msg.reply(`rankmojis <add/remove> <rank> <emoji>`);
+    return await data.msg.reply(`rankmoji <add/remove> <rank> <emoji>`);
   }
   if(setting === "logging") {
     if(!value) return await data.msg.reply(`Logging: \`${data.logging}\`. Admins can \`${data.prefix}downloadLog\` to download logs. Logs will be reset when this is run.`);
@@ -67,7 +67,7 @@ commands.registerCommand("settings", [o.pm(false), o.perm("ADMINISTRATOR")/*requ
     if(!value) return await data.msg.reply(printRankMojis(data.msg.guild, data.rankmojis));
     value = value.split` `;
     if(value[0] === "add") {
-      if(value.length !== 3) return await data.msg.reply(`rankmojis add <rank> <emoji>`);
+      if(value.length !== 3) return await data.msg.reply(`rankmoji add <rank> <emoji>`);
       let rank = value[1];
       value.shift(); value.shift();
       data.rankmojis.push({"rank": rank, "moji": value.join` `.trim()});
@@ -75,7 +75,7 @@ commands.registerCommand("settings", [o.pm(false), o.perm("ADMINISTRATOR")/*requ
       return await data.msg.reply(printRankMojis(data.msg.guild, data.rankmojis));
     }
     if(value[0] === "remove") {
-      if(value.length !== 2) return await data.msg.reply(`rankmojis remove <rank/emoji>`);
+      if(value.length !== 2) return await data.msg.reply(`rankmoji remove <rank/emoji>`);
       value.shift(); value = value.join` `.trim();
       data.rankmojis = data.rankmojis.filter(({rank, moji}) => !(rank === value || moji === value) );
       await data.db("guilds").where({"id": data.msg.guild.id}).update({"rankmojis": JSON.stringify(data.rankmojis)});
@@ -85,9 +85,9 @@ commands.registerCommand("settings", [o.pm(false), o.perm("ADMINISTRATOR")/*requ
     //   await data.db("guilds").where({"id": data.msg.guild.id}).update({"rankmojis": []});
     //   return await data.msg.reply(`delet'd`);
     // }
-    return await data.msg.reply(`rankmojis <add/remove> <rank> <emoji>`);
+    return await data.msg.reply(`rankmoji <add/remove> <rank> <emoji>`);
   }
-  return await data.msg.reply("Settings_: `prefix: string`, `quote: pastebin id of quotes` , `rankmojis <add/remove> <rank> <emoji>`");
+  return await data.msg.reply("Setting not found. List settings with $settings");
 });
 
 commands.registerCommand("listRoles", [o.pm(false), o.perm("ADMINISTRATOR")], async(data, setting, ...value) => {
