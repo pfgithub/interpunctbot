@@ -192,6 +192,10 @@ bot.on("messageUpdate", async(from, msg) => {
   if(msg.author.bot) return;
   logMsg({"prefix": "Eo", "msg": from}); logMsg({"prefix": "E2", "msg": msg});
   let info = await retrieveGuildInfo(msg.guild, msg);
+  if(info.logging) try{
+    guildLog(msg.guild.id, `[${moment().format("YYYY-MM-DD HH:mm:ss Z")}] <#${from.channel.name}> \`${from.author.tag}\` Edited Message: ${from.content}`);
+    guildLog(msg.guild.id, `[${moment().format("YYYY-MM-DD HH:mm:ss Z")}] <#${msg.channel.name}> \`${msg.author.tag}\` To: ${msg.content}`);
+  }catch(e) {console.log(e);}
   checkMojiPerms(msg, info);
 });
 
