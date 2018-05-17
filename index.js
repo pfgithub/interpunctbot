@@ -86,7 +86,7 @@ function tryParse(json) {
 }
 
 async function retrieveGuildInfo(g, msg) {
-  let prefix = g ? "$" : "";
+  let prefix = g ? "ip!" : "";
   let options = [/*o.deleteOriginal(1000)*/];
   let quotesPastebin = "";
   let disabledCommands = [];
@@ -126,7 +126,7 @@ async function retrieveGuildInfo(g, msg) {
 bot.on("ready", async() => {
   console.log("Ready");
   // bot.user.setActivity(`Skynet Simulator ${(new Date()).getFullYear()+1}`);
-  bot.user.setActivity(`$help`);
+  bot.user.setActivity(`ip!help`);
 });
 
 bot.on("guildMemberAdd", async(member) => { // serverNewMember // member.toString gives a mention that's cool
