@@ -2,7 +2,7 @@
 
 [Invite Me](https://discordapp.com/api/oauth2/authorize?client_id=433078185555656705&permissions=268445780&scope=bot)
 
-<!-- [![Discuss](https://img.shields.io/discord/446481361692524545.svg)](https://discord.gg/j7qpZdE) -->>
+<!-- [![Discuss](https://img.shields.io/discord/446481361692524545.svg)](https://discord.gg/j7qpZdE) -->
 
 # Feature Tutorials
 
@@ -17,7 +17,7 @@ It even supports emoji prefixes :laughingcrying:
 
 If you mess up the prefix, just use
 
-    @inter·punct prefix <new prefix>
+    @inter·punct settings prefix <new prefix>
 
 ## Spaced Channel Names
 
@@ -70,6 +70,20 @@ To reset the logs, use
 
 If you accidentally reset the logs, too bad.
 
+## Username Screening and Banning
+
+If you want to autoban people who have certain words in their username, you can use nameScreening
+
+    $settings nameScreening add some words to ban
+
+This will autoban anyone who joins with `some` or `words` or `to` or `ban` in their name. Not case sensitive.
+
+Watch out when using short words like `to`, you might accidentally ban someone named **To**mas
+
+    $settings nameScreening remove to ban
+
+The ban reason will give a list of words in their name that were in the nameScreening list
+
 ## Quotes
 
 If you want a list of quotes people can search and get random ones, create a pastebin paste with your quote list. Each quote should be seperated by two newlines.
@@ -93,11 +107,13 @@ Quote single is used to get just one line in a multiline quote. A number at the 
 
 If you wish to change the name of the bot, right click on it's name and select `Change Nickname`
 
-## That's it
-
 # Running it yourself
 
-Edit `config.json` to include your token
+Copy `config.example.json` to `config.json` and edit it with your bot's information. Create a `knexfile.js` containing your DB connection information.
 
+Development should probably be sqlite3 or another 0 setup database, Production should probably be pg or another production databse.
+
+    yarn global add knex
+    knex migrate:latest
     yarn install
     yarn start
