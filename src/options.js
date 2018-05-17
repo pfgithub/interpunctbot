@@ -1,3 +1,4 @@
+const config = require("../config");
 const client = require("../bot");
 
 function about(otherData, cb) {
@@ -21,3 +22,4 @@ module.exports.myPerm = perm => about({"preCheck": `I need access to the ${perm}
 module.exports.perm = perm => about({"preCheck": `You need to have access to the ${perm} permission to use this command`}, data => data.msg.member.hasPermission(perm));
 // perm will have a few permissions. Once a role is set, they will use the role instead ofr
 // Failed to get --- because  ---- is not set // o.setting(quotesPastebin)
+module.exports.owner = perm => about({"preCheck": `You must own the bot to use this command`}, data => data.msg.member.id === config.owner);

@@ -4,6 +4,8 @@ const path = require("path");
 const Commands = require("./src/Commands");
 const o = require("./src/options");
 const knex = require("./src/db"); // TODO add something so if you delete a message with a command it deletes the result messages or a reaction on the result msg or idk
+const Attachment = require("discord.js").Attachment;
+const moment = require("moment");
 
 const {EventEmitter} = require("events"); // TODO add a thing for warning people like $warn [person] and have it be like 1 warning fine 2 warnings tempmute 3 warnings...and customizeable
 
@@ -13,25 +15,34 @@ let commands = new Commands;
 
 
 async function registerAllCommands() {
-  commands.registerCommand("help", [], async(data) => {
+  commands.registerCommand("help", [], async(data, cmd) => {
+    let all = false;
+    if(cmd === "all") all = true;
     let help = [];
     let others = 0;
     commands._commands.forEach(cmd => {
       if(cmd.cmd instanceof RegExp) return;
-      if(cmd.requirements.every(option => option(data))) help.push(`${data.prefix}${cmd.cmd}`);
+      if(all || cmd.requirements.every(option => option(data))) help.push(`${data.prefix}${cmd.cmd}`);
       else others++;
     });
-    return await data.msg.reply(`Commands: \`${help.join`\`, \``}\` ${others ? ` and ${others} others that you or your server cannot use.` : ""}`);
-  });
-  commands.registerCommand("about", [], async(data) => {
-    await data.msg.reply("This bot does a few things. If it does a thing that it shouldn't, message pfg#4865 with the problem and I will fix it.");
+    return await data.msg.reply(`Commands: \`${help.join`\`, \``}\` ${others ? ` and ${others} others that you or your server cannot use.` : ""}. ${!all && others ? `\`${data.prefix}help all\` for a full list of commands` : ""}`);
   });
   commands.registerCommands(
     require("./src/commands/ping"),
     require("./src/commands/settings"),
     require("./src/commands/quote"),
-    require("./src/commands/channelmanagement")
+    require("./src/commands/channelmanagement"),
+    require("./src/commands/about")
   );
+  commands.registerCommand("downloadLog", [o.perm("ADMINISTRATOR")], async(data) => {
+    try{
+      await data.msg.channel.send(new Attachment(`./logs/${data.msg.guild.id}.log`, `${data.msg.guild.name}.log`));
+      await fs.unlink(path.join(__dirname, `logs/${data.msg.guild.id}.log`));
+      await data.msg.reply("Logs have been reset.");
+    }catch(e) {
+      await data.msg.reply`Could not get logs. Maybe they're not enabled?`;
+    }
+  });
   /*(await fs.readdir(path.join(__dirname, "src/commands"))).forEach((file) => {
     commands.registerCommands(require(`./src/commands/${  file}`));
   });*/
@@ -62,6 +73,8 @@ async function retrieveGuildInfo(g, msg) {
   let disabledCommands = [];
   let rankmojis = [];
   let rankmojiChannel = "";
+  let nameScreening = [];
+  let logging = false;
   if(g) {
     let guild = (await knex("guilds").where({"id": g.id}))[0];
     if(!guild) {
@@ -72,6 +85,8 @@ async function retrieveGuildInfo(g, msg) {
       disabledCommands = tryParse(guild.disabledCommands);
       rankmojis = tryParse(guild.rankmojis);
       rankmojiChannel = guild.rankmojiChannel;
+      nameScreening = tryParse(guild.nameScreening);
+      logging = guild.logging === "true" ? true : false;
     }
   }
   return{
@@ -83,7 +98,9 @@ async function retrieveGuildInfo(g, msg) {
     "quotesPastebin": quotesPastebin,
     "disabledCommands": disabledCommands,
     "rankmojis": rankmojis,
-    "rankmojiChannel": rankmojiChannel
+    "rankmojiChannel": rankmojiChannel,
+    "nameScreening": nameScreening,
+    "logging": logging
   };
 }
 
@@ -91,6 +108,18 @@ bot.on("ready", async() => {
   console.log("Ready");
   // bot.user.setActivity(`Skynet Simulator ${(new Date()).getFullYear()+1}`);
   bot.user.setActivity(`$help`);
+});
+
+bot.on("guildMemberAdd", async(member) => { // serverNewMember // member.toString gives a mention that's cool
+  let info = await retrieveGuildInfo(member.guild);
+  let nameParts = info.nameScreening.filter(screen => member.displayName.toLowerCase().indexOf(screen.toLowerCase()) > -1);
+  if(nameParts.length > 0) { // if any part of name contiains screen
+    if(member.bannable) {
+      member.ban(`Name contains dissallowed words: ${nameParts.join`, `}`);
+    }else{
+      console.log("E>< Could not ban member");
+    }
+  }
 });
 
 
@@ -128,13 +157,16 @@ function logMsg({msg, prefix}) {
   else console.log(`${prefix}< pm: ${msg.author.tag}: ${msg.content}`);
 }
 
-bot.on("message", async msg => {
-  if(msg.cleanContent.indexOf(`ehxMcVy`) > -1) return await msg.delete();
+async function guildLog(id, log) {
+  await fs.appendFile(path.join(__dirname, `logs/${id}.log`), `${log}\n`, "utf8");
+}
 
+bot.on("message", async msg => {
   if(msg.author.id === bot.user.id) console.log(`i> ${msg.content}`);
   if(msg.author.bot) return;
   logMsg({"prefix": "I", "msg": msg});
   let info = await retrieveGuildInfo(msg.guild, msg);
+  if(info.logging) try{guildLog(msg.guild.id, `[${moment().format("YYYY-MM-DD HH:mm:ss Z")}] <#${msg.channel.name}> \`${msg.author.tag}\`: ${msg.content}`);}catch(e) {console.log(e);}
   let handle = prefix => msg.cleanContent.startsWith(prefix) ? commands.handleCommand(msg.cleanContent.replace(prefix, ""), info) || true : false;
   handle(`${info.prefix  } `) || handle(info.prefix) || handle(`${bot.user.toString()} `) || handle(`${bot.user.toString()}`);
 

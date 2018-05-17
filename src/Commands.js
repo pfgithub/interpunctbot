@@ -3,15 +3,15 @@ class Commands {
     this._commands = [];
   }
   registerCommand(cmd, requirements, callback) {
-    this.register(cmd, requirements, [], callback); // warning depricated
+    this.register({"cmd": cmd, "requirements": requirements, "callback": callback}); // warning depricated
   }
-  register(cmd, requirements, options, callback) {
-    this._commands.push({"cmd": cmd, "requirements": requirements, "options": options || [], "callback": callback});
+  register({cmd, description, usage, requirements, callback}) {
+    this._commands.push({"cmd": cmd, "description": description, "usage": usage, "requirements": requirements, "callback": callback});
   }
   handleCommand(...args) {
     this.handle(...args); // warning depricated
   }
-  handle(fullcmd, data) {
+  async handle(fullcmd, data) {
     let args = fullcmd.split(" ");
     let command = args[0];
     args.shift();
@@ -36,7 +36,7 @@ class Commands {
           console.log(e);
           return data.msg.reply("An internal error occured while attempting to run this command");
         }
-      return data.msg.reply(failureMsg[0].preCheck || "This command could not be run for some reasons") || true;
+      return data.msg.reply(failureMsg[0].preCheck || "This command could not be run for some reasons. Maybe a setting isn't set.") || true;
       // }
     });
   }
