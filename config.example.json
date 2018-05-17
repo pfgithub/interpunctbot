@@ -1,4 +1,5 @@
 {
   "token": "YOUR BOT TOKEN HERE",
+  "tokenProduction": "YOUR BOT TOKEN HERE FOR WHEN RUNNING IN PRODUCTION MODE",
   "owner": "YOUR USER ID HERE"
 }

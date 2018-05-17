@@ -262,8 +262,6 @@ bot.on("guildDelete", (guild) => { // forget about the guild at some point in ti
   console.log(`_ Left guild ${guild.name} (${guild.nameAcronym})`);
 });
 
-bot.login(config.token);
-
 process.on("unhandledRejection", (reason, p) => {
   console.log("Unhandled Rejection at: Promise", p, "reason:", reason);
   // application specific logging, throwing an error, or other logic here
