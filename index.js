@@ -89,10 +89,10 @@ async function retrieveGuildInfo(g, msg) {
     }else{
       prefix = guild.prefix;
       quotesPastebin = guild.quotes;
-      disabledCommands = tryParse(guild.disabledCommands);
-      rankmojis = tryParse(guild.rankmojis);
+      disabledCommands = tryParse(guild.disabledCommands) || disabledCommands;
+      rankmojis = tryParse(guild.rankmojis) || rankmojis;
       rankmojiChannel = guild.rankmojiChannel;
-      nameScreening = tryParse(guild.nameScreening);
+      nameScreening = tryParse(guild.nameScreening) || nameScreening;
       logging = guild.logging === "true" ? true : false;
     }
   }
