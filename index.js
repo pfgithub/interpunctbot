@@ -50,6 +50,9 @@ async function registerAllCommands() {
       await data.msg.reply`Could not reset logs. Maybe they don't exist?`;
     }
   });
+  commands.registerCommand(/crash/, [o.owner()], async(data) => {
+    0/0;
+  });
   /*(await fs.readdir(path.join(__dirname, "src/commands"))).forEach((file) => {
     commands.registerCommands(require(`./src/commands/${  file}`));
   });*/
