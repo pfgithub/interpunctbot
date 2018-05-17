@@ -90,6 +90,10 @@ For users to get a quote, they can use
 
 Quote single is used to get just one line in a multiline quote. A number at the end can be used to get the nth quote with that search term or of all the quotes
 
+## Change the name
+
+If you wish to change the name of the bot, right click on it's name and select `Change Nickname`
+
 ## That's it
 
 # Running it yourself
