@@ -1,3 +1,7 @@
+# inter·punct bot
+
+[Invite Me](https://discordapp.com/api/oauth2/authorize?client_id=433078185555656705&permissions=268445780&scope=bot)
+
 # Feature Tutorials
 
 ## Change the prefix
