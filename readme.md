@@ -17,7 +17,7 @@ It even supports emoji prefixes :laughingcrying:
 
 If you mess up the prefix, just use
 
-    @inter·punct prefix <new prefix>
+    @inter·punct settings prefix <new prefix>
 
 ## Spaced Channel Names
 
