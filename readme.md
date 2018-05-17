@@ -68,7 +68,7 @@ To reset the logs, use
 
     ip!resetLog
 
-Logs will log messages people send and when they send them. Logs will also log edited messages and if a user is banned for name screening.
+Logs will log messages people send and when they send them. Logs will also log some edited messages and if a user is banned for name screening.
 
 If you accidentally reset the logs, too bad.
 
