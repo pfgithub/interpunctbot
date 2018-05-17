@@ -2,6 +2,8 @@
 
 [Invite Me](https://discordapp.com/api/oauth2/authorize?client_id=433078185555656705&permissions=268445780&scope=bot)
 
+<!-- [![Discuss](https://img.shields.io/discord/446481361692524545.svg)](https://discord.gg/j7qpZdE) -->>
+
 # Feature Tutorials
 
 ## Change the prefix
