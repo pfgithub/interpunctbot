@@ -264,5 +264,11 @@ bot.on("guildDelete", (guild) => { // forget about the guild at some point in ti
 
 process.on("unhandledRejection", (reason, p) => {
   console.log("Unhandled Rejection at: Promise", p, "reason:", reason);
+  let rept = config.errorReporting.split`/`;
+  try{
+    bot.guilds.get(rept[0]).channels.get(rept[1]).send(`<@${config.owner}> Unhandled Rejection at: Promise`, p, "reason:", reason); // TODO disable logging in production and instead show the 10 messages before here with this
+  }catch(e) {
+    console.log("Failed to report");
+  }
   // application specific logging, throwing an error, or other logic here
 });
