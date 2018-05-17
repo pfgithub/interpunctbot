@@ -135,6 +135,9 @@ bot.on("guildMemberAdd", async(member) => { // serverNewMember // member.toStrin
   if(nameParts.length > 0) { // if any part of name contiains screen
     if(member.bannable) {
       member.ban(`Name contains dissallowed words: ${nameParts.join`, `}`);
+      if(info.logging) try{
+        guildLog(member.guild.id, `[${moment().format("YYYY-MM-DD HH:mm:ss Z")}] Banned ${member.displayName} because their name contains ${nameParts.join`, `}`);
+      }catch(e) {console.log(e);}
     }else{
       devlog("E>< Could not ban member");
     }
