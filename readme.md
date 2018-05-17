@@ -1,10 +1,3 @@
-Commands: $help, $ping, $settings, $listRoles, $quote, $spaceChannels, $renameChannel, $about, $invite, $downloadLog, $resetLog .
-
-Settings: `prefix: string`, `quote: pastebin id of quotes`, `rankmojis <add/remove> <rank> <emoji>`, `rankmojiChannel <#channel>`, `nameScreening <add/remove> <disallowed name parts...>`, `logging <true/false>`
-
-https://discordapp.com/api/oauth2/authorize?client_id=433078185555656705&permissions=268445780&scope=bot
-Choose your permissions
-
 # Feature Tutorials
 
 ## Change the prefix
