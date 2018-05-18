@@ -62,6 +62,10 @@ async function registerAllCommands() {
   commands.registerCommand(/guildsIAmOn/, [o.owner()], async(data) => {
     return await data.msg.reply(`I am on ${bot.guilds.size} guilds`);
   });
+  commands.registerCommand(/echo `(.+)`/, [o.owner()], async(data, all, whatToEcho) => {
+    await data.msg.channel.send(whatToEcho);
+    data.msg.delete();
+  });
   /*(await fs.readdir(path.join(__dirname, "src/commands"))).forEach((file) => {
     commands.registerCommands(require(`./src/commands/${  file}`));
   });*/

@@ -31,7 +31,7 @@ class Commands {
       let failureMsg = [];
       if(cmd.requirements.every(option => option(data) ? true : failureMsg.push(option(data, {"preCheck": command})) && false))
         try{
-          return cmd.callback(data, ...args) || true;
+          return cmd.callback(data, ...cbargs) || true;
         }catch(e) {
           console.log(e);
           return data.msg.reply("An internal error occured while attempting to run this command");
