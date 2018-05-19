@@ -199,7 +199,6 @@ bot.on("message", async msg => {
     if(msg.cleanContent.startsWith(prefix)) {
       console.log(msg.cleanContent);
       commands.handleCommand(msg.cleanContent.replace(prefix, ""), info);
-      console.log(msg.cleanContent);
       mostRecentCommands.push({"content": msg.cleanContent, "date": new Date()});
       while(mostRecentCommands.length > 5) {
         mostRecentCommands.shift();
