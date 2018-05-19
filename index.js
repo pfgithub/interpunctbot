@@ -15,6 +15,8 @@ let commands = new Commands;
 
 let production = process.env.NODE_ENV === "production";
 
+let mostRecentCommands = [];
+
 function devlog(...msg) {
   if(!production) console.log(...msg);
 }
@@ -193,7 +195,17 @@ bot.on("message", async msg => {
   logMsg({"prefix": "I", "msg": msg});
   let info = await retrieveGuildInfo(msg.guild, msg);
   if(info.logging) try{guildLog(msg.guild.id, `[${moment().format("YYYY-MM-DD HH:mm:ss Z")}] <#${msg.channel.name}> \`${msg.author.tag}\`: ${msg.content}`);}catch(e) {console.log(e);}
-  let handle = prefix => msg.cleanContent.startsWith(prefix) ? commands.handleCommand(msg.cleanContent.replace(prefix, ""), info) || true : false;
+  let handle = prefix => {
+    if(msg.cleanContent.startsWith(prefix)) {
+      commands.handleCommand(msg.cleanContent.replace(prefix, ""), info);
+      mostRecentCommands.push({"content": msg.cleanContent, "date": new Date()});
+      while(mostRecentCommands.length > 5) {
+        mostRecentCommands.shift();
+      }
+      return true;
+    }
+    return false;
+  };
   handle(`${info.prefix  } `) || handle(info.prefix) || handle(`${bot.user.toString()} `) || handle(`${bot.user.toString()}`);
 
   if(!(await checkMojiPerms(msg, info))) return;
@@ -287,10 +299,11 @@ bot.on("guildDelete", (guild) => { // forget about the guild at some point in ti
 });
 
 process.on("unhandledRejection", (reason, p) => {
-  console.log("Unhandled Rejection at: Promise", p, "reason:", reason);
+  let finalMsg = `${mostRecentCommands.map(c => `\`${c.content}\` ][ ${moment(c.date).fromNow()}`).join`\n`}\n<@${config.owner}> Unhandled Rejection at: Promise ${p.toString()} reason: ${reason.toString()}`;
+  console.log(finalMsg);
   try{
     let rept = config.errorReporting.split`/`;
-    bot.guilds.get(rept[0]).channels.get(rept[1]).send(`<@${config.owner}> Unhandled Rejection at: Promise ${p.toString()} reason: ${reason.toString()}`); // TODO disable logging in production and instead show the 10 messages before here with this
+    bot.guilds.get(rept[0]).channels.get(rept[1]).send(finalMsg); // TODO disable logging in production and instead show the 10 messages before here with this
   }catch(e) {
     console.log("Failed to report");
   }
