@@ -36,10 +36,14 @@ commands.registerCommand("quote", [o.pm(false), o.setting("quotesPastebin")], as
   if(forceLine != null) line = forceLine-1;
   if(line < 0) line = 0;
   if(line > allQuotes.length - 1) line = allQuotes.length - 1;
-  searchString.forEach(s => s ? allQuotes[line] = allQuotes[line].split(s).join(`**${s}**`) : 0);
+  // searchString.forEach(s => s ? allQuotes[line] = allQuotes[line].split(s).join(`**${s}**`) : 0);
   let quoteEmbed = new RichEmbed();
-  quoteEmbed.setTitle("Quote");
-  quoteEmbed.setDescription(`*${allQuotes[line]}*`);
+  let quoteSplit = allQuotes[line].split` - `;
+  let quoteAuthor = quoteSplit[1];
+  let quoteFull = quoteSplit[0];
+  quoteEmbed.setDescription(`*${quoteFull}*`);
+  if(quoteAuthor) quoteEmbed.setAuthor(quoteAuthor);
+  else quoteEmbed.setTitle("Quote");
   quoteEmbed.setFooter(`${line+1}/${allQuotes.length}`);
   quoteEmbed.setColor(`RANDOM`);
   await data.msg.reply("", {"embed": quoteEmbed});
