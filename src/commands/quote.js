@@ -4,6 +4,7 @@ const commands = new (require("../Commands"));
 const o = require("../options");
 const PastebinAPI = require("pastebin-js");
 const pastebin = new PastebinAPI();
+const {RichEmbed} = require("discord.js");
 
 function escapeMarkdown(text) {
   let unescaped = text.replace(/\\(\*|_|`|~|\\)/g, "$1"); // unescape any "backslashed" character
@@ -36,7 +37,12 @@ commands.registerCommand("quote", [o.pm(false), o.setting("quotesPastebin")], as
   if(line < 0) line = 0;
   if(line > allQuotes.length - 1) line = allQuotes.length - 1;
   searchString.forEach(s => s ? allQuotes[line] = allQuotes[line].split(s).join(`**${s}**`) : 0);
-  await data.msg.reply(`${allQuotes[line]} (${line+1}/${allQuotes.length})`);
+  let quoteEmbed = new RichEmbed();
+  quoteEmbed.setTitle("Quote");
+  quoteEmbed.setDescription(`*${allQuotes[line]}*`);
+  quoteEmbed.setFooter(`${line+1}/${allQuotes.length}`);
+  quoteEmbed.setColor(`RANDOM`);
+  await data.msg.reply("", {"embed": quoteEmbed});
   // return await data.msg.delete();
 });
 
