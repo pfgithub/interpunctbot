@@ -197,7 +197,9 @@ bot.on("message", async msg => {
   if(info.logging) try{guildLog(msg.guild.id, `[${moment().format("YYYY-MM-DD HH:mm:ss Z")}] <#${msg.channel.name}> \`${msg.author.tag}\`: ${msg.content}`);}catch(e) {console.log(e);}
   let handle = prefix => {
     if(msg.cleanContent.startsWith(prefix)) {
+      console.log(msg.cleanContent);
       commands.handleCommand(msg.cleanContent.replace(prefix, ""), info);
+      console.log(msg.cleanContent);
       mostRecentCommands.push({"content": msg.cleanContent, "date": new Date()});
       while(mostRecentCommands.length > 5) {
         mostRecentCommands.shift();
