@@ -17,7 +17,7 @@ function deUsererrorIfy(str) {
 
 // quote [single] ...search [number]
 
-commands.registerCommand("quote", [o.pm(false), data => data.quotesPastebin/*requireRank("configurator")*/], async(data, ...searchString) => {
+commands.registerCommand("quote", [o.pm(false), o.setting("quotesPastebin")], async(data, ...searchString) => {
   let forceLine;
   let individual = false;
   if(searchString.length > 0 && searchString[0] === "single") individual = searchString.shift() || true;

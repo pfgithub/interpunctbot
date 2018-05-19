@@ -23,3 +23,4 @@ module.exports.perm = perm => about({"preCheck": `You need to have access to the
 // perm will have a few permissions. Once a role is set, they will use the role instead ofr
 // Failed to get --- because  ---- is not set // o.setting(quotesPastebin)
 module.exports.owner = perm => about({"preCheck": `You must own the bot to use this command`}, data => data.msg.member.id === config.owner);
+module.exports.setting = setting => about({"preCheck": `Your sever needs to have the setting ${setting} set to use this command`}, data => !!data[setting]);

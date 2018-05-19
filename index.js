@@ -40,7 +40,7 @@ async function registerAllCommands() {
     require("./src/commands/channelmanagement"),
     require("./src/commands/about")
   );
-  commands.registerCommand("downloadLog", [o.perm("ADMINISTRATOR")], async(data) => {
+  commands.registerCommand("downloadLog", [o.perm("ADMINISTRATOR"), o.setting("logging")], async(data) => {
     try{
       await data.msg.channel.send(new Attachment(`./logs/${data.msg.guild.id}.log`, `${data.msg.guild.name}.log`));
       await data.msg.reply("Use $resetLog to reset the log.");
@@ -48,7 +48,7 @@ async function registerAllCommands() {
       await data.msg.reply`Could not get logs. Maybe they're not enabled?`;
     }
   });
-  commands.registerCommand("resetLog", [o.perm("ADMINISTRATOR")], async(data) => {
+  commands.registerCommand("resetLog", [o.perm("ADMINISTRATOR"), o.setting("logging")], async(data) => {
     try{
       await fs.unlink(path.join(__dirname, `logs/${data.msg.guild.id}.log`));
       await data.msg.reply("Logs have been reset.");
