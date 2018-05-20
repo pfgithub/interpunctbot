@@ -1,11 +1,23 @@
 const Usage = require("../src/Usage");
-let usage = new Usage();
-usage.add({"path": "add"})
-  .get({"name": "rank", "match": /([^ ]+) {0,1}/, "prepare": (...matches) => matches[1]})
-  .get({"name": "moji", "match": /.+/, "prepare": (...matches) => matches[0].trim()});
-usage.add({"path": "remove"})
-  .get({"name": "rankormoji", "match": /.+/, "prepare": (...matches) => matches[0].trim()});
-
+let usage = new Usage({"description": "", "requirements": ""});
+usage.add("settings", new Usage({
+  "description": "Adjusts settings",
+  "requirements": []
+}));
+usage.path("settings").add("rankmoji", new Usage({
+  "description": "Adjusts Rankmoji",
+  "requirements": [],
+  "callback": (data) => {
+    data.msg.reply(data.rankmoji);
+  }
+}));
+usage.path("settings rankmoji").add("add", new Usage({
+  "description": "Adds a rankmoji",
+  "requirements": [],
+  "callback": (data) => {
+    data.msg.reply(data.rankmoji);
+  }
+}));
 
 /*
 settings rankmoji add <rank> <moji>
