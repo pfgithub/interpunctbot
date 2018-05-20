@@ -250,7 +250,7 @@ let rolesToAddToMessages = {};
 
 bot.on("messageReactionAddCustom", async(reaction, user, message) => {
   if(user.bot) return;
-  console.log(`R= ${reaction.emoji}`); // keeping this around because this isn't tested that well, if it crashes it might help
+  // console.log(`R= ${reaction.emoji}`); // keeping this around because this isn't tested that well, if it crashes it might help // not keeping it around it'll be loud
   let emoji = reaction.emoji.toString();
   let info = await retrieveGuildInfo(message.guild);
   // if(info.logging) try{guildLog(msg.guild.id, `[${moment().format("YYYY-MM-DD HH:mm:ss Z")}] <#${message.channel.name}> \`${message.author.tag}\` Edited Message: ${from.content}`)}catch(e){console.log(e);} // no point
