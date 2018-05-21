@@ -5,7 +5,7 @@
   "license": "MIT",
   "scripts": {
     "test": "nyc mocha",
-    "posttest": ""
+    "posttest": "nyc report --reporter lcov"
   },
   "dependencies": {
     "bookshelf": "^0.13.3",
