@@ -1,9 +1,14 @@
 class Usage {
-  constructor({description, requirements, callback}) {
+  constructor({description = "No description provided", requirements = [], usage = [], callback}) {
     this.paths = {};
     this.callback = callback;
-    this.description = description || "No description provided";
-    this.requirements = requirements || []; // TODO add something here so when displaying usage it says like settings rankmoji add <rank id> <moji>
+    this.description = description;
+    this.requirements = requirements;
+    console.log(requirements, this.requirements);
+    usage.map(usagePart => {
+      if(Array.isArray(usagePart)) usagePart = usagePart.join`|`;
+      return `<${usagePart}>`;
+    });
   }
   add(path, usage) {
     this.paths[path] = usage;
@@ -16,17 +21,19 @@ class Usage {
     let nextPath = cmd.shift();
     if(this.paths[nextPath]) {
       cmd = cmd.join` `;
-      this.paths[nextPath].parse(data, cmd);
-    }else{ // TODO else if loop over regex options
-      if(!this.callback) return "TODO put usage here";
-      this.callback(...command.split` `);
-    }
+      return this.paths[nextPath].parse(data, cmd);
+    } // TODO else if loop over regex options
+    if(!this.callback) return "TODO put usage here";
+    this.callback(data, ...command.split` `);
+
     return;
   }
   path(path) {
     path = path.split` `;
     let nextPath = path.shift();
     if(!nextPath) return this;
+    nextPath = this.paths[nextPath];
+    if(!nextPath) throw new Error("Path not found");
     return nextPath.path(path.join` `);
   }
 }

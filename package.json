@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "main": "index.js",
   "license": "MIT",
+  "scripts": {
+    "test": "nyc mocha",
+    "posttest": ""
+  },
   "dependencies": {
     "bookshelf": "^0.13.3",
     "discord.js": "^11.3.2",
@@ -12,5 +16,9 @@
     "pastebin-js": "^0.5.1",
     "pg": "^7.4.3",
     "sqlite3": "^4.0.0"
+  },
+  "devDependencies": {
+    "mocha": "^5.2.0",
+    "nyc": "^11.8.0"
   }
 }
