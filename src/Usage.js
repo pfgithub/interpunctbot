@@ -4,7 +4,6 @@ class Usage {
     this.callback = callback;
     this.description = description;
     this.requirements = requirements;
-    console.log(requirements, this.requirements);
     usage.map(usagePart => {
       if(Array.isArray(usagePart)) usagePart = usagePart.join`|`;
       return `<${usagePart}>`;
@@ -14,7 +13,7 @@ class Usage {
     this.paths[path] = usage;
   }
   parse(data, command) { // TODO support requirements // TODO return the thing to say so this can be unit tested
-    let failedRequirement = this.requirements.find(requirement => requirement(data));
+    let failedRequirement = this.requirements.find(requirement => !requirement(data));
     if(failedRequirement)
       return failedRequirement(data, {"preCheck": ""}).preCheck || "This command could not be run. No reason was specified.";
     let cmd = command.split` `;
