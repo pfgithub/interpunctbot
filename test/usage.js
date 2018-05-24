@@ -33,6 +33,7 @@ usage.path("settings rankmoji").add("remove", new Usage({
     data(rankOrMoji.join` `.trim());
   }
 }));
+usage.depricate("rankmojiSettings", "settings rankmoji");
 
 describe("Usage", () => {
   it("should parse commands", (done) => {
@@ -43,6 +44,7 @@ describe("Usage", () => {
     assert.equal(usage.parse(o => assert.equal(o, "MYrankmoji", c+="a"), "settings rankmoji"), undefined);
     assert.equal(usage.parse(o => assert.equal(o, "rankID, my moji", c+="b"), "settings rankmoji add rankID   my moji "), undefined);
     assert.equal(usage.parse(o => assert.equal(o, "moji to remove", c+="c"), "settings rankmoji remove   moji to remove   "), undefined);
+    assert.equal(usage.parse("hi", "rankmojiSettings"), "This command has been renamed to `settings rankmoji`. Please use that instead.");
     setTimeout(a => {
       assert.equal(c, "abc");
       done();

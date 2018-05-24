@@ -12,6 +12,12 @@ class Usage {
   add(path, usage) {
     this.paths[path] = usage;
   }
+  depricate(path, replacement) {
+    this.paths[path] = new Usage({
+      "description": "This command is depricated",
+      "requirements": [(o, g) => g ? {"preCheck": `This command has been renamed to \`${replacement}\`. Please use that instead.`} : false]
+    });
+  }
   parse(data, command) { // TODO support requirements // TODO return the thing to say so this can be unit tested
     let failedRequirement = this.requirements.find(requirement => !requirement(data));
     if(failedRequirement)
