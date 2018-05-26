@@ -1,21 +1,20 @@
-const commands = new (require("../Commands"));
+const Usage = require("../Usage");
 const o = require("../options");
 
-commands.registerCommand("about", [], async(data, setting, ...value) => {
-  await data.msg.reply(`
+let about = new Usage({
+  "description": "Info about the bot",
+  "callback": async(data) => {
+    await data.msg.reply(`
 Interpunct Bot
 Made by pfg#4865
-${data.prefix}invite to invite me
-https://github.com/pfgithub/interpunctbot
 I support PMs
-  `);
+
+Links:
+
+Invite Me: <https://discordapp.com/api/oauth2/authorize?client_id=433078185555656705&permissions=268445780&scope=bot>
+Github: <https://github.com/pfgithub/interpunctbot>
+    `);
+  }
 });
 
-commands.registerCommand("invite", [], async(data, setting, ...value) => {
-  await data.msg.reply(`
-https://discordapp.com/api/oauth2/authorize?client_id=433078185555656705&permissions=268445780&scope=bot
-Choose your permissions
-  `);
-});
-
-module.exports = commands;
+module.exports = about;

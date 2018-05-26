@@ -1,5 +1,9 @@
-const commands = new (require("../Commands"));
+const Usage = require("../Usage");
 const o = require("../options");
+
+let channels = new Usage({
+  "desription": "Commands related to managing channels"
+});
 
 function spaceChannels({guild, from, to, msg}) {
   let channelNames = [];
@@ -7,21 +11,26 @@ function spaceChannels({guild, from, to, msg}) {
   return channelNames.length > 10 ? `${channelNames.length} channels` : `${  channelNames.join(", ")  }.`;
 }
 
-commands.registerCommand("spaceChannels", [o.pm(false), o.myPerm("MANAGE_CHANNELS"), o.perm("MANAGE_CHANNELS")/*o.yourPerm("MANAGE_CHANNELS")*/], async(data, yn) => {
-  if(!yn) return data.msg.reply("Usage: spaceChannels [space|dash]");
-  switch (yn) {
-    case "true":
-    case "space":
-    case "yes":
-      return data.msg.reply(`Spaced ${spaceChannels({"guild": data.msg.guild, "from": `-`, "to": ` `, "msg": data.msg})}`);
-    case "false":
-    case "dash":
-    case "no":
-      return data.msg.reply(`Dashed ${spaceChannels({"guild": data.msg.guild, "to": `-`, "from": ` `, "msg": data.msg})}`);
-    default:
-      return data.msg.reply("Usage: spaceChannels [space|dash]");
+channels.add("spacing", new Usage({
+  "description": "Have spaces in channel names instead of dashes",
+  "requirements": [o.pm(false), o.myPerm("MANAGE_CHANNELS"), o.perm("MANAGE_CHANNELS")/*o.yourPerm("MANAGE_CHANNELS")*/],
+  "usage": [["space", "dash"]],
+  "callback": async(data, yn) => {
+    if(!yn) return data.msg.reply("Usage: channels spacing [space|dash]");
+    switch (yn) {
+      case "true":
+      case "space":
+      case "yes":
+        return data.msg.reply(`Spaced ${spaceChannels({"guild": data.msg.guild, "from": `-`, "to": ` `, "msg": data.msg})}`);
+      case "false":
+      case "dash":
+      case "no":
+        return data.msg.reply(`Dashed ${spaceChannels({"guild": data.msg.guild, "to": `-`, "from": ` `, "msg": data.msg})}`);
+      default:
+        return data.msg.reply("Usage: spaceChannels [space|dash]");
+    }
   }
-});
+}));
 
 
-module.exports = commands;
+module.exports = channels;

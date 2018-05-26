@@ -1,4 +1,4 @@
-const commands = new (require("../Commands"));
+const Usage = require("../Usage");
 const o = require("../options");
 
 function getRankName(guild, rank) {
@@ -7,95 +7,141 @@ function getRankName(guild, rank) {
   return ("???");
 }
 
-function printRankMojis(guild, rankmojis) {
+function printRankMojis(guild, rankmojis) { // TODO add some Setting class so you can easily add settings like list settings or set settings
   return `Rankmojis: ${rankmojis.map(({rank, moji}) => `${moji}: ${getRankName(guild, rank)}`).join`, `}`;
 }
 
-commands.registerCommand("settings", [o.pm(false), o.perm("ADMINISTRATOR")/*requireRank("configurator")*/], async(data, setting, ...value) => {
-  if(value) value = value.join(" ");
-  if(!setting) return await data.msg.reply("Settings: `prefix: string`, `quote: pastebin id of quotes`, `rankmoji <add/remove> <rank> <emoji>`, `rankmojiChannel <#channel>`, `nameScreening <add/remove> <disallowed name parts...>` `logging <true/false>`");
-  if(setting === "prefix") {
-    // if(o.requireRank()(data)) // this needs a subcommand system
+let settings = new Usage({
+  "description": "Adjust bot settings",
+  "requirements": [o.pm(false), o.perm("ADMINISTRATOR")]
+});
+
+settings.add("prefix", new Usage({
+  "description": "Set the bot prefix",
+  "usage": ["new prefix..."],
+  "callback": async(data, ...value) => {
     if(!value) return await data.msg.reply(`Prefix: \`${data.prefix}\`.`);
+    value = value.join` `;
+
     await data.db("guilds").where({"id": data.msg.guild.id}).update({"prefix": value});
     return await data.msg.reply(`Prefix updated to: \`${value}\`.`);
   }
-  if(setting === "quote") {
+}));
+
+settings.add("quote", new Usage({
+  "description": "Set pastebin url for where to find quotes",
+  "usage": ["new prefix..."],
+  "callback": async(data, ...value) => {
     if(!value) return await data.msg.reply(`Quote pastebin: https://pastebin.com/${data.quotesPastebin}.`);
     // if(!value.match(new RegExp(/^[A-Za-z0-9]$/))) return await data.msg.reply`Invalid pastebin id`;
     await data.db("guilds").where({"id": data.msg.guild.id}).update({"quotes": value});
     return await data.msg.reply(`Quote pastebin updated to: https://pastebin.com/${value}.`);
   }
-  if(setting === "rankmojiChannel") {
-    if(!value) return await data.msg.reply(`Channel <#${data.rankmojiChannel}>.`);
-    let chanid = data.msg.mentions.channels.first().id;
-    // if(!value.match(new RegExp(/^[A-Za-z0-9]$/))) return await data.msg.reply`Invalid pastebin id`;
+}));
+
+settings.add("rankmoji", new Usage({
+  "description": "Set/Remove/List all rankmoji",
+  "requierements": [o.myPerm("MANAGE_MESSAGES")],
+  "callback": async(data, value) => {
+    if(value) return await data.msg.reply("TODO print usage");
+    return await data.msg.reply(printRankMojis(data.msg.guild, data.rankmojis));
+  }
+}));
+
+settings.path("rankmoji").add("add", new Usage({
+  "description": "Add a rankmoji",
+  "usage": ["rank", "emoji"],
+  "callback": async(data, rank, ...moji) => {
+    if(!rank || !moji) return await data.msg.reply(`<rank> <emoji>`);
+
+    data.rankmojis.push({"rank": rank, "moji": moji.join` `.trim()});
+    await data.db("guilds").where({"id": data.msg.guild.id}).update({"rankmojis": JSON.stringify(data.rankmojis)});
+    return await data.msg.reply(printRankMojis(data.msg.guild, data.rankmojis));
+  }
+}));
+
+settings.path("rankmoji").add("remove", new Usage({
+  "description": "Add a rankmoji",
+  "usage": [["rank", "emoji"]],
+  "callback": async(data, ...value) => {
+    if(!value) return await data.msg.reply(`<rank/emoji>`);
+
+    value = value.join` `.trim();
+    data.rankmojis = data.rankmojis.filter(({rank, moji}) => !(rank === value || moji === value) );
+    await data.db("guilds").where({"id": data.msg.guild.id}).update({"rankmojis": JSON.stringify(data.rankmojis)});
+
+    return await data.msg.reply(printRankMojis(data.msg.guild, data.rankmojis));
+  }
+}));
+
+settings.depricate("rankmojiChannel", "rankmoji channel");
+settings.path("rankmoji").add("channel", new Usage({
+  "description": "Sets a channel that can be used to rank people with emojis",
+  "requierements": [o.myPerm("MANAGE_ROLES")],
+  "usage": ["channel"],
+  "callback": async(data) => {
+    let chanid;
+    try{
+      chanid = data.msg.mentions.channels.first().id; // TODO use ? syntax when it gets released
+    }catch(e) {}
+    if(!chanid) return await data.msg.reply(`Rankmoji Channel: <#${data.rankmojiChannel}>.`);
+
     await data.db("guilds").where({"id": data.msg.guild.id}).update({"rankmojiChannel": chanid});
     return await data.msg.reply(`rankmojiChannel updated to: <#${chanid}>`);
   }
-  if(setting === "nameScreening") {
-    if(!o.myPerm("BAN_MEMBERS")(data)) return await data.msg.reply(`I need permission to BAN_MEMBERS to use name screening`);
+}));
+
+settings.add("nameScreening", new Usage({
+  "description": "Set/Remove/List all names where users will be instantly banned upon joining",
+  "requierements": [o.myPerm("BAN_MEMBERS")],
+  "callback": async(data, value) => {
     if(!value) return await data.msg.reply(`Dissalowed Name Parts: ${data.nameScreening.join`, `}`);
-    value = value.split` `;
-    if(value[0] === "add") {
-      if(value.length <= 1) return await data.msg.reply(`nameScreening add <name parts...>`);
-      value.shift();
-      data.nameScreening.push(...value);
-      await data.db("guilds").where({"id": data.msg.guild.id}).update({"nameScreening": JSON.stringify(data.nameScreening)});
-      return await data.msg.reply(`Dissalowed Name Parts: ${data.nameScreening.join`, `}`);
-    }
-    if(value[0] === "remove") {
-      if(value.length <= 1) return await data.msg.reply(`nameScreening remove <name parts...>`);
-      value.shift();
-      data.nameScreening = data.nameScreening.filter(v => value.indexOf(v) <= -1); //
-      await data.db("guilds").where({"id": data.msg.guild.id}).update({"nameScreening": JSON.stringify(data.nameScreening)});
-      return await data.msg.reply(`Dissalowed Name Parts: ${data.nameScreening.join`, `}`);
-    }
-    // if(value[0] === "delet-this") {
-    //   await data.db("guilds").where({"id": data.msg.guild.id}).update({"rankmojis": []});
-    //   return await data.msg.reply(`delet'd`);
-    // }
-    return await data.msg.reply(`rankmoji <add/remove> <rank> <emoji>`);
   }
-  if(setting === "logging") {
-    if(!value) return await data.msg.reply(`Logging: \`${data.logging}\`. Admins can \`${data.prefix}downloadLog\` to download logs. Logs will be reset when this is run.`);
+}));
+
+settings.path("nameScreening").add("add", new Usage({
+  "description": "Add a nameScreening",
+  "usage": ["name parts..."],
+  "callback": async(data, ...nameparts) => {
+    data.nameScreening.push(...nameparts);
+
+    await data.db("guilds").where({"id": data.msg.guild.id}).update({"nameScreening": JSON.stringify(data.nameScreening)});
+    return await data.msg.reply(`Dissalowed Name Parts: ${data.nameScreening.join`, `}`);
+  }
+}));
+
+settings.path("nameScreening").add("remove", new Usage({
+  "description": "Remove a nameScreening",
+  "usage": ["name parts..."],
+  "callback": async(data, ...nameparts) => {
+    data.nameScreening = data.nameScreening.filter(v => nameparts.indexOf(v) <= -1); //
+
+    await data.db("guilds").where({"id": data.msg.guild.id}).update({"nameScreening": JSON.stringify(data.nameScreening)});
+    return await data.msg.reply(`Dissalowed Name Parts: ${data.nameScreening.join`, `}`);
+  }
+}));
+
+settings.add("logging", new Usage({
+  "description": "Enable/disable logging",
+  "usage": [["true", "false"]],
+  "callback": async(data, value) => {
+    if(!value) return await data.msg.reply(`Logging: \`${data.logging}\`. Admins can \`${data.prefix}log download\` to download logs. Logs will be reset when this is run.`);
+
     await data.db("guilds").where({"id": data.msg.guild.id}).update({"logging": value === "true" ? "true" : "false"});
-    return await data.msg.reply(`Logging updated to: \`${value === "true" ? "true" : "false"}\`.`);
+    return await data.msg.reply(`Logging is now \`${value === "true" ? "enabled" : "disabled"}\`.`);
   }
-  if(setting === "rankmoji") {
-    if(!o.myPerm("MANAGE_MESSAGES")(data)) return await data.msg.reply(`I need permission to MANAGE_MESAGES to use rankmojis`);
-    if(!value) return await data.msg.reply(printRankMojis(data.msg.guild, data.rankmojis));
-    value = value.split` `;
-    if(value[0] === "add") {
-      if(value.length !== 3) return await data.msg.reply(`rankmoji add <rank> <emoji>`);
-      let rank = value[1];
-      value.shift(); value.shift();
-      data.rankmojis.push({"rank": rank, "moji": value.join` `.trim()});
-      await data.db("guilds").where({"id": data.msg.guild.id}).update({"rankmojis": JSON.stringify(data.rankmojis)});
-      return await data.msg.reply(printRankMojis(data.msg.guild, data.rankmojis));
-    }
-    if(value[0] === "remove") {
-      if(value.length !== 2) return await data.msg.reply(`rankmoji remove <rank/emoji>`);
-      value.shift(); value = value.join` `.trim();
-      data.rankmojis = data.rankmojis.filter(({rank, moji}) => !(rank === value || moji === value) );
-      await data.db("guilds").where({"id": data.msg.guild.id}).update({"rankmojis": JSON.stringify(data.rankmojis)});
-      return await data.msg.reply(printRankMojis(data.msg.guild, data.rankmojis));
-    }
-    // if(value[0] === "delet-this") {
-    //   await data.db("guilds").where({"id": data.msg.guild.id}).update({"rankmojis": []});
-    //   return await data.msg.reply(`delet'd`);
-    // }
-    return await data.msg.reply(`rankmoji <add/remove> <rank> <emoji>`);
-  }
-  return await data.msg.reply("Setting not found. List settings with $settings");
-});
+}));
 
-commands.registerCommand("listRoles", [o.pm(false), o.perm("ADMINISTRATOR")], async(data, setting, ...value) => {
-  let res = [];
-  for(let [id, role] of data.msg.guild.roles) {
-    res.push(`${id}: ${role.name}`);
+settings.add("listRoles", new Usage({
+  "description": "List roles on the server",
+  "usage": [["true", "false"]],
+  "callback": async(data) => {
+    let res = [];
+    for(let [id, role] of data.msg.guild.roles) {
+      res.push(`${id}: ${role.name}`);
+    }
+    return await data.msg.reply(res.join`\n`.split`@everyone`.join`everyone`.split`@here`.join`here`);
   }
-  return await data.msg.reply(res.join`\n`.split`@everyone`.join`everyone`.split`@here`.join`here`);
-});
+}));
 
-module.exports = commands;
+module.exports = settings;
