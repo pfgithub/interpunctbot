@@ -140,9 +140,11 @@ settings.add("listRoles", new Usage({
     let resEmbed = new RichEmbed();
     for(let [id, role] of data.msg.guild.roles) {
       res.push(`${id}: ${role.name}`);
-      resEmbed.addField(role.name, `\`\`\`${id}\`\`\``);
+      if(resEmbed.fields.length < 25)
+        resEmbed.addField(role.name, `\`\`\`${id}\`\`\``);
     }
-    return await data.msg.reply(``, {"embed": resEmbed});
+    if(resEmbed.fields.length < 25) return await data.msg.reply(``, {"embed": resEmbed});
+    return await data.msg.reply(`\`\`\`${res.join`\n`}\`\`\``);
     // return await data.msg.reply(`\`\`\`${res.join`\n`.split`@everyone`.join`everyone`.split`@here`.join`here`}\`\`\``);
   }
 }));
