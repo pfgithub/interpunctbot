@@ -1,17 +1,23 @@
 const bot = require("./bot");
 const config = require("./config");
 const path = require("path");
-const Commands = require("./src/Commands");
+const Usage = require("./src/Usage");
 const o = require("./src/options");
 const knex = require("./src/db"); // TODO add something so if you delete a message with a command it deletes the result messages or a reaction on the result msg or idk
-const Attachment = require("discord.js").Attachment;
+const {Attachment, RichEmbed} = require("discord.js");
 const moment = require("moment");
 
 const {EventEmitter} = require("events"); // TODO add a thing for warning people like $warn [person] and have it be like 1 warning fine 2 warnings tempmute 3 warnings...and customizeable
 
 const fs = require("mz/fs");
 
-let commands = new Commands;
+let usage = new Usage({
+  "description": "All Commands",
+  "usage": ["command..."],
+  "callback": (data, ...command) => {
+    return data.msg.reply(`Comand \`${command}\` not found, try \`help\` for a list of commands`);
+  }
+});
 
 let production = process.env.NODE_ENV === "production";
 
@@ -21,62 +27,72 @@ function devlog(...msg) {
   if(!production) console.log(...msg);
 }
 
+usage.add("help",  new Usage({
+  "description": "List help for all commands",
+  "usage": ["command..."],
+  "callback": async(data, ...command) => {
+    let cmdToGetHelp;
+    try{
+      cmdToGetHelp = command ? usage.path(command.join` `) : usage;
+    }catch(e) {
+      return data.msg.reply("Command not found");
+    }
+    data.msg.reply(cmdToGetHelp.description);
+    let commands = `\`\`\`${cmdToGetHelp.getUsage({"data": data}).join`\n`}\`\`\``;
+    return data.msg.reply(commands);
+  }
+}));
+usage.add("settings", require("./src/commands/settings"));
+console.log(usage.path(`settings rankmoji`).prefix);
+usage.add("ping", require("./src/commands/ping"));
+usage.add("quote", require("./src/commands/quote"));
 
-async function registerAllCommands() {
-  commands.registerCommand("help", [], async(data, cmd) => {
-    let all = false;
-    if(cmd === "all") all = true;
-    let help = [];
-    let others = 0;
-    commands._commands.forEach(cmd => {
-      if(cmd.cmd instanceof RegExp) return;
-      if(all || cmd.requirements.every(option => option(data))) help.push(`${data.prefix}${cmd.cmd}`);
-      else others++;
-    });
-    return await data.msg.reply(`Commands: \`${help.join`\`, \``}\` ${others ? ` and ${others} others that you or your server cannot use.` : ""}. ${!all && others ? `\`${data.prefix}help all\` for a full list of commands` : ""}`);
-  });
-  commands.registerCommands(
-    require("./src/commands/ping"),
-    require("./src/commands/settings"),
-    require("./src/commands/quote"),
-    require("./src/commands/channelmanagement"),
-    require("./src/commands/about")
-  );
-  commands.registerCommand("downloadLog", [o.perm("ADMINISTRATOR"), o.setting("logging")], async(data) => {
-    try{
-      await data.msg.channel.send(new Attachment(`./logs/${data.msg.guild.id}.log`, `${data.msg.guild.name}.log`));
-      await data.msg.reply("Use $resetLog to reset the log.");
-    }catch(e) {
-      await data.msg.reply`Could not get logs. Maybe they're not enabled?`;
-    }
-  });
-  commands.registerCommand("resetLog", [o.perm("ADMINISTRATOR"), o.setting("logging")], async(data) => {
-    try{
-      await fs.unlink(path.join(__dirname, `logs/${data.msg.guild.id}.log`));
-      await data.msg.reply("Logs have been reset.");
-    }catch(e) {
-      await data.msg.reply`Could not reset logs. Maybe they don't exist?`;
-    }
-  });
-  commands.registerCommand(/crash/, [o.owner()], async(data) => {
-    throw new Error("Unhandled promise rejection");
-  });
-  commands.registerCommand(/guildsIAmOn/, [o.owner()], async(data) => {
-    return await data.msg.reply(`I am on ${bot.guilds.size} guilds`);
-  });
-  commands.registerCommand(/echo `(.+)`/, [o.owner()], async(data, all, whatToEcho) => {
-    await data.msg.channel.send(whatToEcho.split`:__:`.join``);
-    data.msg.delete();
-  });
-  /*(await fs.readdir(path.join(__dirname, "src/commands"))).forEach((file) => {
+usage.depricate("spaceChannels", "channels spacing");
+
+usage.add("channels", require("./src/commands/channelmanagement"));
+
+usage.depricate("invite", "about");
+usage.add("about", require("./src/commands/about"));
+
+usage.depricate("downloadLog", "log download");
+usage.depricate("resetLog", "log reset");
+usage.depricate("listRoles", "settings listRoles");
+
+let log = new Usage({"description": "Commands related to logging", "requirements": [o.perm("ADMINISTRATOR"), o.setting("logging")]});
+
+log.add("download", new Usage({
+  "description": "Download the saved log",
+  "callback": async(data) => {
+    await data.msg.channel.send(new Attachment(`./logs/${data.msg.guild.id}.log`, `${data.msg.guild.name}.log`));
+    await data.msg.reply("Use `log reset` to reset the log.");
+  }
+}));
+log.add("reset", new Usage({
+  "description": "Delete the saved log",
+  "callback": async(data) => {
+    await fs.unlink(path.join(__dirname, `logs/${data.msg.guild.id}.log`));
+    await data.msg.reply("Logs have been reset.");
+  }
+}));
+
+usage.add("log", log);
+// TBD add hidden owner commands
+// commands.registerCommand(/crash/, [o.owner()], async(data) => {
+//   throw new Error("Unhandled promise rejection");
+// });
+// commands.registerCommand(/guildsIAmOn/, [o.owner()], async(data) => {
+//   return await data.msg.reply(`I am on ${bot.guilds.size} guilds`);
+// });
+// commands.registerCommand(/echo `(.+)`/, [o.owner()], async(data, all, whatToEcho) => {
+//   await data.msg.channel.send(whatToEcho.split`:__:`.join``);
+//   data.msg.delete();
+// });
+/*(await fs.readdir(path.join(__dirname, "src/commands"))).forEach((file) => {
     commands.registerCommands(require(`./src/commands/${  file}`));
   });*/
-  commands.registerCommand(new RegExp(/.+/), [], async(data) => {
-    await data.msg.reply(`Command not found, try \`${data.prefix}help\` for a list of commands`);
-  });
-}
-
-registerAllCommands();
+// commands.registerCommand(new RegExp(/.+/), [], async(data) => {
+//   await data.msg.reply(`Command not found, try \`${data.prefix}help\` for a list of commands`);
+// });
 
 fs.readdirSync(path.join(__dirname, "src/commands"));
 
@@ -84,7 +100,7 @@ let serverInfo = {};
 
 function tryParse(json) {
   try{
-    return json;
+    return typeof json === "string" ? JSON.parse(json) : json;
   }catch(e) {
     console.log(`Could not parse  ^^${JSON.stringify(json)}`);
     return [];
@@ -129,11 +145,18 @@ async function retrieveGuildInfo(g, msg) {
   };
 }
 
+
+function updateActivity() {
+  bot.user.setActivity(`ip!help on ${bot.guilds.size} servers`);
+}
+
 bot.on("ready", async() => {
   console.log("Ready");
   // bot.user.setActivity(`Skynet Simulator ${(new Date()).getFullYear()+1}`);
-  bot.user.setActivity(`ip!help`);
+  updateActivity();
 });
+
+setInterval(updateActivity, 60 * 60 * 1000);
 
 bot.on("guildMemberAdd", async(member) => { // serverNewMember // member.toString gives a mention that's cool
   let info = await retrieveGuildInfo(member.guild);
@@ -197,18 +220,19 @@ bot.on("message", async msg => {
   if(info.logging) try{guildLog(msg.guild.id, `[${moment().format("YYYY-MM-DD HH:mm:ss Z")}] <#${msg.channel.name}> \`${msg.author.tag}\`: ${msg.content}`);}catch(e) {console.log(e);}
   let handle = prefix => {
     if(msg.cleanContent.startsWith(prefix)) {
-      console.log(msg.cleanContent);
-      commands.handleCommand(msg.cleanContent.replace(prefix, ""), info);
       mostRecentCommands.push({"content": msg.cleanContent, "date": new Date()});
       while(mostRecentCommands.length > 5) {
         mostRecentCommands.shift();
       }
+
+      console.log(msg.cleanContent);
+      let output = usage.parse(info, msg.cleanContent.replace(prefix, ""));
+      if(output) msg.reply(output);
       return true;
     }
     return false;
   };
   handle(`${info.prefix  } `) || handle(info.prefix) || handle(`${bot.user.toString()} `) || handle(`${bot.user.toString()}`);
-
   if(!(await checkMojiPerms(msg, info))) return;
   // if(msg.channel.id === info.rankmojiChannel) {
   //   info.rankmojis.forEach(({rank, moji}) => {
@@ -301,6 +325,8 @@ bot.on("guildDelete", (guild) => { // forget about the guild at some point in ti
 
 process.on("unhandledRejection", (reason, p) => {
   let finalMsg = `${mostRecentCommands.map(c => `\`${c.content}\` ][ ${moment(c.date).fromNow()}`).join`\n`}\n<@${config.owner}> Unhandled Rejection at: Promise ${p.toString()} reason: ${reason.toString()}`;
+  console.log(p);
+  console.log(reason);
   console.log(finalMsg);
   try{
     let rept = config.errorReporting.split`/`;

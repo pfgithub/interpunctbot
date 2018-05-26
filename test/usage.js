@@ -19,7 +19,7 @@ usage.path("settings").add("rankmoji", new Usage({
   }
 }));
 usage.path("settings rankmoji").add("add", new Usage({
-  "descr!~iption": "Adds a rankmoji",
+  "description": "Adds a rankmoji",
   "usage": ["rank", "moji"],
   "callback": (data, rank, ...moji) => {
     data(`${rank  }, ${ moji.join` `.trim()}`);
@@ -33,20 +33,32 @@ usage.path("settings rankmoji").add("remove", new Usage({
     data(rankOrMoji.join` `.trim());
   }
 }));
+usage.depricate("rankmojiSettings", "settings rankmoji");
 
 describe("Usage", () => {
-  it("should parse commands", (done) => {
-    let c = "";
+  it("should give the reason when there is one", () => {
     assert.equal(usage.parse("hi", "settings"), "Info needs to be a function to use this command");
+  });
+  it("should give a no reason message when there is no reason", () => {
     assert.equal(usage.parse("hi", "reqtest"), "This command could not be run. No reason was specified.");
-    assert.equal(usage.parse(o => c+="x", "settings"), "TODO put usage here");
-    assert.equal(usage.parse(o => assert.equal(o, "MYrankmoji", c+="a"), "settings rankmoji"), undefined);
-    assert.equal(usage.parse(o => assert.equal(o, "rankID, my moji", c+="b"), "settings rankmoji add rankID   my moji "), undefined);
-    assert.equal(usage.parse(o => assert.equal(o, "moji to remove", c+="c"), "settings rankmoji remove   moji to remove   "), undefined);
-    setTimeout(a => {
-      assert.equal(c, "abc");
-      done();
-    }, 10);
+  });
+  it("should show usage when failing", () => {
+    console.log(usage.parse(_=>_, "settings"));
+    assert.equal(usage.parse(_=>_, "settings"), `settings rankmoji${" "}
+settings rankmoji add ...
+settings rankmoji remove ...`);
+  });
+  it("should call the function", () => {
+    assert.equal(usage.parse(o => assert.equal(o, "MYrankmoji"), "settings rankmoji"), undefined);
+  });
+  it("should call the function with arguments", () => {
+    assert.equal(usage.parse(o => assert.equal(o, "rankID, my moji"), "settings rankmoji add rankID   my moji "), undefined);
+  });
+  it("should", () => {
+    assert.equal(usage.parse(o => assert.equal(o, "moji to remove"), "settings rankmoji remove   moji to remove   "), undefined);
+  });
+  it("should", () => {
+    assert.equal(usage.parse("hi", "rankmojiSettings"), "This command has been renamed to `settings rankmoji`. Please use that instead.");
   });
   it("should error when the path is not found", () => {
     assert.throws(_ => usage.path("settings notfound"));
