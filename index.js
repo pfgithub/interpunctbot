@@ -146,9 +146,8 @@ async function retrieveGuildInfo(g, msg) {
 }
 
 
-function updateActivity(){
+function updateActivity() {
   bot.user.setActivity(`ip!help on ${bot.guilds.size} servers`);
-  
 }
 
 bot.on("ready", async() => {
