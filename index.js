@@ -145,11 +145,19 @@ async function retrieveGuildInfo(g, msg) {
   };
 }
 
+
+function updateActivity(){
+  bot.user.setActivity(`ip!help on ${bot.guilds.size} servers`);
+  
+}
+
 bot.on("ready", async() => {
   console.log("Ready");
   // bot.user.setActivity(`Skynet Simulator ${(new Date()).getFullYear()+1}`);
-  bot.user.setActivity(`ip!help`);
+  updateActivity();
 });
+
+setInterval(updateActivity, 60 * 60 * 1000);
 
 bot.on("guildMemberAdd", async(member) => { // serverNewMember // member.toString gives a mention that's cool
   let info = await retrieveGuildInfo(member.guild);
