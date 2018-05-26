@@ -4,14 +4,20 @@ const path = require("path");
 const Usage = require("./src/Usage");
 const o = require("./src/options");
 const knex = require("./src/db"); // TODO add something so if you delete a message with a command it deletes the result messages or a reaction on the result msg or idk
-const Attachment = require("discord.js").Attachment;
+const {Attachment, RichEmbed} = require("discord.js");
 const moment = require("moment");
 
 const {EventEmitter} = require("events"); // TODO add a thing for warning people like $warn [person] and have it be like 1 warning fine 2 warnings tempmute 3 warnings...and customizeable
 
 const fs = require("mz/fs");
 
-let usage = new Usage({});
+let usage = new Usage({
+  "description": "All Commands",
+  "usage": ["command..."],
+  "callback": (data, ...command) => {
+    return data.msg.reply(`Comand \`${command}\` not found, try \`help\` for a list of commands`);
+  }
+});
 
 let production = process.env.NODE_ENV === "production";
 
@@ -23,11 +29,20 @@ function devlog(...msg) {
 
 usage.add("help",  new Usage({
   "description": "List help for all commands",
-  "callback": async(data, command) => {
-    return data.msg.reply(usage.getUsage({"data": data}).join`\n`);
+  "usage": ["command..."],
+  "callback": async(data, ...command) => {
+    let cmdToGetHelp;
+    try{
+      cmdToGetHelp = command ? usage.path(command.join` `) : usage;
+    }catch(e) {
+      return data.msg.reply("Command not found");
+    }
+    data.msg.reply(cmdToGetHelp.description);
+    return data.msg.reply(`\`\`\`${cmdToGetHelp.getUsage({"data": data}).join`\n`}\`\`\``);
   }
 }));
 usage.add("settings", require("./src/commands/settings"));
+console.log(usage.path(`settings rankmoji`).prefix);
 usage.add("ping", require("./src/commands/ping"));
 usage.add("quote", require("./src/commands/quote"));
 

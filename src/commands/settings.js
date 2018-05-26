@@ -1,5 +1,6 @@
 const Usage = require("../Usage");
 const o = require("../options");
+const {RichEmbed} = require("discord.js");
 
 function getRankName(guild, rank) {
   if(guild.roles.get(rank))
@@ -43,7 +44,6 @@ settings.add("rankmoji", new Usage({
   "description": "Set/Remove/List all rankmoji",
   "requierements": [o.myPerm("MANAGE_MESSAGES")],
   "callback": async(data, value) => {
-    if(value) return await data.msg.reply("TODO print usage");
     return await data.msg.reply(printRankMojis(data.msg.guild, data.rankmojis));
   }
 }));
@@ -52,7 +52,7 @@ settings.path("rankmoji").add("add", new Usage({
   "description": "Add a rankmoji",
   "usage": ["rank", "emoji"],
   "callback": async(data, rank, ...moji) => {
-    if(!rank || !moji) return await data.msg.reply(`<rank> <emoji>`);
+    if(!rank || !moji) return await data.commandUsage;
 
     data.rankmojis.push({"rank": rank, "moji": moji.join` `.trim()});
     await data.db("guilds").where({"id": data.msg.guild.id}).update({"rankmojis": JSON.stringify(data.rankmojis)});
@@ -64,7 +64,7 @@ settings.path("rankmoji").add("remove", new Usage({
   "description": "Add a rankmoji",
   "usage": [["rank", "emoji"]],
   "callback": async(data, ...value) => {
-    if(!value) return await data.msg.reply(`<rank/emoji>`);
+    if(!value) return await data.commandUsage;
 
     value = value.join` `.trim();
     data.rankmojis = data.rankmojis.filter(({rank, moji}) => !(rank === value || moji === value) );
@@ -137,10 +137,13 @@ settings.add("listRoles", new Usage({
   "usage": [["true", "false"]],
   "callback": async(data) => {
     let res = [];
+    let resEmbed = new RichEmbed();
     for(let [id, role] of data.msg.guild.roles) {
       res.push(`${id}: ${role.name}`);
+      resEmbed.addField(role.name, `\`\`\`${id}\`\`\``);
     }
-    return await data.msg.reply(res.join`\n`.split`@everyone`.join`everyone`.split`@here`.join`here`);
+    return await data.msg.reply(``, {"embed": resEmbed});
+    // return await data.msg.reply(`\`\`\`${res.join`\n`.split`@everyone`.join`everyone`.split`@here`.join`here`}\`\`\``);
   }
 }));
 

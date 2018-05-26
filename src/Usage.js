@@ -12,7 +12,13 @@ class Usage {
   add(path, usage) { // TODO add should support parse paths and also things like no path, no path = take their usage and merge it with ours
     this.paths[path] = usage;
     usage.parent = this;
-    usage.prefix = `${this.prefix || ""}${path} `;
+    usage._prefix = `${path} `;
+  }
+  get prefix() {
+    let prefix = "";
+    if(this.parent) prefix += this.parent.prefix;
+    if(this._prefix) prefix += this._prefix;
+    return prefix;
   }
   depricate(path, replacement) {
     this.paths[path] = new Usage({
@@ -38,8 +44,9 @@ class Usage {
       cmd = cmd.join` `;
       return this.paths[nextPath].parse(data, cmd);
     } // TODO else if loop over regex options
-    if(!this.callback) return this.getUsage({"layers": 2, "data": data}).join`\n`;
+    if(!this.callback) return `Command not found. List of commands:\`\`\`${this.getUsage({"layers": 2, "data": data}).join`\n`}\`\`\``;
 
+    data.commandUsage = this.getUsage({"layers": 2, "data": data}).join`\n`;
     this.callback(data, ...command.split` `);
 
     return;

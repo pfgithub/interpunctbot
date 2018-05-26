@@ -19,7 +19,7 @@ usage.path("settings").add("rankmoji", new Usage({
   }
 }));
 usage.path("settings rankmoji").add("add", new Usage({
-  "descr!~iption": "Adds a rankmoji",
+  "description": "Adds a rankmoji",
   "usage": ["rank", "moji"],
   "callback": (data, rank, ...moji) => {
     data(`${rank  }, ${ moji.join` `.trim()}`);
