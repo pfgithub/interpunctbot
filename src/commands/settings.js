@@ -42,7 +42,7 @@ settings.add("quote", new Usage({
 
 settings.add("rankmoji", new Usage({
   "description": "Set/Remove/List all rankmoji",
-  "requierements": [o.myPerm("MANAGE_MESSAGES")],
+  "requirements": [o.myPerm("MANAGE_MESSAGES")],
   "callback": async(data, value) => {
     return await data.msg.reply(printRankMojis(data.msg.guild, data.rankmojis));
   }
@@ -77,7 +77,7 @@ settings.path("rankmoji").add("remove", new Usage({
 settings.depricate("rankmojiChannel", "rankmoji channel");
 settings.path("rankmoji").add("channel", new Usage({
   "description": "Sets a channel that can be used to rank people with emojis",
-  "requierements": [o.myPerm("MANAGE_ROLES")],
+  "requirements": [o.myPerm("MANAGE_ROLES")],
   "usage": ["channel"],
   "callback": async(data) => {
     let chanid;
@@ -93,7 +93,7 @@ settings.path("rankmoji").add("channel", new Usage({
 
 settings.add("nameScreening", new Usage({
   "description": "Set/Remove/List all names where users will be instantly banned upon joining",
-  "requierements": [o.myPerm("BAN_MEMBERS")],
+  "requirements": [o.myPerm("BAN_MEMBERS")],
   "callback": async(data, value) => {
     if(!value) return await data.msg.reply(`Dissalowed Name Parts: ${data.nameScreening.join`, `}`);
   }

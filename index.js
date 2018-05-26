@@ -38,7 +38,8 @@ usage.add("help",  new Usage({
       return data.msg.reply("Command not found");
     }
     data.msg.reply(cmdToGetHelp.description);
-    return data.msg.reply(`\`\`\`${cmdToGetHelp.getUsage({"data": data}).join`\n`}\`\`\``);
+    let commands = `\`\`\`${cmdToGetHelp.getUsage({"data": data}).join`\n`}\`\`\``;
+    return data.msg.reply(commands);
   }
 }));
 usage.add("settings", require("./src/commands/settings"));
@@ -99,7 +100,7 @@ let serverInfo = {};
 
 function tryParse(json) {
   try{
-    return json;
+    return typeof json === "string" ? JSON.parse(json) : json;
   }catch(e) {
     console.log(`Could not parse  ^^${JSON.stringify(json)}`);
     return [];
@@ -225,7 +226,6 @@ bot.on("message", async msg => {
     return false;
   };
   handle(`${info.prefix  } `) || handle(info.prefix) || handle(`${bot.user.toString()} `) || handle(`${bot.user.toString()}`);
-
   if(!(await checkMojiPerms(msg, info))) return;
   // if(msg.channel.id === info.rankmojiChannel) {
   //   info.rankmojis.forEach(({rank, moji}) => {
