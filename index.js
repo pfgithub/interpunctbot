@@ -47,6 +47,18 @@ console.log(usage.path(`settings rankmoji`).prefix);
 usage.add("ping", require("./src/commands/ping"));
 usage.add("quote", require("./src/commands/quote"));
 
+usage.add("purge",  new Usage({
+  "description": "Deletes the last n messages from a channel",
+  "usage": ["msgs to delete"],
+  "requirements": [o.perm("MANAGE_MESSAGES"), o.myPerm("MANAGE_MESSAGES")],
+  "callback": async(data, n) => {
+    let number = +n;
+    if(isNaN(number)) return await data.msg.reply("Invalid numbers");
+    let msgs = await data.msg.channel.fetchMessages({"limit": number});
+    msgs.array().forEach(msg => msg.delete());
+  }
+}));
+
 usage.depricate("spaceChannels", "channels spacing");
 
 usage.add("channels", require("./src/commands/channelmanagement"));
@@ -265,6 +277,7 @@ bot.on("raw", async event => {
   if(!channel) return;
   let message;
   message = await channel.fetchMessage(data.message_id);
+  if(!message.guild) return;
   const emojiKey = getEmojiKey(data.emoji);
   const reaction = message.reactions.get(emojiKey);
 
