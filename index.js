@@ -15,7 +15,7 @@ let usage = new Usage({
   "description": "All Commands",
   "usage": ["command..."],
   "callback": (data, ...command) => {
-    return data.msg.reply(`Comand \`${command}\` not found, try \`help\` for a list of commands`);
+    return data.msg.reply(`Comand \`${command.join` `}\` not found, try \`${data.prefix}help\` for a list of commands`);
   }
 });
 
