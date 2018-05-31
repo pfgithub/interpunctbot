@@ -7,8 +7,7 @@ const knex = require("./src/db"); // TODO add something so if you delete a messa
 const {Attachment, RichEmbed} = require("discord.js");
 const moment = require("moment");
 const handleQuote = require("./src/commands/quote");
-const SpeedrunAPI = require("speedrunapi");
-const sr = new SpeedrunAPI();
+
 
 const {EventEmitter} = require("events"); // TODO add a thing for warning people like $warn [person] and have it be like 1 warning fine 2 warnings tempmute 3 warnings...and customizeable
 
@@ -33,8 +32,9 @@ function devlog(...msg) {
 
 usage.add("help",  new Usage({
   description: "List help for all commands",
-  usage: ["command..."],
+  usage: ["all", "command..."],
   callback: async(data, ...command) => {
+    let all = command[0] === "all" ? command.shift() : false;
     let cmdToGetHelp;
     try{
       cmdToGetHelp = command ? usage.path(command.join` `) : usage;
@@ -42,13 +42,15 @@ usage.add("help",  new Usage({
       return data.msg.reply("Command not found");
     }
     data.msg.reply(cmdToGetHelp.description);
-    let commands = `\`\`\`${cmdToGetHelp.getUsage({data: data}).join`\n`}\`\`\``;
+    let commands = `\`\`\`${cmdToGetHelp.getUsage({data: all ? undefined : data}).join`\n`}\`\`\``;
+    if(!all) commands +=  "and more that you or your server cannot use. `help all` for a full list";
     return data.msg.reply(commands);
   }
 }));
 usage.add("settings", require("./src/commands/settings"));
-console.log(usage.path(`settings rankmoji`).prefix);
 usage.add("ping", require("./src/commands/ping"));
+usage.add("speedrun", require("./src/commands/speedrun"));
+usage.add("log", require("./src/commands/logging"));
 // usage.add("quote", require("./src/commands/quote"));
 
 usage.add("purge",  new Usage({
@@ -74,83 +76,11 @@ usage.depricate("downloadLog", "log download");
 usage.depricate("resetLog", "log reset");
 usage.depricate("listRoles", "settings listRoles");
 
-let log = new Usage({description: "Commands related to logging", requirements: [o.perm("ADMINISTRATOR"), o.setting("logging")]});
-
-log.add("download", new Usage({
-  description: "Download the saved log",
-  callback: async(data) => {
-    await data.msg.channel.send(new Attachment(`./logs/${data.msg.guild.id}.log`, `${data.msg.guild.name}.log`));
-    await data.msg.reply("Use `log reset` to reset the log.");
-  }
-}));
-log.add("reset", new Usage({
-  description: "Delete the saved log",
-  callback: async(data) => {
-    await fs.unlink(path.join(__dirname, `logs/${data.msg.guild.id}.log`));
-    await data.msg.reply("Logs have been reset.");
-  }
-}));
-
-usage.add("log", log);
-
 usage.add("crash", new Usage({
   description: "Throw an unhandled promise rejection",
   requirements: [o.owner()],
   callback: async(data) => {
     throw new Error("Crash Command Used");
-  }
-}));
-usage.add("speedrun", new Usage({
-  description: "Commands related to speedrun.com",
-  requirements: [o.setting("speedrun")]
-}));
-usage.path("speedrun").add("leaderboard", new Usage({ // TODO trophy-1st for the person in first
-  description: "Get the top 5 people",
-  callback: async(data, ...category) => {
-    let [gameID, defaultCategory] = data.speedrun.split`, `;
-    if(category && category.length > 0 && category[0]) {
-      let categoriesGetter = sr.games(gameID);
-      categoriesGetter._method = "categories";
-      let categories = await categoriesGetter.exec();
-
-      let categoryFilter = categories.items.filter(cat => cat.name === category.join` `);
-      if(categoryFilter.length <= 0) return await data.msg.reply("Please supply a valid category name");
-      category = categoryFilter[0].id;
-    }else{
-      category = defaultCategory;
-    }
-    let gameData = await sr.leaderboards(gameID, category).embed(["category", "players", "game"]).exec();
-    let actualGameData = gameData.items.game.data;
-    let topThree = gameData.items.runs.filter(run => run.place<=3);
-    let getPlayer = player => gameData.items.players.data.filter(pl => pl.id === player)[0];
-
-    let resEmbeds = [];
-    let mainEmbed = new RichEmbed;
-    mainEmbed.title = gameData.items.category.data.name;
-    mainEmbed.description = gameData.items.category.data.rules;
-    mainEmbed.url = gameData.items.category.data.weblink;
-    topThree.forEach(run_ => {
-      let run = run_.run;
-      let embed = new RichEmbed;
-      embed.title = `:${  run.times.primary_t}`;
-      embed.description = run.comment;
-      embed.url = run.weblink;
-      // embed.color = "random";
-      let runPlayer = getPlayer(run.players[0].id);
-      embed.author = {
-        name: runPlayer.names.international,
-        url: runPlayer.weblink,
-        icon_url: `https://www.speedrun.com/images/flags/${runPlayer.location.country.code}.png` // eslint-disable-line camelcase
-      };
-      let assetIcon = actualGameData.assets[`trophy-${["1st", "2nd", "3rd", "4th"][run_.place-1]}`];
-      if(assetIcon) embed.thumbnail = {
-        url: assetIcon.uri
-      };
-      // resEmbed.addField(run.times.primary_t, `[${runPlayer.names.international}](${runPlayer.weblink}): [Video](${run.videos.links[0].uri})`);
-      resEmbeds.push(embed);
-    });
-    data.msg.reply("", {embed: mainEmbed});
-    resEmbeds.forEach(embed => data.msg.reply("", {embed: embed}));
   }
 }));
 
@@ -280,6 +210,7 @@ bot.on("message", async msg => {
   if(msg.author.id === bot.user.id) devlog(`i> ${msg.content}`);
   if(msg.author.bot) return;
   logMsg({prefix: "I", msg: msg});
+  // right here do if(prefix)
   let info = await retrieveGuildInfo(msg.guild, msg);
   if(info.logging) try{guildLog(msg.guild.id, `[${moment().format("YYYY-MM-DD HH:mm:ss Z")}] <#${msg.channel.name}> \`${msg.author.tag}\`: ${msg.content}`);}catch(e) {console.log(e);}
   let handle = prefix => {
@@ -297,6 +228,7 @@ bot.on("message", async msg => {
     return false;
   };
   handle(`${info.prefix  } `) || handle(info.prefix) || handle(`${bot.user.toString()} `) || handle(`${bot.user.toString()}`);
+  // right here do if(moji)
   if(!(await checkMojiPerms(msg, info))) return;
   // if(msg.channel.id === info.rankmojiChannel) {
   //   info.rankmojis.forEach(({rank, moji}) => {
