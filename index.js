@@ -12,9 +12,9 @@ const {EventEmitter} = require("events"); // TODO add a thing for warning people
 const fs = require("mz/fs");
 
 let usage = new Usage({
-  "description": "All Commands",
-  "usage": ["command..."],
-  "callback": (data, ...command) => {
+  description: "All Commands",
+  usage: ["command..."],
+  callback: (data, ...command) => {
     return data.msg.reply(`Comand \`${command.join` `}\` not found, try \`${data.prefix}help\` for a list of commands`);
   }
 });
@@ -28,9 +28,9 @@ function devlog(...msg) {
 }
 
 usage.add("help",  new Usage({
-  "description": "List help for all commands",
-  "usage": ["command..."],
-  "callback": async(data, ...command) => {
+  description: "List help for all commands",
+  usage: ["command..."],
+  callback: async(data, ...command) => {
     let cmdToGetHelp;
     try{
       cmdToGetHelp = command ? usage.path(command.join` `) : usage;
@@ -38,7 +38,7 @@ usage.add("help",  new Usage({
       return data.msg.reply("Command not found");
     }
     data.msg.reply(cmdToGetHelp.description);
-    let commands = `\`\`\`${cmdToGetHelp.getUsage({"data": data}).join`\n`}\`\`\``;
+    let commands = `\`\`\`${cmdToGetHelp.getUsage({data: data}).join`\n`}\`\`\``;
     return data.msg.reply(commands);
   }
 }));
@@ -48,13 +48,13 @@ usage.add("ping", require("./src/commands/ping"));
 usage.add("quote", require("./src/commands/quote"));
 
 usage.add("purge",  new Usage({
-  "description": "Deletes the last n messages from a channel",
-  "usage": ["msgs to delete"],
-  "requirements": [o.perm("MANAGE_MESSAGES"), o.myPerm("MANAGE_MESSAGES")],
-  "callback": async(data, n) => {
+  description: "Deletes the last n messages from a channel",
+  usage: ["msgs to delete"],
+  requirements: [o.perm("MANAGE_MESSAGES"), o.myPerm("MANAGE_MESSAGES")],
+  callback: async(data, n) => {
     let number = +n;
     if(isNaN(number)) return await data.msg.reply("Invalid numbers");
-    let msgs = await data.msg.channel.fetchMessages({"limit": number});
+    let msgs = await data.msg.channel.fetchMessages({limit: number});
     msgs.array().forEach(msg => msg.delete());
   }
 }));
@@ -70,18 +70,18 @@ usage.depricate("downloadLog", "log download");
 usage.depricate("resetLog", "log reset");
 usage.depricate("listRoles", "settings listRoles");
 
-let log = new Usage({"description": "Commands related to logging", "requirements": [o.perm("ADMINISTRATOR"), o.setting("logging")]});
+let log = new Usage({description: "Commands related to logging", requirements: [o.perm("ADMINISTRATOR"), o.setting("logging")]});
 
 log.add("download", new Usage({
-  "description": "Download the saved log",
-  "callback": async(data) => {
+  description: "Download the saved log",
+  callback: async(data) => {
     await data.msg.channel.send(new Attachment(`./logs/${data.msg.guild.id}.log`, `${data.msg.guild.name}.log`));
     await data.msg.reply("Use `log reset` to reset the log.");
   }
 }));
 log.add("reset", new Usage({
-  "description": "Delete the saved log",
-  "callback": async(data) => {
+  description: "Delete the saved log",
+  callback: async(data) => {
     await fs.unlink(path.join(__dirname, `logs/${data.msg.guild.id}.log`));
     await data.msg.reply("Logs have been reset.");
   }
@@ -90,9 +90,9 @@ log.add("reset", new Usage({
 usage.add("log", log);
 
 usage.add("crash", new Usage({
-  "description": "Throw an unhandled promise rejection",
-  "requirements": [o.owner()],
-  "callback": async(data) => {
+  description: "Throw an unhandled promise rejection",
+  requirements: [o.owner()],
+  callback: async(data) => {
     throw new Error("Crash Command Used");
   }
 }));
@@ -120,9 +120,9 @@ async function retrieveGuildInfo(g, msg) {
   let nameScreening = [];
   let logging = false;
   if(g) {
-    let guild = (await knex("guilds").where({"id": g.id}))[0];
+    let guild = (await knex("guilds").where({id: g.id}))[0];
     if(!guild) {
-      await knex("guilds").insert({"id": g.id, "prefix": prefix});
+      await knex("guilds").insert({id: g.id, prefix: prefix});
     }else{
       prefix = guild.prefix;
       quotesPastebin = guild.quotes;
@@ -134,17 +134,17 @@ async function retrieveGuildInfo(g, msg) {
     }
   }
   return{
-    "prefix": prefix,
-    "options": options,
-    "msg": msg,
-    "db": knex,
-    "pm": !g,
-    "quotesPastebin": quotesPastebin,
-    "disabledCommands": disabledCommands,
-    "rankmojis": rankmojis,
-    "rankmojiChannel": rankmojiChannel,
-    "nameScreening": nameScreening,
-    "logging": logging
+    prefix: prefix,
+    options: options,
+    msg: msg,
+    db: knex,
+    pm: !g,
+    quotesPastebin: quotesPastebin,
+    disabledCommands: disabledCommands,
+    rankmojis: rankmojis,
+    rankmojiChannel: rankmojiChannel,
+    nameScreening: nameScreening,
+    logging: logging
   };
 }
 
@@ -218,12 +218,12 @@ async function guildLog(id, log) {
 bot.on("message", async msg => {
   if(msg.author.id === bot.user.id) devlog(`i> ${msg.content}`);
   if(msg.author.bot) return;
-  logMsg({"prefix": "I", "msg": msg});
+  logMsg({prefix: "I", msg: msg});
   let info = await retrieveGuildInfo(msg.guild, msg);
   if(info.logging) try{guildLog(msg.guild.id, `[${moment().format("YYYY-MM-DD HH:mm:ss Z")}] <#${msg.channel.name}> \`${msg.author.tag}\`: ${msg.content}`);}catch(e) {console.log(e);}
   let handle = prefix => {
     if(msg.cleanContent.startsWith(prefix)) {
-      mostRecentCommands.push({"content": msg.cleanContent, "date": new Date()});
+      mostRecentCommands.push({content: msg.cleanContent, date: new Date()});
       while(mostRecentCommands.length > 5) {
         mostRecentCommands.shift();
       }
@@ -246,7 +246,7 @@ bot.on("message", async msg => {
 
 bot.on("messageUpdate", async(from, msg) => {
   if(msg.author.bot) return;
-  logMsg({"prefix": "Eo", "msg": from}); logMsg({"prefix": "E2", "msg": msg});
+  logMsg({prefix: "Eo", msg: from}); logMsg({prefix: "E2", msg: msg});
   let info = await retrieveGuildInfo(msg.guild, msg);
   if(info.logging) try{
     guildLog(msg.guild.id, `[${moment().format("YYYY-MM-DD HH:mm:ss Z")}] <#${from.channel.name}> \`${from.author.tag}\` Edited Message: ${from.content}`);
@@ -262,7 +262,7 @@ function getEmojiKey(emoji) {
 bot.on("raw", async event => {
   if (event.t !== "MESSAGE_REACTION_ADD") return;
 
-  const { "d": data } = event;
+  const { d: data } = event;
   const user = bot.users.get(data.user_id);
   const channel = bot.channels.get(data.channel_id);
   if(!channel) return;
@@ -294,7 +294,7 @@ bot.on("messageReactionAddCustom", async(reaction, user, message) => {
     info.rankmojis.forEach(async({rank, moji}) => {
       if(moji !== emoji) return;
       if(!message.guild.roles.get(rank)) return;
-      if(!rolesToAddToMessages[message.id]) rolesToAddToMessages[message.id] = {"roles": [], "reaxns": []};
+      if(!rolesToAddToMessages[message.id]) rolesToAddToMessages[message.id] = {roles: [], reaxns: []};
       rolesToAddToMessages[message.id].roles.push(rank);
       rolesToAddToMessages[message.id].reaxns.push(getEmojiKey((await message.react("✅")).emoji));
       rolesToAddToMessages[message.id].reaxns.push(getEmojiKey((await message.react("❎")).emoji));

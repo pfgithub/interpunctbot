@@ -23,14 +23,14 @@ class Usage {
   }
   depricate(path, replacement) {
     this.paths[path] = new Usage({
-      "description": "This command is depricated",
-      "requirements": [(o, g) => g ? {"preCheck": `This command has been renamed to \`${replacement}\`. Please use that instead.`} : false]
+      description: "This command is depricated",
+      requirements: [(o, g) => g ? {preCheck: `This command has been renamed to \`${replacement}\`. Please use that instead.`} : false]
     });
   }
   getFailedRequirement(data) {
     let failedRequirement = this.requirements.find(requirement => !requirement(data));
     if(failedRequirement)
-      return failedRequirement(data, {"preCheck": ""}).preCheck || "This command could not be run. No reason was specified.";
+      return failedRequirement(data, {preCheck: ""}).preCheck || "This command could not be run. No reason was specified.";
     return undefined;
   }
   checkRequirements(data) {
@@ -45,9 +45,9 @@ class Usage {
       cmd = cmd.join` `;
       return this.paths[nextPath].parse(data, cmd);
     } // TODO else if loop over regex options
-    if(!this.callback) return `Command not found. List of commands:\`\`\`${this.getUsage({"layers": 2, "data": data}).join`\n`}\`\`\``;
+    if(!this.callback) return `Command not found. List of commands:\`\`\`${this.getUsage({layers: 2, data: data}).join`\n`}\`\`\``;
 
-    data.commandUsage = this.getUsage({"layers": 2, "data": data}).join`\n`;
+    data.commandUsage = this.getUsage({layers: 2, data: data}).join`\n`;
     this.callback(data, ...command.split` `);
 
     return;
@@ -60,7 +60,7 @@ class Usage {
       usage.push(`${this.prefix || ""}${this.argInfo}`);
     }
     for(let path in this.paths) {
-      let belowUsage = this.paths[path].getUsage({"layers": layers - 1, "data": data});
+      let belowUsage = this.paths[path].getUsage({layers: layers - 1, data: data});
       // belowUsage = belowUsage.map(u => `${path} ${u}`);
       usage.push(...belowUsage);
     }

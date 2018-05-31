@@ -5,31 +5,31 @@ const assert = require("assert");
 const Usage = require("../src/Usage");
 let usage = new Usage({});
 usage.add("settings", new Usage({
-  "description": "Adjusts settings",
-  "requirements": [(o, g) => g ? {"preCheck": "Info needs to be a function to use this command"} : typeof o === "function"]
+  description: "Adjusts settings",
+  requirements: [(o, g) => g ? {preCheck: "Info needs to be a function to use this command"} : typeof o === "function"]
 }));
 usage.add("reqtest", new Usage({
-  "description": "Adjusts settings",
-  "requirements": [o => typeof o === "function"]
+  description: "Adjusts settings",
+  requirements: [o => typeof o === "function"]
 }));
 usage.path("settings").add("rankmoji", new Usage({
-  "description": "Adjusts Rankmoji",
-  "callback": (data) => {
+  description: "Adjusts Rankmoji",
+  callback: (data) => {
     data("MYrankmoji");
   }
 }));
 usage.path("settings rankmoji").add("add", new Usage({
-  "description": "Adds a rankmoji",
-  "usage": ["rank", "moji"],
-  "callback": (data, rank, ...moji) => {
+  description: "Adds a rankmoji",
+  usage: ["rank", "moji"],
+  callback: (data, rank, ...moji) => {
     data(`${rank  }, ${ moji.join` `.trim()}`);
   }
 }));
 usage.path("settings rankmoji").add("remove", new Usage({
-  "description": "Removes a rankmoji",
-  "usage": [["rank", "moji"]],
-  "requirements": [],
-  "callback": (data, ...rankOrMoji) => {
+  description: "Removes a rankmoji",
+  usage: [["rank", "moji"]],
+  requirements: [],
+  callback: (data, ...rankOrMoji) => {
     data(rankOrMoji.join` `.trim());
   }
 }));

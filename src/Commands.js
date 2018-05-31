@@ -3,10 +3,10 @@ class Commands {
     this._commands = [];
   }
   registerCommand(cmd, requirements, callback) {
-    this.register({"cmd": cmd, "requirements": requirements, "callback": callback}); // warning depricated
+    this.register({cmd: cmd, requirements: requirements, callback: callback}); // warning depricated
   }
   register({cmd, description, usage, requirements, callback}) {
-    this._commands.push({"cmd": cmd, "description": description, "usage": usage, "requirements": requirements, "callback": callback});
+    this._commands.push({cmd: cmd, description: description, usage: usage, requirements: requirements, callback: callback});
   }
   handleCommand(...args) {
     this.handle(...args); // warning depricated
@@ -29,7 +29,7 @@ class Commands {
 
       // if(data.requirements.every(option => option(data))) {
       let failureMsg = [];
-      if(cmd.requirements.every(option => option(data) ? true : failureMsg.push(option(data, {"preCheck": command})) && false))
+      if(cmd.requirements.every(option => option(data) ? true : failureMsg.push(option(data, {preCheck: command})) && false))
         try{
           return cmd.callback(data, ...cbargs) || true;
         }catch(e) {

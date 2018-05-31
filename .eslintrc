@@ -169,7 +169,7 @@
     "one-var": 0,                   // allow just one var statement per function (off by default)
     "operator-assignment": 2,       // require assignment operator shorthand where possible or prohibit it entirely (off by default)
     "padded-blocks": [1, "never"],  // enforce padding within blocks (off by default)
-    "quote-props": 2,               // require quotes around object literal property names (off by default)
+    "quote-props": [1, "as-needed", {"keywords": true}],               // require quotes around object literal property names (off by default)
     "quotes": [1, "double", {"avoidEscape": true, "allowTemplateLiterals": true}], // specify whether double or single quotes should be used
     "prefer-template": 1,           // prefer template strings
     "semi": [2, "always"],                      // require or disallow use of semicolons instead of ASI

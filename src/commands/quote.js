@@ -18,10 +18,10 @@ function deUsererrorIfy(str) {
 // quote [single] ...search [number]
 
 let quotes = new Usage({ // TODO make the quote command like ip!q quote <quote> so you can set multiple quote things per server
-  "desription": "Get a quote",
-  "usage": ["search string..."],
-  "requirements": [o.pm(false), o.setting("quotesPastebin")],
-  "callback": async(data, ...searchString) => {
+  desription: "Get a quote",
+  usage: ["search string..."],
+  requirements: [o.pm(false), o.setting("quotesPastebin")],
+  callback: async(data, ...searchString) => {
     let forceLine;
     let individual = false;
     if(searchString.length > 0 && searchString[0] === "single") individual = searchString.shift() || true;
@@ -49,7 +49,7 @@ let quotes = new Usage({ // TODO make the quote command like ip!q quote <quote> 
     else quoteEmbed.setTitle("Quote");
     quoteEmbed.setFooter(`${line+1}/${allQuotes.length}`);
     quoteEmbed.setColor(`RANDOM`);
-    await data.msg.reply("", {"embed": quoteEmbed});
+    await data.msg.reply("", {embed: quoteEmbed});
     // return await data.msg.delete();
   }
 });

@@ -2,8 +2,8 @@ const Usage = require("../Usage");
 const o = require("../options");
 
 let about = new Usage({
-  "description": "Info about the bot",
-  "callback": async(data) => {
+  description: "Info about the bot",
+  callback: async(data) => {
     await data.msg.reply(`
 Interpunct Bot
 Made by pfg#4865
