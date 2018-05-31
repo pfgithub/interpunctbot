@@ -88,23 +88,14 @@ log.add("reset", new Usage({
 }));
 
 usage.add("log", log);
-// TBD add hidden owner commands
-// commands.registerCommand(/crash/, [o.owner()], async(data) => {
-//   throw new Error("Unhandled promise rejection");
-// });
-// commands.registerCommand(/guildsIAmOn/, [o.owner()], async(data) => {
-//   return await data.msg.reply(`I am on ${bot.guilds.size} guilds`);
-// });
-// commands.registerCommand(/echo `(.+)`/, [o.owner()], async(data, all, whatToEcho) => {
-//   await data.msg.channel.send(whatToEcho.split`:__:`.join``);
-//   data.msg.delete();
-// });
-/*(await fs.readdir(path.join(__dirname, "src/commands"))).forEach((file) => {
-    commands.registerCommands(require(`./src/commands/${  file}`));
-  });*/
-// commands.registerCommand(new RegExp(/.+/), [], async(data) => {
-//   await data.msg.reply(`Command not found, try \`${data.prefix}help\` for a list of commands`);
-// });
+
+usage.add("crash", new Usage({
+  "description": "Throw an unhandled promise rejection",
+  "requirements": [o.owner()],
+  "callback": async(data) => {
+    throw new Error("Crash Command Used");
+  }
+}));
 
 fs.readdirSync(path.join(__dirname, "src/commands"));
 

@@ -1,9 +1,10 @@
 class Usage {
-  constructor({description = "No description provided", requirements = [], usage = [], callback} = {}) {
+  constructor({description = "No description provided", requirements = [], usage = [], options = {}, callback} = {}) {
     this.paths = {};
     this.callback = callback;
     this.description = description;
     this.requirements = requirements;
+    this.options = options;
     this.argInfo = usage.map(usagePart => {
       if(Array.isArray(usagePart)) usagePart = usagePart.join`|`;
       return `[${usagePart}]`;
