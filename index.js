@@ -7,6 +7,8 @@ const knex = require("./src/db"); // TODO add something so if you delete a messa
 const {Attachment, RichEmbed} = require("discord.js");
 const moment = require("moment");
 const handleQuote = require("./src/commands/quote");
+const SpeedrunAPI = require("speedrunapi");
+const sr = new SpeedrunAPI();
 
 const {EventEmitter} = require("events"); // TODO add a thing for warning people like $warn [person] and have it be like 1 warning fine 2 warnings tempmute 3 warnings...and customizeable
 
@@ -98,6 +100,41 @@ usage.add("crash", new Usage({
     throw new Error("Crash Command Used");
   }
 }));
+usage.add("speedrun", new Usage({
+  description: "Commands related to speedrun.com",
+  requirements: [o.setting("speedrun")]
+}));
+usage.path("speedrun").add("leaderboard", new Usage({ // TODO trophy-1st for the person in first
+  description: "Get the top 5 people",
+  callback: async(data, ...category) => {
+    let [gameID, defaultCategory] = data.speedrun.split`, `;
+    if(category && category.length > 0 && category[0]) {
+      let categoriesGetter = sr.games(gameID);
+      categoriesGetter._method = "categories";
+      let categories = await categoriesGetter.exec();
+
+      let categoryFilter = categories.items.filter(cat => cat.name === category.join` `);
+      if(categoryFilter.length <= 0) return await data.msg.reply("Please supply a valid category name");
+      category = categoryFilter[0].id;
+    }else{
+      category = defaultCategory;
+    }
+    let gameData = await sr.leaderboards(gameID, category).embed(["category", "players"]).exec();
+    let topFive = gameData.items.runs.filter(run => run.place<=5);
+    console.log(gameData.items.category.data.name);
+    let getPlayer = player => gameData.items.players.data.filter(pl => pl.id === player)[0];
+
+    let resEmbed = new RichEmbed;
+    resEmbed.title = gameData.items.category.data.name;
+    resEmbed.description = gameData.items.category.data.weblink;
+    topFive.forEach(run => {
+      run = run.run;
+      let runPlayer = getPlayer(run.players[0].id);
+      resEmbed.addField(run.times.primary_t, `[${runPlayer.names.international}](${runPlayer.weblink}): [Video](${run.videos.links[0].uri})`);
+    });
+    data.msg.reply("", {embed: resEmbed});
+  }
+}));
 
 fs.readdirSync(path.join(__dirname, "src/commands"));
 
@@ -121,6 +158,7 @@ async function retrieveGuildInfo(g, msg) {
   let nameScreening = [];
   let allPastebin = {};
   let logging = false;
+  let speedrun;
   if(g) {
     let guild = (await knex("guilds").where({id: g.id}))[0];
     if(!guild) {
@@ -129,7 +167,7 @@ async function retrieveGuildInfo(g, msg) {
       prefix = guild.prefix;
       allPastebin = tryParse(guild.searchablePastebins) || allPastebin;
       allPastebin.quote = guild.quotes;
-
+      speedrun = guild.speedrun;
       disabledCommands = tryParse(guild.disabledCommands) || disabledCommands;
       rankmojis = tryParse(guild.rankmojis) || rankmojis;
       rankmojiChannel = guild.rankmojiChannel;
@@ -148,7 +186,8 @@ async function retrieveGuildInfo(g, msg) {
     rankmojis: rankmojis,
     rankmojiChannel: rankmojiChannel,
     nameScreening: nameScreening,
-    logging: logging
+    logging: logging,
+    speedrun: speedrun
   };
 }
 

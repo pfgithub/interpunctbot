@@ -1,6 +1,8 @@
 const Usage = require("../Usage");
 const o = require("../options");
 const {RichEmbed} = require("discord.js");
+const SpeedrunAPI = require("speedrunapi");
+const sr = new SpeedrunAPI();
 
 function getRankName(guild, rank) {
   if(guild.roles.get(rank))
@@ -98,6 +100,27 @@ settings.path("rankmoji").add("channel", new Usage({
 
     await data.db("guilds").where({id: data.msg.guild.id}).update({rankmojiChannel: chanid});
     return await data.msg.reply(`rankmojiChannel updated to: <#${chanid}>`);
+  }
+}));
+
+settings.add("speedrun", new Usage({
+  description: "Set the ID of the speedrun.com page to track",
+  usage: ["abbreviation", "category"],
+  callback: async(data, abbreviation, ...category) => {
+    if(!abbreviation || !category) return await data.msg.reply(`Speedrun ID, Default Category: \`${data.speedrun}\`.`);
+
+    let gameData = await sr.games().param({abbreviation: abbreviation}).embed(["categories"]).exec();
+    let games = gameData.items;
+    if(games.length <= 0) return await data.msg.reply("Please supply a valid game abbreviation");
+    let id = games[0].id;
+
+    let categories = games[0].categories.data;
+
+    let categoryFilter = categories.filter(cat => cat.name === category.join` `);
+    if(categoryFilter.length <= 0) return await data.msg.reply("Please supply a valid default category name");
+
+    await data.db("guilds").where({id: data.msg.guild.id}).update({speedrun: `${id}, ${categoryFilter[0].id}`});
+    return await data.msg.reply(`Speedrun ID \`${`${id}, ${categoryFilter[0].id}`}\`.`);
   }
 }));
 
