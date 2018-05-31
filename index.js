@@ -41,8 +41,8 @@ usage.add("help",  new Usage({
     }catch(e) {
       return data.msg.reply("Command not found");
     }
-    data.msg.reply(cmdToGetHelp.description);
-    let commands = `\`\`\`${cmdToGetHelp.getUsage({data: all ? undefined : data}).join`\n`}\`\`\``;
+    let commands = cmdToGetHelp.description;
+    commands += `\`\`\`${cmdToGetHelp.getUsage({data: all ? undefined : data}).join`\n`}\`\`\``;
     if(!all) commands +=  "and more that you or your server cannot use. `help all` for a full list";
     return data.msg.reply(commands);
   }
