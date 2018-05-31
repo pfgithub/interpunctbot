@@ -1,6 +1,6 @@
 # inter·punct bot
 
-[Invite Me](https://discordapp.com/api/oauth2/authorize?client_id=433078185555656705&permissions=268445780&scope=bot) | [DiscordBots Link](https://discordbots.org/bot/433078185555656705) 
+[Invite Me](https://discordapp.com/api/oauth2/authorize?client_id=433078185555656705&permissions=268445780&scope=bot) | [DiscordBots Link](https://discordbots.org/bot/433078185555656705)
 
 <!-- [![Discuss](https://img.shields.io/discord/446481361692524545.svg)](https://discord.gg/j7qpZdE) -->
 
@@ -23,15 +23,15 @@ If you mess up the prefix, just use
 
 If you wish to have spaces in your channel names, use
 
-    ip!spaceChannels space
+    ip!channels spacing space
 
-To quickly undo this, use
+To undo this, use
 
-    ip!spaceChannels dash
+    ip!channels spacing dash
 
 ## Per-role emojis
 
-When it talks about roles, it needs a role ID. Roles are annoying and there is no easy way to get an ID. Use `ip!listRoles` to get a list of all roles and IDs.
+When it talks about roles, it needs a role ID. Roles are annoying and there is no easy way to get an ID. Use `ip!settings listRoles` to get a list of all roles and IDs.
 
 Add an rankmoji
 
@@ -46,9 +46,9 @@ Rankmojis support messages and edits. They do not support reactions.
 
 ### Ranking people with emojis
 
-If a rankmojiChannel is set, MANAGE_ROLES people can rank people using rankmojis in the channel
+If a rankmoji channel is set, MANAGE_ROLES people can rank people using rankmojis in the channel
 
-    ip!settings rankmojiChannel #channel you can rank people on
+    ip!settings rankmoji channel #channel you can rank people on
 
 To rank someone, react to their message with a rankmoji containing the role you want to add, then click the check mark that appears
 
@@ -62,11 +62,11 @@ If you wish to be able to download a log of all the things people say on your se
 
 To download the logs, use
 
-    ip!downloadLog
+    ip!log download
 
 To reset the logs, use
 
-    ip!resetLog
+    ip!log reset
 
 Logs will log messages people send and when they send them. Logs will also log some edited messages and if a user is banned for name screening.
 
@@ -86,24 +86,35 @@ Watch out when using short words like `to`, you might accidentally ban someone n
 
 The ban reason will give a list of words in their name that were in the nameScreening list
 
-## Quotes
+## Quotes and other searchable lists
 
-If you want a list of quotes people can search and get random ones, create a pastebin paste with your quote list. Each quote should be seperated by two newlines.
+If you want a list people can search and get random ones, create a pastebin paste with your list. Each item should be seperated by two newlines.
 
 I recommend creating a pastebin account so you can edit your quote list without running a command.
 
-The quotes command requires a pastebin ID. That is the last part of the pastebin URL. `pastebin.com/`THIS IS YOUR ID
+The lists commands require a pastebin ID. That is the last part of the pastebin URL. `pastebin.com/`THIS IS YOUR ID
 
-    ip!settings quote [id]
+    ip!settings lists [listname] [id]
 
 For users to get a quote, they can use
 
-    ip!quote
-    ip!quote search string
-    ip!quote 5
-    ip!quote single search string
+    ip!listname
+    ip!listname search string
+    ip!listname 5
+    ip!listname single search string
 
 Quote single is used to get just one line in a multiline quote. A number at the end can be used to get the nth quote with that search term or of all the quotes
+
+## Speedrun.com leaderboards
+
+If you want people to be able to get the top 3 on a speedrun.com page, add the page in settings
+
+    ip!settings speedrun Getting_Over_It_With_Bennett_Foddy Glitchless
+
+People can get the leaderboards for the default category or a category of their choosing
+
+    ip!speedrun leaderboard
+    ip!speedrun leaderboard Snake
 
 ## Change the name
 
