@@ -1,5 +1,3 @@
-const Usage = require("../Usage");
-const o = require("../options");
 const PastebinAPI = require("pastebin-js");
 const pastebin = new PastebinAPI();
 const {RichEmbed} = require("discord.js");
@@ -15,43 +13,39 @@ function deUsererrorIfy(str) {
   return str.toLowerCase();
 }
 
-// quote [single] ...search [number]
+module.exports = async(data, type, ...searchString) => {
+  let pastebinId = data.allPastebin[type];
+  if(!pastebinId) return true;
+  let forceLine;
+  let individual = false;
 
-let quotes = new Usage({ // TODO make the quote command like ip!q quote <quote> so you can set multiple quote things per server
-  desription: "Get a quote",
-  usage: ["search string..."],
-  requirements: [o.pm(false), o.setting("quotesPastebin")],
-  callback: async(data, ...searchString) => {
-    let forceLine;
-    let individual = false;
-    if(searchString.length > 0 && searchString[0] === "single") individual = searchString.shift() || true;
-    if(searchString.length > 0 && searchString[searchString.length - 1].match(/^\d+$/)) forceLine = parseInt(searchString.pop(), 10);
-    searchString = searchString.join` `.toLowerCase().split` `;
-    let allQuotes = escapeMarkdown(await pastebin.getPaste(data.quotesPastebin)
-      .catch(async e => await data.msg.reply("Failed to get quotes"))
-    ).split`\r`.join``.split(individual ? `\n` : /\n{2,}/).filter(q=>q.match(/[A-Za-z]/)); // Death:
-    if(searchString) {
-      allQuotes = allQuotes
-        .filter(q => searchString.every(z=>deUsererrorIfy(q).indexOf(z) > -1));
-    }
-    if(allQuotes.length < 1) allQuotes = [`No quotes found for ${searchString.join` `}`];
-    let line = Math.floor(Math.random() * allQuotes.length);
-    if(forceLine != null) line = forceLine-1;
-    if(line < 0) line = 0;
-    if(line > allQuotes.length - 1) line = allQuotes.length - 1;
-    // searchString.forEach(s => s ? allQuotes[line] = allQuotes[line].split(s).join(`**${s}**`) : 0);
-    let quoteEmbed = new RichEmbed();
-    let quoteSplit = allQuotes[line].split` - `;
-    let quoteAuthor = quoteSplit[1];
-    let quoteFull = quoteSplit[0];
-    quoteEmbed.setDescription(`*${quoteFull}*`);
-    if(quoteAuthor) quoteEmbed.setAuthor(quoteAuthor);
-    else quoteEmbed.setTitle("Quote");
-    quoteEmbed.setFooter(`${line+1}/${allQuotes.length}`);
-    quoteEmbed.setColor(`RANDOM`);
-    await data.msg.reply("", {embed: quoteEmbed});
-    // return await data.msg.delete();
+  if(searchString.length > 0 && searchString[0] === "single") individual = searchString.shift() || true;
+  if(searchString.length > 0 && searchString[searchString.length - 1].match(/^\d+$/)) forceLine = parseInt(searchString.pop(), 10);
+  searchString = searchString.join` `.toLowerCase().split` `;
+
+  let allQuotes = escapeMarkdown(await pastebin.getPaste(pastebinId)
+    .catch(async e => await data.msg.reply("Failed to get list. Make sure it is set with `settings lists ${type} <pastebinID>`"))
+  ).split`\r`.join``.split(individual ? `\n` : /\n{2,}/).filter(q=>q.match(/[A-Za-z]/)); // Death:
+  if(searchString) {
+    allQuotes = allQuotes
+      .filter(q => searchString.every(z=>deUsererrorIfy(q).indexOf(z) > -1));
   }
-});
 
-module.exports = quotes;
+  if(allQuotes.length < 1) allQuotes = [`No quotes found for ${searchString.join` `}`];
+  let line = Math.floor(Math.random() * allQuotes.length);
+  if(forceLine != null) line = forceLine-1;
+  if(line < 0) line = 0;
+  if(line > allQuotes.length - 1) line = allQuotes.length - 1;
+
+  let quoteEmbed = new RichEmbed();
+  let quoteSplit = allQuotes[line].split` - `;
+  let quoteAuthor = quoteSplit[1];
+  let quoteFull = quoteSplit[0];
+
+  quoteEmbed.setDescription(`*${quoteFull}*`);
+  if(quoteAuthor) quoteEmbed.setAuthor(quoteAuthor);
+  else quoteEmbed.setTitle("Quote");
+  quoteEmbed.setFooter(`${line+1}/${allQuotes.length}`);
+  quoteEmbed.setColor(`RANDOM`);
+  await data.msg.reply("", {embed: quoteEmbed});
+};

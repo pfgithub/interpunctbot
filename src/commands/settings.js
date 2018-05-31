@@ -29,14 +29,24 @@ settings.add("prefix", new Usage({
   }
 }));
 
-settings.add("quote", new Usage({
+settings.depricate("quote", "lists quote");
+
+settings.add("lists", new Usage({
   description: "Set pastebin url for where to find quotes",
-  usage: ["new prefix..."],
-  callback: async(data, ...value) => {
-    if(!value) return await data.msg.reply(`Quote pastebin: https://pastebin.com/${data.quotesPastebin}.`);
-    // if(!value.match(new RegExp(/^[A-Za-z0-9]$/))) return await data.msg.reply`Invalid pastebin id`;
-    await data.db("guilds").where({id: data.msg.guild.id}).update({quotes: value});
-    return await data.msg.reply(`Quote pastebin updated to: https://pastebin.com/${value}.`);
+  usage: ["list", ["pastebin id of list", "remove"]],
+  callback: async(data, list, value) => {
+    if(!list) return await data.msg.reply(`Lists: ${Object.keys(data.allPastebin).join` `}`);
+
+    if(list === "quote") {
+      if(!value) return await data.msg.reply(`Quote pastebin: https://pastebin.com/${data.allPastebin.quote}.`);
+      await data.db("guilds").where({id: data.msg.guild.id}).update({quotes: value});
+      return await data.msg.reply(`Quote pastebin updated to: https://pastebin.com/${value}.`);
+    }
+    if(!value) return await data.msg.reply(`${list} pastebin: https://pastebin.com/${data.allPastebin[list]}.`);
+    if(value === "remove") delete data.allPastebin[list];
+    else data.allPastebin[list] = value;
+    await data.db("guilds").where({id: data.msg.guild.id}).update({searchablePastebins: JSON.stringify(data.allPastebin)}); // allPastebin.quote is automatically overridden
+    return await data.msg.reply(`${list} pastebin updated to: https://pastebin.com/${data.allPastebin[list]}.`);
   }
 }));
 

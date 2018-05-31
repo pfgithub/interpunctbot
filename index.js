@@ -6,6 +6,7 @@ const o = require("./src/options");
 const knex = require("./src/db"); // TODO add something so if you delete a message with a command it deletes the result messages or a reaction on the result msg or idk
 const {Attachment, RichEmbed} = require("discord.js");
 const moment = require("moment");
+const handleQuote = require("./src/commands/quote");
 
 const {EventEmitter} = require("events"); // TODO add a thing for warning people like $warn [person] and have it be like 1 warning fine 2 warnings tempmute 3 warnings...and customizeable
 
@@ -14,7 +15,8 @@ const fs = require("mz/fs");
 let usage = new Usage({
   description: "All Commands",
   usage: ["command..."],
-  callback: (data, ...command) => {
+  callback: async(data, ...command) => {
+    if(!(await handleQuote(data, ...command))) return;
     return data.msg.reply(`Comand \`${command.join` `}\` not found, try \`${data.prefix}help\` for a list of commands`);
   }
 });
@@ -45,7 +47,7 @@ usage.add("help",  new Usage({
 usage.add("settings", require("./src/commands/settings"));
 console.log(usage.path(`settings rankmoji`).prefix);
 usage.add("ping", require("./src/commands/ping"));
-usage.add("quote", require("./src/commands/quote"));
+// usage.add("quote", require("./src/commands/quote"));
 
 usage.add("purge",  new Usage({
   description: "Deletes the last n messages from a channel",
@@ -113,11 +115,11 @@ function tryParse(json) {
 async function retrieveGuildInfo(g, msg) {
   let prefix = g ? "ip!" : "";
   let options = [/*o.deleteOriginal(1000)*/];
-  let quotesPastebin = "";
   let disabledCommands = [];
   let rankmojis = [];
   let rankmojiChannel = "";
   let nameScreening = [];
+  let allPastebin = {};
   let logging = false;
   if(g) {
     let guild = (await knex("guilds").where({id: g.id}))[0];
@@ -125,7 +127,9 @@ async function retrieveGuildInfo(g, msg) {
       await knex("guilds").insert({id: g.id, prefix: prefix});
     }else{
       prefix = guild.prefix;
-      quotesPastebin = guild.quotes;
+      allPastebin = tryParse(guild.searchablePastebins) || allPastebin;
+      allPastebin.quote = guild.quotes;
+
       disabledCommands = tryParse(guild.disabledCommands) || disabledCommands;
       rankmojis = tryParse(guild.rankmojis) || rankmojis;
       rankmojiChannel = guild.rankmojiChannel;
@@ -139,7 +143,7 @@ async function retrieveGuildInfo(g, msg) {
     msg: msg,
     db: knex,
     pm: !g,
-    quotesPastebin: quotesPastebin,
+    allPastebin: allPastebin,
     disabledCommands: disabledCommands,
     rankmojis: rankmojis,
     rankmojiChannel: rankmojiChannel,
