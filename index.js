@@ -42,7 +42,7 @@ usage.add("help",  new Usage({
       return data.msg.reply("Command not found");
     }
     let commands = cmdToGetHelp.description;
-    commands += `\`\`\`${cmdToGetHelp.getUsage({data: all ? undefined : data}).join`\n`}\`\`\``;
+    commands += `\`\`\`${cmdToGetHelp.getUsage({data: all ? undefined : data}).join`\n`}\`\`\``; // TODO also list quote commands
     if(!all) commands +=  "and more that you or your server cannot use. `help all` for a full list";
     return data.msg.reply(commands);
   }
