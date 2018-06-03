@@ -16,7 +16,7 @@ log.add("download", new Usage({
 log.add("reset", new Usage({
   description: "Delete the saved log",
   callback: async(data) => {
-    await fs.unlink(path.join(__dirname, path.join(__dirname, `/logs/${data.msg.guild.id}.log`)));
+    await fs.unlink(path.join(global.__basedir, `/logs/${data.msg.guild.id}.log`));
     await data.msg.reply("Logs have been reset.");
   }
 }));

@@ -8,6 +8,8 @@ const {Attachment, RichEmbed} = require("discord.js");
 const moment = require("moment");
 const handleQuote = require("./src/commands/quote");
 
+global.__basedir = __dirname;
+
 
 const {EventEmitter} = require("events"); // TODO add a thing for warning people like $warn [person] and have it be like 1 warning fine 2 warnings tempmute 3 warnings...and customizeable
 
