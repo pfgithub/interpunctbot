@@ -171,7 +171,7 @@ settings.add("listRoles", new Usage({
   callback: async(data) => {
     let res = [];
     let resEmbed = new RichEmbed();
-    data.msg.guild.roles.array().sort((a, b) => a.calculatedPosition<b.calculatedPosition?-1:(a.calculatedPosition>b.calculatedPosition?1:0))
+    data.msg.guild.roles.array().sort((a, b) => a.calculatedPosition<b.calculatedPosition?1:(a.calculatedPosition>b.calculatedPosition?-1:0)) // inverted sort
       .forEach(role => {
         res.push(`${role.id}: ${role.name}`);
         if(resEmbed.fields.length < 25)
