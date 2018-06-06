@@ -19,6 +19,8 @@ If you mess up the prefix, just use
 
     @inter·punct settings prefix <new prefix>
 
+When PMing the bot, no prefix is required.
+
 ## Spaced Channel Names
 
 If you wish to have spaces in your channel names, use
