@@ -27,5 +27,5 @@ module.exports.myPerm = perm => about({preCheck: `I need access to the ${perm} p
 module.exports.perm = perm => about({preCheck: `You need to have access to the ${perm} permission to use this command`}, [module.exports.pm(false)], data => data.msg.member.hasPermission(perm));
 // perm will have a few permissions. Once a role is set, they will use the role instead ofr
 // Failed to get --- because  ---- is not set // o.setting(quotesPastebin)
-module.exports.owner = _ => about({preCheck: `You must own the bot to use this command`}, [], data => data.msg.member.id === config.owner);
+module.exports.owner = _ => about({preCheck: `You must own the bot to use this command`}, [], data => data.msg.author.id === config.owner);
 module.exports.setting = setting => about({preCheck: `Your sever needs to have the setting ${setting} set to use this command`}, [module.exports.pm(false)], data => !!data[setting]);
