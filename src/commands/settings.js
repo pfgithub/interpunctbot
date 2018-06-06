@@ -16,7 +16,7 @@ function printRankMojis(guild, rankmojis) { // TODO add some Setting class so yo
 
 let settings = new Usage({
   description: "Adjust bot settings",
-  requirements: [o.pm(false), o.perm("MANAGE_SERVER")]
+  requirements: [o.pm(false), o.perm("MANAGE_GUILD")]
 });
 
 settings.add("prefix", new Usage({
