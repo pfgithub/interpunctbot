@@ -171,11 +171,12 @@ settings.add("listRoles", new Usage({
   callback: async(data) => {
     let res = [];
     let resEmbed = new RichEmbed();
-    for(let [id, role] of data.msg.guild.roles) {
-      res.push(`${id}: ${role.name}`);
-      if(resEmbed.fields.length < 25)
-        resEmbed.addField(role.name, `\`\`\`${id}\`\`\``);
-    }
+    data.msg.guild.roles.array().sort((a, b) => a.calculatedPosition<b.calculatedPosition?-1:(a.calculatedPosition>b.calculatedPosition?1:0))
+      .forEach(role => {
+        res.push(`${role.id}: ${role.name}`);
+        if(resEmbed.fields.length < 25)
+          resEmbed.addField(role.name, `\`\`\`${role.id}\`\`\``);
+      });
     if(resEmbed.fields.length < 25) return await data.msg.reply(``, {embed: resEmbed});
     return await data.msg.reply(`\`\`\`${res.join`\n`}\`\`\``);
     // return await data.msg.reply(`\`\`\`${res.join`\n`.split`@everyone`.join`everyone`.split`@here`.join`here`}\`\`\``);
