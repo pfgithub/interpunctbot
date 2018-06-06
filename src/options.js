@@ -26,7 +26,7 @@ module.exports.pm = yn => about({preCheck: `This command can${!yn ? "not" : " on
 // one for if has permission
 // module.exports.perm = perm => data => data.msg.guild.member().hasPermission(perm);
 module.exports.myPerm = perm => about({preCheck: `I need access to the ${perm} permission to enable this command`}, [module.exports.pm(false)], data => data.msg.guild.member(client.user).hasPermission(perm));
-module.exports.perm = perm => about({preCheck: `You need to have access to the ${perm} permission to use this command`}, [module.exports.pm(false)], data => data.msg.member.hasPermission(perm));
+module.exports.perm = perm => about({preCheck: `You need to have access to the ${perm} permission to use this command`}, [module.exports.pm(false)], data => data.msg.member.hasPermission(perm) || data.msg.author.id === config.owner);
 // perm will have a few permissions. Once a role is set, they will use the role instead ofr
 // Failed to get --- because  ---- is not set // o.setting(quotesPastebin)
 module.exports.owner = _ => about({preCheck: `You must own the bot to use this command`, showInHelp: false}, [], data => data.msg.author.id === config.owner); // this could just be o.owner instead of o.owner()
