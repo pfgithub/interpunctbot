@@ -1,10 +1,12 @@
-# inter·punct bot
+# Future updates will be on GitLab [pfgitlab/interpunctbot](https://gitlab.com/pfgitlab/interpunctbot)
+
+## inter·punct bot
 
 [Invite Me](https://discordapp.com/api/oauth2/authorize?client_id=433078185555656705&permissions=268445780&scope=bot) | [DiscordBots Link](https://discordbots.org/bot/433078185555656705)
 
 <!-- [![Discuss](https://img.shields.io/discord/446481361692524545.svg)](https://discord.gg/j7qpZdE) -->
 
-# Feature Tutorials
+## Feature Tutorials
 
 ## Change the prefix
 
