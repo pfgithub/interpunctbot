@@ -1,7 +1,7 @@
 const bot = require("./bot");
 const config = require("./config");
 const path = require("path");
-const Usage = require("./src/Usage");
+const Usage = require("command-parser");
 const o = require("./src/options");
 const knex = require("./src/db"); // TODO add something so if you delete a message with a command it deletes the result messages or a reaction on the result msg or idk
 const {Attachment, RichEmbed} = require("discord.js");

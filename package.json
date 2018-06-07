@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "bookshelf": "^0.13.3",
+    "command-parser": "gitlab:pfgitlab/command-parser",
     "discord.js": "^11.3.2",
     "knex": "^0.14.5",
     "moment": "^2.22.1",

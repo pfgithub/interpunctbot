@@ -1,4 +1,4 @@
-const Usage = require("../Usage");
+const Usage = require("command-parser");
 const SpeedrunAPI = require("speedrunapi");
 const sr = new SpeedrunAPI();
 const o = require("../options");

@@ -1,4 +1,4 @@
-const Usage = require("../Usage");
+const Usage = require("command-parser");
 const o = require("../options");
 const {RichEmbed} = require("discord.js");
 const SpeedrunAPI = require("speedrunapi");
