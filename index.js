@@ -124,7 +124,7 @@ async function retrieveGuildInfo(g, msg) {
       rankmojiChannel = guild.rankmojiChannel;
       nameScreening = tryParse(guild.nameScreening) || nameScreening;
       logging = guild.logging === "true" ? true : false;
-      unknownCommandMessages = guild.unknownCommandMessages === "true" ? true : false;
+      unknownCommandMessages = guild.unknownCommandMessages === "true" || !guild.unknownCommandMessages ? true : false;
     }
   }
   return{
