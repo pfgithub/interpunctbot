@@ -20,7 +20,7 @@ let usage = new Usage({
   usage: ["command..."],
   callback: async(data, ...command) => {
     if(!(await handleQuote(data, ...command))) return;
-    return data.msg.reply(`Comand \`${command.join` `}\` not found, try \`${data.prefix}help\` for a list of commands`);
+    if(data.unknownCommandMessages) return data.msg.reply(`Comand \`${command.join` `}\` not found, try \`${data.prefix}help\` for a list of commands`);
   }
 });
 
@@ -109,6 +109,7 @@ async function retrieveGuildInfo(g, msg) {
   let allPastebin = {};
   let logging = false;
   let speedrun;
+  let unknownCommandMessages = true;
   if(g) {
     let guild = (await knex("guilds").where({id: g.id}))[0];
     if(!guild) {
@@ -123,6 +124,7 @@ async function retrieveGuildInfo(g, msg) {
       rankmojiChannel = guild.rankmojiChannel;
       nameScreening = tryParse(guild.nameScreening) || nameScreening;
       logging = guild.logging === "true" ? true : false;
+      unknownCommandMessages = guild.unknownCommandMessages === "true" ? true : false;
     }
   }
   return{
@@ -137,7 +139,8 @@ async function retrieveGuildInfo(g, msg) {
     rankmojiChannel: rankmojiChannel,
     nameScreening: nameScreening,
     logging: logging,
-    speedrun: speedrun
+    speedrun: speedrun,
+    unknownCommandMessages: unknownCommandMessages
   };
 }
 

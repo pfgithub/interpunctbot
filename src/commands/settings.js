@@ -165,6 +165,17 @@ settings.add("logging", new Usage({
   }
 }));
 
+settings.add("unknownCommandMessages", new Usage({
+  description: "Enable/disable unknown command messages",
+  usage: [["true", "false"]],
+  callback: async(data, value) => {
+    if(!value) return await data.msg.reply(`unknownCommandMessages: \`${data.unknownCommandMessages}\`.`);
+
+    await data.db("guilds").where({id: data.msg.guild.id}).update({unknownCommandMessages: value === "true" ? "true" : "false"});
+    return await data.msg.reply(`unknownCommandMessages is now \`${value === "true" ? "enabled" : "disabled"}\`.`);
+  }
+}));
+
 settings.add("listRoles", new Usage({
   description: "List roles on the server",
   usage: [["true", "false"]],
