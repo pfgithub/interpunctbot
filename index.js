@@ -43,8 +43,9 @@ usage.add("help",  new Usage({
     }catch(e) {
       return data.msg.reply("Command not found");
     }
-    let commands = cmdToGetHelp.description;
-    commands += `\`\`\`${cmdToGetHelp.getUsage({data: all ? undefined : data}).join`\n`}\`\`\``; // TODO also list quote commands
+    let commands = cmdToGetHelp.description; // Object.keys(data.allPastebin)
+    let result = cmdToGetHelp.getUsage({data: all ? undefined : data}).concat(Object.keys(data.allPastebin).map(ap => `${ap} [single] [search term...] [number]`)).join`\n`;
+    commands += `\`\`\`${result}\`\`\``; // TODO also list quote commands
     if(!all) commands +=  "and more that you or your server cannot use. `help all` for a full list";
     return data.msg.reply(commands);
   }
