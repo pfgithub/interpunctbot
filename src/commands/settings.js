@@ -103,6 +103,40 @@ settings.path("rankmoji").add("channel", new Usage({
   }
 }));
 
+settings.add("permreplacements", new Usage({
+  description: "Set/Remove/List all permreplacements",
+  requirements: [o.myPerm("MANAGE_MESSAGES")],
+  callback: async(data, value) => {
+    return await data.msg.reply(JSON.stringify(data.permReplacements));
+  }
+}));
+
+settings.path("permreplacements").add("add", new Usage({
+  description: "Add a permreplacements",
+  usage: ["perm", "replacementID"],
+  callback: async(data, perm, replacement) => {
+    if(!perm || !replacement) return await data.commandUsage; // hmm this doesn't work at all
+
+    data.permReplacements[perm] = replacement;
+    await data.db("guilds").where({id: data.msg.guild.id}).update({permreplacements: JSON.stringify(data.permReplacements)});
+    return await data.msg.reply(printRankMojis(data.msg.guild, data.rankmojis));
+  }
+}));
+
+settings.path("permreplacements").add("remove", new Usage({
+  description: "Add a permreplacements",
+  usage: [["rank", "emoji"]],
+  callback: async(data, ...value) => {
+    if(!value) return await data.commandUsage;
+
+    value = value.join` `.trim();
+    data.rankmojis = data.rankmojis.filter(({rank, moji}) => !(rank === value || moji === value) );
+    await data.db("guilds").where({id: data.msg.guild.id}).update({rankmojis: JSON.stringify(data.rankmojis)});
+
+    return await data.msg.reply(printRankMojis(data.msg.guild, data.rankmojis));
+  }
+}));
+
 settings.add("speedrun", new Usage({
   description: "Set the ID of the speedrun.com page to track",
   usage: ["abbreviation", "category"],

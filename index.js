@@ -111,6 +111,7 @@ async function retrieveGuildInfo(g, msg) {
   let logging = false;
   let speedrun;
   let unknownCommandMessages = true;
+  let permReplacements = {};
   if(g) {
     let guild = (await knex("guilds").where({id: g.id}))[0];
     if(!guild) {
@@ -124,6 +125,7 @@ async function retrieveGuildInfo(g, msg) {
       rankmojis = tryParse(guild.rankmojis) || rankmojis;
       rankmojiChannel = guild.rankmojiChannel;
       nameScreening = tryParse(guild.nameScreening) || nameScreening;
+      permReplacements = tryParse(permReplacements) || permReplacements;
       logging = guild.logging === "true" ? true : false;
       unknownCommandMessages = guild.unknownCommandMessages === "true" || !guild.unknownCommandMessages ? true : false;
     }
@@ -141,7 +143,8 @@ async function retrieveGuildInfo(g, msg) {
     nameScreening: nameScreening,
     logging: logging,
     speedrun: speedrun,
-    unknownCommandMessages: unknownCommandMessages
+    unknownCommandMessages: unknownCommandMessages,
+    permReplacements: permReplacements
   };
 }
 
