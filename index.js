@@ -125,7 +125,7 @@ async function retrieveGuildInfo(g, msg) {
 			rankmojis = tryParse(guild.rankmojis) || rankmojis;
 			rankmojiChannel = guild.rankmojiChannel;
 			nameScreening = tryParse(guild.nameScreening) || nameScreening;
-			permReplacements = tryParse(permReplacements) || permReplacements;
+			permReplacements = tryParse(guild.permreplacements) || permReplacements;
 			logging = guild.logging === "true" ? true : false;
 			unknownCommandMessages = guild.unknownCommandMessages === "true" || !guild.unknownCommandMessages ? true : false;
 		}

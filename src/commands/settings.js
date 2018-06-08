@@ -111,29 +111,27 @@ settings.add("permreplacements", new Usage({ // TODO finish
 	}
 }));
 
-settings.path("permreplacements").add("add", new Usage({
-	description: "Add a permreplacements",
+settings.path("permreplacements").add("set", new Usage({
+	description: "Set a permreplacements",
 	usage: ["perm", "replacementID"],
 	callback: async(data, perm, replacement) => {
 		if(!perm || !replacement) return await data.commandUsage; // hmm this doesn't work at all
 
 		data.permReplacements[perm] = replacement;
 		await data.db("guilds").where({id: data.msg.guild.id}).update({permreplacements: JSON.stringify(data.permReplacements)});
-		return await data.msg.reply(printRankMojis(data.msg.guild, data.rankmojis));
+		return await data.msg.reply(JSON.stringify(data.permReplacements));
 	}
 }));
 
 settings.path("permreplacements").add("remove", new Usage({
-	description: "Add a permreplacements",
-	usage: [["rank", "emoji"]],
-	callback: async(data, ...value) => {
-		if(!value) return await data.commandUsage;
+	description: "Remove a permreplacements",
+	usage: ["perm"],
+	callback: async(data, perm) => {
+		if(!perm) return await data.commandUsage;
 
-		value = value.join` `.trim();
-		data.rankmojis = data.rankmojis.filter(({rank, moji}) => !(rank === value || moji === value) );
-		await data.db("guilds").where({id: data.msg.guild.id}).update({rankmojis: JSON.stringify(data.rankmojis)});
-
-		return await data.msg.reply(printRankMojis(data.msg.guild, data.rankmojis));
+		delete data.permReplacements[perm];
+		await data.db("guilds").where({id: data.msg.guild.id}).update({permreplacements: JSON.stringify(data.permReplacements)});
+		return await data.msg.reply(JSON.stringify(data.permReplacements));
 	}
 }));
 
