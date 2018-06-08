@@ -2,21 +2,21 @@ const config = require("../config");
 const client = require("../bot");
 
 function about(otherData, prerequisites, cb) {
-  return (data, odInfo) => {
-    let firstFailure = prerequisites.find(prereq => !prereq(data));
+	return (data, odInfo) => {
+		let firstFailure = prerequisites.find(prereq => !prereq(data));
 
-    if(odInfo) {
-      if(firstFailure) return firstFailure(data, odInfo);
+		if(odInfo) {
+			if(firstFailure) return firstFailure(data, odInfo);
 
-      let finalData = {};
-      for(let key in odInfo) {
-        finalData[key] = otherData[key].split`%s`.join(odInfo[key]) || "No information available";
-      }
-      return finalData;
-    }
-    if(firstFailure) return false;
-    return cb(data);
-  };
+			let finalData = {};
+			for(let key in odInfo) {
+				finalData[key] = otherData[key].split`%s`.join(odInfo[key]) || "No information available";
+			}
+			return finalData;
+		}
+		if(firstFailure) return false;
+		return cb(data);
+	};
 }
 
 // TODO implement showInHelp
@@ -27,9 +27,9 @@ module.exports.pm = yn => about({preCheck: `This command can${!yn ? "not" : " on
 // module.exports.perm = perm => data => data.msg.guild.member().hasPermission(perm);
 module.exports.myPerm = perm => about({preCheck: `I need access to the ${perm} permission to enable this command`}, [module.exports.pm(false)], data => data.msg.guild.member(client.user).hasPermission(perm));
 module.exports.perm = perm => about({preCheck: `You need to have access to the ${perm} permission to use this command`}, [module.exports.pm(false)], data =>
-  // data.msg.member.hasPermission(perm) ||
-  // data.msg.author.id === config.owner ||
-  data.msg.member.roles.get(data.permreplacements[perm])
+// data.msg.member.hasPermission(perm) ||
+// data.msg.author.id === config.owner ||
+	data.msg.member.roles.get(data.permreplacements[perm])
 );
 // perm will have a few permissions. Once a role is set, they will use the role instead ofr
 // Failed to get --- because  ---- is not set // o.setting(quotesPastebin)
