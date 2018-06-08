@@ -118,6 +118,18 @@ People can get the leaderboards for the default category or a category of their 
     ip!speedrun leaderboard
     ip!speedrun leaderboard Snake
 
+## permreplacements
+
+If you want someone to be able to use bot commands that they need a permission for, but don't want to give them the permission, you can use permreplacements
+
+    ip!settings permreplacements set <permission> <role id>
+
+where permission is a permission string like `MANAGE_GUILD` and role id is a role id from `ip!settings listRoles`
+
+To remove one, use
+
+    ip!settings permreplacements remove <permision>
+
 ## Change the name
 
 If you wish to change the name of the bot, right click on it's name and select `Change Nickname`
