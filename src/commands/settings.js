@@ -103,7 +103,7 @@ settings.path("rankmoji").add("channel", new Usage({
   }
 }));
 
-settings.add("permreplacements", new Usage({
+settings.add("permreplacements", new Usage({ // TODO finish
   description: "Set/Remove/List all permreplacements",
   requirements: [o.myPerm("MANAGE_MESSAGES")],
   callback: async(data, value) => {
