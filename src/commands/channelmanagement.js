@@ -44,7 +44,7 @@ channels.add("sendMany", new Usage({
 	requirements: [o.pm(false),  o.perm("MANAGE_CHANNELS")/*o.yourPerm("MANAGE_CHANNELS")*/],
 	usage: ["...message", "#channels #to #send #to"],
 	callback: async(data) => {
-		let message = stripMentions(data.msg);
+		let message = stripMentions(data.msg).replace(/^.+channels sendMany /, ""); // TODO find a better way to do this
 		let channelsToSendTo = data.msg.mentions.channels.array();
 		channelsToSendTo.forEach(channel => {
 			channel.send(message).catch(errorNooneCaresAbout => data.msg.reply(`Could not send to ${channel.toString()}. Maybe I don't have permission?`));
