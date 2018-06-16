@@ -67,6 +67,18 @@ usage.add("purge",  new Usage({
 		msgs.array().forEach(msg => msg.delete());
 	}
 }));
+usage.add("spoiler",  new Usage({
+	description: "Deletes the last n messages from a channel",
+	usage: ["msgs to delete"],
+	callback: async(data, ...message) => {
+		data.msg.delete();
+		message = message.join` `;
+		let embed = new RichEmbed;
+		embed.title = "Spoiler";
+		embed.description = `[Click to view](https://dummyimage.com/600x400/000/fff&text=${encodeURIComponent(message)})`; // todo embed.author
+		return data.msg.reply("Spoiler: ", {embed: embed});
+	}
+}));
 
 usage.depricate("spaceChannels", "channels spacing");
 
