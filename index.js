@@ -75,7 +75,7 @@ usage.add("spoiler",  new Usage({
 		message = message.join` `;
 		let embed = new RichEmbed;
 		embed.title = "Spoiler";
-		embed.description = `[Hover to view](https://dummyimage.com/600x400/000/fff&text=${encodeURIComponent(message)} "${message.split`"`.join`'`.split`\\`.join`/`}")`; // todo embed.author
+		embed.description = `[Hover to view](https://dummyimage.com/600x400/000/fff&text=${encodeURIComponent(message)} "${message.split`"`.join`'`.split`\\`.join`/`.split`)`.join`(`}")`; // todo embed.author
 		return data.msg.reply("Spoiler: ", {embed: embed});
 	}
 }));
