@@ -312,7 +312,7 @@ bot.on("messageReactionAddCustom", async(reaction, user, message) => {
 			rolesToAddToMessages[message.id].roles.push(rank);
 			rolesToAddToMessages[message.id].reaxns.push(getEmojiKey((await message.react("✅")).emoji));
 			rolesToAddToMessages[message.id].reaxns.push(getEmojiKey((await message.react("❎")).emoji));
-			setTimeout(delet, 5*1000);
+			setTimeout(delet, 10*1000);
 		});
 		if(emoji === "✅") {
 			if(rolesToAddToMessages[message.id]) {
