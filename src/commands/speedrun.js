@@ -9,6 +9,34 @@ let speedrun = new Usage({
 	requirements: [o.setting("speedrun")]
 });
 
+speedrun.add("rules", new Usage({ // TODO make it so I don't have the exact smae code twice
+	description: "Get the category rules",
+	callback: async(data, ...category) => {
+		let [gameID, defaultCategory] = data.speedrun.split`, `;
+		if(category && category.length > 0 && category[0]) {
+			let categoriesGetter = sr.games(gameID);
+			categoriesGetter._method = "categories";
+			let categories = await categoriesGetter.exec();
+
+			let categoryFilter = categories.items.filter(cat => cat.name === category.join` `);
+			if(categoryFilter.length <= 0) return await data.msg.reply("Please supply a valid category name");
+			category = categoryFilter[0].id;
+		}else{
+			category = defaultCategory;
+		}
+		let gameData = await sr.leaderboards(gameID, category).embed(["category", "players", "game"]).exec();
+		let actualGameData = gameData.items.game.data;
+		let topThree = gameData.items.runs.filter(run => run.place<=3);
+		let getPlayer = player => gameData.items.players.data.filter(pl => pl.id === player)[0];
+
+		let mainEmbed = new RichEmbed;
+		mainEmbed.title = gameData.items.category.data.name;
+		mainEmbed.description = gameData.items.category.data.rules;
+		mainEmbed.url = gameData.items.category.data.weblink;
+		data.msg.reply("", {embed: mainEmbed});
+	}
+}));
+
 speedrun.add("leaderboard", new Usage({ // TODO trophy-1st for the person in first
 	description: "Get the top 5 people",
 	callback: async(data, ...category) => {
