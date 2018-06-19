@@ -319,7 +319,6 @@ bot.on("messageReactionAddCustom", async(reaction, user, message) => {
 				rolesToAddToMessages[message.id].roles.forEach(async rolid => {
 					let role = message.guild.roles.get(rolid);
 					try{
-						if(message.member.roles.get(rolid)) return;
 						await message.member.addRole(role);
 						await message.reply(`Ranked with ${role.name}`);
 					}catch(e) {
