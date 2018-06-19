@@ -311,7 +311,6 @@ bot.on("messageReactionAddCustom", async(reaction, user, message) => {
 			if(!rolesToAddToMessages[message.id]) rolesToAddToMessages[message.id] = {roles: [], reaxns: []};
 			rolesToAddToMessages[message.id].roles.push(rank);
 			rolesToAddToMessages[message.id].reaxns.push(getEmojiKey((await message.react("✅")).emoji));
-			// rolesToAddToMessages[message.id].reaxns.push(getEmojiKey((await message.react("❎")).emoji));
 			setTimeout(delet, 10*1000);
 		});
 		if(emoji === "✅") {
@@ -327,9 +326,6 @@ bot.on("messageReactionAddCustom", async(reaction, user, message) => {
 					}
 				});
 			}
-		}
-		if(emoji === "❎") {
-			delet();
 		}
 	}
 });
