@@ -140,6 +140,8 @@ It will show up like this:
 
 ![https://i.imgur.com/cDIoIv0.png](https://i.imgur.com/cDIoIv0.png)
 
+Beware: if the bot doesn't have permission to manage_messages, your message may be accidentally spoiled
+
 ## Change the name
 
 If you wish to change the name of the bot, right click on it's name and select `Change Nickname`
