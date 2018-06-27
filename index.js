@@ -45,8 +45,9 @@ usage.add("help",  new Usage({
 		}
 		let commands = cmdToGetHelp.description; // Object.keys(data.allPastebin)
 		let result = cmdToGetHelp.getUsage({data: all ? undefined : data});
-		if(command.join` ` === "") result = result.concat(Object.keys(data.allPastebin).map(ap => `${ap} [single] [search term...] [number]`)).join`\n`; // TODO temporary fix do not use
-		commands += `\`\`\`${result}\`\`\``; // TODO also list quote commands
+		if(command.join` ` === "") result = result.concat(Object.keys(data.allPastebin).map(ap => `${ap} [single] [search term...] [number]`)); // TODO temporary fix do not use
+		result = result.join`\n`;
+		commands += `\`\`\`\n${result}\n\`\`\``; // TODO also list quote commands
 		if(!all) commands +=  "and more that you or your server cannot use. `help all` for a full list";
 		return data.msg.reply(commands);
 	}
@@ -321,7 +322,7 @@ bot.on("messageReactionAddCustom", async(reaction, user, message) => {
 			if(!message.guild.roles.get(rank)) return;
 			if(!rolesToAddToMessages[message.id]) rolesToAddToMessages[message.id] = {roles: [], reaxns: []};
 			rolesToAddToMessages[message.id].roles.push(rank);
-			rolesToAddToMessages[message.id].reaxns.push(getEmojiKey((await message.react("✅")).emoji));
+			rolesToAddToMessages[message.id].reaxns.push(getEmojiKey((await message.react("✅")).emoji)); // after awaiting for something you should check if the conditions are still met
 			setTimeout(delet, 10*1000);
 		});
 		if(emoji === "✅") {
