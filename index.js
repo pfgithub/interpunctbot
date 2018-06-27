@@ -244,7 +244,9 @@ bot.on("message", async msg => {
 			}
 
 			console.log(msg.cleanContent); // TODO remove this
-			let output = usage.parse(info, msg.cleanContent.replace(prefix, ""));
+			let prefixlessMessage = msg.cleanContent.replace(prefix, "").trim();
+			let output = usage.parse(info, prefixlessMessage);
+
 			if(output) {
 				const resEmbed = new RichEmbed;
 				resEmbed.description = output;
@@ -255,7 +257,7 @@ bot.on("message", async msg => {
 		}
 		return false;
 	};
-	handle(`${info.prefix  } `) || handle(info.prefix) || handle(`${bot.user.toString()} `) || handle(`${bot.user.toString()}`);
+	handle(info.prefix) || handle(`${bot.user.toString()}`);
 	// right here do if(moji)
 	if(!(await checkMojiPerms(msg, info))) return;
 	// if(msg.channel.id === info.rankmojiChannel) {
