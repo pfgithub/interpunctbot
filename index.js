@@ -132,7 +132,7 @@ async function retrieveGuildInfo(g, msg) {
 		}else{
 			prefix = guild.prefix;
 			allPastebin = tryParse(guild.searchablePastebins) || allPastebin;
-			allPastebin.quote = guild.quotes;
+			if(guild.quotes) allPastebin.quote = guild.quotes;
 			speedrun = guild.speedrun;
 			disabledCommands = tryParse(guild.disabledCommands) || disabledCommands;
 			rankmojis = tryParse(guild.rankmojis) || rankmojis;
