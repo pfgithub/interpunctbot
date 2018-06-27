@@ -20,7 +20,7 @@ let usage = new Usage({
 	usage: ["command..."],
 	callback: async(data, ...command) => {
 		if(!(await handleQuote(data, ...command))) return;
-		if(data.unknownCommandMessages) return data.msg.reply(`Comand \`${command.join` `}\` not found, try \`${data.prefix}help\` for a list of commands`);
+		if(data.unknownCommandMessages) return data.msg.reply(`Command \`${command.join` `}\` not found, try \`${data.prefix}help\` for a list of commands`);
 	}
 });
 
