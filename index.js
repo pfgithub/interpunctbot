@@ -236,28 +236,30 @@ bot.on("message", async msg => {
 	// right here do if(prefix)
 	let info = await retrieveGuildInfo(msg.guild, msg);
 	if(info.logging) try{guildLog(msg.guild.id, `[${moment().format("YYYY-MM-DD HH:mm:ss Z")}] <#${msg.channel.name}> \`${msg.author.tag}\`: ${msg.content}`);}catch(e) {console.log(e);}
-	let handle = prefix => {
-		if(msg.cleanContent.startsWith(prefix)) {
-			mostRecentCommands.push({content: msg.cleanContent, date: new Date()});
-			while(mostRecentCommands.length > 5) {
-				mostRecentCommands.shift();
-			}
-
-			console.log(msg.cleanContent); // TODO remove this
-			let prefixlessMessage = msg.cleanContent.replace(prefix, "").trim();
-			let output = usage.parse(info, prefixlessMessage);
-
-			if(output) {
-				const resEmbed = new RichEmbed;
-				resEmbed.description = output;
-				resEmbed.title = "❌ Error:";
-				msg.reply("", {embed: resEmbed});
-			}
-			return true;
+	let handle = prefixlessMessage => {
+		mostRecentCommands.push({content: msg.cleanContent, date: new Date()});
+		while(mostRecentCommands.length > 5) {
+			mostRecentCommands.shift();
 		}
-		return false;
+
+		console.log(msg.cleanContent); // TODO remove this
+		let output = usage.parse(info, prefixlessMessage);
+
+		if(output) {
+			const resEmbed = new RichEmbed;
+			resEmbed.description = output;
+			resEmbed.title = "❌ Error:";
+			msg.reply("", {embed: resEmbed});
+		}
+		return true;
 	};
-	handle(info.prefix) || handle(`${bot.user.toString()}`);
+	if(msg.cleanContent.startsWith(info.prefix)) {
+		let prefixlessMessage = msg.cleanContent.replace(info.prefix, "").trim(); // replace without regex just replaces the first instance
+		handle(prefixlessMessage);
+	}else if(msg.mentions.members.array().map(member => member.id).indexOf(bot.user.id) > -1) {
+		let prefixlessMessage = msg.cleanContent.split(`@${msg.guild.me.displayName}`).join``.trim();
+		handle(prefixlessMessage);
+	}
 	// right here do if(moji)
 	if(!(await checkMojiPerms(msg, info))) return;
 	// if(msg.channel.id === info.rankmojiChannel) {
