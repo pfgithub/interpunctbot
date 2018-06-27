@@ -1,6 +1,8 @@
 const config = require("../config");
 const client = require("../bot");
 
+// TODO replace about({}) with just being json
+
 function about(otherData, prerequisites, cb) {
 	return (data, odInfo) => {
 		let firstFailure = prerequisites.find(prereq => !prereq(data));

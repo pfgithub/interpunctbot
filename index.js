@@ -242,9 +242,14 @@ bot.on("message", async msg => {
 				mostRecentCommands.shift();
 			}
 
-			console.log(msg.cleanContent);
+			console.log(msg.cleanContent); // TODO remove this
 			let output = usage.parse(info, msg.cleanContent.replace(prefix, ""));
-			if(output) msg.reply(output);
+			if(output) {
+				const resEmbed = new RichEmbed;
+				resEmbed.description = output;
+				resEmbed.title = "❌ Error:";
+				msg.reply("", {embed: resEmbed});
+			}
 			return true;
 		}
 		return false;
