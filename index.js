@@ -44,7 +44,8 @@ usage.add("help",  new Usage({
 			return data.msg.reply("Command not found");
 		}
 		let commands = cmdToGetHelp.description; // Object.keys(data.allPastebin)
-		let result = cmdToGetHelp.getUsage({data: all ? undefined : data}).concat(Object.keys(data.allPastebin).map(ap => `${ap} [single] [search term...] [number]`)).join`\n`;
+		let result = cmdToGetHelp.getUsage({data: all ? undefined : data});
+		if(command.join` ` === "") result = result.concat(Object.keys(data.allPastebin).map(ap => `${ap} [single] [search term...] [number]`)).join`\n`; // TODO temporary fix do not use
 		commands += `\`\`\`${result}\`\`\``; // TODO also list quote commands
 		if(!all) commands +=  "and more that you or your server cannot use. `help all` for a full list";
 		return data.msg.reply(commands);
