@@ -343,7 +343,17 @@ bot.on("guildDelete", (guild) => { // forget about the guild at some point in ti
 });
 
 process.on("unhandledRejection", (reason, p) => {
-	let finalMsg = `${mostRecentCommands.map(c => `\`${c.content}\` ][ ${moment(c.date).fromNow()}`).join`\n`}\n<@${config.owner}> Unhandled Rejection at: Promise ${p.toString()} reason: ${reason.toString()}`;
+	let finalMsg = `
+Hey <@${config.owner}>, there was an error
+
+**Recent Commands:**
+${mostRecentCommands.map(c => `\`${c.content}\` / ${moment(c.date).fromNow()}`).join`\n`}
+
+**Stacktrace**:
+\`\`\`
+${reason.stack}
+\`\`\`
+`;
 	console.log(p);
 	console.log(reason);
 	console.log(finalMsg);
