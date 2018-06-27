@@ -71,7 +71,8 @@ usage.add("spoiler",  new Usage({
 	description: "Deletes the last n messages from a channel",
 	usage: ["msgs to delete"],
 	callback: async(data, ...message) => {
-		data.msg.delete();
+		if(o.myPerm("MANAGE_MESSAGES")(data)) data.msg.delete();
+		else (async() => (await data.msg.reply("This command works better when I have the permission `MANAGE_MESSAGES`")).delete(10*1000))();
 		message = message.join` `;
 		let embed = new RichEmbed;
 		embed.title = "Spoiler";
@@ -320,7 +321,10 @@ bot.on("messageReactionAddCustom", async(reaction, user, message) => {
 					try{
 						if(message.member.roles.get(rolid)) return;
 						await message.member.addRole(role);
-						await message.reply(`Ranked with ${role.name}`);
+						if(role.mentionable) // TODO if !mentionable mention
+							await message.reply(`Ranked with ${role.name}`);
+						else
+							await message.reply(`Ranked with ${role.toString()}`);
 					}catch(e) {
 						(await message.reply(`Could not rank, I need to be above the role you want me to rank with`)).delete(10*1000);
 					}
