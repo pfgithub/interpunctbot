@@ -14,6 +14,7 @@ let about = new Usage({
 	embed.addField("<:list:476514785106591744> bots.discord.pw", "https://bots.discord.pw/bots/433078185555656705");
 	embed.addField("<:javascript:476513336490721290> source code", "https://gitlab.com/pfgitlab/interpunctbot");
 	embed.addField("<:documentation:476514294075490306> documentation", "https://gitlab.com/pfgitlab/interpunctbot/blob/master/README.md");
+	embed.addField("<:discord:478701038447230996> support server", "https://discord.gg/j7qpZdE");
 	embed.addField("prefix", data.prefix, true);
 
 	data.msg.reply("About:", {embed: embed});
