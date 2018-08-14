@@ -46,7 +46,7 @@ usage.add("help",  new Usage({
 		let commands = cmdToGetHelp.description; // Object.keys(data.allPastebin)
 		let result = cmdToGetHelp.getUsage({data: all ? undefined : data});
 		if(command.join` ` === "") result = result.concat(Object.keys(data.allPastebin).map(ap => `${ap} [single] [search term...] [number]`)); // TODO temporary fix do not use
-		result = result.join`\n`;
+		result = result.map(line => `${data.prefix}${line}`).join`\n`;
 		commands += `\`\`\`\n${result}\n\`\`\``; // TODO also list quote commands
 		if(!all) commands +=  "and more that you or your server cannot use. `help all` for a full list";
 		return data.msg.reply(commands);
@@ -127,6 +127,7 @@ async function retrieveGuildInfo(g, msg) {
 	let speedrun;
 	let unknownCommandMessages = true;
 	let permReplacements = {};
+	let events = {welcome: "", goodbye: ""};
 	if(g) {
 		let guild = (await knex("guilds").where({id: g.id}))[0];
 		if(!guild) {
@@ -143,6 +144,8 @@ async function retrieveGuildInfo(g, msg) {
 			permReplacements = tryParse(guild.permreplacements) || permReplacements;
 			logging = guild.logging === "true" ? true : false;
 			unknownCommandMessages = guild.unknownCommandMessages === "true" || !guild.unknownCommandMessages ? true : false;
+			events.welcome = guild.welcome;
+			events.goodbye = guild.goodbye;
 		}
 	}
 	return{
@@ -176,6 +179,13 @@ bot.on("ready", async() => {
 
 setInterval(updateActivity, 60 * 60 * 1000);
 
+function streplace(str, eplace) {
+	eplace.keys.forEach(key =>{
+		str = str.split(key).join(eplace[key]);
+	});
+	return str;
+}
+
 bot.on("guildMemberAdd", async(member) => { // serverNewMember // member.toString gives a mention that's cool
 	let info = await retrieveGuildInfo(member.guild);
 	let nameParts = info.nameScreening.filter(screen => member.displayName.toLowerCase().indexOf(screen.toLowerCase()) > -1);
@@ -189,8 +199,13 @@ bot.on("guildMemberAdd", async(member) => { // serverNewMember // member.toStrin
 			devlog("E>< Could not ban member");
 		}
 	}
+	if(info.events.welcome) setTimeout( () => member.guild.systemChannel.send(streplace(info.events.welcome, {"@s": member.toString(), "%s": member.displayName})), 1000 );
 });
 
+bot.on("guildMemberRemove", async(member) => {
+	let info = await retrieveGuildInfo(member.guild);
+	if(info.events.goodbye) member.guild.systemChannel.send(streplace(info.events.goodbye, {"@s": member.toString(), "%s": member.displayName}));
+});
 
 async function checkMojiPerms(msg, info) {
 	// if user.hasPerm(nitro custom emojis) && user.isNitro) {//bypass emoji role check}
