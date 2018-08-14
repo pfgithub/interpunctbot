@@ -207,7 +207,7 @@ settings.path("events").add("welcome", new Usage({
 	callback: async(data) => {
 		let message = data.msg.content.split(/^.+?settings events welcome ?/).join``; // no safe content for us
 		// if(!message) return await data.msg.reply(`Welcome: ${data.events.welcome}`);
-		if(message && message.indexOf("@s") + message.indexOf("%s") <= -1) await data.msg.reply("Put @s or %s in your welcome message to mention/say the user's name");
+		if(message && message.indexOf("@s") + message.indexOf("%s") <= -2) await data.msg.reply("Put @s or %s in your welcome message to mention/say the user's name");
 
 		await data.db("guilds").where({id: data.msg.guild.id}).update({welcome: message});
 		return await data.msg.reply(`Welcome message is${message ? ` now: ${message}` : "n't"}`);
@@ -220,7 +220,7 @@ settings.path("events").add("goodbye", new Usage({
 	callback: async(data) => {
 		let message = data.msg.content.split(/^.+?settings events goodbye ?/).join``; // no safe content for us
 		// if(!message) return await data.msg.reply(`Goodbye: ${data.events.goodbye}`);
-		if(message && message.indexOf("@s") + message.indexOf("%s") <= -1) await data.msg.reply("Put @s or %s in your welcome message to mention/say the user's name");
+		if(message && message.indexOf("@s") + message.indexOf("%s") <= -2) await data.msg.reply("Put @s or %s in your welcome message to mention/say the user's name");
 
 		await data.db("guilds").where({id: data.msg.guild.id}).update({goodbye: message === "none" ? "" : message});
 		return await data.msg.reply(`Goodbye message is${message ? ` now: ${message}` : "n't"}`);
