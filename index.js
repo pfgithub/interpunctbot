@@ -144,8 +144,8 @@ async function retrieveGuildInfo(g, msg) {
 			permReplacements = tryParse(guild.permreplacements) || permReplacements;
 			logging = guild.logging === "true" ? true : false;
 			unknownCommandMessages = guild.unknownCommandMessages === "true" || !guild.unknownCommandMessages ? true : false;
-			events.welcome = guild.welcome;
-			events.goodbye = guild.goodbye;
+			events.welcome = guild.welcome || events.welcome;
+			events.goodbye = guild.goodbye || events.goodbye;
 		}
 	}
 	return{
@@ -162,7 +162,8 @@ async function retrieveGuildInfo(g, msg) {
 		logging: logging,
 		speedrun: speedrun,
 		unknownCommandMessages: unknownCommandMessages,
-		permReplacements: permReplacements
+		permReplacements: permReplacements,
+		events: events
 	};
 }
 
@@ -180,7 +181,7 @@ bot.on("ready", async() => {
 setInterval(updateActivity, 60 * 60 * 1000);
 
 function streplace(str, eplace) {
-	eplace.keys.forEach(key =>{
+	Object.keys(eplace).forEach(key =>{
 		str = str.split(key).join(eplace[key]);
 	});
 	return str;

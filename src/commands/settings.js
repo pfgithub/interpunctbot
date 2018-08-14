@@ -204,22 +204,28 @@ settings.add("events", new Usage({
 settings.path("events").add("welcome", new Usage({
 	description: "Sets the welcome message. Welcome messages will be in your server's new member messages channel",
 	usage: [["none", "welcome @s/%s message..."]],
-	callback: async(data, ...message) => {
-		if(!message) return await data.msg.reply(`Welcome: ${data.events.welcome}`);
+	callback: async(data) => {
+		let message = data.msg.content.split(/^.+?settings events welcome ?/); // no safe content for us
+		message = message.join` `;
+		// if(!message) return await data.msg.reply(`Welcome: ${data.events.welcome}`);
+		if(message && message.indexOf("@s") + message.indexOf("%s") <= -1) await data.msg.reply("Put @s or %s in your welcome message to mention/say the user's name");
 
-		await data.db("guilds").where({id: data.msg.guild.id}).update({welcome: message === "none" ? "" : message});
-		return await data.msg.reply(`Welcome message is now: ${message}`);
+		await data.db("guilds").where({id: data.msg.guild.id}).update({welcome: message});
+		return await data.msg.reply(`Welcome message is${message ? ` now: ${message}` : "n't"}`);
 	}
 }));
 
 settings.path("events").add("goodbye", new Usage({
 	description: "Sets the goodbye message. Goodbye messages will be in your server's new member messages channel",
 	usage: [["none", "goodbye @s/%s message..."]],
-	callback: async(data, ...message) => {
-		if(!message) return await data.msg.reply(`Goodbye: ${data.events.goodbye}`);
+	callback: async(data) => {
+		let message = data.msg.content.split(/^.+?settings events goodbye ?/); // no safe content for us
+		message = message.join` `;
+		// if(!message) return await data.msg.reply(`Goodbye: ${data.events.goodbye}`);
+		if(message && message.indexOf("@s") + message.indexOf("%s") <= -1) await data.msg.reply("Put @s or %s in your welcome message to mention/say the user's name");
 
 		await data.db("guilds").where({id: data.msg.guild.id}).update({goodbye: message === "none" ? "" : message});
-		return await data.msg.reply(`Goodbye message is now: ${message}`);
+		return await data.msg.reply(`Goodbye message is${message ? ` now: ${message}` : "n't"}`);
 	}
 }));
 
