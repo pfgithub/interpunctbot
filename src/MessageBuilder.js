@@ -75,7 +75,7 @@ class MessageBuilder { // https://discordapp.com/developers/docs/resources/chann
 		msg += this.description.build();
 
 		this._fields.forEach(field => {
-			if(this._fields.length < 25) embed.addField(field.title.build(), field.description.build(), field.inline);
+			if(embed.fields.length < 25) embed.addField(field.title.build(), field.description.build(), field.inline);
 			if(field.inline) {
 				msg += `\n**${field.title.build()}**: ${field.description.build()}`;
 			}else {
