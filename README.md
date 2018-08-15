@@ -15,11 +15,11 @@ If you wish to change the ip!prefix, use
 
 It even supports emoji prefixes :laughingcrying:
 
-If you mess up the prefix, just use
+If you mess up the prefix, use
 
     @inter·punct settings prefix <new prefix>
 
-When PMing the bot, no prefix is required.
+When PMing the bot, a prefix is not needed.
 
 ## Spaced Channel Names
 
@@ -58,7 +58,7 @@ Act fast, you only have 10 seconds. *tick* *tick* *tick* *tick*
 
 ## Logging
 
-If you wish to be able to download a log of all the things people say on your server, enable logging
+To keep a log of everything said on your server, enable logging. Logs will also show deleted messages.
 
     ip!settings logging true
 
@@ -70,9 +70,9 @@ To reset the logs, use
 
     ip!log reset
 
-Logs will log messages people send and when they send them. Logs will also log some edited messages and if a user is banned for name screening.
+Logs will log messages people send and when they send them. Logs will also log some edited messages.
 
-If you accidentally reset the logs, too bad.
+If you accidentally reset the logs, they cannot be recovered. Don't.
 
 ## Username Screening and Banning
 
@@ -82,7 +82,7 @@ If you want to autoban people who have certain words in their username, you can 
 
 This will autoban anyone who joins with `some` or `words` or `to` or `ban` in their name. Not case sensitive.
 
-Watch out when using short words like `to`, you might accidentally ban someone named **To**mas
+Watch out when using short words like `to`, you might unintentionally ban someone named **To**mas
 
     ip!settings nameScreening remove to ban
 
@@ -105,7 +105,7 @@ For users to get a quote, they can use
     ip!listname 5
     ip!listname single search string
 
-Quote single is used to get just one line in a multiline quote. A number at the end can be used to get the nth quote with that search term or of all the quotes
+Quote single is used to get one line in a multiline quote. A number at the end can be used to get the nth quote with that search term or of all the quotes
 
 ## Speedrun.com leaderboards
 
