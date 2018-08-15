@@ -49,7 +49,7 @@ channels.add("sendMany", new Usage({
 		channelsToSendTo.forEach(channel => {
 			channel.send(message).catch(errorNooneCaresAbout => data.msg.reply(`Could not send to ${channel.toString()}. Maybe I don't have permission?`));
 		});
-		data.msg.reply(`Sent ${message} to ${channelsToSendTo.length} channels`);
+		data.msg.reply(`Sent ${message} to ${channelsToSendTo.map(c => c.toString()).join`, `}`);
 	}
 }));
 
