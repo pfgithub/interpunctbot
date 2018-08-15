@@ -283,7 +283,7 @@ bot.on("message", async msg => {
 			// resEmbed.description = output;
 			// resEmbed.title = "❌ Error:";
 			// msg.reply("", {embed: resEmbed});
-			return await msg.reply(...mb.build(data.embed));
+			return await msg.reply(...mb.build(info.embed));
 		}
 		return true;
 	};
