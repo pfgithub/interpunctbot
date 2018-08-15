@@ -3,6 +3,7 @@ const o = require("../options");
 const {RichEmbed} = require("discord.js");
 const SpeedrunAPI = require("speedrunapi");
 const sr = new SpeedrunAPI();
+const MB = require("../MessageBuilder");
 
 function getRankName(guild, rank) {
 	if(guild.roles.get(rank))
@@ -243,15 +244,20 @@ settings.add("listRoles", new Usage({
 	usage: [["true", "false"]],
 	callback: async(data) => {
 		let res = [];
-		let resEmbed = new RichEmbed();
+		let mb = MB();
+		mb.title.tag`Roles:`;
+		mb.description.tag``;
 		data.msg.guild.roles.array().sort((a, b) => a.calculatedPosition<b.calculatedPosition?1:(a.calculatedPosition>b.calculatedPosition?-1:0)) // inverted sort
 			.forEach(role => {
-				res.push(`${role.id}: ${role.name}`);
-				if(resEmbed.fields.length < 25)
-					resEmbed.addField(role.name, `\`\`\`${role.id}\`\`\``);
+				mb.addField((t, d)=>{
+					// if(!role.mentionable)
+					// 	t.putRaw(role.toString()); // Actually, don't do this. It is not visible in embed output form and instead shows the raw ping
+					// else
+					t.put(role.name);
+					d.tag`\`${role.id}\``;
+				}, true);
 			});
-		if(resEmbed.fields.length < 25) return await data.msg.reply(``, {embed: resEmbed});
-		return await data.msg.reply(`\`\`\`${res.join`\n`}\`\`\``);
+		return await data.msg.reply(...mb.build(data.embed));
 		// return await data.msg.reply(`\`\`\`${res.join`\n`.split`@everyone`.join`everyone`.split`@here`.join`here`}\`\`\``);
 	}
 }));

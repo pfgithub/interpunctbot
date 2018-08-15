@@ -7,6 +7,7 @@ const knex = require("./src/db"); // TODO add something so if you delete a messa
 const {Attachment, RichEmbed} = require("discord.js");
 const moment = require("moment");
 const handleQuote = require("./src/commands/quote");
+const MB = require("./src/MessageBuilder");
 
 global.__basedir = __dirname;
 
@@ -70,16 +71,17 @@ usage.add("purge",  new Usage({
 	}
 }));
 usage.add("spoiler",  new Usage({
-	description: "Deletes the last n messages from a channel",
-	usage: ["msgs to delete"],
+	description: "Says something that you have to hover/click to see",
+	usage: ["message..."],
 	callback: async(data, ...message) => {
 		if(o.myPerm("MANAGE_MESSAGES")(data)) data.msg.delete();
 		else (async() => (await data.msg.reply("This command works better when I have the permission `MANAGE_MESSAGES`")).delete(10*1000))();
 		message = message.join` `;
-		let embed = new RichEmbed;
-		embed.title = "Spoiler";
-		embed.description = `[Hover to view](https://dummyimage.com/600x400/000/fff&text=${encodeURIComponent(message.split`)`.join`]`)} "${message.split`"`.join`'`.split`\\`.join`/`.split`)`.join`}`}")`; // todo embed.author
-		return data.msg.reply("Spoiler: ", {embed: embed});
+		let mb = MB();
+		mb.title.tag`Spoiler`;
+		mb.description.tag`[Hover to View](https://dummyimage.com/600x400/000/fff&text=${encodeURIComponent(message).replace(/[_]/g, "")} "${message}")`;
+
+		return await data.msg.reply(...mb.build(data.embed || true)); // spoilers must use embeds
 	}
 }));
 
@@ -163,7 +165,8 @@ async function retrieveGuildInfo(g, msg) {
 		speedrun: speedrun,
 		unknownCommandMessages: unknownCommandMessages,
 		permReplacements: permReplacements,
-		events: events
+		events: events,
+		embed: true
 	};
 }
 
@@ -253,20 +256,34 @@ bot.on("message", async msg => {
 	// right here do if(prefix)
 	let info = await retrieveGuildInfo(msg.guild, msg);
 	if(info.logging) try{guildLog(msg.guild.id, `[${moment().format("YYYY-MM-DD HH:mm:ss Z")}] <#${msg.channel.name}> \`${msg.author.tag}\`: ${msg.content}`);}catch(e) {console.log(e);}
-	let handle = prefixlessMessage => {
+	let handle = async(prefixlessMessage) => {
 		mostRecentCommands.push({content: msg.cleanContent, date: new Date()});
 		while(mostRecentCommands.length > 5) {
 			mostRecentCommands.shift();
 		}
 
 		console.log(msg.cleanContent); // TODO remove this
-		let output = usage.parse(info, prefixlessMessage);
+		let output;
+		try{
+			output = usage.parse(info, prefixlessMessage);
+		}catch(er) {
+			try{
+				msg.reply("❌ Error: An internal error occured while attempting to run this command");
+			}catch(errr) {
+				msg.author.send("❌ Error: An internal error occured while trying to say the error message about your command failing. Maybe I'm not allowed to talk?");
+			}
+			throw er;
+		}
 
 		if(output) {
-			const resEmbed = new RichEmbed;
-			resEmbed.description = output;
-			resEmbed.title = "❌ Error:";
-			msg.reply("", {embed: resEmbed});
+			let mb = MB();
+			mb.title.tag`❌ Error:`;
+			mb.description.putRaw(output); // WARNING this could potentionally ping people if mis set. Don't allow user input in outputs
+			// const resEmbed = new RichEmbed;
+			// resEmbed.description = output;
+			// resEmbed.title = "❌ Error:";
+			// msg.reply("", {embed: resEmbed});
+			return await msg.reply(...mb.build());
 		}
 		return true;
 	};
