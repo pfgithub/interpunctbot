@@ -145,7 +145,7 @@ It will show up like this:
 If you want to have welcome or goodbye messages
 
     ip!settings events welcome OH HI THERE @s! @everyone, @s is here!!!
-    ip!settings events goodbye Bye @s. Your name %s will forever be known't
+    ip!settings events goodbye Bye @s. Your name %s will forever be rememberen't
 
 @s and %s will be replaced with a mention to the user and the user's name, respectively
 
