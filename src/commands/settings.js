@@ -53,6 +53,59 @@ settings.add("lists", new Usage({
 	}
 }));
 
+settings.add("discmoji", new Usage({
+	description: "Restrict or unrestrict an emoji",
+	requirements: [o.myPerm("ADMINISTRATOR")],
+}));
+
+settings.path("discmoji").add("restrict", new Usage({
+	description: "Add a restricted role to an emoji",
+	usage: ["role id", ["emoji", "emoji id"]],
+	callback: async(data, rank, ...emoji) => {
+		console.log(emoji.join` `);
+		try{
+			let role = data.msg.guild.roles.get(rank);
+			let moji = data.msg.guild.emojis.get(emoji.join` `.match(/([0-9]{18,})/)[1]);
+			await moji.addRestrictedRole(role);
+			return await data.msg.reply(`Restricted emoji with id \`${moji.id}\` to role with id \`${role.id}\``);
+		}catch(e) {
+			return await data.msg.reply("Error. Make sure you supplied a role id and an emoji or emoji id");
+		}
+	}
+}));
+
+settings.path("discmoji").add("unrestrict", new Usage({
+	description: "Remove a restricted role from an emoji",
+	usage: ["role id", ["emoji", "emoji id"]],
+	callback: async(data, rank, ...emoji) => {
+		try{
+			let role = data.msg.guild.roles.get(rank);
+			let moji = data.msg.guild.emojis.get(emoji.join` `.match(/([0-9]{18,})/)[1]);
+			await moji.removeRestrictedRole(role);
+			return await data.msg.reply(`Unrestricted emoji with id \`${moji.id}\` to role with id \`${role.id}\``);
+		}catch(e) {
+			return await data.msg.reply("Error. Make sure you supplied a role id and an emoji or emoji id");
+		}
+	}
+}));
+
+settings.path("discmoji").add("list", new Usage({
+	description: "Remove a restricted role from an emoji",
+	usage: [["emoji", "emoji id"]],
+	callback: async(data,  ...emoji) => {
+		try{
+			let moji = data.msg.guild.emojis.get(emoji.join` `.match(/([0-9]{18,})/)[1]);
+			let resroles = `Any of the following roles can use this emoji:`;
+			moji.roles.array().forEach(role => {
+				resroles += `\n${  role.name  }: ` + `\`${  role.id  }\``;
+			});
+			return await data.msg.reply(resroles);
+		}catch(e) {
+			return await data.msg.reply("Error. Make sure you supplied an emoji or emoji id");
+		}
+	}
+}));
+
 settings.add("rankmoji", new Usage({
 	description: "Set/Remove/List all rankmoji",
 	requirements: [o.myPerm("MANAGE_MESSAGES")],
@@ -63,7 +116,7 @@ settings.add("rankmoji", new Usage({
 
 settings.path("rankmoji").add("add", new Usage({
 	description: "Add a rankmoji",
-	usage: ["rank", "emoji"],
+	usage: ["role id", "emoji"],
 	callback: async(data, rank, ...moji) => {
 		if(!rank || !moji) return await data.commandUsage;
 
@@ -75,7 +128,7 @@ settings.path("rankmoji").add("add", new Usage({
 
 settings.path("rankmoji").add("remove", new Usage({
 	description: "Add a rankmoji",
-	usage: [["rank", "emoji"]],
+	usage: [["role id", "emoji"]],
 	callback: async(data, ...value) => {
 		if(!value) return await data.commandUsage;
 

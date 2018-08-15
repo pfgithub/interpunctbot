@@ -33,7 +33,43 @@ To undo this, use
 
 ## Per-role emojis
 
-When it talks about roles, it needs a role ID. Roles are annoying and there is no easy way to get an ID. Use `ip!settings listRoles` to get a list of all roles and IDs.
+When it talks about roles, it needs a role ID. Use `ip!settings listRoles` to get a list of all roles and IDs.
+
+### Which do I want: Full or partial?
+
+####
+
+Full:
+
+- If a user does not have a role, they cannot see the emoji in their emoji list and they cannot use it either
+- Once they get a role allowing them to use the emoji, it may take some time before it appears in their emoji menu again. They can refresh manually (ctrl+r) to get it instantly.
+- An emoji can be restricted to multiple roles. If a user has any of those roles, they can use it.
+- Requires interpunct to be administrator while setting up. After setting up, admin should be removed.
+
+Partial:
+
+- If a user does not have the role, they cannot say the emoji. It is still visible in their emoji menu
+- They can still react with the emoji or use it in other servers
+- Only one role can be given per emoji.
+- Requires interpunct to be able to delete messages.
+
+Both:
+- To use rankmojis on a full role emoji, you must make it both full and partial
+
+### Full
+
+Restrict an emoji
+
+    ip!settings discmoji restrict <role id> :my great emoji:
+
+After restricting an emoji, you will be given back its id in case you don't have the role needed to use it.
+
+Remove a certain emoji restriction
+
+    ip!settings discmoji unrestrict <role id> :my great emoji:
+
+
+### Partial
 
 Add an rankmoji
 
@@ -46,7 +82,7 @@ Remove a rankmoji
 
 Rankmojis support messages and edits. They do not support reactions.
 
-### Ranking people with emojis
+#### Ranking people with emojis
 
 If a rankmoji channel is set, MANAGE_ROLES people can rank people using rankmojis in the channel
 
