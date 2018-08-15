@@ -211,7 +211,7 @@ settings.path("events").add("welcome", new Usage({
 		if(message && message.indexOf("@s") + message.indexOf("%s") <= -2) await data.msg.reply("Put @s or %s in your welcome message to mention/say the user's name");
 
 		await data.db("guilds").where({id: data.msg.guild.id}).update({welcome: message});
-		return await data.msg.reply(`Welcome message is${message ? ` now: ${message}` : "n't"}`);
+		return await data.msg.reply(`Welcome message ${message ? `updated. Preview: \n\n${message.split`@s`.join(data.msg.author.toString()).split`%s`.join(data.msg.member.displayName)}` : "removed"}`);
 	}
 }));
 
@@ -224,7 +224,7 @@ settings.path("events").add("goodbye", new Usage({
 		if(message && message.indexOf("@s") + message.indexOf("%s") <= -2) await data.msg.reply("Put @s or %s in your welcome message to mention/say the user's name");
 
 		await data.db("guilds").where({id: data.msg.guild.id}).update({goodbye: message === "none" ? "" : message});
-		return await data.msg.reply(`Goodbye message is${message ? ` now: ${message}` : "n't"}`);
+		return await data.msg.reply(`Goodbye message ${message ? `updated. Preview: ${message.split`@s`.join(data.msg.author.toString()).split`%s`.join(data.msg.member.displayName)}` : "removed"}`);
 	}
 }));
 
