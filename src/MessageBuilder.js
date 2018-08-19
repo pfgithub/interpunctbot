@@ -15,10 +15,10 @@ class TextBuilder {
 	tag(strings, ...values) {
 		// Values are escaped
 		// Strings are not
-		if(typeof firstString === "string") strings = [strings];
+		if(typeof strings === "string") strings = [strings];
 		let res = "";
+		console.log(strings, values);
 		strings.forEach((str, i) => {
-			console.log(str, values[i]);
 			this.putRaw(str);
 			if(values[i]) this.put(values[i]);
 		});
@@ -52,6 +52,7 @@ class MessageBuilder { // https://discordapp.com/developers/docs/resources/chann
 		this.title = new TextBuilder;
 		this.description = new TextBuilder;
 		this._fields = [];
+		this.author = {};
 	}
 
 	addField(fn, inline=false) { // param fn: (title, description) => {} returns nothing
@@ -61,6 +62,10 @@ class MessageBuilder { // https://discordapp.com/developers/docs/resources/chann
 		this._fields.push({title: title, description: description, inline: inline});
 	}
 
+	setAuthor(author, image) {
+		this.author = {author: author, image: image};
+	}
+
 	build(useEmbed) { // useEmbed may be overrided if fields goes over the max
 		// converts to an array containing [msg, {embed: thing}]
 		let embed = new RichEmbed();
@@ -68,11 +73,17 @@ class MessageBuilder { // https://discordapp.com/developers/docs/resources/chann
 
 		embed.setColor("random");
 
+		if(this.author.author && this.author.image) {
+			embed.setAuthor(this.author.author, this.author.image);
+			msg += `${(new TextBuilder).tag`By ${this.author.author} <${this.author.image}>`.build()  }\n\n`;
+		}
+
 		embed.title = this.title.build();
 		msg += `**${this.title.build()}**\n\n`;
 
 		embed.description = this.description.build();
 		msg += this.description.build();
+
 
 		this._fields.forEach(field => {
 			if(embed.fields.length < 25) embed.addField(field.title.build(), field.description.build(), field.inline);
