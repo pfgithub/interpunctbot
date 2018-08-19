@@ -265,14 +265,14 @@ bot.on("message", async msg => {
 		console.log(msg.cleanContent); // TODO remove this
 		let output;
 		try{
-			output = usage.parse(info, prefixlessMessage);
+			output = await usage.parse(info, prefixlessMessage);
 		}catch(er) {
 			try{
-				msg.reply("❌ Error: An internal error occured while attempting to run this command");
+				await msg.reply("❌ Error: An internal error occured while attempting to run this command");
 			}catch(errr) {
-				msg.author.send("❌ Error: An internal error occured while trying to say the error message about your command failing. Maybe I'm not allowed to talk?");
+				await msg.author.send("❌ Error: An error occured while running your command. Additionally, an error occured while trying to tell you about it... Maybe I'm not allowed to talk?");
 			}
-			throw er;
+			throw er; // To make sure I know of its existance
 		}
 
 		if(output) {
