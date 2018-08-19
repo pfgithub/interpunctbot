@@ -1,6 +1,10 @@
 # inter·punct bot
 
-[Invite Me](https://discordapp.com/api/oauth2/authorize?client_id=433078185555656705&permissions=268445780&scope=bot) | [DiscordBots Link](https://discordbots.org/bot/433078185555656705)
+[![List icon](https://cdn.discordapp.com/emojis/476514785106591744.png?v=1&size=32) discordbots.org (please vote)](https://discordbots.org/bot/433078185555656705)
+[![List icon](https://cdn.discordapp.com/emojis/476514785106591744.png?v=1&size=32) bots.discord.pw](https://bots.discord.pw/bots/433078185555656705)
+[![Node.js icon](https://cdn.discordapp.com/emojis/476513336490721290.png?v=1&size=32) source code](https://gitlab.com/pfgitlab/interpunctbot)
+[![Documentation icon](https://cdn.discordapp.com/emojis/476514294075490306.png?v=1&size=32) documentation](https://gitlab.com/pfgitlab/interpunctbot/blob/master/README.md)
+[![Discord icon](https://cdn.discordapp.com/emojis/478701038447230996.png?v=1&size=32) support server](https://discord.gg/j7qpZdE)
 
 <!-- [![Discuss](https://img.shields.io/discord/446481361692524545.svg)](https://discord.gg/j7qpZdE) -->
 
@@ -10,14 +14,19 @@
 
 If you wish to change the ip!prefix, use
 
-    ip!settings prefix <new prefix>
-    <new prefix>settings prefix ip!
+
+```
+ip!settings prefix <new prefix>
+<new prefix>settings prefix ip!
+```
 
 It even supports emoji prefixes :laughingcrying:
 
 If you mess up the prefix, use
 
-    @inter·punct settings prefix <new prefix>
+```
+@inter·punct settings prefix <new prefix>
+```
 
 When PMing the bot, a prefix is not needed.
 
@@ -25,11 +34,15 @@ When PMing the bot, a prefix is not needed.
 
 If you wish to have spaces in your channel names, use
 
-    ip!channels spacing space
+```
+ip!channels spacing space
+```
 
 To undo this, use
 
-    ip!channels spacing dash
+```
+ip!channels spacing dash
+```
 
 ## Per-role emojis
 
@@ -60,25 +73,33 @@ Both:
 
 Restrict an emoji
 
-    ip!settings discmoji restrict <role id> :my great emoji:
+```
+ip!settings discmoji restrict <role id> :my great emoji:
+```
 
 After restricting an emoji, you will be given back its id in case you don't have the role needed to use it.
 
 Remove a certain emoji restriction
 
-    ip!settings discmoji unrestrict <role id> :my great emoji:
+```
+ip!settings discmoji unrestrict <role id> :my great emoji:
+```
 
 
 ### Partial
 
 Add an rankmoji
 
-    ip!settings rankmoji add <roleid> :my_great_emoji:
+```
+ip!settings rankmoji add <roleid> :my_great_emoji:
+```
 
 Remove a rankmoji
 
-    ip!settings rankmoji remove :my_great_emoji:
-    ip!settings rankmoji remove <roleid>
+```
+ip!settings rankmoji remove :my_great_emoji:
+ip!settings rankmoji remove <roleid>
+```
 
 Rankmojis support messages and edits. They do not support reactions.
 
@@ -86,7 +107,9 @@ Rankmojis support messages and edits. They do not support reactions.
 
 If a rankmoji channel is set, MANAGE_ROLES people can rank people using rankmojis in the channel
 
-    ip!settings rankmoji channel #channel you can rank people on
+```
+ip!settings rankmoji channel #channel you can rank people on
+```
 
 To rank someone, react to their message with a rankmoji containing the role you want to add, then click the check mark that appears
 
@@ -96,15 +119,21 @@ Act fast, you only have 10 seconds. *tick* *tick* *tick* *tick*
 
 To keep a log of everything said on your server, enable logging. Logs will also show deleted messages.
 
-    ip!settings logging true
+```
+ip!settings logging true
+```
 
 To download the logs, use
 
-    ip!log download
+```
+ip!log download
+```
 
 To reset the logs, use
 
-    ip!log reset
+```
+ip!log reset
+```
 
 Logs will log messages people send and when they send them. Logs will also log some edited messages.
 
@@ -114,13 +143,17 @@ If you accidentally reset the logs, they cannot be recovered. Don't.
 
 If you want to autoban people who have certain words in their username, you can use nameScreening
 
-    ip!settings nameScreening add some words to ban
+```
+ip!settings nameScreening add some words to ban
+```
 
 This will autoban anyone who joins with `some` or `words` or `to` or `ban` in their name. Not case sensitive.
 
 Watch out when using short words like `to`, you might unintentionally ban someone named **To**mas
 
-    ip!settings nameScreening remove to ban
+```
+ip!settings nameScreening remove to ban
+```
 
 The ban reason will give a list of words in their name that were in the nameScreening list
 
@@ -132,14 +165,18 @@ I recommend creating a pastebin account so you can edit your quote list without 
 
 The lists commands require a pastebin ID. That is the last part of the pastebin URL. `pastebin.com/`THIS IS YOUR ID
 
-    ip!settings lists [listname] [id]
+```
+ip!settings lists [listname] [id]
+```
 
 For users to get a quote, they can use
 
-    ip!listname
-    ip!listname search string
-    ip!listname 5
-    ip!listname single search string
+```
+ip!listname
+ip!listname search string
+ip!listname 5
+ip!listname single search string
+```
 
 Quote single is used to get one line in a multiline quote. A number at the end can be used to get the nth quote with that search term or of all the quotes
 
@@ -147,30 +184,40 @@ Quote single is used to get one line in a multiline quote. A number at the end c
 
 If you want people to be able to get the top 3 on a speedrun.com page, add the page in settings
 
-    ip!settings speedrun Getting_Over_It_With_Bennett_Foddy Glitchless
+```
+ip!settings speedrun Getting_Over_It_With_Bennett_Foddy Glitchless
+```
 
 People can get the leaderboards for the default category or a category of their choosing
 
-    ip!speedrun leaderboard
-    ip!speedrun leaderboard Snake
+```
+ip!speedrun leaderboard
+ip!speedrun leaderboard Snake
+```
 
 ## permreplacements
 
 If you want someone to be able to use bot commands that they need a permission for, but don't want to give them the permission, you can use permreplacements
 
-    ip!settings permreplacements set <permission> <role id>
+```
+ip!settings permreplacements set <permission> <role id>
+```
 
 where permission is a permission string like `MANAGE_GUILD` and role id is a role id from `ip!settings listRoles`
 
 To remove one, use
 
-    ip!settings permreplacements remove <permision>
+```
+ip!settings permreplacements remove <permision>
+```
 
 ## Spoilers
 
 If you want to say something that might be a spoiler
 
-    ip!spoiler everyone dies in infinity war
+```
+ip!spoiler everyone dies in star wars: infinity war
+```
 
 It will show up like this:
 
@@ -180,8 +227,10 @@ It will show up like this:
 
 If you want to have welcome or goodbye messages
 
-    ip!settings events welcome OH HI THERE @s! @everyone, @s is here!!!
-    ip!settings events goodbye Bye @s. Your name %s will forever be rememberen't
+```
+ip!settings events welcome OH HI THERE @s! @everyone, @s is here!!!
+ip!settings events goodbye Bye @s. Your name %s will forever be rememberen't
+```
 
 @s and %s will be replaced with a mention to the user and the user's name, respectively
 
@@ -195,7 +244,9 @@ Copy `config.example.json` to `config.json` and edit it with your bot's informat
 
 Development should probably be sqlite3 or another 0 setup database, Production should probably be pg or another production databse.
 
-    yarn global add knex
-    knex migrate:latest
-    yarn install
-    yarn start
+```
+yarn global add knex
+knex migrate:latest
+yarn install
+yarn start
+```
