@@ -8,6 +8,7 @@ const {Attachment, RichEmbed, DiscordAPIError} = require("discord.js");
 const moment = require("moment");
 const handleQuote = require("./src/commands/quote");
 const MB = require("./src/MessageBuilder");
+const request = require("request");
 
 global.__basedir = __dirname;
 
@@ -172,7 +173,19 @@ async function retrieveGuildInfo(g, msg) {
 
 
 function updateActivity() {
-	bot.user.setActivity(`ip!help on ${bot.guilds.size} servers`);
+	let count = bot.guilds.size;
+	bot.user.setActivity(`ip!help on ${count} servers`);
+	if(process.env.NODE_ENV === "development") return; // only production should post
+	let options = {
+		url: `https://bots.discord.pw/api/bots/${config.bdpid}/stats`,
+		headers: {
+			Authorization: config["bots.discord.pw"]
+		},
+		json: {
+			server_count: count // eslint-disable-line camelcase
+		}
+	};
+	request.post(options, (er, res) => {if(er) console.log("er... my res isn't existant", er); else console.log(res.body);});
 }
 
 bot.on("ready", async() => {
