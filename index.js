@@ -4,7 +4,7 @@ const path = require("path");
 const Usage = require("command-parser");
 const o = require("./src/options");
 const knex = require("./src/db"); // TODO add something so if you delete a message with a command it deletes the result messages or a reaction on the result msg or idk
-const {Attachment, RichEmbed} = require("discord.js");
+const {Attachment, RichEmbed, DiscordAPIError} = require("discord.js");
 const moment = require("moment");
 const handleQuote = require("./src/commands/quote");
 const MB = require("./src/MessageBuilder");
@@ -267,10 +267,12 @@ bot.on("message", async msg => {
 		try{
 			output = await usage.parse(info, prefixlessMessage);
 		}catch(er) {
+			let error = "";
+			if(er instanceof DiscordAPIError) error = `The error is: ${er.message} (error code ${er.code})`;
 			try{
-				await msg.reply("❌ Error: An internal error occured while attempting to run this command");
+				await msg.reply(`❌ Error: An internal error occured while attempting to run this command. ${error}`);
 			}catch(errr) {
-				await msg.author.send("❌ Error: An error occured while running your command. Additionally, an error occured while trying to tell you about it... Maybe I'm not allowed to talk?");
+				await msg.author.send(`❌ Error: An error occured while running your command. Additionally, an error occured while trying to tell you about it... Maybe I'm not allowed to talk? ${error}`);
 			}
 			throw er; // To make sure I know of its existance
 		}
