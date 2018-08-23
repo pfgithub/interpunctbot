@@ -80,9 +80,7 @@ speedrun.add("leaderboard", new Usage({ // TODO trophy-1st for the person in fir
 			let runPlayer = getPlayer(run.players[0].id);
 
 			let duration = moment.duration(run.times.primary_t, "seconds");
-			mainEmbed.addField(`${duration.format("y [years] M [months] w [weeks] d [days,] h[h]:mm[m]:s.SSS[s]")}`, `
-[Link](${gameData.items.category.data.weblink}) | [Watch](${(run.videos.links[0] || {uri: "error"}).uri})
-By [${runPlayer.names.international}](${runPlayer.weblink})
+			mainEmbed.addField(`${runPlayer.names.international}`, `[${duration.format("y [years] M [months] w [weeks] d [days,] h[h]:mm[m]:s.SSS[s]")}](${gameData.items.category.data.weblink})
 ${run.comment || "No comment"}
 `);
 		});
