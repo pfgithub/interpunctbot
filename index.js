@@ -337,7 +337,8 @@ bot.on("raw", async event => {
 	if (event.t !== "MESSAGE_REACTION_ADD") return;
 
 	const { d: data } = event;
-	const user = bot.users.get(data.user_id);
+	const user = bot.users.get(data.user_id); // Not sure how there will ever be no user for an event but whatever
+	if(!user) return;
 	const channel = bot.channels.get(data.channel_id);
 	if(!channel) return;
 	let message;
