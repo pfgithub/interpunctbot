@@ -65,7 +65,6 @@ speedrun.add("leaderboard", new Usage({ // TODO trophy-1st for the person in fir
 		let resEmbeds = [];
 		let mainEmbed = new RichEmbed;
 		mainEmbed.title = gameData.items.category.data.name;
-		mainEmbed.description = gameData.items.category.data.rules;
 		mainEmbed.url = gameData.items.category.data.weblink;
 		topThree.forEach(run_ => {
 			let run = run_.run;
@@ -84,13 +83,13 @@ speedrun.add("leaderboard", new Usage({ // TODO trophy-1st for the person in fir
 			if(assetIcon) embed.thumbnail = {
 				url: assetIcon.uri
 			};
-			// resEmbed.addField(run.times.primary_t, `[${runPlayer.names.international}](${runPlayer.weblink}): [Video](${run.videos.links[0].uri})`);
+			mainEmbed.addField(run.times.primary_t, `[${runPlayer.names.international}](${runPlayer.weblink}): [Watch](${run.videos.links[0].uri})`);
 			resEmbeds.push(embed);
 		});
-		
+
 		replyMessage.delete();
 		data.msg.reply("", {embed: mainEmbed});
-		resEmbeds.forEach(embed => data.msg.reply("", {embed: embed}));
+		// resEmbeds.forEach(embed => data.msg.reply("", {embed: embed}));
 	}
 }));
 
