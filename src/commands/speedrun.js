@@ -3,6 +3,7 @@ const SpeedrunAPI = require("speedrunapi");
 const sr = new SpeedrunAPI();
 const o = require("../options");
 const {RichEmbed} = require("discord.js");
+const MB = require("../MessageBuilder");
 
 const moment = require("moment");
 require("moment-duration-format")(moment);
@@ -69,23 +70,27 @@ speedrun.add("leaderboard", new Usage({ // TODO trophy-1st for the person in fir
 		let topThree = gameData.items.runs.filter(run => run.place<=places);
 		let getPlayer = player => gameData.items.players.data.filter(pl => pl.id === player)[0];
 
-		let resEmbeds = [];
-		let mainEmbed = new RichEmbed;
-		mainEmbed.title = gameData.items.category.data.name;
-		mainEmbed.url = gameData.items.category.data.weblink;
-		console.log(gameData.items.category.data.weblink);
+		let mb = MB();
+		mb.url.putRaw(gameData.items.category.data.weblink);
+		mb.title.put(gameData.items.category.data.name);
+
 		topThree.forEach(run_ => {
 			let run = run_.run;
 
 			let runPlayer = getPlayer(run.players[0].id);
 
 			let duration = moment.duration(run.times.primary_t, "seconds");
-			mainEmbed.addField(`${runPlayer.names.international}`, `[${duration.format("y [years] M [months] w [weeks] d [days,] h[h]:mm[m]:s.SSS[s]")}](${gameData.items.category.data.weblink})
+			mb.addField((t, d) => {
+				t.tag`${runPlayer.names.international}`;
+				d.tag`[${duration.format("y [years] M [months] w [weeks] d [days,] h[h]:mm[m]:s.SSS[s]")}](`;
+				d.putRaw(run.weblink);
+				d.tag`)
 ${run.comment || "No comment"}
-`);
+`;
+			});
 		});
 
-		await replyMessage.edit("", {embed: mainEmbed});
+		await replyMessage.edit(...mb.build(data.embed));
 		// resEmbeds.forEach(embed => data.msg.reply("", {embed: embed}));
 	}
 }));

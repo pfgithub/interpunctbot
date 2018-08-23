@@ -9,15 +9,15 @@ What does it mean to build a message?
  */
 
 class TextBuilder {
-	constructor() {
+	constructor(type = "discord") {
 		this.text = [];
+		this.type = type;
 	}
 	tag(strings, ...values) {
 		// Values are escaped
 		// Strings are not
 		if(typeof strings === "string") strings = [strings];
 		let res = "";
-		console.log(strings, values);
 		strings.forEach((str, i) => {
 			this.putRaw(str);
 			if(values[i]) this.put(values[i]);
@@ -38,9 +38,19 @@ class TextBuilder {
 			if(raw) {
 				output += str;
 			}else{
-				str = str.replace(/(\*|_|`|~|\\|<|>|\[|\]"|'|\(|\))/g, "\\$1"); //// Put escapes before every  discord character. This will have a negative effect on code blocks, but the only solution to that is parsing markdown...
-				str = str.replace(/(@)(everyone|here)/g, "\\$1​\\$2"); // 1 zwsp 2
-				output += str;
+				switch(this.type) {
+					case "discord":
+						str = str.replace(/(\*|_|`|~|\\|<|>|\[|\]"|'|\(|\))/g, "\\$1"); //// Put escapes before every  discord character. This will have a negative effect on code blocks, but the only solution to that is parsing markdown...
+						str = str.replace(/(@)(everyone|here)/g, "\\$1​\\$2"); // 1 zwsp 2
+						output += str;
+						break;
+					case "url":
+						str = encodeURIComponent(str);
+						output += str;
+						break;
+					default:
+						throw new Error("this is why enums exist");
+				}
 			}
 		});
 		return output;
@@ -53,6 +63,7 @@ class MessageBuilder { // https://discordapp.com/developers/docs/resources/chann
 		this.description = new TextBuilder;
 		this._fields = [];
 		this.author = {};
+		this.url = new TextBuilder("url");
 	}
 
 	addField(fn, inline=false) { // param fn: (title, description) => {} returns nothing
@@ -78,6 +89,12 @@ class MessageBuilder { // https://discordapp.com/developers/docs/resources/chann
 			msg += `${(new TextBuilder).tag`By ${this.author.author} <${this.author.image}>`.build()  }\n\n`;
 		}
 
+		let builtURL = this.url.build();
+		if(builtURL) {
+			embed.url = builtURL;
+			msg += `${builtURL}\n`;
+		}
+
 		embed.title = this.title.build();
 		msg += `**${this.title.build()}**\n\n`;
 
@@ -99,6 +116,7 @@ ${field.description.build()}`;
 		});
 
 		if(this._fields.length > 25) useEmbed = false;
+		if(msg.length > 2000) msg = `${msg.substring(0, 2000 - 3)  }...`;
 
 		// if we handled sending the message we could auto retry with no embed
 
