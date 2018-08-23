@@ -12,6 +12,8 @@ let speedrun = new Usage({
 speedrun.add("rules", new Usage({ // TODO make it so I don't have the exact smae code twice
 	description: "Get the category rules",
 	callback: async(data, ...category) => {
+		let replyMessage = await data.msg.reply("<a:loading:393852367751086090>");
+
 		let [gameID, defaultCategory] = data.speedrun.split`, `;
 		if(category && category.length > 0 && category[0]) {
 			let categoriesGetter = sr.games(gameID);
@@ -33,13 +35,16 @@ speedrun.add("rules", new Usage({ // TODO make it so I don't have the exact smae
 		mainEmbed.title = gameData.items.category.data.name;
 		mainEmbed.description = gameData.items.category.data.rules;
 		mainEmbed.url = gameData.items.category.data.weblink;
-		data.msg.reply("", {embed: mainEmbed});
+
+		replyMessage.edit("", {embed: mainEmbed});
 	}
 }));
 
 speedrun.add("leaderboard", new Usage({ // TODO trophy-1st for the person in first
 	description: "Get the top 5 people",
 	callback: async(data, ...category) => {
+		let replyMessage = await data.msg.reply("<a:loading:393852367751086090>");
+
 		let [gameID, defaultCategory] = data.speedrun.split`, `;
 		if(category && category.length > 0 && category[0]) {
 			let categoriesGetter = sr.games(gameID);
@@ -82,6 +87,8 @@ speedrun.add("leaderboard", new Usage({ // TODO trophy-1st for the person in fir
 			// resEmbed.addField(run.times.primary_t, `[${runPlayer.names.international}](${runPlayer.weblink}): [Video](${run.videos.links[0].uri})`);
 			resEmbeds.push(embed);
 		});
+		
+		replyMessage.delete();
 		data.msg.reply("", {embed: mainEmbed});
 		resEmbeds.forEach(embed => data.msg.reply("", {embed: embed}));
 	}
