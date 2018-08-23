@@ -20,7 +20,7 @@ const fs = require("mz/fs");
 let usage = new Usage({
 	description: "All Commands",
 	usage: ["command..."],
-	callback: async(data, ...command) => {
+	callback: async(data, ...command) => { // TODO remove this without removing the handlequote
 		if(!(await handleQuote(data, ...command))) return;
 		if(data.unknownCommandMessages) return data.msg.reply(`Command \`${command.join` `}\` not found, try \`${data.prefix}help\` for a list of commands`);
 	}

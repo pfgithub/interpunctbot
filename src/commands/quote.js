@@ -14,10 +14,11 @@ function deUsererrorIfy(str) {
 }
 
 module.exports = async(data, type, ...searchString) => {
-	let replyMessage = await data.msg.reply("<a:loading:393852367751086090>");
-
 	let pastebinId = data.allPastebin[type];
 	if(!pastebinId) return true;
+
+	let replyMessage = await data.msg.reply("<a:loading:393852367751086090>");
+	
 	let forceLine;
 	let individual = false;
 
