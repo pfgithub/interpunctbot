@@ -14,6 +14,8 @@ function deUsererrorIfy(str) {
 }
 
 module.exports = async(data, type, ...searchString) => {
+	let replyMessage = await data.msg.reply("<a:loading:393852367751086090>");
+
 	let pastebinId = data.allPastebin[type];
 	if(!pastebinId) return true;
 	let forceLine;
@@ -47,5 +49,6 @@ module.exports = async(data, type, ...searchString) => {
 	else quoteEmbed.setTitle("Quote");
 	quoteEmbed.setFooter(`${line+1}/${allQuotes.length}`);
 	quoteEmbed.setColor(`RANDOM`);
-	await data.msg.reply("", {embed: quoteEmbed});
+
+	await replyMessage.edit("", {embed: quoteEmbed});
 };

@@ -59,7 +59,7 @@ speedrun.add("leaderboard", new Usage({ // TODO trophy-1st for the person in fir
 			let categories = await categoriesGetter.exec();
 
 			let categoryFilter = categories.items.filter(cat => cat.name.toLowerCase() === category.join` `.toLowerCase());
-			if(categoryFilter.length <= 0) return await data.msg.reply(`Please supply a valid category name. Categories: ${categories.items.map(cat => cat.name).join`, `}`);
+			if(categoryFilter.length <= 0) return await replyMessage.edit(`Please supply a valid category name. Categories: ${categories.items.map(cat => cat.name).join`, `}`);
 			category = categoryFilter[0].id;
 		}else{
 			category = defaultCategory;
@@ -85,8 +85,7 @@ ${run.comment || "No comment"}
 `);
 		});
 
-		replyMessage.delete();
-		data.msg.reply("", {embed: mainEmbed});
+		await replyMessage.edit("", {embed: mainEmbed});
 		// resEmbeds.forEach(embed => data.msg.reply("", {embed: embed}));
 	}
 }));

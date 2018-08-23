@@ -23,18 +23,20 @@ channels.add("spacing", new Usage({
 	requirements: [o.pm(false), o.myPerm("MANAGE_CHANNELS"), o.perm("MANAGE_CHANNELS")/*o.yourPerm("MANAGE_CHANNELS")*/],
 	usage: [["space", "dash"]],
 	callback: async(data, yn) => {
+		let replyMessage = await data.msg.reply("<a:loading:393852367751086090>");
+
 		if(!yn) return data.msg.reply("Usage: channels spacing [space|dash]");
 		switch (yn) {
 			case "true":
 			case "space":
 			case "yes":
-				return data.msg.reply(`Spaced ${spaceChannels({guild: data.msg.guild, from: `-`, to: ` `, msg: data.msg})}`);
+				return replyMessage.edit(`Spaced ${spaceChannels({guild: data.msg.guild, from: `-`, to: ` `, msg: data.msg})}`);
 			case "false":
 			case "dash":
 			case "no":
-				return data.msg.reply(`Dashed ${spaceChannels({guild: data.msg.guild, to: `-`, from: ` `, msg: data.msg})}`);
+				return replyMessage.edit(`Dashed ${spaceChannels({guild: data.msg.guild, to: `-`, from: ` `, msg: data.msg})}`);
 			default:
-				return data.msg.reply("Usage: spaceChannels [space|dash]");
+				return replyMessage.edit("Usage: spaceChannels [space|dash]");
 		}
 	}
 }));
@@ -44,12 +46,14 @@ channels.add("sendMany", new Usage({
 	requirements: [o.pm(false),  o.perm("MANAGE_CHANNELS")/*o.yourPerm("MANAGE_CHANNELS")*/],
 	usage: ["...message", "#channels #to #send #to"],
 	callback: async(data) => {
+		let replyMessage = await data.msg.reply("<a:loading:393852367751086090>");
+
 		let message = stripMentions(data.msg).replace(/^.+channels sendMany /, ""); // TODO find a better way to do this
 		let channelsToSendTo = data.msg.mentions.channels.array();
 		channelsToSendTo.forEach(channel => {
 			channel.send(message).catch(errorNooneCaresAbout => data.msg.reply(`Could not send to ${channel.toString()}. Maybe I don't have permission?`));
 		});
-		data.msg.reply(`Sent ${message} to ${channelsToSendTo.map(c => c.toString()).join`, `}`);
+		await replyMessage.edit(`Sent ${message} to ${channelsToSendTo.map(c => c.toString()).join`, `}`);
 	}
 }));
 
