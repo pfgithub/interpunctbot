@@ -202,8 +202,8 @@ settings.add("speedrun", new Usage({
 
 		let categories = games[0].categories.data;
 
-		let categoryFilter = categories.filter(cat => cat.name === category.join` `);
-		if(categoryFilter.length <= 0) return await data.msg.reply("Please supply a valid default category name");
+		let categoryFilter = categories.items.filter(cat => cat.name.toLowerCase() === category.join` `.toLowerCase());
+		if(categoryFilter.length <= 0) return await data.msg.reply(`Please supply a valid category name. Categories: ${categories.items.map(cat => cat.name).join`, `}`);
 
 		await data.db("guilds").where({id: data.msg.guild.id}).update({speedrun: `${id}, ${categoryFilter[0].id}`});
 		return await data.msg.reply(`Speedrun ID \`${`${id}, ${categoryFilter[0].id}`}\`.`);

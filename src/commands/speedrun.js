@@ -4,6 +4,9 @@ const sr = new SpeedrunAPI();
 const o = require("../options");
 const {RichEmbed} = require("discord.js");
 
+const moment = require("moment");
+require("moment-duration-format")(moment);
+
 let speedrun = new Usage({
 	description: "Commands related to speedrun.com",
 	requirements: [o.setting("speedrun")]
@@ -11,6 +14,7 @@ let speedrun = new Usage({
 
 speedrun.add("rules", new Usage({ // TODO make it so I don't have the exact smae code twice
 	description: "Get the category rules",
+	usage: ["category..."],
 	callback: async(data, ...category) => {
 		let replyMessage = await data.msg.reply("<a:loading:393852367751086090>");
 
@@ -20,8 +24,8 @@ speedrun.add("rules", new Usage({ // TODO make it so I don't have the exact smae
 			categoriesGetter._method = "categories";
 			let categories = await categoriesGetter.exec();
 
-			let categoryFilter = categories.items.filter(cat => cat.name === category.join` `);
-			if(categoryFilter.length <= 0) return await data.msg.reply("Please supply a valid category name");
+			let categoryFilter = categories.items.filter(cat => cat.name.toLowerCase() === category.join` `.toLowerCase());
+			if(categoryFilter.length <= 0) return await data.msg.reply(`Please supply a valid category name. Categories: ${categories.items.map(cat => cat.name).join`, `}`);
 			category = categoryFilter[0].id;
 		}else{
 			category = defaultCategory;
@@ -41,50 +45,46 @@ speedrun.add("rules", new Usage({ // TODO make it so I don't have the exact smae
 }));
 
 speedrun.add("leaderboard", new Usage({ // TODO trophy-1st for the person in first
-	description: "Get the top 5 people",
+	description: "Get the top n people",
+	usage: ["top how many?", "category..."],
 	callback: async(data, ...category) => {
 		let replyMessage = await data.msg.reply("<a:loading:393852367751086090>");
 
 		let [gameID, defaultCategory] = data.speedrun.split`, `;
+		let places = 5;
+		if(category[0] === `${parseInt(category[0], 10)}`) places = parseInt(category.shift(), 10);
 		if(category && category.length > 0 && category[0]) {
 			let categoriesGetter = sr.games(gameID);
 			categoriesGetter._method = "categories";
 			let categories = await categoriesGetter.exec();
 
-			let categoryFilter = categories.items.filter(cat => cat.name === category.join` `);
-			if(categoryFilter.length <= 0) return await data.msg.reply("Please supply a valid category name");
+			let categoryFilter = categories.items.filter(cat => cat.name.toLowerCase() === category.join` `.toLowerCase());
+			if(categoryFilter.length <= 0) return await data.msg.reply(`Please supply a valid category name. Categories: ${categories.items.map(cat => cat.name).join`, `}`);
 			category = categoryFilter[0].id;
 		}else{
 			category = defaultCategory;
 		}
 		let gameData = await sr.leaderboards(gameID, category).embed(["category", "players", "game"]).exec();
 		let actualGameData = gameData.items.game.data;
-		let topThree = gameData.items.runs.filter(run => run.place<=3);
+		let topThree = gameData.items.runs.filter(run => run.place<=places);
 		let getPlayer = player => gameData.items.players.data.filter(pl => pl.id === player)[0];
 
 		let resEmbeds = [];
 		let mainEmbed = new RichEmbed;
 		mainEmbed.title = gameData.items.category.data.name;
 		mainEmbed.url = gameData.items.category.data.weblink;
+		console.log(gameData.items.category.data.weblink);
 		topThree.forEach(run_ => {
 			let run = run_.run;
-			let embed = new RichEmbed;
-			embed.title = `:${  run.times.primary_t}`;
-			embed.description = run.comment;
-			embed.url = run.weblink;
-			// embed.color = "random";
+
 			let runPlayer = getPlayer(run.players[0].id);
-			embed.author = {
-				name: runPlayer.names.international,
-				url: runPlayer.weblink,
-				icon_url: `https://www.speedrun.com/images/flags/${runPlayer.location.country.code}.png` // eslint-disable-line camelcase
-			};
-			let assetIcon = actualGameData.assets[`trophy-${["1st", "2nd", "3rd", "4th"][run_.place-1]}`];
-			if(assetIcon) embed.thumbnail = {
-				url: assetIcon.uri
-			};
-			mainEmbed.addField(run.times.primary_t, `[${runPlayer.names.international}](${runPlayer.weblink}): [Watch](${run.videos.links[0].uri})`);
-			resEmbeds.push(embed);
+
+			let duration = moment.duration(run.times.primary_t, "seconds");
+			mainEmbed.addField(`${duration.format("y [years] M [months] w [weeks] d [days,] h[h]:mm[m]:s.SSS[s]")}`, `
+[Link](${gameData.items.category.data.weblink}) | [Watch](${(run.videos.links[0] || {uri: "error"}).uri})
+By [${runPlayer.names.international}](${runPlayer.weblink})
+${run.comment || "No comment"}
+`);
 		});
 
 		replyMessage.delete();

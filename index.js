@@ -47,7 +47,7 @@ usage.add("help",  new Usage({
 		}
 		let commands = cmdToGetHelp.description; // Object.keys(data.allPastebin)
 		let result = cmdToGetHelp.getUsage({data: all ? undefined : data});
-		if(command.join` ` === "") result = result.concat(Object.keys(data.allPastebin).map(ap => `${ap} [single] [search term...] [number]`)); // TODO temporary fix do not use
+		if(command.join` ` === "") result = result.concat(Object.keys(data.allPastebin).map(ap => `${ap} [single?] [search term...] [number?]`)); // TODO temporary fix do not use
 		result = result.map(line => `${data.prefix}${line}`).join`\n`;
 		commands += `\`\`\`\n${result}\n\`\`\``; // TODO also list quote commands
 		if(!all) commands +=  "and more that you or your server cannot use. `help all` for a full list";
