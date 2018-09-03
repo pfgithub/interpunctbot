@@ -1,0 +1,40 @@
+# ip!help [all] [command...]
+
+Lists help. If you use `ip!help all` it will list help even for commands you can't use
+
+ip!settings prefix [new prefix...]
+ip!settings lists [list] [pastebin id of list|remove]
+ip!settings discmoji restrict [role id] [emoji|emoji id]
+ip!settings discmoji unrestrict [role id] [emoji|emoji id]
+ip!settings discmoji list [emoji|emoji id]
+ip!settings rankmoji
+ip!settings rankmoji add [role id] [emoji]
+ip!settings rankmoji remove [role id|emoji]
+ip!settings rankmoji channel [channel]
+ip!settings permreplacements
+ip!settings permreplacements set [perm] [replacementID]
+ip!settings permreplacements remove [perm]
+ip!settings speedrun [abbreviation] [category]
+ip!settings nameScreening
+ip!settings nameScreening add [name parts...]
+ip!settings nameScreening remove [name parts...]
+ip!settings logging [true|false]
+ip!settings events welcome [none|welcome @s/%s message...]
+ip!settings events goodbye [none|goodbye @s/%s message...]
+ip!settings unknownCommandMessages [true|false]
+ip!settings commandFailureMessages [true|false]
+ip!settings autospaceChannels [true|false]
+ip!settings listRoles [true|false]
+ip!ping
+ip!speedrun rules [category...]
+ip!speedrun leaderboard [top how many?] [category...]
+ip!log download
+ip!log reset
+ip!purge [msgs to delete]
+ip!spoiler [message...]
+ip!channels spacing [space|dash]
+ip!channels sendMany [...message] [#channels #to #send #to]
+ip!about
+ip!crash
+ip!quote [single?] [search string...?] [number?]
+ip!motivation [single?] [search string...?] [number?]

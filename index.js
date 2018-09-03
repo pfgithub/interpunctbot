@@ -67,7 +67,7 @@ usage.add("spoiler",  new Usage({
 	description: "Says something that you have to hover/click to see",
 	usage: ["message..."],
 	callback: async(data, ...message) => {
-		if(o.myPerm("MANAGE_MESSAGES")(data)) data.msg.delete();
+		if(o.myPerm("MANAGE_MESSAGES")(data)) await data.msg.delete();
 		else (async() => (await data.msg.reply("This command works better when I have the permission `MANAGE_MESSAGES`")).delete(10*1000))();
 		message = message.join` `;
 		let mb = MB();
