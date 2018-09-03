@@ -29,6 +29,7 @@ module.exports.pm = yn => about({preCheck: `This command can${!yn ? "not" : " on
 // module.exports.perm = perm => data => data.msg.guild.member().hasPermission(perm);
 module.exports.myPerm = perm => about({preCheck: `I need access to the ${perm} permission to enable this command`}, [module.exports.pm(false)], data => data.msg.guild.member(client.user).hasPermission(perm));
 module.exports.perm = perm => about({preCheck: `You need to have access to the ${perm} permission to use this command`}, [module.exports.pm(false)], data =>
+	data.pm ||
 	data.msg.member.hasPermission(perm) ||
 	data.msg.author.id === config.owner ||
 	data.msg.member.roles.get(data.permReplacements[perm])

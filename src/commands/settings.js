@@ -32,7 +32,7 @@ settings.add("prefix", new Usage({
 	}
 }));
 
-settings.depricate("quote", "lists quote");
+settings.rename("quote", "lists quote");
 
 settings.add("lists", new Usage({
 	description: "Set pastebin url for where to find quotes",
@@ -140,7 +140,7 @@ settings.path("rankmoji").add("remove", new Usage({
 	}
 }));
 
-settings.depricate("rankmojiChannel", "rankmoji channel");
+settings.rename("rankmojiChannel", "rankmoji channel");
 settings.path("rankmoji").add("channel", new Usage({
 	description: "Sets a channel that can be used to rank people with emojis",
 	requirements: [o.myPerm("MANAGE_ROLES")],

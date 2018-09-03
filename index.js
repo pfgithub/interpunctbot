@@ -19,11 +19,7 @@ const fs = require("mz/fs");
 
 let usage = new Usage({
 	description: "All Commands",
-	usage: ["command..."],
-	callback: async(data, ...command) => { // TODO remove this without removing the handlequote
-		if(!(await handleQuote(data, ...command))) return;
-		if(data.unknownCommandMessages) return data.msg.reply(`Command \`${command.join` `}\` not found, try \`${data.prefix}help\` for a list of commands`);
-	}
+	usage: ["command..."]
 });
 
 let production = process.env.NODE_ENV === "production";
@@ -41,7 +37,7 @@ usage.add("help",  new Usage({
 		let all = command[0] === "all" ? command.shift() : false;
 		let cmdToGetHelp;
 		try{
-			cmdToGetHelp = command ? usage.path(command.join` `) : usage;
+			cmdToGetHelp = command ? data.commands.path(command.join` `) : usage; // NOTE path is inended to be private
 		}catch(e) {
 			return data.msg.reply("Command not found");
 		}
@@ -86,16 +82,16 @@ usage.add("spoiler",  new Usage({
 	}
 }));
 
-usage.depricate("spaceChannels", "channels spacing");
+usage.rename("spaceChannels", "channels spacing");
 
 usage.add("channels", require("./src/commands/channelmanagement"));
 
-usage.depricate("invite", "about");
+usage.rename("invite", "about");
 usage.add("about", require("./src/commands/about"));
 
-usage.depricate("downloadLog", "log download");
-usage.depricate("resetLog", "log reset");
-usage.depricate("listRoles", "settings listRoles");
+usage.rename("downloadLog", "log download");
+usage.rename("resetLog", "log reset");
+usage.rename("listRoles", "settings listRoles");
 
 usage.add("crash", new Usage({
 	description: "Throw an unhandled promise rejection",
@@ -167,7 +163,8 @@ async function retrieveGuildInfo(g, msg) {
 		unknownCommandMessages: unknownCommandMessages,
 		permReplacements: permReplacements,
 		events: events,
-		embed: true
+		embed: true,
+		failedPrecheckMessages: true
 	};
 }
 
@@ -277,8 +274,14 @@ bot.on("message", async msg => {
 
 		console.log(msg.cleanContent); // TODO remove this
 		let output;
+
+		let outerUsage = new Usage({});
+		outerUsage.add("", usage);
+		Object.keys(info.allPastebin).forEach(spb => outerUsage.add(spb, handleQuote(spb)));
+		info.commands = outerUsage;
+
 		try{
-			output = await usage.parse(info, prefixlessMessage);
+			output = await outerUsage.parse(info, prefixlessMessage);
 		}catch(er) {
 			let error = "";
 			if(er instanceof DiscordAPIError) error = `The error is: ${er.message} (error code ${er.code})`;
@@ -290,15 +293,18 @@ bot.on("message", async msg => {
 			throw er; // To make sure I know of its existance
 		}
 
-		if(output) { // TODO note this will change to like output.notFound or output.preCheckFailed or something
+		if(output.type !== "success") { // TODO note this will change to like output.notFound or output.preCheckFailed or something
+			let resChannel = msg.channel;
+			if(output.type === "notFound" &&       !info.unknownCommandMessages) {if(!o.perm("MANAGE_GUILD")(info)) {return;} resChannel = msg.author;}
+			if(output.type === "preCheckFailed" && !info.failedPrecheckMessages) {if(!o.perm("MANAGE_GUILD")(info)) {return;} resChannel = msg.author;}
 			let mb = MB();
 			mb.title.tag`❌ Error:`;
-			mb.description.putRaw(output); // WARNING this could potentionally ping people if mis set. Don't allow user input in outputs
+			mb.description.putRaw(output.defaultMessage); // WARNING this could potentionally ping people if mis set. Don't allow user input in outputs
 			// const resEmbed = new RichEmbed;
 			// resEmbed.description = output;
 			// resEmbed.title = "❌ Error:";
 			// msg.reply("", {embed: resEmbed});
-			return await msg.reply(...mb.build(info.embed));
+			return await resChannel.send(...mb.build(info.embed));
 		}
 		return true;
 	};
