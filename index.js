@@ -121,6 +121,7 @@ async function retrieveGuildInfo(g, msg) {
 	let logging = false;
 	let speedrun;
 	let unknownCommandMessages = true;
+	let failedPrecheckMessages = true;
 	let permReplacements = {};
 	let events = {welcome: "", goodbye: ""};
 	if(g) {
@@ -139,6 +140,7 @@ async function retrieveGuildInfo(g, msg) {
 			permReplacements = tryParse(guild.permreplacements) || permReplacements;
 			logging = guild.logging === "true" ? true : false;
 			unknownCommandMessages = guild.unknownCommandMessages === "true" || !guild.unknownCommandMessages ? true : false;
+			failedPrecheckMessages = guild.failedPrecheckMessages === "true" || !guild.failedPrecheckMessages ? true : false;
 			events.welcome = guild.welcome || events.welcome;
 			events.goodbye = guild.goodbye || events.goodbye;
 		}
@@ -160,7 +162,7 @@ async function retrieveGuildInfo(g, msg) {
 		permReplacements: permReplacements,
 		events: events,
 		embed: true,
-		failedPrecheckMessages: true
+		failedPrecheckMessages: failedPrecheckMessages
 	};
 }
 
