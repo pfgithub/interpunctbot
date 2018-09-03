@@ -303,6 +303,18 @@ settings.add("commandFailureMessages", new Usage({
 	}
 }));
 
+settings.add("autospaceChannels", new Usage({
+	description: "Enable/disable channel autospacing",
+	usage: [["true", "false"]],
+	requirements: [o.myPerm("MANAGE_CHANNELS")],
+	callback: async(data, value) => {
+		if(!value) return await data.msg.reply(`channel spacing: \`${data.channelSpacing === "true" ? "on": "off"}\`.`);
+
+		await data.db("guilds").where({id: data.msg.guild.id}).update({channel_spacing: value === "true" ? "true" : "false"});
+		return await data.msg.reply(`Channels will automatically ${value === "true" ? "be spaced" : "no longer automatically be spaced"}.`);
+	}
+}));
+
 settings.add("listRoles", new Usage({
 	description: "List roles on the server",
 	usage: [["true", "false"]],

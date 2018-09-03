@@ -123,6 +123,7 @@ async function retrieveGuildInfo(g, msg) {
 	let unknownCommandMessages = true;
 	let failedPrecheckMessages = true;
 	let permReplacements = {};
+	let channelSpacing = false;
 	let events = {welcome: "", goodbye: ""};
 	if(g) {
 		let guild = (await knex("guilds").where({id: g.id}))[0];
@@ -141,6 +142,7 @@ async function retrieveGuildInfo(g, msg) {
 			logging = guild.logging === "true" ? true : false;
 			unknownCommandMessages = guild.unknownCommandMessages === "true" || !guild.unknownCommandMessages ? true : false;
 			failedPrecheckMessages = guild.failedPrecheckMessages === "true" || !guild.failedPrecheckMessages ? true : false;
+			channelSpacing = guild.channel_spacing === "true" ? true : false;
 			events.welcome = guild.welcome || events.welcome;
 			events.goodbye = guild.goodbye || events.goodbye;
 		}
@@ -162,7 +164,8 @@ async function retrieveGuildInfo(g, msg) {
 		permReplacements: permReplacements,
 		events: events,
 		embed: true,
-		failedPrecheckMessages: failedPrecheckMessages
+		failedPrecheckMessages: failedPrecheckMessages,
+		channelSpacing: channelSpacing
 	};
 }
 
@@ -217,6 +220,20 @@ bot.on("guildMemberAdd", async(member) => { // serverNewMember // member.toStrin
 bot.on("guildMemberRemove", async(member) => {
 	let info = await retrieveGuildInfo(member.guild);
 	if(info.events.goodbye) member.guild.systemChannel.send(streplace(info.events.goodbye, {"@s": member.toString(), "%s": member.displayName}));
+});
+
+bot.on("channelCreate", async(newC) => {
+	let info = await retrieveGuildInfo(newC.guild);
+	if(info.channelSpacing) {
+		newC.setName(newC.name.split("-").join(" "));
+	}
+});
+
+bot.on("channelUpdate", async(old, newC) => {
+	let info = await retrieveGuildInfo(newC.guild);
+	if(info.channelSpacing) {
+		newC.setName(newC.name.split("-").join(" "));
+	}
 });
 
 async function checkMojiPerms(msg, info) {

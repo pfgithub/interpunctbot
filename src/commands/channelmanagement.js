@@ -12,6 +12,10 @@ let stripMentions = (msg) => {
 		.replace(/<#!?[0-9]+>/g, "");
 };
 
+function spaceChannel(channel) {
+
+}
+
 function spaceChannels({guild, from, to, msg}) {
 	let channelNames = [];
 	guild.channels.forEach(channel => {if(channel.name.indexOf(from) > -1) { channelNames.push(`<#${channel.id}>`); channel.setName(channel.name.split(from).join(to)).catch(e => msg.reply(`Could not space channels because I don't have permission to manage <#${channel.id}>.`)); }   });
@@ -30,7 +34,7 @@ channels.add("spacing", new Usage({
 			case "true":
 			case "space":
 			case "yes":
-				return replyMessage.edit(`Spaced ${spaceChannels({guild: data.msg.guild, from: `-`, to: ` `, msg: data.msg})}`);
+				return replyMessage.edit(`Spaced ${spaceChannels({guild: data.msg.guild, from: `-`, to: ` `, msg: data.msg})}. To automatically space future channels, use \`${data.prefix}settings autospaceChannels true\``);
 			case "false":
 			case "dash":
 			case "no":

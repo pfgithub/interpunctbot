@@ -1,12 +1,12 @@
 
 exports.up = (knex, Promise) => {
 	return knex.schema.table("guilds", (t) => {
-		t.string("failedPrecheckMessages", 255);
+		t.string("channel_spacing", 255);
 	});
 };
 
 exports.down = (knex, Promise) => {
 	return knex.schema.table("guilds", (t) => {
-		t.dropColumn("failedPrecheckMessages");
+		t.dropColumn("channel_spacing");
 	});
 };
