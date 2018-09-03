@@ -35,17 +35,13 @@ usage.add("help",  new Usage({
 	usage: ["all", "command..."],
 	callback: async(data, ...command) => {
 		let all = command[0] === "all" ? command.shift() : false;
-		let cmdToGetHelp;
-		try{
-			cmdToGetHelp = command ? data.commands.path(command.join` `) : usage; // NOTE path is inended to be private
-		}catch(e) {
-			return data.msg.reply("Command not found");
-		}
+		let cmdToGetHelp = data.commands;
+		if(command.join` `) return await data.msg.reply(`Getting help on individual commands is disabled. See ${data.prefix}about for documentation`);
+
 		let commands = cmdToGetHelp.description; // Object.keys(data.allPastebin)
-		let result = cmdToGetHelp.getUsage({data: all ? undefined : data});
-		if(command.join` ` === "") result = result.concat(Object.keys(data.allPastebin).map(ap => `${ap} [single?] [search term...] [number?]`)); // TODO temporary fix do not use
+		let result = cmdToGetHelp.getUsage({data: all ? undefined : data}); // we need to // brb walk away from what I was typing hope it wasn't important
 		result = result.map(line => `${data.prefix}${line}`).join`\n`;
-		commands += `\`\`\`\n${result}\n\`\`\``; // TODO also list quote commands
+		commands += `\`\`\`\n${result}\n\`\`\``;
 		if(!all) commands +=  "and more that you or your server cannot use. `help all` for a full list";
 		return data.msg.reply(commands);
 	}

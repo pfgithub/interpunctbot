@@ -1,12 +1,12 @@
 
 exports.up = (knex, Promise) => {
 	return knex.schema.table("guilds", (t) => {
-		t.string("unknownCommandMessages", 255); // shouldn't this be a boolean lol
+		t.string("failedPrecheckMessages", 255);
 	});
 };
 
 exports.down = (knex, Promise) => {
 	return knex.schema.table("guilds", (t) => {
-		t.dropColumn("unknownCommandMessages");
+		t.string("failedPrecheckMessages");
 	});
 };

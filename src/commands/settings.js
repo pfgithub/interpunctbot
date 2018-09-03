@@ -288,7 +288,18 @@ settings.add("unknownCommandMessages", new Usage({
 		if(!value) return await data.msg.reply(`unknownCommandMessages: \`${data.unknownCommandMessages}\`.`);
 
 		await data.db("guilds").where({id: data.msg.guild.id}).update({unknownCommandMessages: value === "true" ? "true" : "false"});
-		return await data.msg.reply(`unknownCommandMessages is now \`${value === "true" ? "enabled" : "disabled"}\`.`);
+		return await data.msg.reply(`Unknown command messages will ${value === "true" ? "show for all users" : "be disabled for users and PMed for people who can manage server"}.`);
+	}
+}));
+
+settings.add("commandFailureMessages", new Usage({
+	description: "Enable/disable command failure messages",
+	usage: [["true", "false"]],
+	callback: async(data, value) => {
+		if(!value) return await data.msg.reply(`command failure messages: \`${data.failedPrecheckMessages === "true" ? "on": "off"}\`.`);
+
+		await data.db("guilds").where({id: data.msg.guild.id}).update({failedPrecheckMessages: value === "true" ? "true" : "false"});
+		return await data.msg.reply(`Command failure messages messages will ${value === "true" ? "show for all users" : "be disabled for users and PMed for people who can manage server"}.`);
 	}
 }));
 
