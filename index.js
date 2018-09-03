@@ -290,7 +290,7 @@ bot.on("message", async msg => {
 			throw er; // To make sure I know of its existance
 		}
 
-		if(output) {
+		if(output) { // TODO note this will change to like output.notFound or output.preCheckFailed or something
 			let mb = MB();
 			mb.title.tag`❌ Error:`;
 			mb.description.putRaw(output); // WARNING this could potentionally ping people if mis set. Don't allow user input in outputs
