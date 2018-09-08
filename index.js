@@ -110,7 +110,13 @@ function tryParse(json) {
 	}
 }
 
+let infoPerSecond = [];
+
 async function retrieveGuildInfo(g, msg) {
+	let startTime = new Date();
+	infoPerSecond.push(startTime);
+	infoPerSecond = infoPerSecond.filter(ips => ips.getTime() + 1000 > (new Date()).getTime());
+
 	let prefix = g ? "ip!" : "";
 	let options = [/*o.deleteOriginal(1000)*/];
 	let disabledCommands = [];
@@ -165,7 +171,9 @@ async function retrieveGuildInfo(g, msg) {
 		events: events,
 		embed: true,
 		failedPrecheckMessages: failedPrecheckMessages,
-		channelSpacing: channelSpacing
+		channelSpacing: channelSpacing,
+		startTime: startTime,
+		infoPerSecond: infoPerSecond.length
 	};
 }
 
