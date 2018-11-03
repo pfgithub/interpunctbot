@@ -9,6 +9,8 @@ const moment = require("moment");
 const handleQuote = require("./src/commands/quote");
 const MB = require("./src/MessageBuilder");
 const request = require("request");
+const Router = require("commandrouter");
+const Info = require("./src/Info");
 
 global.__basedir = __dirname;
 
@@ -21,6 +23,8 @@ let usage = new Usage({
 	description: "All Commands",
 	usage: ["command..."]
 });
+
+const router = new Router;
 
 let production = process.env.NODE_ENV === "production";
 
@@ -47,7 +51,7 @@ usage.add("help",  new Usage({
 	}
 }));
 usage.add("settings", require("./src/commands/settings"));
-usage.add("ping", require("./src/commands/ping"));
+router.add("ping", [], require("./src/commands/ping"));
 usage.add("speedrun", require("./src/commands/speedrun"));
 usage.add("log", require("./src/commands/logging"));
 // usage.add("quote", require("./src/commands/quote"));
@@ -83,7 +87,8 @@ usage.rename("spaceChannels", "channels spacing");
 usage.add("channels", require("./src/commands/channelmanagement"));
 
 usage.rename("invite", "about");
-usage.add("about", require("./src/commands/about"));
+//usage.add("about", require("./src/commands/about"));
+router.add("about", [], require("./src/commands/about"));
 
 usage.rename("downloadLog", "log download");
 usage.rename("resetLog", "log reset");
@@ -96,6 +101,10 @@ usage.add("crash", new Usage({
 		throw new Error("Crash Command Used");
 	}
 }));
+
+router.add([], (cmd, info) => {
+	info.error("Command not found, use help for a list of commands");
+});
 
 fs.readdirSync(path.join(__dirname, "src/commands"));
 
@@ -331,13 +340,23 @@ bot.on("message", async msg => {
 		}
 		return true;
 	};
-	if(msg.cleanContent.startsWith(info.prefix)) {
-		let prefixlessMessage = msg.cleanContent.replace(info.prefix, "").trim(); // replace without regex just replaces the first instance
-		handle(prefixlessMessage);
-	}else if(msg.mentions.members.array().map(member => member.id).indexOf(bot.user.id) > -1) {
-		let prefixlessMessage = msg.cleanContent.split(`@${msg.guild.me.displayName}`).join``.trim();
-		handle(prefixlessMessage);
-	}
+
+	let newInfo = new Info(msg, {startTime: info.startTime, infoPerSecond: info.infoPerSecond});
+	// await newInfo.setup(knex)
+	let messageRouter = new Router;
+	console.log(info.prefix, msg.content);
+	messageRouter.add(info.prefix, [], router); // prefixCommand
+	messageRouter.add(bot.user.toString(), [], router); // @botCommand
+
+	messageRouter.handle(msg.content, newInfo);
+
+	// if(msg.cleanContent.startsWith(info.prefix)) {
+	// 	let prefixlessMessage = msg.cleanContent.replace(info.prefix, "").trim(); // replace without regex just replaces the first instance
+	// 	handle(prefixlessMessage);
+	// }else if(msg.mentions.members.array().map(member => member.id).indexOf(bot.user.id) > -1) {
+	// 	let prefixlessMessage = msg.cleanContent.split(`@${msg.guild.me.displayName}`).join``.trim();
+	// 	handle(prefixlessMessage);
+	// }
 	// right here do if(moji)
 	if(!(await checkMojiPerms(msg, info))) return;
 	// if(msg.channel.id === info.rankmojiChannel) {

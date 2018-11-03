@@ -420,6 +420,12 @@ commander@^2.15.1:
   version "2.17.1"
   resolved "https://registry.yarnpkg.com/commander/-/commander-2.17.1.tgz#bd77ab7de6de94205ceacc72f1716d29f20a77bf"
 
+"commandrouter@https://github.com/pfgithub/command-router.git":
+  version "1.0.0"
+  resolved "https://github.com/pfgithub/command-router.git#1338d4d5abc1a861c3303bd6e3f341ee8531327e"
+  dependencies:
+    string-similarity "^1.2.0"
+
 commondir@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/commondir/-/commondir-1.0.1.tgz#ddd800da0c66127393cca5950ea968a3aaf1253b"
@@ -2317,9 +2323,9 @@ split@^1.0.0:
   dependencies:
     through "2"
 
-sqlite3@^4.0.0:
-  version "4.0.2"
-  resolved "https://registry.yarnpkg.com/sqlite3/-/sqlite3-4.0.2.tgz#1bbeb68b03ead5d499e42a3a1b140064791c5a64"
+sqlite3@^4.0.3:
+  version "4.0.3"
+  resolved "https://registry.yarnpkg.com/sqlite3/-/sqlite3-4.0.3.tgz#da8c167a87941657fd22e27b248aa371e192b715"
   dependencies:
     nan "~2.10.0"
     node-pre-gyp "^0.10.3"

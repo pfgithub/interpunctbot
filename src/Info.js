@@ -1,0 +1,114 @@
+/*global Symbol*/
+/*
+So what does module do?
+Router routes commands, module does...?
+
+It holds a commandrouter, it has a method commandlist
+I think module shouldn't exist and it should be replaced with Router
+
+ */
+let MB = require("./MessageBuilder");
+
+let result = {
+	error: "❌ Error: ",
+	result: "",
+	success: "✅ Success: " // Discord uses a gray ✔️ emoji for some reason. It could be backslashed but some other platforms do too
+};
+
+class Info {
+	constructor(message, other) {
+		this.loading = false;
+		this.channel = message.channel;
+		this.guild = message.guild;
+		this.message = message;
+		this.member = message.member;
+		this.other = other;
+	}
+	static get RESULTS() {return result;}
+	async setup(database) {
+		// gets the relevant fields from the db
+	}
+	get prefix() { // get prefixes() -> [<@interpunct>, guild.prefix, user.prefix]
+		return "WIP";
+		//return this.db.saved("prefix", this.guild.id); // Saved things are stored in an object so they don't require awaiting for // actually
+	}
+	get authorChannelPerms() {
+		return this.channel.permissionsFor(this.member);
+	}
+	get myChannelPerms() {
+		return this.channel.permissionsFor(this.guild.me);
+	}
+	get authorPerms() {
+		return {
+			manageBot: this.authorChannelPerms.has("MANAGE_GUILD"),
+			manageChannel: this.authorChannelPerms.has("MANAGE_CHANNEL")
+		};
+	}
+	get pm() {
+		return !!this.message.guild;
+	}
+	get db() {
+
+	}
+	async startLoading() {
+		this._loadingCreationInProgress = true;
+		this.loading = await this._tryReply("<a:typing:393848431413559296>");
+		this._loadingCreationInProgress = false;
+	}
+	async stopLoading() {
+		if(this._loadingCreationInProgress) throw new Error("StopLoading called before StartLoading awaited for"); // this could be fixed by awaiting until loadingCreationInProgress changes,forex setting a setter for _lcip in stoploading if !_lcip
+		if(this.loading && this.loading.deletable && !this._loadingDeletionInProgress) {
+			this._loadingDeletionInProgress = true;
+			await this.loading.delete();
+			this.loading = undefined;
+		}
+	}
+	_formatMessageWithResultType(type, ...data) { // In the future maybe adjust richembeds maybe probably not
+		let [message, options] = data;
+		return [type + message, options];
+	}
+	async _informMissingPermissions(perm, message, channel = this.channel) {
+
+	}
+	async _tryReply(...data) { // returns the message
+		if(this.myChannelPerms.has("SEND_MESSAGES")) {
+			return await this.message.reply(...data);
+		}
+		if(this.authorPerms.manageChannel) {
+			// this._informMissingPermissions(SEND_MESSAGES, "reply to your message", this.message.author)
+			// If the author has permission to manage the channel permissions, tell them the bot doesn't have permission to respond.
+			let errorMessage = await this.message.author.send(...this._formatMessageWithResultType(result.error, `I do not have permission to reply to your message in #${this.channel.name}`)); // this.channel.name does not require antiformatting because channels are already not allowed to have @everyone or whatever
+			errorMessage.delete(10*1000); // Don't await for this, you don't want to wait 10 seconds for it to delete do you
+		}
+		// Send the actual result
+		return await this.message.author.send(...data);
+	}
+	async reply(resultType, message, data) {
+		// Stop any loading if it is happening, we're replying now we're done loading
+		this.stopLoading(); // not awaited for because it doesn't matter
+
+		// If the message is a messagebuilder, build the message builder
+		if(message instanceof MB.MessageBuilder) {
+			message = message.build(true);
+		}else if(typeof message === "string") {
+			message = [message, data];
+		}
+
+		// Format the message with the correct result type
+		message = this._formatMessageWithResultType(resultType, ...message);
+
+		// Reply to the message (or author)
+		await this._tryReply(...message);
+	}
+	async error(...msg) {
+		return await this.reply(result.error, ...msg);
+	}
+	async success(...msg) {
+		return await this.reply(result.success, ...msg);
+	}
+	async result(...msg) {
+		return await this.reply(result.result, ...msg);
+	}
+}
+
+module.exports = Info;

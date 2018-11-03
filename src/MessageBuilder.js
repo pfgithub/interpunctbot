@@ -61,6 +61,7 @@ class MessageBuilder { // https://discordapp.com/developers/docs/resources/chann
 	constructor() { // this also needs a url and a bunch of other things
 		this.title = new TextBuilder;
 		this.description = new TextBuilder;
+		this.footer = new TextBuilder;
 		this._fields = [];
 		this.author = {};
 		this.url = new TextBuilder("url");
@@ -101,6 +102,9 @@ class MessageBuilder { // https://discordapp.com/developers/docs/resources/chann
 		embed.description = this.description.build();
 		msg += this.description.build();
 
+		embed.footer = this.footer.build();
+		msg += this.footer.build();
+
 
 		this._fields.forEach(field => {
 			if(embed.fields.length < 25) embed.addField(field.title.build(), field.description.build(), field.inline);
@@ -124,6 +128,7 @@ ${field.description.build()}`;
 	}
 }
 let MB = () => new MessageBuilder();
+MB.MessageBuilder = MessageBuilder;
 
 /*
 
