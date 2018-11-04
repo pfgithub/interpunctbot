@@ -8,6 +8,7 @@ I think module shouldn't exist and it should be replaced with Router
 
  */
 let MB = require("./MessageBuilder");
+const Database = require("./Database");
 
 let result = {
 	error: "❌ Error: ",
@@ -23,14 +24,11 @@ class Info {
 		this.message = message;
 		this.member = message.member;
 		this.other = other;
+		this.db = new Database(this.guild.id);
 	}
 	static get RESULTS() {return result;}
 	async setup(database) {
 		// gets the relevant fields from the db
-	}
-	get prefix() { // get prefixes() -> [<@interpunct>, guild.prefix, user.prefix]
-		return "WIP";
-		//return this.db.saved("prefix", this.guild.id); // Saved things are stored in an object so they don't require awaiting for // actually
 	}
 	get authorChannelPerms() {
 		return this.channel.permissionsFor(this.member);
@@ -41,14 +39,11 @@ class Info {
 	get authorPerms() {
 		return {
 			manageBot: this.authorChannelPerms.has("MANAGE_GUILD"),
-			manageChannel: this.authorChannelPerms.has("MANAGE_CHANNEL")
+			manageChannel: this.authorChannelPerms.has("MANAGE_CHANNELS")
 		};
 	}
 	get pm() {
 		return !!this.message.guild;
-	}
-	get db() {
-
 	}
 	async startLoading() {
 		this._loadingCreationInProgress = true;
@@ -71,7 +66,7 @@ class Info {
 
 	}
 	async _tryReply(...data) { // returns the message
-		if(this.myChannelPerms.has("SEND_MESSAGES")) {
+		if(this.pm || this.myChannelPerms.has("SEND_MESSAGES")) {
 			return await this.message.reply(...data);
 		}
 		if(this.authorPerms.manageChannel) {
@@ -84,6 +79,10 @@ class Info {
 		return await this.message.author.send(...data);
 	}
 	async reply(resultType, message, data) {
+		if(resultType === result.error && !this.authorPerms.manageBot && (await this.db.getCommandErrors())) {
+			return {"delete": async() => {}}; // command errors are disabled, return nothing
+		}
+
 		// Stop any loading if it is happening, we're replying now we're done loading
 		this.stopLoading(); // not awaited for because it doesn't matter
 

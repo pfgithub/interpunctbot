@@ -1,40 +1,100 @@
+# = transfered, @ = removed
+
+logging should be removed
+
 # ip!help [all] [command...]
 
 Lists help. If you use `ip!help all` it will list help even for commands you can't use
 
-ip!settings prefix [new prefix...]
-ip!settings lists [list] [pastebin id of list|remove]
-ip!settings discmoji restrict [role id] [emoji|emoji id]
-ip!settings discmoji unrestrict [role id] [emoji|emoji id]
-ip!settings discmoji list [emoji|emoji id]
-ip!settings rankmoji
-ip!settings rankmoji add [role id] [emoji]
-ip!settings rankmoji remove [role id|emoji]
-ip!settings rankmoji channel [channel]
-ip!settings permreplacements
-ip!settings permreplacements set [perm] [replacementID]
-ip!settings permreplacements remove [perm]
-ip!settings speedrun [abbreviation] [category]
-ip!settings nameScreening
-ip!settings nameScreening add [name parts...]
-ip!settings nameScreening remove [name parts...]
-ip!settings logging [true|false]
-ip!settings events welcome [none|welcome @s/%s message...]
-ip!settings events goodbye [none|goodbye @s/%s message...]
-ip!settings unknownCommandMessages [true|false]
-ip!settings commandFailureMessages [true|false]
-ip!settings autospaceChannels [true|false]
-ip!settings listRoles [true|false]
-ip!ping
-ip!speedrun rules [category...]
-ip!speedrun leaderboard [top how many?] [category...]
-ip!log download
-ip!log reset
-ip!purge [msgs to delete]
-ip!spoiler [message...]
-ip!channels spacing [space|dash]
-ip!channels sendMany [...message] [#channels #to #send #to]
-ip!about
-ip!crash
-ip!quote [single?] [search string...?] [number?]
-ip!motivation [single?] [search string...?] [number?]
+# ip!settings prefix [new prefix...]
+# ip!settings lists [list] [pastebin id of list|remove]
+# ip!settings discmoji restrict [role id] [emoji|emoji id]
+# ip!settings discmoji unrestrict [role id] [emoji|emoji id]
+# ip!settings discmoji list [emoji|emoji id]
+ @ ip!settings rankmoji
+ @ ip!settings rankmoji add [role id] [emoji]
+ @ ip!settings rankmoji remove [role id|emoji]
+ @ ip!settings rankmoji channel [channel]
+# ip!settings permreplacements
+# ip!settings permreplacements set [perm] [replacementID]
+# ip!settings permreplacements remove [perm]
+# ip!settings speedrun [abbreviation] [category]
+# ip!settings nameScreening
+# ip!settings nameScreening add [name parts...]
+# ip!settings nameScreening remove [name parts...]
+# ip!settings logging [true|false]
+# ip!settings events welcome [none|welcome @s/%s message...]
+# ip!settings events goodbye [none|goodbye @s/%s message...]
+# ip!settings unknownCommandMessages [true|false]
+# ip!settings commandFailureMessages [true|false]
+# ip!settings autospaceChannels [true|false]
+# ip!settings listRoles [true|false]
+# ip!ping
+# ip!speedrun rules [category...]
+# ip!speedrun leaderboard [top how many?] [category...]
+# ip!log download
+# ip!log reset
+ @ ip!purge [msgs to delete]
+# ip!spoiler [message...]
+# ip!channels spacing [space|dash]
+# ip!channels sendMany [...message] [#channels #to #send #to]
+# ip!about
+# ip!crash
+ip![list] [single?] [search string...?] [number?]
+
+new:
+
++ = implemented
+
+ ip!list roles
+ 
+ ip!modules enable autoban emoji speedrun log ...
+ ip!spoiler [I don't want to be spoiled]
++ ip!ping
+ 
+ ip!help
+ ip!prefix [ip!] -> prefix set to ip!, use @inter.punct prefix if you messed it up
+
+ ip!config command error messages [false]
+ ip!config unknown command messages [false]
+
+ ip!space channels
+ ip!dash channels
+ ip!autospace channels [true]
+
+ ip!purge has been removed. please use another bot
+ ip!rankmoji have been removed. please use emoji role restrictions instead
+
+ ip!list emojis // lists emoji ids and restrictiveness and stuff
+ ip!emoji restrict [<:emoji:123>] to [roleid | <@role>]
+ ip!emoji unrestrict [emoji|role]
+
+ ip!autoban username add [comma seperated list]
+ ip!autoban username remove [csl]
+ ip!autoban message add [csl] // only applies to people with no roles
+ ip!autoban message remove [csl]
+
+ ip!log enable // "ipbot will log||is currently logging the following channels: [list of channels with view perms]. To add or remove channels from this list, set the permissions for interpunct on the channel or something descriptive
+ ip!log status // ipbot is not logging|is currently logging [list of channels]
+ ip!log download
+ ip!log reset
+ ip!log disable
+
+ ip!speedrun settings add leaderboard [GOI_Modded]
+ ip!speedrun settings add leaderboard [Gett_O_It_With_B_Fod]
+ ip!wr [category=leaderboards[0].defaultCategory]
+ ip!speedrun rules [category=leaderboards[0].defaultCategory]
+
+ ip![list] [single?=no] [search string...?] [number?=random]
+ ip!list lists
+ ip!lists add [name] [pastebin.com/qwerty|qwerty]
+ ip!lists remove [name]
+
+ ip!welcome message set [#channel] [message]
+ ip!goodbye message set [#channel] [message]
+
+ ip!channels send many [...message #channels #to #send #to]
+
+bot dev only
+ ip!crash
+ ip!restart

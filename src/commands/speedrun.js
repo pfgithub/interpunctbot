@@ -67,7 +67,7 @@ speedrun.add("leaderboard", new Usage({ // TODO trophy-1st for the person in fir
 		}
 		let gameData = await sr.leaderboards(gameID, category).embed(["category", "players", "game"]).exec();
 		let actualGameData = gameData.items.game.data;
-		let topThree = gameData.items.runs.filter(run => run.place<=places);
+		let topThree = gameData.items.runs.filter(run => run.place<=places); // TODO run.place === place and have place just get the person in nth place
 		let getPlayer = player => gameData.items.players.data.filter(pl => pl.id === player)[0];
 
 		let mb = MB();

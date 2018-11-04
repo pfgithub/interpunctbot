@@ -102,8 +102,12 @@ usage.add("crash", new Usage({
 	}
 }));
 
-router.add([], (cmd, info) => {
-	info.error("Command not found, use help for a list of commands");
+router.add([], require("./src/commands/quote"));
+
+router.add([], async(cmd, info) => {
+	if(info.db.getUnknownCommandMessages) {
+		return await info.error("Command not found, use help for a list of commands");
+	} // else do nothing
 });
 
 fs.readdirSync(path.join(__dirname, "src/commands"));
