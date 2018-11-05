@@ -11,9 +11,19 @@ let MB = require("./MessageBuilder");
 const Database = require("./Database");
 
 let result = {
-	error: "❌ Error: ",
+	error: "<:failure:508841130503438356> Error: ",
 	result: "",
-	success: "✅ Success: " // Discord uses a gray ✔️ emoji for some reason. It could be backslashed but some other platforms do too
+	info: "<:info:508842207089000468> Info: ",
+	success: "<:success:508840840416854026> Success: " // Discord uses a gray ✔️ emoji for some reason. It could be backslashed but some other platforms do too
+};
+
+let r = {
+	manageBot: (info) => {
+		if(info.authorPerms.manageBot) {
+			return true;
+		}
+		return info.error("You need permisison to `Manage Server` to use this command") || false;
+	}
 };
 
 class Info {
@@ -26,10 +36,11 @@ class Info {
 		this.other = other;
 		this.db = new Database(this.guild.id);
 	}
-	static get RESULTS() {return result;}
+	static get result() {return result;}
 	async setup(database) {
 		// gets the relevant fields from the db
 	}
+	static get r() {return r;}
 	get authorChannelPerms() {
 		return this.channel.permissionsFor(this.member);
 	}
@@ -66,6 +77,10 @@ class Info {
 
 	}
 	async _tryReply(...data) { // returns the message
+		if(data[0].length > 1999) {
+			return this._tryReply("message too long"); // FIX, make it send multiple messages and return the last or somethignfdlkjk
+		}
+
 		if(this.pm || this.myChannelPerms.has("SEND_MESSAGES")) {
 			return await this.message.reply(...data);
 		}
