@@ -53,7 +53,7 @@ usage.add("help",  new Usage({
 usage.add("settings", require("./src/commands/settings"));
 router.add("ping", [], require("./src/commands/ping"));
 usage.add("speedrun", require("./src/commands/speedrun"));
-usage.add("log", require("./src/commands/logging"));
+router.add("log", [Info.r.manageBot], require("./src/commands/logging"));
 // usage.add("quote", require("./src/commands/quote"));
 
 usage.add("purge",  new Usage({

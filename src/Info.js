@@ -19,11 +19,17 @@ let result = {
 
 let r = {
 	manageBot: (info) => {
+		if(!r.pm(false)(info)) return false;
 		if(info.authorPerms.manageBot) {
 			return true;
 		}
 		return info.error("You need permisison to `Manage Server` to use this command") || false;
-	}
+	},
+	pm: (expected) => (info) => {
+		console.log(`checking pm, ${expected} ${info.pm}`);
+		if(info.pm === expected) return true;
+		return info.error("This command cannot be used in a PM") || false;
+	} // I want an r.load() that calls startloading and awaits for it
 };
 
 class Info {
@@ -54,7 +60,7 @@ class Info {
 		};
 	}
 	get pm() {
-		return !!this.message.guild;
+		return !this.guild;
 	}
 	async startLoading() {
 		this._loadingCreationInProgress = true;
@@ -66,6 +72,7 @@ class Info {
 		if(this.loading && this.loading.deletable && !this._loadingDeletionInProgress) {
 			this._loadingDeletionInProgress = true;
 			await this.loading.delete();
+			this._loadingDeletionInProgress = false;
 			this.loading = undefined;
 		}
 	}
