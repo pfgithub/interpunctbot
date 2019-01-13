@@ -24,56 +24,64 @@ async function handleList(listName, listPastebin, cmd, info) {
 
 	await info.startLoading();
 
-	// set the search string
+	// split the arguments at spaces to parse them
 	let searchString = cmd.split` `;
 
 	let forceLine;
 	let individual = false;
 
+	// parse out [single] and [quote number], then condense the remaining command into a search string
 	if(searchString.length > 0 && searchString[0] === "single") individual = searchString.shift() || true;
 	if(searchString.length > 0 && searchString[searchString.length - 1].match(/^\d+$/)) forceLine = parseInt(searchString.pop(), 10);
-	searchString = searchString.join` `.toLowerCase().split` `;
+	searchString = deUsererrorIfy(searchString.join` `).split` `;
 
+	// Get the pastebin paste at the pastebin id, this might fail for many reason but one is used in catch(er)
 	let allQuotes;
 	try{
 		allQuotes = await pastebin.getPaste(pastebinId);
 	}catch(er) {
 		return await info.error("Failed to get list. Make sure it is set to a valid URL using `list lists`");
 	}
-	allQuotes = escapeMarkdown(allQuotes).split`\r`.join``.split(individual ? `\n` : /\n{2,}/).filter(q=>q.match(/[A-Za-z]/)); // Death:
+
+	// aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+	allQuotes = escapeMarkdown(allQuotes).split`\r`.join``.split(individual ? `\n` : /\n{2,}/).filter(q=>q.match(/[A-Za-z]/));
+
+	// if there is a set search string, filter the quotes to only ones containing that search string
 	if(searchString) {
 		allQuotes = allQuotes
 			.filter(q => searchString.every(z=>deUsererrorIfy(q).indexOf(z) > -1));
 	}
 
+	// If there are no quotes, fake the list to actually saying No Quotes Found
 	if(allQuotes.length < 1) allQuotes = [`No quotes found for ${searchString.join` `}`];
-	let line = Math.floor(Math.random() * allQuotes.length);
+
+	// Set the line number to a random line unless a forceline is set
+	let line = Math.floor(Math.random() * allQuotes.length); // why not forceLine || random, or with the stage 1 proposal, forceLine ?? random to have the exact same implementation
 	if(forceLine != null) line = forceLine-1;
 	if(line < 0) line = 0;
 	if(line > allQuotes.length - 1) line = allQuotes.length - 1;
 
-	let quoteEmbed = new RichEmbed();
+	// Get information out of the chosen quote about the author and stuff
 	let quoteSplit = allQuotes[line].split` - `;
 	let quoteAuthor = quoteSplit[1];
 	let quoteFull = quoteSplit[0];
 
+	// Create the resulting embed and populate it, in the future this could use a messagebuilder
+	let quoteEmbed = new RichEmbed();
 	quoteEmbed.setDescription(`*${quoteFull}*`);
 	if(quoteAuthor) quoteEmbed.setAuthor(quoteAuthor);
 	else quoteEmbed.setTitle("Quote");
 	quoteEmbed.setFooter(`${line+1}/${allQuotes.length}`);
 	quoteEmbed.setColor(`RANDOM`);
 
+	// Return the result
 	await info.result("", {embed: quoteEmbed});
 }
 let settingsRouter = new Router;
-router.add([r.manageBot], settingsRouter);
+router.add([], settingsRouter);
 
-settingsRouter.add("", [], async(cmd, info, next) => {
+settingsRouter.add("list lists", [r.manageBot], async(cmd, info, next) => {
 	await info.startLoading();
-	return next();
-});
-
-settingsRouter.add("list lists", [], async(cmd, info, next) => {
 	let lists = await info.db.getLists();
 	return info.result(`\`\`\`${  Object.keys(lists).map(key => `${key}: https://pastebin.com/${lists[key]}`).join`\n`  }\`\`\``);
 });
@@ -84,30 +92,40 @@ function parsePastebinURL(url = "") {
 }
 
 async function addOrEditList(add, cmd, info) { // <name> <pastebin.com/id
+	// Split the command at spaces for easier maniuplation
 	let splitCmd = cmd.split` `;
+
+	// Extract the list name and pastebin URL from the first two items in the command. let [listName, ...pastebinUrl] = splitCmd;?
 	let listName = splitCmd.shift();
 	let pastebinUrl = splitCmd.join` `.trim();
 	
+	// Get the lists from the database
 	let lists = await info.db.getLists();
 
-	if(!lists[listName] !== add) { // if !a !== b... !!a === b and a == b are the same and probably easier to read
+	// If the list should be added but it already exists, error. If the list should be edited but doesn't exist, error. Basically there's no point to doing this at all
+	if(!!lists[listName] === add) { // if !a !== b... !!a === b and a == b are the same and probably easier to read
 		if(add) return await info.error(`List ${listName} already exists, edit it with \`lists edit ${listName} ${pastebinUrl}\` or delete it with \`lists delete ${listName}\``);
 		return await info.error(`List ${listName} does not exist, add it with \`lists add ${listName} ${pastebinUrl}\``);
 	}
 
+	// Parse the pastebin url out of whatever mess the user put into the second argument of the command
 	let pastebinID = parsePastebinURL(pastebinUrl);
 
+	// If no pastebin URL could be found, inform the user that they need one
 	if(!pastebinID) {
 		return await info.error(`Please supply a valid pastebin URL as the second argument to this command like \`https://pastebin.com/NFuKYjUN\` or just the code like \`NFuKYjUN\``);
 	}
 
+	// Update the list and save it to the database
 	lists[listName] = pastebinID;
 	await info.db.setLists(lists);
+
+	// Return the right success message depending on if the list is being added or edited
 	if(add) return await info.success(`Added list ${listName} with pastebin URL <https://pastebin.com/${pastebinID}>`);
 	return await info.success(`Changed list ${listName} to <https://pastebin.com/${pastebinID}>`);
 }
 
-settingsRouter.add("lists add", [], async(cmd, info) => {
+settingsRouter.add("lists add", [], async(cmd, info) => { // if lists.length > 3 say "your list limit has been reached, join the support server in `about` and ask to increase it"
 	return await addOrEditList(true, cmd, info);
 });
 

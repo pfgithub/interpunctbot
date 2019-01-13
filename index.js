@@ -31,7 +31,7 @@ let production = process.env.NODE_ENV === "production";
 let mostRecentCommands = [];
 
 function devlog(...msg) {
-	if(!production) console.log(...msg);
+	if(!production) global.console.log(...msg);
 }
 
 usage.add("help",  new Usage({
@@ -52,7 +52,7 @@ usage.add("help",  new Usage({
 }));
 usage.add("settings", require("./src/commands/settings"));
 router.add("ping", [], require("./src/commands/ping"));
-usage.add("speedrun", require("./src/commands/speedrun"));
+router.add([], require("./src/commands/speedrun"));
 router.add("log", [Info.r.manageBot], require("./src/commands/logging"));
 // usage.add("quote", require("./src/commands/quote"));
 
@@ -61,6 +61,7 @@ usage.add("purge",  new Usage({
 	usage: ["msgs to delete"],
 	requirements: [o.perm("MANAGE_MESSAGES"), o.myPerm("MANAGE_MESSAGES")],
 	callback: async(data, n) => {
+		await data.msg.reply("This command is not recommened for use.");
 		let number = +n;
 		if(isNaN(number)) return await data.msg.reply("Invalid numbers");
 		let msgs = await data.msg.channel.fetchMessages({limit: number});
@@ -104,8 +105,74 @@ usage.add("crash", new Usage({
 
 router.add([], require("./src/commands/quote"));
 
+function depricate(oldcmd, newcmd) {
+	router.add(oldcmd, [], async(cmd, info) => {
+		return await info.error(`\`${oldcmd}\` has been renamed to \`${newcmd}\` in ipv2. See \`help\` for more information. Join the support server in \`about\` if you have any issues.`);
+	});
+}
+
+function remove(oldcmd) {
+	router.add(oldcmd, [], async(cmd, info) => {
+		return await info.error(`\`${oldcmd}\` has been removed in ipv2. Join the support server in \`about\` to complain if this removal affects you.`);
+	});
+}
+
+depricate("settings prefix", "prefix");
+depricate("settings lists", "lists <add/remove>");
+depricate("settings discmoji", "IMPLEMENT BEFORE RELEASE;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;");
+depricate("settings rankmoji", "IMPLEMENT BEFORE RELEASE;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;");
+remove("settings permreplacements");
+depricate("settings speedrun", "speedrun <add/remove/default>");
+depricate("settings nameScreening", "IMPLEMENT BEFORE RELEASE;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;");
+depricate("settings logging", "log <enable/disable>");
+depricate("settings events", "IMPLEMENT BEFORE RELEASE;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;");
+depricate("settings unknownCommandMessages", "IMPLEMENT BEFORE RELEASE;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;");
+depricate("settings commandFailureMessages", "IMPLEMENT BEFORE RELEASE;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;");
+depricate("settings autospaceChannels", "IMPLEMENT BEFORE RELEASE;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;");
+depricate("settings listRoles", "IMPLEMENT BEFORE RELEASE;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;");
+depricate("settings", "help");
+
+/*
+
+# ip!settings prefix [new prefix...]
+# ip!settings lists [list] [pastebin id of list|remove]
+# ip!settings discmoji restrict [role id] [emoji|emoji id]
+# ip!settings discmoji unrestrict [role id] [emoji|emoji id]
+# ip!settings discmoji list [emoji|emoji id]
+ @ ip!settings rankmoji
+ @ ip!settings rankmoji add [role id] [emoji]
+ @ ip!settings rankmoji remove [role id|emoji]
+ @ ip!settings rankmoji channel [channel]
+# ip!settings permreplacements
+# ip!settings permreplacements set [perm] [replacementID]
+# ip!settings permreplacements remove [perm]
+# ip!settings speedrun [abbreviation] [category]
+# ip!settings nameScreening
+# ip!settings nameScreening add [name parts...]
+# ip!settings nameScreening remove [name parts...]
+# ip!settings logging [true|false]
+# ip!settings events welcome [none|welcome @s/%s message...]
+# ip!settings events goodbye [none|goodbye @s/%s message...]
+# ip!settings unknownCommandMessages [true|false]
+# ip!settings commandFailureMessages [true|false]
+# ip!settings autospaceChannels [true|false]
+# ip!settings listRoles [true|false]
+# ip!ping
+# ip!speedrun rules [category...]
+# ip!speedrun leaderboard [top how many?] [category...]
+# ip!log download
+# ip!log reset
+ @ ip!purge [msgs to delete]
+# ip!spoiler [message...]
+# ip!channels spacing [space|dash]
+# ip!channels sendMany [...message] [#channels #to #send #to]
+# ip!about
+# ip!crash
+*/
+
+
 router.add([], async(cmd, info) => {
-	if(info.db.getUnknownCommandMessages) {
+	if(await info.db.getUnknownCommandMessages()) {
 		return await info.error("Command not found, use help for a list of commands");
 	} // else do nothing
 });
@@ -118,7 +185,7 @@ function tryParse(json) {
 	try{
 		return typeof json === "string" ? JSON.parse(json) : json;
 	}catch(e) {
-		console.log(`Could not parse  ^^${JSON.stringify(json)}`);
+		//console.log(`Could not parse  ^^${JSON.stringify(json)}`);
 		return [];
 	}
 }
@@ -194,21 +261,21 @@ async function retrieveGuildInfo(g, msg) {
 function updateActivity() {
 	let count = bot.guilds.size;
 	bot.user.setActivity(`ip!help on ${count} servers`);
-	if(process.env.NODE_ENV === "development") return; // only production should post
-	let options = {
-		url: `https://bots.discord.pw/api/bots/${config.bdpid}/stats`,
-		headers: {
-			Authorization: config["bots.discord.pw"]
-		},
-		json: {
-			server_count: count // eslint-disable-line camelcase
-		}
-	};
-	request.post(options, (er, res) => {if(er) console.log("er... my res isn't existant", er); else console.log(res.body);});
+	// if(process.env.NODE_ENV === "development") return; // only production should post
+	// let options = {
+	// 	url: `https://bots.discord.pw/api/bots/${config.bdpid}/stats`,
+	// 	headers: {
+	// 		Authorization: config["bots.discord.pw"]
+	// 	},
+	// 	json: {
+	// 		server_count: count // eslint-disable-line camelcase
+	// 	}
+	// };
+	// request.post(options, (er, res) => {});
 }
 
 bot.on("ready", async() => {
-	console.log("Ready");
+	global.console.log("Ready");
 	// bot.user.setActivity(`Skynet Simulator ${(new Date()).getFullYear()+1}`);
 	updateActivity();
 });
@@ -230,9 +297,9 @@ bot.on("guildMemberAdd", async(member) => { // serverNewMember // member.toStrin
 			member.ban(`Name contains dissallowed words: ${nameParts.join`, `}`);
 			if(info.logging) try{
 				guildLog(member.guild.id, `[${moment().format("YYYY-MM-DD HH:mm:ss Z")}] Banned ${member.displayName} because their name contains ${nameParts.join`, `}`);
-			}catch(e) {console.log(e);}
+			}catch(e) {throw e;}
 		}else{
-			devlog("E>< Could not ban member");
+			console.log("COULD NOT BAN MEMBER MUST TELL SOMEONE");
 		}
 	}
 	if(info.events.welcome) setTimeout( () => member.guild.systemChannel.send(streplace(info.events.welcome, {"@s": member.toString(), "%s": member.displayName})), 1000 );
@@ -301,14 +368,13 @@ bot.on("message", async msg => {
 	logMsg({prefix: "I", msg: msg});
 	// right here do if(prefix)
 	let info = await retrieveGuildInfo(msg.guild, msg);
-	if(info.logging) try{guildLog(msg.guild.id, `[${moment().format("YYYY-MM-DD HH:mm:ss Z")}] <#${msg.channel.name}> \`${msg.author.tag}\`: ${msg.content}`);}catch(e) {console.log(e);}
+	if(info.logging) try{guildLog(msg.guild.id, `[${moment().format("YYYY-MM-DD HH:mm:ss Z")}] <#${msg.channel.name}> \`${msg.author.tag}\`: ${msg.content}`);}catch(e) {}
 	let handle = async(prefixlessMessage) => {
 		mostRecentCommands.push({content: msg.cleanContent, date: new Date()});
 		while(mostRecentCommands.length > 5) {
 			mostRecentCommands.shift();
 		}
 
-		console.log(msg.cleanContent); // TODO remove this
 		let output;
 
 		let outerUsage = new Usage({});
@@ -348,11 +414,15 @@ bot.on("message", async msg => {
 	let newInfo = new Info(msg, {startTime: info.startTime, infoPerSecond: info.infoPerSecond});
 	// await newInfo.setup(knex)
 	let messageRouter = new Router;
-	console.log(info.prefix, msg.content);
 	messageRouter.add(info.prefix, [], router); // prefixCommand
 	messageRouter.add(bot.user.toString(), [], router); // @botCommand
 
-	messageRouter.handle(msg.content, newInfo);
+	try{
+		messageRouter.handle(msg.content, newInfo);
+	}catch(er) {
+		msg.reply("An internal error occured :( maybe try again? If that doesn't work, submit a bug report on the support server in `about` or gitlab page.");
+		throw er;
+	}
 
 	// if(msg.cleanContent.startsWith(info.prefix)) {
 	// 	let prefixlessMessage = msg.cleanContent.replace(info.prefix, "").trim(); // replace without regex just replaces the first instance
@@ -377,7 +447,8 @@ bot.on("messageUpdate", async(from, msg) => {
 	if(info.logging) try{
 		guildLog(msg.guild.id, `[${moment().format("YYYY-MM-DD HH:mm:ss Z")}] <#${from.channel.name}> \`${from.author.tag}\` Edited Message: ${from.content}`);
 		guildLog(msg.guild.id, `[${moment().format("YYYY-MM-DD HH:mm:ss Z")}] <#${msg.channel.name}> \`${msg.author.tag}\` To: ${msg.content}`);
-	}catch(e) {console.log(e);}
+	}catch(e) {throw e;}
+
 	checkMojiPerms(msg, info);
 });
 
@@ -447,16 +518,17 @@ bot.on("messageReactionAddCustom", async(reaction, user, message) => {
 });
 
 bot.on("guildCreate", (guild) => {
-	console.log(`_ Joined guild ${guild.name} (${guild.nameAcronym})`);
+	global.console.log(`_ Joined guild ${guild.name} (${guild.nameAcronym})`);
 });
 
 bot.on("guildDelete", (guild) => { // forget about the guild at some point in time
-	console.log(`_ Left guild ${guild.name} (${guild.nameAcronym})`);
+	global.console.log(`_ Left guild ${guild.name} (${guild.nameAcronym})`);
+	// TODO delete info in db after leaving a guild
 });
 
 process.on("unhandledRejection", (reason, p) => {
 	let finalMsg = `
-Hey <@${config.owner}>, there was an error
+Hey @everyone, there was an error
 
 **Recent Commands:**
 ${mostRecentCommands.map(c => `\`${c.content}\` / ${moment(c.date).fromNow()}`).join`\n`}

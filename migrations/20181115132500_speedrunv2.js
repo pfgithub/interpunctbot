@@ -1,12 +1,14 @@
 
 exports.up = (knex, Promise) => {
 	return knex.schema.table("guilds", (t) => {
-		t.string("failedPrecheckMessages", 255);
+		t.json("speedrunv2");
+		t.json("limits");
 	});
 };
 
 exports.down = (knex, Promise) => {
 	return knex.schema.table("guilds", (t) => {
-		t.dropColumn("failedPrecheckMessages");
+		t.dropColumn("speedrunv2");
+		t.dropColumn("limits");
 	});
 };

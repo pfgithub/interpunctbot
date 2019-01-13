@@ -74,8 +74,11 @@ class MessageBuilder { // https://discordapp.com/developers/docs/resources/chann
 		this._fields.push({title: title, description: description, inline: inline});
 	}
 
-	setAuthor(author, image) {
-		this.author = {author: author, image: image};
+	setAuthor(author, image, url) {
+		this.author = {name: author, icon_url: image, url: url};
+	}
+	setThumbnail(thumb) {
+		this.thumb = thumb;
 	}
 
 	build(useEmbed) { // useEmbed may be overrided if fields goes over the max
@@ -84,16 +87,22 @@ class MessageBuilder { // https://discordapp.com/developers/docs/resources/chann
 		let msg = "";
 
 		embed.setColor("random");
-
-		if(this.author.author && this.author.image) {
-			embed.setAuthor(this.author.author, this.author.image);
-			msg += `${(new TextBuilder).tag`By ${this.author.author} <${this.author.image}>`.build()  }\n\n`;
+		
+		if(this.author) {
+			embed.author = this.author;
+			msg += `${(new TextBuilder).tag`By ${this.author.author} <${this.author.url}>`.build()  }\n\n`;
 		}
 
 		let builtURL = this.url.build();
 		if(builtURL) {
 			embed.url = builtURL;
 			msg += `${builtURL}\n`;
+		}
+
+		if(this.thumb) {
+			embed.thumbnail = {
+				url: this.thumb
+			};
 		}
 
 		embed.title = this.title.build();
@@ -129,6 +138,7 @@ ${field.description.build()}`;
 }
 let MB = () => new MessageBuilder();
 MB.MessageBuilder = MessageBuilder;
+MB.TextBuilder = TextBuilder;
 
 /*
 

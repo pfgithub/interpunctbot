@@ -23,12 +23,11 @@ let r = {
 		if(info.authorPerms.manageBot) {
 			return true;
 		}
-		return info.error("You need permisison to `Manage Server` to use this command") || false;
+		return info.error("You need permisison to `Manage Server` to use this command") && false;
 	},
 	pm: (expected) => (info) => {
-		console.log(`checking pm, ${expected} ${info.pm}`);
 		if(info.pm === expected) return true;
-		return info.error("This command cannot be used in a PM") || false;
+		return info.error("This command cannot be used in a PM") && false;
 	} // I want an r.load() that calls startloading and awaits for it
 };
 
@@ -101,8 +100,12 @@ class Info {
 		return await this.message.author.send(...data);
 	}
 	async reply(resultType, message, data) {
-		if(resultType === result.error && !this.authorPerms.manageBot && (await this.db.getCommandErrors())) {
-			return {"delete": async() => {}}; // command errors are disabled, return nothing
+		let showErrors = (await this.db.getCommandErrors());
+		showErrors = true; console.log("REMOVE THIS"); //TEMP
+		if(resultType === result.error && !showErrors) {
+			if(!this.authorPerms.manageBot) {
+				return {"delete": async() => {}}; // command errors are disabled, return nothing
+			}
 		}
 
 		// Stop any loading if it is happening, we're replying now we're done loading
@@ -119,16 +122,25 @@ class Info {
 		message = this._formatMessageWithResultType(resultType, ...message);
 
 		// Reply to the message (or author)
-		await this._tryReply(...message);
+		return await this._tryReply(...message);
 	}
 	async error(...msg) {
-		return await this.reply(result.error, ...msg);
+		this.message.react("508841130503438356"); console.log("WHAT IF I DON'T HAVE PERMS TO ADD REACTIONS. also config.emoji");
+		let res = await this.reply(result.error, ...msg);
+		res.delete(20*1000);
+		return res;
 	}
-	async success(...msg) {
-		return await this.reply(result.success, ...msg);
+	async success(...msg) {  
+		this.message.react("508840840416854026");
+		let res = await this.reply(result.success, ...msg);
+		res.delete(20*1000);
+		return res;
 	}
 	async result(...msg) {
 		return await this.reply(result.result, ...msg);
+	}
+	async redirect(newcmd) {
+		throw new Error("NOT IMPLEMENTED YET"); // TODO for example .wr is just .speedrun leaderboard 1, so it could res.redirect("speedrun leaderboard 1 "+arguments)
 	}
 }
 

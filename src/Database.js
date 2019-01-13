@@ -13,7 +13,7 @@ function tryParse(json, defaultValue) {
 	try{
 		return typeof json === "string" ? JSON.parse(json) : json;
 	}catch(e) {
-		console.log(`Could not parse  ^^${JSON.stringify(json)}`);
+		global.console.log(`Malformed JSON: ${json}`); // this might be useful to know
 		return defaultValue;
 	}
 }
@@ -34,7 +34,6 @@ class Database {
 			try{
 				data = await knex("guilds").insert({id: this.guild, prefix: "ip!"});
 			}catch(er) {
-				console.log(`no db entry was found for guild id ${this.guild}, but a new one could not be created because ${er}`);
 				throw new Error(`no db entry was found for guild id ${this.guild}, but a new one could not be created because ${er}, the data was ${data}`);
 			}
 		}
@@ -124,6 +123,20 @@ class Database {
 	}
 	async getGoodbyeMessage() {
 
+	}
+	async getSpeedrun() { 
+		return await this._getJson("speedrunv2");
+	}
+	async getSpeedrunDefault() {
+		let [gameID, categoryID] = (await this._get("speedrun")).split`, `;
+		if(!categoryID) return undefined; // category id will be undefined because [1] of .split will be undefined.
+		return {gameID: gameID, categoryID: categoryID};
+	}
+	async setSpeedrun(newval) {
+		return this._setJson("speedrun", newval);
+	}
+	async setSpeedrunDefault(gameID, categoryID) {
+		return await this._set("speedrun", `${gameID}, ${categoryID}`);
 	}
 }
 

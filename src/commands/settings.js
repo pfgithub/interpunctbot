@@ -62,7 +62,6 @@ settings.path("discmoji").add("restrict", new Usage({
 	description: "Add a restricted role to an emoji",
 	usage: ["role id", ["emoji", "emoji id"]],
 	callback: async(data, rank, ...emoji) => {
-		console.log(emoji.join` `);
 		try{
 			let role = data.msg.guild.roles.get(rank);
 			let moji = data.msg.guild.emojis.get(emoji.join` `.match(/([0-9]{18,})/)[1]);
