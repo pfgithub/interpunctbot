@@ -244,6 +244,7 @@ bot.on("guildMemberRemove", async(member) => {
 });
 
 bot.on("channelCreate", async(newC) => {
+    if(newC.name.indexOf("-") === -1){return;}
 	let info = await retrieveGuildInfo(newC.guild);
 	if(info.channelSpacing) {
 		newC.setName(newC.name.split("-").join(" "));
