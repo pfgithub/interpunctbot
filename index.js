@@ -68,20 +68,7 @@ usage.add("purge",  new Usage({
 		msgs.array().forEach(msg => msg.delete());
 	}
 }));
-usage.add("spoiler",  new Usage({
-	description: "Says something that you have to hover/click to see",
-	usage: ["message..."],
-	callback: async(data, ...message) => {
-		if(o.myPerm("MANAGE_MESSAGES")(data)) await data.msg.delete();
-		else (async() => (await data.msg.reply("This command works better when I have the permission `MANAGE_MESSAGES`")).delete(10*1000))();
-		message = message.join` `;
-		let mb = MB();
-		mb.title.tag`Spoiler`;
-		mb.description.tag`[Hover to View](https://dummyimage.com/600x400/000/fff&text=${encodeURIComponent(message).replace(/[_]/g, "")} "${message}")`;
-
-		return await data.msg.reply(...mb.build(data.embed || true)); // spoilers must use embeds
-	}
-}));
+remove("spoiler", "please use the discord spoiler syntax instead, `||like this||`");
 
 usage.rename("spaceChannels", "channels spacing");
 
@@ -111,9 +98,9 @@ function depricate(oldcmd, newcmd) {
 	});
 }
 
-function remove(oldcmd) {
+function remove(oldcmd, reason) {
 	router.add(oldcmd, [], async(cmd, info) => {
-		return await info.error(`\`${oldcmd}\` has been removed in ipv2. Join the support server in \`about\` to complain if this removal affects you.`);
+		return await info.error(`\`${oldcmd}\` has been removed in ipv2. ${reason?`${reason} `:""}Join the support server in \`about\` if you have any issues.`);
 	});
 }
 
@@ -121,7 +108,7 @@ depricate("settings prefix", "prefix");
 depricate("settings lists", "lists <add/remove>");
 depricate("settings discmoji", "IMPLEMENT BEFORE RELEASE;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;");
 depricate("settings rankmoji", "IMPLEMENT BEFORE RELEASE;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;");
-remove("settings permreplacements");
+remove("settings permreplacements", "Permreplacements were never tested and probably didn't work.");
 depricate("settings speedrun", "speedrun <add/remove/default>");
 depricate("settings nameScreening", "IMPLEMENT BEFORE RELEASE;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;");
 depricate("settings logging", "log <enable/disable>");
