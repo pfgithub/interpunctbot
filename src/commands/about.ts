@@ -1,12 +1,12 @@
-const Usage = require("command-parser");
-const {RichEmbed} = require("discord.js");
-const o = require("../options");
-const MB = require("../MessageBuilder");
+import Usage from "command-parser";
+import {RichEmbed} from "discord.js";
+import o from "../options";
+import MB from "../MessageBuilder";
 const router = new (require("commandrouter"));
 
 router.add([], async(cmd, info) => {
-	let prefix = await info.db.getPrefix();
-	let mb = MB();
+	const prefix = await info.db.getPrefix();
+	const mb = MB();
 	mb.title.tag`Inter·punct Bot`;
 	mb.description.tag`A bot that does stuff.`;
 	mb.addField((title, description) => {title.tag`<:list:476514785106591744> discordbots.org`, description.tag`<https://discordbots.org/bot/433078185555656705>`;});
@@ -21,4 +21,4 @@ router.add([], async(cmd, info) => {
 	info.result(mb);
 });
 
-module.exports = router;
+export default router;

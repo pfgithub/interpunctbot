@@ -7,31 +7,31 @@ It holds a commandrouter, it has a method commandlist
 I think module shouldn't exist and it should be replaced with Router
 
  */
-let MB = require("./MessageBuilder");
-const Database = require("./Database");
+import MB from "./MessageBuilder";
+import Database from "./Database";
 
-let result = {
+const result = {
 	error: "<:failure:508841130503438356> Error: ",
 	result: "",
 	info: "<:info:508842207089000468> Info: ",
 	success: "<:success:508840840416854026> Success: " // Discord uses a gray ✔️ emoji for some reason. It could be backslashed but some other platforms do too
 };
 
-let r = {
+const r = {
 	manageBot: (info) => {
-		if(!r.pm(false)(info)) return false;
+		if(!r.pm(false)(info)) {return false;}
 		if(info.authorPerms.manageBot) {
 			return true;
 		}
 		return info.error("You need permisison to `Manage Server` to use this command") && false;
 	},
 	pm: (expected) => (info) => {
-		if(info.pm === expected) return true;
+		if(info.pm === expected) {return true;}
 		return info.error("This command cannot be used in a PM") && false;
 	} // I want an r.load() that calls startloading and awaits for it
 };
 
-class Info {
+export default class Info {
 	constructor(message, other) {
 		this.loading = false;
 		this.channel = message.channel;
@@ -67,7 +67,7 @@ class Info {
 		this._loadingCreationInProgress = false;
 	}
 	async stopLoading() {
-		if(this._loadingCreationInProgress) throw new Error("StopLoading called before StartLoading awaited for"); // this could be fixed by awaiting until loadingCreationInProgress changes,forex setting a setter for _lcip in stoploading if !_lcip
+		if(this._loadingCreationInProgress) {throw new Error("StopLoading called before StartLoading awaited for");} // this could be fixed by awaiting until loadingCreationInProgress changes,forex setting a setter for _lcip in stoploading if !_lcip
 		if(this.loading && this.loading.deletable && !this._loadingDeletionInProgress) {
 			this._loadingDeletionInProgress = true;
 			await this.loading.delete();
@@ -76,7 +76,7 @@ class Info {
 		}
 	}
 	_formatMessageWithResultType(type, ...data) { // In the future maybe adjust richembeds maybe probably not
-		let [message, options] = data;
+		const [message, options] = data;
 		return [type + message, options];
 	}
 	async _informMissingPermissions(perm, message, channel = this.channel) {
@@ -93,7 +93,7 @@ class Info {
 		if(this.authorPerms.manageChannel) {
 			// this._informMissingPermissions(SEND_MESSAGES, "reply to your message", this.message.author)
 			// If the author has permission to manage the channel permissions, tell them the bot doesn't have permission to respond.
-			let errorMessage = await this.message.author.send(...this._formatMessageWithResultType(result.error, `I do not have permission to reply to your message in #${this.channel.name}`)); // this.channel.name does not require antiformatting because channels are already not allowed to have @everyone or whatever
+			const errorMessage = await this.message.author.send(...this._formatMessageWithResultType(result.error, `I do not have permission to reply to your message in #${this.channel.name}`)); // this.channel.name does not require antiformatting because channels are already not allowed to have @everyone or whatever
 			errorMessage.delete(10*1000); // Don't await for this, you don't want to wait 10 seconds for it to delete do you
 		}
 		// Send the actual result
@@ -104,7 +104,7 @@ class Info {
 		showErrors = true; console.log("REMOVE THIS"); //TEMP
 		if(resultType === result.error && !showErrors) {
 			if(!this.authorPerms.manageBot) {
-				return {"delete": async() => {}}; // command errors are disabled, return nothing
+				return {delete: async() => {}}; // command errors are disabled, return nothing
 			}
 		}
 
@@ -126,13 +126,13 @@ class Info {
 	}
 	async error(...msg) {
 		this.message.react("508841130503438356"); console.log("WHAT IF I DON'T HAVE PERMS TO ADD REACTIONS. also config.emoji");
-		let res = await this.reply(result.error, ...msg);
+		const res = await this.reply(result.error, ...msg);
 		res.delete(20*1000);
 		return res;
 	}
 	async success(...msg) {  
 		this.message.react("508840840416854026");
-		let res = await this.reply(result.success, ...msg);
+		const res = await this.reply(result.success, ...msg);
 		res.delete(20*1000);
 		return res;
 	}
@@ -143,5 +143,3 @@ class Info {
 		throw new Error("NOT IMPLEMENTED YET"); // TODO for example .wr is just .speedrun leaderboard 1, so it could res.redirect("speedrun leaderboard 1 "+arguments)
 	}
 }
-
-module.exports = Info;

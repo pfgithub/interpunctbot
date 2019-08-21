@@ -6,4 +6,4 @@
 //   await data.msg.reply(client.emojis.get(id).url); // $bigemoji <:emoji:123>
 // });*/
 //
-// module.exports = commands;
+// export default commands;

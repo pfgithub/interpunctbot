@@ -1,31 +1,39 @@
 {
-  "name": "votebot",
-  "version": "1.0.0",
-  "main": "index.js",
-  "license": "MIT",
-  "scripts": {
-    "test": "nyc mocha",
-    "posttest": "nyc report --reporter lcov",
-    "test-error": "mocha"
-  },
-  "dependencies": {
-    "async-request": "^1.2.0",
-    "bookshelf": "^0.13.3",
-    "command-parser": "gitlab:pfgitlab/command-parser",
-    "commandrouter": "https://github.com/pfgithub/command-router.git",
-    "discord.js": "^11.3.2",
-    "knex": "^0.14.5",
-    "moment": "^2.22.2",
-    "moment-duration-format": "^2.2.2",
-    "mz": "^2.7.0",
-    "pastebin-js": "^0.5.1",
-    "pg": "^7.4.3",
-    "request": "^2.88.0",
-    "speedrunapi": "^1.0.1",
-    "sqlite3": "^4.0.3"
-  },
-  "devDependencies": {
-    "mocha": "^5.2.0",
-    "nyc": "^11.8.0"
-  }
+	"name": "votebot",
+	"version": "1.0.0",
+	"main": "index.js",
+	"license": "MIT",
+	"scripts": {
+		"test": "nyc mocha",
+		"posttest": "nyc report --reporter lcov",
+		"test-error": "mocha"
+	},
+	"dependencies": {
+		"async-request": "^1.2.0",
+		"bookshelf": "^0.13.3",
+		"command-parser": "gitlab:pfgitlab/command-parser",
+		"commandrouter": "pfgithub/command-router",
+		"discord.js": "^11.3.2",
+		"knex": "^0.14.5",
+		"moment": "^2.22.2",
+		"moment-duration-format": "^2.2.2",
+		"mz": "^2.7.0",
+		"pastebin-js": "^0.5.1",
+		"pg": "^7.4.3",
+		"request": "^2.88.0",
+		"speedrunapi": "^1.0.1",
+		"sqlite3": "^4.0.3"
+	},
+	"devDependencies": {
+		"@types/mz": "^0.0.32",
+		"@types/node": "^11.12.2",
+		"@types/request": "^2.48.2",
+		"@typescript-eslint/eslint-plugin": "^2.0.0",
+		"@typescript-eslint/parser": "^2.0.0",
+		"eslint": "^6.2.0",
+		"mocha": "^5.2.0",
+		"nyc": "^11.8.0",
+		"prettier": "^1.18.2",
+		"typescript": "^3.5.3"
+	}
 }

@@ -4,10 +4,10 @@ await db.getPrefix(guild.id, prefix)
 
 */
 
-let knex = require("./db");
+import knex from "./db";
 
-let cache = {};
-let shouldCache = {prefix: true, logging: true};
+const cache = {};
+const shouldCache = {prefix: true, logging: true};
 
 function tryParse(json, defaultValue) {
 	try{
@@ -24,10 +24,10 @@ class Database {
 	constructor(guildId) {
 		this.guild = guildId;
 		this._data = undefined;
-		if(!cache[this.guild]) cache[this.guild] = {};
+		if(!cache[this.guild]) {cache[this.guild] = {};}
 	}
 	async getOrLoadData() { // loads data into the this.data. 
-		if(this._data) return this._data;
+		if(this._data) {return this._data;}
         
 		let data = (await knex("guilds").where({id: this.guild}))[0]; // THIS IS NOT THE RIGHT WAY
 		if(!data) { // we need a better way to do this
@@ -42,9 +42,9 @@ class Database {
 	}
 	async _get(name) { // returns a string
 		if(shouldCache[name]) {
-			if(cache[this.guild].hasOwnProperty(name)) return cache[this.guild][name];
+			if(cache[this.guild].hasOwnProperty(name)) {return cache[this.guild][name];}
 		}
-		let data = await this.getOrLoadData();
+		const data = await this.getOrLoadData();
 		if(shouldCache[name]) {
 			cache[this.guild][name] = data[name];
 		}
@@ -67,7 +67,7 @@ class Database {
 	}
 	async _getBool(name, defaultValue) {
 		let val = await this._get(name);
-		if(!val) val = defaultValue.toString();
+		if(!val) {val = defaultValue.toString();}
 		return val === "true";
 	}
 
@@ -78,9 +78,9 @@ class Database {
 		await this._set("prefix", newPrefix);
 	}
 	async getLists() {
-		let quoteList = await this._get`quotes`;
-		let otherLists = await this._getJson("searchablePastebins", {}); // here is where we could actually update the database to store everything in searchablepastebins instead of quotes... maybe later
-		if(quoteList && !otherLists.quote) otherLists.quote = quoteList; // otherlists.quote OVERRIDES QUOTE!!! 
+		const quoteList = await this._get`quotes`;
+		const otherLists = await this._getJson("searchablePastebins", {}); // here is where we could actually update the database to store everything in searchablepastebins instead of quotes... maybe later
+		if(quoteList && !otherLists.quote) {otherLists.quote = quoteList;} // otherlists.quote OVERRIDES QUOTE!!! 
 		return otherLists;
 	}
 	async setLists(newLists) {
@@ -128,8 +128,8 @@ class Database {
 		return await this._getJson("speedrunv2");
 	}
 	async getSpeedrunDefault() {
-		let [gameID, categoryID] = (await this._get("speedrun")).split`, `;
-		if(!categoryID) return undefined; // category id will be undefined because [1] of .split will be undefined.
+		const [gameID, categoryID] = (await this._get("speedrun")).split`, `;
+		if(!categoryID) {return undefined;} // category id will be undefined because [1] of .split will be undefined.
 		return {gameID: gameID, categoryID: categoryID};
 	}
 	async setSpeedrun(newval) {
@@ -140,7 +140,7 @@ class Database {
 	}
 }
 
-module.exports = Database;
+export default Database;
 
 /*
 
