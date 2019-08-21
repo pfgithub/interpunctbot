@@ -13,7 +13,7 @@
 		"bookshelf": "^0.13.3",
 		"command-parser": "gitlab:pfgitlab/command-parser",
 		"commandrouter": "pfgithub/command-router",
-		"discord.js": "^11.3.2",
+		"discord.js": "discordjs/discord.js",
 		"knex": "^0.14.5",
 		"moment": "^2.22.2",
 		"moment-duration-format": "^2.2.2",

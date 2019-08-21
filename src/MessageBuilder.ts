@@ -1,4 +1,5 @@
-import { RichEmbed } from "discord.js";
+import { MessageEmbed } from "discord.js";
+import { MessageParametersType } from "./Info";
 
 type TextBuilderType = "discord" | "url";
 
@@ -10,7 +11,7 @@ data.msg.reply(...mb().build());
 What does it mean to build a message?
  */
 
-class TextBuilder {
+export class TextBuilder {
 	text: [string, boolean][];
 	type: TextBuilderType;
 	constructor(type: TextBuilderType = "discord") {
@@ -56,7 +57,7 @@ class TextBuilder {
 	}
 }
 
-class MessageBuilder {
+export class MessageBuilder {
 	// https://discordapp.com/developers/docs/resources/channel#embed-limits
 	title: TextBuilder;
 	description: TextBuilder;
@@ -101,10 +102,10 @@ class MessageBuilder {
 		this.thumb = thumb;
 	}
 
-	build(useEmbed?: boolean) {
+	build(useEmbed?: boolean): MessageParametersType {
 		// useEmbed may be overrided if fields goes over the max
 		// converts to an array containing [msg, {embed: thing}]
-		const embed = new RichEmbed();
+		const embed = new MessageEmbed();
 		let msg = "";
 
 		embed.setColor("random");
@@ -168,9 +169,6 @@ ${field.description.build()}`;
 	}
 }
 const MB = () => new MessageBuilder();
-MB.MessageBuilder = MessageBuilder;
-MB.TextBuilder = TextBuilder;
-
 /*
 
 Example
