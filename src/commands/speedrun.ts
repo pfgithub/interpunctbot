@@ -21,24 +21,27 @@ speedrun ruels <category>
 
 */
 
-import SpeedrunAPI from "speedrunapi";
+//@ts-ignore
+import * as SpeedrunAPI from "speedrunapi";
 const sr = new SpeedrunAPI();
-import o from "../options";
-import { RichEmbed } from "discord.js";
-import MB from "../MessageBuilder";
+import { MessageEmbed } from "discord.js";
+import MB, { TextBuilder } from "../MessageBuilder";
 import Router from "commandrouter";
-import { r } from "../Info";
+import Info from "../Info";
+//@ts-ignore
+import * as request from "async-request"; // this is a terrible library why am I using it
 
-import request from "async-request";
-
-import moment from "moment";
+import * as moment from "moment";
 require("moment-duration-format")(moment);
 
-const router = new Router();
+const router = new Router<Info, any>();
 
-const adminrouter = new Router();
+const adminrouter = new Router<Info, any>();
 
-async function getURL(strings, ...values) {
+async function getURL(
+	strings: TemplateStringsArray | string | string[],
+	...values: string[]
+) {
 	if (typeof strings === "string") {
 		strings = [strings];
 	}
@@ -52,12 +55,12 @@ async function getURL(strings, ...values) {
 	return JSON.parse((await request(res)).body);
 }
 
-async function getGamesFrom({ abbreviation }) {
+async function getGamesFrom({ abbreviation }: { abbreviation: string }) {
 	const gameData = await getURL`https://www.speedrun.com/api/v1/games?abbreviation=${abbreviation}&embed=categories`;
 	//let gameData = await sr.games().param({abbreviation: abbreviation}).embed(["categories"]).exec(); // works but geturl is almost better
 	return gameData;
 }
-async function getCategoriesFromGameID(id) {
+async function getCategoriesFromGameID(id: string) {
 	// we may want to stop using the speedrun api it's really bad and unreliable
 	const categoriesGetter = sr.games(id);
 	categoriesGetter._method = "categories"; // reliable modules such as speedrunapi work great
@@ -65,9 +68,9 @@ async function getCategoriesFromGameID(id) {
 	return categories;
 }
 
-async function getCategoryFromSpeedrunID(category, id) {}
+async function getCategoryFromSpeedrunID(category: string, id: string) {}
 
-async function listCategoriesAtID(id) {}
+async function listCategoriesAtID(id: string) {}
 
 function parseAbbreviation({ from: speedrunpage = "" }) {
 	// I've been doing too much swift
@@ -83,13 +86,21 @@ router.add([], adminrouter);
 router.add("wr", [], async (cmd, info) => {
 	// wr <category> gets the wr for the specified category||default
 	await info.startLoading();
-	let [...categoryName] = cmd.split` `;
-	categoryName = categoryName.join` `;
+	const categoryNameArray = cmd.split(` `);
+	const categoryName = categoryNameArray.join(` `);
+
+	if (!info.db) {
+		return await info.error(
+			"Cannot speedrun in private pm messages",
+			undefined
+		);
+	}
 
 	const defaultGameCategory = await info.db.getSpeedrunDefault();
 	if (!defaultGameCategory) {
 		return await info.error(
-			`Speedrun commands have not been configured for this server.`
+			"Speedrun commands have not been configured for this server. Configure them with `speedrun set`",
+			undefined
 		);
 	}
 	let { gameID, categoryID } = defaultGameCategory;
@@ -99,15 +110,15 @@ router.add("wr", [], async (cmd, info) => {
 		const categories = await getCategoriesFromGameID(gameID);
 
 		const categoryFilter = categories.items.filter(
-			cat => cat.name.toLowerCase() === categoryName.toLowerCase()
+			(cat: any) => cat.name.toLowerCase() === categoryName.toLowerCase()
 		);
 		if (categoryFilter.length <= 0) {
 			return await info.error(
-				new MB.TextBuilder()
+				new TextBuilder()
 					.tag`The category \`${categoryName}\` is not in the game.
-		Valid categories: ${categories.items.map(cat => cat.name).join`, `}`.build(
-					false
-				)
+		Valid categories: ${categories.items.map((cat: any) => cat.name)
+			.join`, `}`.build(),
+				undefined
 			);
 		} // TODO return as a mb fields[categoryname,url,name,url...]
 		categoryID = categoryFilter[0].id;
@@ -121,13 +132,13 @@ router.add("wr", [], async (cmd, info) => {
 		.exec();
 	const actualGameData = gameData.items.game.data;
 	const runs = gameData.items.runs.filter(
-		run => run.place.toString() === place.toString()
+		(run: any) => run.place.toString() === place.toString()
 	); // TODO run.place === place and have place just get the person in nth place
-	const getPlayer = player =>
-		gameData.items.players.data.filter(pl => pl.id === player)[0];
+	const getPlayer = (player: any) =>
+		gameData.items.players.data.filter((pl: any) => pl.id === player)[0];
 	const run_ = runs[0];
 	if (!run_) {
-		return await info.error("No world record found");
+		return await info.error("No world record found", undefined);
 	}
 	const run = run_.run;
 
@@ -142,7 +153,7 @@ router.add("wr", [], async (cmd, info) => {
 		runPlayer.weblink
 	);
 	const duration = moment.duration(run.times.primary_t, "seconds");
-	mb.description.tag`[${duration.format(
+	mb.description.tag`[${(<any>duration).format(
 		"y [years] M [months] w [weeks] d [days,] h[h]:mm[m]:s.SSS[s]"
 	)}](`;
 	mb.description.putRaw(run.weblink);
@@ -158,29 +169,37 @@ router.add("wr", [], async (cmd, info) => {
 		mb.setThumbnail(assetIcon.uri);
 	}
 
-	await info.result(mb);
+	await info.result(...mb.build());
 });
-function isNormalInteger(str) {
+function isNormalInteger(str: string) {
 	const n = Math.floor(Number(str));
 	return n !== Infinity && String(n) === str && n > 0;
 }
 
 router.add("speedrun leaderboard", [], async (cmd, info) => {
 	// speedrun leaderboard <<abbreviation> category> n gets the person in nth placed
-	let [position, ...categoryName] = cmd.split` `;
-	categoryName = categoryName.join` `;
+	const [positionString, ...categoryNameList] = cmd.split(` `);
+	const categoryName = categoryNameList.join(` `); // 10/10
 
-	if (!position || !isNormalInteger(position)) {
+	if (!positionString || !isNormalInteger(positionString)) {
 		return info.error(
-			`A position is required, such as \`speedrun leaderboard 26\``
+			`A position is required, such as \`speedrun leaderboard 26\``,
+			undefined
 		);
 	}
-	position = parseInt(position, 10); // position =+ position
+	const position = parseInt(positionString, 10); // position =+ position
 
+	if (!info.db) {
+		return info.error(
+			"This command cnanot be used in PMs. This probably should never happen?",
+			undefined
+		);
+	}
 	const defaultGameCategory = await info.db.getSpeedrunDefault();
 	if (!defaultGameCategory) {
 		return await info.error(
-			`Speedrun commands have not been configured for this server.`
+			"Speedrun commands have not been configured for this server. Configure them with `speedrun set`",
+			undefined
 		);
 	}
 	let { gameID, categoryID } = defaultGameCategory;
@@ -188,19 +207,19 @@ router.add("speedrun leaderboard", [], async (cmd, info) => {
 	await info.startLoading();
 
 	if (categoryName) {
-		// wouuldn't it be cool if loading could be updated to say "Getting Category..."
+		// wouuldn't it be cool if loading could be updated to say "Getting Category..." // no that would not be cool because it would take forever to make the edit and wait for completion and also it's annoying to use a seperate loading message
 		const categories = await getCategoriesFromGameID(gameID);
 
 		const categoryFilter = categories.items.filter(
-			cat => cat.name.toLowerCase() === categoryName.toLowerCase()
+			(cat: any) => cat.name.toLowerCase() === categoryName.toLowerCase()
 		);
 		if (categoryFilter.length <= 0) {
 			return await info.error(
-				new MB.TextBuilder()
+				new TextBuilder()
 					.tag`The category \`${categoryName}\` is not in the game.
-		Valid categories: ${categories.items.map(cat => cat.name).join`, `}`.build(
-					false
-				)
+		Valid categories: ${categories.items.map((cat: any) => cat.name)
+			.join`, `}`.build(),
+				undefined
 			);
 		} // TODO return as a mb fields[categoryname,url,name,url...]
 		categoryID = categoryFilter[0].id;
@@ -214,13 +233,13 @@ router.add("speedrun leaderboard", [], async (cmd, info) => {
 		.exec();
 	const actualGameData = gameData.items.game.data;
 	const runs = gameData.items.runs.filter(
-		run => run.place.toString() === place.toString()
+		(run: any) => run.place.toString() === place.toString()
 	); // TODO run.place === place and have place just get the person in nth place
-	const getPlayer = player =>
-		gameData.items.players.data.filter(pl => pl.id === player)[0];
+	const getPlayer = (player: any) =>
+		gameData.items.players.data.filter((pl: any) => pl.id === player)[0];
 	const run_ = runs[0];
 	if (!run_) {
-		return await info.error("No world record found");
+		return await info.error("No world record found", undefined);
 	}
 	const run = run_.run;
 
@@ -235,7 +254,7 @@ router.add("speedrun leaderboard", [], async (cmd, info) => {
 		runPlayer.weblink
 	);
 	const duration = moment.duration(run.times.primary_t, "seconds");
-	mb.description.tag`[${duration.format(
+	mb.description.tag`[${(duration as any).format(
 		"y [years] M [months] w [weeks] d [days,] h[h]:mm[m]:s.SSS[s]"
 	)}](`;
 	mb.description.putRaw(run.weblink);
@@ -251,17 +270,25 @@ router.add("speedrun leaderboard", [], async (cmd, info) => {
 		mb.setThumbnail(assetIcon.uri);
 	}
 
-	await info.result(mb);
+	await info.result(...mb.build());
 });
 router.add("speedrun rules", [], async (cmd, info) => {
 	await info.startLoading();
-	let [...categoryName] = cmd.split` `;
-	categoryName = categoryName.join` `;
+	const categoryNameArray = cmd.split(` `);
+	const categoryName = categoryNameArray.join(` `);
+
+	if (!info.db) {
+		return await info.error(
+			"Soeedrun commands cannot be used in PMs.",
+			undefined
+		);
+	}
 
 	const defaultGameCategory = await info.db.getSpeedrunDefault();
 	if (!defaultGameCategory) {
 		return await info.error(
-			`Speedrun commands have not been configured for this server.`
+			"Speedrun commands have not been configured for this server. Configure them with `speedrun set`",
+			undefined
 		);
 	}
 	let { gameID, categoryID } = defaultGameCategory;
@@ -271,15 +298,15 @@ router.add("speedrun rules", [], async (cmd, info) => {
 		const categories = await getCategoriesFromGameID(gameID);
 
 		const categoryFilter = categories.items.filter(
-			cat => cat.name.toLowerCase() === categoryName.toLowerCase()
+			(cat: any) => cat.name.toLowerCase() === categoryName.toLowerCase()
 		);
 		if (categoryFilter.length <= 0) {
 			return await info.error(
-				new MB.TextBuilder()
+				new TextBuilder()
 					.tag`The category \`${categoryName}\` is not in the game.
-		Valid categories: ${categories.items.map(cat => cat.name).join`, `}`.build(
-					false
-				)
+		Valid categories: ${categories.items.map((cat: any) => cat.name)
+			.join`, `}`.build(),
+				undefined
 			);
 		} // TODO return as a mb fields[categoryname,url,name,url...]
 		categoryID = categoryFilter[0].id;
@@ -297,56 +324,62 @@ router.add("speedrun rules", [], async (cmd, info) => {
 	mb.title.put(gameData.items.category.data.name);
 	mb.description.put(gameData.items.category.data.rules);
 
-	return info.result(mb);
+	return info.result(...mb.build());
 }); // <<abbreviation> category>
 
-async function getGameAtPage(abbreviation) {
+async function getGameAtPage(abbreviation: string) {
 	// Get the list of games from the abbreviation
 	const games = (await getGamesFrom({ abbreviation: abbreviation })).data;
 	if (games.length < 1) {
-		return new MB.TextBuilder()
-			.tag`No games found for the abbreviation \`${abbreviation}\`. Is the URL right?`.build(
-			false
-		);
+		return new TextBuilder()
+			.tag`No games found for the abbreviation \`${abbreviation}\`. Is the URL right?`.build();
 	} // a textbuilder is used here because what if parseabbreviation is updated to allow @
 	if (games.length > 1) {
-		return new MB.TextBuilder()
-			.tag`Too many games were found for the abbreviation \`${abbreviation}\`. This should never happen, submit a bug report on the support server (\`about\`) or gitlab page`.build(
-			false
-		);
+		return new TextBuilder()
+			.tag`Too many games were found for the abbreviation \`${abbreviation}\`. This should never happen, submit a bug report on the support server (\`about\`) or gitlab page`.build();
 	}
 
 	return games[0];
 }
-adminrouter.add("speedrun set", [r.manageBot], async (cmd, info) => {
+adminrouter.add("speedrun set", [Info.r.manageBot], async (cmd, info) => {
 	// extract the abbreviation from the command
-	let [speedrunpage, ...categoryName] = cmd.split` `;
-	categoryName = categoryName.join` `;
+	const [speedrunpage, ...categoryNameArray] = cmd.split(` `);
+	const categoryName = categoryNameArray.join(` `);
+
+	if (!info.db) {
+		return await info.error(
+			"Cannot use speedrun commands in private pm messages",
+			undefined
+		);
+	}
 
 	// parse the abbreviation from whatver the user provided and error if it fails, start loading, then get the games
 	const abbreviation = parseAbbreviation({ from: speedrunpage });
 	if (!abbreviation || !categoryName) {
 		return await info.error(
-			`Usage: \`speedrun set https://speedrun.com/mygame My Category\``
+			`Usage: \`speedrun set https://speedrun.com/mygame My Category\``,
+			undefined
 		);
 	}
 	await info.startLoading();
 	const game = await getGameAtPage(abbreviation);
 	if (typeof game === "string") {
-		return await info.error(game);
+		return await info.error(game, undefined);
 	}
 
 	// get the provided category
 	const gameID = game.id;
 	const categories = game.categories.data;
 	const category = categories.find(
-		category => category.name.toLowerCase() === categoryName.toLowerCase()
+		(category: any) =>
+			category.name.toLowerCase() === categoryName.toLowerCase()
 	);
 	if (!category) {
 		return await info.error(
-			new MB.TextBuilder()
+			new TextBuilder()
 				.tag`The category \`${categoryName}\` is not in the game.
-	Valid categories: ${categories.map(cat => cat.name).join`, `}`.build(false)
+	Valid categories: ${categories.map((cat: any) => cat.name).join`, `}`.build(),
+			undefined
 		);
 	}
 
@@ -355,16 +388,10 @@ adminrouter.add("speedrun set", [r.manageBot], async (cmd, info) => {
 
 	// success
 	return await info.success(
-		new MB.TextBuilder()
-			.tag`Default speedrun page updated to ${abbreviation}: ${categoryName} (ids: ${gameID}, ${category.id})`.build(
-			false
-		)
+		new TextBuilder()
+			.tag`Default speedrun page updated to ${abbreviation}: ${categoryName} (ids: ${gameID}, ${category.id})`.build(),
+		undefined
 	);
 }); // set <abbreviaton> <category> // sets the default category
-
-const speedrun = new Usage({
-	description: "Commands related to speedrun.com",
-	requirements: [o.setting("speedrun")]
-});
 
 export default router;

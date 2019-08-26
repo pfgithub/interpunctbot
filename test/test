@@ -1,0 +1,9 @@
+ip!help
+ip!about
+ip!settings
+
+-------- ShouldOutput -------
+
+DiscordEmbed {
+	... help output
+}
