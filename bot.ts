@@ -1,11 +1,8 @@
-import Discord from "discord.js";
-import config from "./config";
+import * as Discord from "discord.js";
+import * as config from "./config.json";
 const bot = new Discord.Client();
 
-
-let token;
-if(process.env.NODE_ENV === "production") {token = config.tokenProduction;}
-else {token = config.token;}
+const token = config.token;
 
 bot.login(token);
 

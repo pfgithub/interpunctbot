@@ -34,6 +34,8 @@ type Fields = {
 	failedPrecheckMessages?: string;
 	channel_spacing?: string;
 	speedrun?: string; // "gameID, categoryID"
+	welcome?: string;
+	goodbye?: string;
 };
 
 type JSONFields = {
@@ -144,7 +146,7 @@ class Database {
 		this._set(name, newValue.toString());
 	}
 
-	async getPrefix(): Promise<String> {
+	async getPrefix(): Promise<string> {
 		return await this._get(`prefix`);
 	}
 	async setPrefix(newPrefix: string) {
@@ -195,8 +197,18 @@ class Database {
 		return await this._set("channel_spacing", bool.toString());
 	}
 	// tbd
-	// async getWelcomeMessage() {}
-	// async getGoodbyeMessage() {}
+	async getWelcomeMessage() {
+		return await this._get("welcome");
+	}
+	async setWelcomeMessage(newMessage: string) {
+		return await this._set("welcome", newMessage);
+	}
+	async getGoodbyeMessage() {
+		return await this._get("goodbye");
+	}
+	async setGoodbyeMessage(newMessage: string) {
+		return await this._set("goodbye", newMessage);
+	}
 	// async getSpeedrun() {
 	// 	return await this._getJson("speedrunv2");
 	// }
@@ -211,6 +223,9 @@ class Database {
 	}
 	async setSpeedrunDefault(gameID: string, categoryID: string) {
 		return await this._set("speedrun", `${gameID}, ${categoryID}`);
+	}
+	async addError(error: string, settingCause: string) {
+		// log for the ip!error log
 	}
 }
 

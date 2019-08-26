@@ -10,6 +10,8 @@ I think module shouldn't exist and it should be replaced with Router
  */
 import MB, { MessageBuilder } from "./MessageBuilder";
 import Database from "./Database";
+import * as config from "../config.json";
+import { ilt } from "..";
 
 const result = {
 	error: "<:failure:508841130503438356> Error: ",
@@ -41,7 +43,18 @@ const r = {
 			info.error("This command cannot be used in a PM", undefined) &&
 			false
 		);
-	} // I want an r.load() that calls startloading and awaits for it
+	}, // I want an r.load() that calls startloading and awaits for it
+	owner: (info: Info) => {
+		if (info.message.author!.id === config.owner) {
+			return true;
+		}
+		return (
+			info.error(
+				"This command can only be used by the hoster of interpunct bot",
+				undefined
+			) && false
+		);
+	}
 };
 
 export type MessageOptionsParameter =
@@ -59,10 +72,19 @@ export default class Info {
 	channel: Discord.TextChannel | Discord.DMChannel;
 	guild?: Discord.Guild | null;
 	message: Discord.Message;
-	other: any;
+	other?: {
+		startTime: number;
+		infoPerSecond: number;
+	};
 	db?: Database;
 	member?: Discord.GuildMember | null;
-	constructor(message: Discord.Message, other: any) {
+	constructor(
+		message: Discord.Message,
+		other?: {
+			startTime: number;
+			infoPerSecond: number;
+		}
+	) {
 		this.loading = false;
 		this.channel = message.channel;
 		this.guild = message.guild;
@@ -196,18 +218,54 @@ export default class Info {
 		return await this._tryReply(...message);
 	}
 	async error(...msg: MessageParametersType) {
-		this.message.react("508841130503438356");
-		console.log(
-			"WHAT IF I DON'T HAVE PERMS TO ADD REACTIONS. also config.emoji"
-		);
-		const res = await this.reply(result.error, ...msg);
+		let res;
+		if (
+			!this.myChannelPerms ||
+			this.myChannelPerms.has("USE_EXTERNAL_EMOJIS")
+		) {
+			res = await this.reply("<:error:508841130503438356>", ...msg);
+		} else {
+			res = await this.reply("❌", ...msg);
+		}
+		const reactResult = await ilt(this.message.react("508841130503438356"));
+		if (reactResult.error) {
+			await ilt(this.message.react("❌")); // may fail, not a problem
+		}
+		res && res.forEach(r => r.delete({ timeout: 20 * 1000 }));
+		return res;
+	}
+	async warn(...msg: MessageParametersType) {
+		let res;
+		if (
+			!this.myChannelPerms ||
+			this.myChannelPerms.has("USE_EXTERNAL_EMOJIS")
+		) {
+			res = await this.reply("<:warning:508842207089000468>", ...msg);
+		} else {
+			res = await this.reply("⚠", ...msg);
+		}
+		const reactResult = await ilt(this.message.react("508842207089000468"));
+		if (reactResult.error) {
+			await ilt(this.message.react("⚠")); // may fail
+		}
 		res && res.forEach(r => r.delete({ timeout: 20 * 1000 }));
 		return res;
 	}
 	async success(...msg: MessageParametersType) {
-		this.message.react("508840840416854026");
-		const res = await this.reply(result.success, ...msg);
-		res && res.forEach(r => r.delete({ timeout: 20 * 1000 }));
+		let res;
+		if (
+			!this.myChannelPerms ||
+			this.myChannelPerms.has("USE_EXTERNAL_EMOJIS")
+		) {
+			res = await this.reply("<:success:508840840416854026>", ...msg);
+		} else {
+			res = await this.reply("✅", ...msg);
+		}
+		const reactResult = await ilt(this.message.react("508840840416854026"));
+		if (reactResult.error) {
+			await ilt(this.message.react("✅")); // may fail
+		}
+		// res && res.forEach(r => r.delete({ timeout: 20 * 1000 }));
 		return res;
 	}
 	async result(...msg: MessageParametersType) {

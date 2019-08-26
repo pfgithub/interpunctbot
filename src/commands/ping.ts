@@ -1,13 +1,19 @@
-import o from "../options";
-import * as Router from "commandrouter";
-const router = new Router<Info>();
+import Router from "commandrouter";
+import Info from "../Info";
+const router = new Router<Info, any>();
 
 router.add([], async (cmd: string, info) => {
-	await info.result(`<a:pingpong:482012177725653003>
+	if (!info.other) {
+		return await info.result("<a:pingpong:482012177725653003>", undefined);
+	}
+	await info.result(
+		`<a:pingpong:482012177725653003>
 
-	*Took ${new Date().getTime() - info.other.startTime.getTime()}ms, handling ${
-		info.other.infoPerSecond
-	} db requests per second*`);
+	*Took ${new Date().getTime() - info.other.startTime}ms, handling ${
+			info.other.infoPerSecond
+		} db requests per second*`,
+		undefined
+	);
 });
 
 export = router;

@@ -633,7 +633,7 @@ commander@^2.15.1, commander@~2.20.0:
 
 commandrouter@pfgithub/command-router:
   version "1.2.0"
-  resolved "https://codeload.github.com/pfgithub/command-router/tar.gz/40de2711e95b6bae995830af798cc67464093baa"
+  resolved "https://codeload.github.com/pfgithub/command-router/tar.gz/27df2b3b5da5c46bf4cd85ed9012a29215bdcb65"
   dependencies:
     string-similarity "^1.2.0"
 

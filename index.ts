@@ -1,14 +1,22 @@
 import bot from "./bot";
-import config from "./config";
+import * as config from "./config.json";
 import * as path from "path";
-import o from "./src/options";
 import knex from "./src/db"; // TODO add something so if you delete a message with a command it deletes the result messages or a reaction on the result msg or idk
-import { Attachment, RichEmbed, DiscordAPIError } from "discord.js";
+import {
+	MessageAttachment,
+	MessageEmbed,
+	DiscordAPIError,
+	GuildChannel,
+	Message,
+	TextChannel,
+	MessageReaction,
+	User
+} from "discord.js";
 import * as moment from "moment";
 import handleQuote from "./src/commands/quote";
 import MB from "./src/MessageBuilder";
 import * as request from "request";
-import * as Router from "commandrouter";
+import Router from "commandrouter";
 import Info from "./src/Info";
 
 //@ts-ignore
@@ -17,121 +25,121 @@ global.__basedir = __dirname;
 import { EventEmitter } from "events"; // TODO add a thing for warning people like $warn [person] and have it be like 1 warning fine 2 warnings tempmute 3 warnings...and customizeable
 
 import * as fs from "mz/fs";
+import Database from "./src/Database";
 
-const usage = new Usage({
-	description: "All Commands",
-	usage: ["command..."]
-});
-
-const router = new Router();
+const router = new Router<Info, any>();
 
 const production = process.env.NODE_ENV === "production";
 
-const mostRecentCommands: string[] = [];
+const mostRecentCommands: { content: string; date: string }[] = [];
 
-function devlog(...msg) {
+function devlog(...msg: any) {
 	if (!production) {
 		global.console.log(...msg);
 	}
 }
 
-usage.add(
-	"help",
-	new Usage({
-		description: "List help for all commands",
-		usage: ["all", "command..."],
-		callback: async (data, ...command) => {
-			const all = command[0] === "all" ? command.shift() : false;
-			const cmdToGetHelp = data.commands;
-			if (command.join` `) {
-				return await data.msg.reply(
-					`Getting help on individual commands is disabled. See ${data.prefix}about for documentation`
-				);
-			}
-
-			let commands = cmdToGetHelp.description; // Object.keys(data.allPastebin)
-			let result = cmdToGetHelp.getUsage({
-				data: all ? undefined : data
-			}); // we need to // brb walk away from what I was typing hope it wasn't important
-			result = result.map(line => `${data.prefix}${line}`).join`\n`;
-			commands += `\`\`\`\n${result}\n\`\`\``;
-			if (!all) {
-				commands +=
-					"and more that you or your server cannot use. `help all` for a full list";
-			}
-			return data.msg.reply(commands);
-		}
-	})
-);
-usage.add("settings", require("./src/commands/settings"));
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!usage.add("settings", require("./src/commands/settings"));
 router.add("ping", [], require("./src/commands/ping"));
 router.add([], require("./src/commands/speedrun"));
 router.add("log", [Info.r.manageBot], require("./src/commands/logging"));
-// usage.add("quote", require("./src/commands/quote"));
 
-usage.add(
-	"purge",
-	new Usage({
-		description: "Deletes the last n messages from a channel",
-		usage: ["msgs to delete"],
-		requirements: [o.perm("MANAGE_MESSAGES"), o.myPerm("MANAGE_MESSAGES")],
-		callback: async (data, n) => {
-			await data.msg.reply("This command is not recommened for use.");
-			const number = +n;
-			if (isNaN(number)) {
-				return await data.msg.reply("Invalid numbers");
-			}
-			const msgs = await data.msg.channel.fetchMessages({
-				limit: number
-			});
-			msgs.array().forEach(msg => msg.delete());
-		}
-	})
-);
+// usage.add(
+// 	"purge",
+// 	new Usage({
+// 		description: "Deletes the last n messages from a channel",
+// 		usage: ["msgs to delete"],
+// 		requirements: [o.perm("MANAGE_MESSAGES"), o.myPerm("MANAGE_MESSAGES")],
+// 		callback: async (data, n) => {
+// 			await data.msg.reply("This command is not recommened for use.");
+// 			const number = +n;
+// 			if (isNaN(number)) {
+// 				return await data.msg.reply("Invalid numbers");
+// 			}
+// 			const msgs = await data.msg.channel.fetchMessages({
+// 				limit: number
+// 			});
+// 			msgs.array().forEach(msg => msg.delete());
+// 		}
+// 	})
+// ); !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 remove(
 	"spoiler",
-	"please use the discord spoiler syntax instead, `||like this||`"
+	"Discord has added official spoilers, type your spoiler in between lines `||like this||`"
 );
 
-usage.rename("spaceChannels", "channels spacing");
+export async function ilt<T>(
+	v: Promise<T>
+): Promise<
+	{ error: Error; result: undefined } | { error: undefined; result: T }
+> {
+	let result: T;
+	try {
+		result = await v;
+	} catch (error) {
+		return { error, result: undefined };
+	}
+	return { result, error: undefined };
+}
 
-usage.add("channels", require("./src/commands/channelmanagement"));
+router.add("spoiler", [], async (cmd, info) => {
+	const deletedMessage = await ilt(info.message.delete());
+	// if(er) send message...
+	info.error(
+		"Discord has added official spoiler support by surrounding your message in `||`vertical lines`||`.",
+		undefined
+	);
+});
 
-usage.rename("invite", "about");
-//usage.add("about", require("./src/commands/about"));
+depricate("spaceChannels", "channels spacing", "2.0"); // 1.0 -> 2.0
+
+// usage.add("channels", require("./src/commands/channelmanagement")); !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+reroute("invite", "about", "2.0");
 router.add("about", [], require("./src/commands/about"));
 
-usage.rename("downloadLog", "log download");
-usage.rename("resetLog", "log reset");
-usage.rename("listRoles", "settings listRoles");
-
-usage.add(
-	"crash",
-	new Usage({
-		description: "Throw an unhandled promise rejection",
-		requirements: [o.owner()],
-		callback: async data => {
-			throw new Error("Crash Command Used");
-		}
-	})
+depricate("downloadLog", "log download", "2.0");
+depricate("resetLog", "log reset", "2.0");
+depricate("listRoles", "settings listRoles", "2.0");
+remove(
+	"settings listroles",
+	"Discord now has a builtin way for you to get the ID of roles by right clicking a role in the Roles section of settings. Also, most interpunct commands will now accept a role name instead of ID.",
+	"3.0"
 );
+
+router.add("crash", [Info.r.owner], () => {
+	throw new Error("crash command used");
+});
 
 router.add([], require("./src/commands/quote"));
 
-function depricate(oldcmd, newcmd) {
+function depricate(oldcmd: string, newcmd: string, version: string = "3.0") {
 	router.add(oldcmd, [], async (cmd, info) => {
 		return await info.error(
-			`\`${oldcmd}\` has been renamed to \`${newcmd}\` in ipv2. See \`help\` for more information. Join the support server in \`about\` if you have any issues.`
+			`\`${oldcmd}\` has been renamed to \`${newcmd}\` as part of Interpunct Bot ${version}. See \`help\` for more information. Join the support server in \`about\` if you have any issues.`,
+			undefined
 		);
 	});
 }
 
-function remove(oldcmd, reason) {
+function reroute(oldcmd: string, newcmd: string, version: string = "3.0") {
+	router.add(oldcmd, [], async (cmd, info) => {
+		await info.warn(
+			`\`${oldcmd}\` has been renamed to \`${newcmd}\` as part of Interpunct Bot ${version}. See \`help\` for more information. Join the support server in \`about\` if you have any issues.`,
+			undefined
+		);
+		router.handle(newcmd, info);
+	});
+}
+
+function remove(oldcmd: string, reason: string, version: string = "3.0") {
 	router.add(oldcmd, [], async (cmd, info) => {
 		return await info.error(
-			`\`${oldcmd}\` has been removed in ipv2. ${
-				reason ? `${reason} ` : ""
-			}Join the support server in \`about\` if you have any issues.`
+			`\`${oldcmd}\` has been removed as part of ${version}.
+			${reason ? `${reason} ` : ""}
+			Join the support server in \`about\` if you have any issues.`,
+			undefined
 		);
 	});
 }
@@ -217,9 +225,10 @@ depricate("settings", "help");
 */
 
 router.add([], async (cmd, info) => {
-	if (await info.db.getUnknownCommandMessages()) {
+	if (!info.db || (await info.db.getUnknownCommandMessages())) {
 		return await info.error(
-			"Command not found, use help for a list of commands"
+			"Command not found, use help for a list of commands",
+			undefined
 		);
 	} // else do nothing
 });
@@ -228,7 +237,7 @@ fs.readdirSync(path.join(__dirname, "src/commands"));
 
 const serverInfo = {};
 
-function tryParse(json) {
+function tryParse(json: any) {
 	try {
 		return typeof json === "string" ? JSON.parse(json) : json;
 	} catch (e) {
@@ -237,92 +246,11 @@ function tryParse(json) {
 	}
 }
 
-let infoPerSecond = [];
-
-async function retrieveGuildInfo(g, msg) {
-	const startTime = new Date();
-	infoPerSecond.push(startTime);
-	infoPerSecond = infoPerSecond.filter(
-		ips => ips.getTime() + 1000 > new Date().getTime()
-	);
-
-	let prefix = g ? "ip!" : "";
-	const options = [
-		/*o.deleteOriginal(1000)*/
-	];
-	let disabledCommands = [];
-	let rankmojis = [];
-	let rankmojiChannel = "";
-	let nameScreening = [];
-	let allPastebin = {};
-	let logging = false;
-	let speedrun;
-	let unknownCommandMessages = true;
-	let failedPrecheckMessages = true;
-	let permReplacements = {};
-	let channelSpacing = false;
-	const events = { welcome: "", goodbye: "" };
-	if (g) {
-		const guild = (await knex("guilds").where({ id: g.id }))[0];
-		if (!guild) {
-			await knex("guilds").insert({ id: g.id, prefix: prefix });
-		} else {
-			prefix = guild.prefix;
-			allPastebin = tryParse(guild.searchablePastebins) || allPastebin;
-			if (guild.quotes) {
-				allPastebin.quote = guild.quotes;
-			}
-			speedrun = guild.speedrun;
-			disabledCommands =
-				tryParse(guild.disabledCommands) || disabledCommands;
-			rankmojis = tryParse(guild.rankmojis) || rankmojis;
-			rankmojiChannel = guild.rankmojiChannel;
-			nameScreening = tryParse(guild.nameScreening) || nameScreening;
-			permReplacements =
-				tryParse(guild.permreplacements) || permReplacements;
-			logging = guild.logging === "true" ? true : false;
-			unknownCommandMessages =
-				guild.unknownCommandMessages === "true" ||
-				!guild.unknownCommandMessages
-					? true
-					: false;
-			failedPrecheckMessages =
-				guild.failedPrecheckMessages === "true" ||
-				!guild.failedPrecheckMessages
-					? true
-					: false;
-			channelSpacing = guild.channel_spacing === "true" ? true : false;
-			events.welcome = guild.welcome || events.welcome;
-			events.goodbye = guild.goodbye || events.goodbye;
-		}
-	}
-	return {
-		prefix: prefix,
-		options: options,
-		msg: msg,
-		db: knex,
-		pm: !g,
-		allPastebin: allPastebin,
-		disabledCommands: disabledCommands,
-		rankmojis: rankmojis,
-		rankmojiChannel: rankmojiChannel,
-		nameScreening: nameScreening,
-		logging: logging,
-		speedrun: speedrun,
-		unknownCommandMessages: unknownCommandMessages,
-		permReplacements: permReplacements,
-		events: events,
-		embed: true,
-		failedPrecheckMessages: failedPrecheckMessages,
-		channelSpacing: channelSpacing,
-		startTime: startTime,
-		infoPerSecond: infoPerSecond.length
-	};
-}
+const infoPerSecond: number[] = [];
 
 function updateActivity() {
 	const count = bot.guilds.size;
-	bot.user.setActivity(`ip!help on ${count} servers`);
+	bot.user && bot.user.setActivity(`ip!help on ${count} servers`);
 	// if(process.env.NODE_ENV === "development") return; // only production should post
 	// let options = {
 	// 	url: `https://bots.discord.pw/api/bots/${config.bdpid}/stats`,
@@ -338,13 +266,12 @@ function updateActivity() {
 
 bot.on("ready", async () => {
 	global.console.log("Ready");
-	// bot.user.setActivity(`Skynet Simulator ${(new Date()).getFullYear()+1}`);
 	updateActivity();
 });
 
-setInterval(updateActivity, 60 * 60 * 1000);
+setInterval(updateActivity, 15 * 1000); // update every 15 min
 
-function streplace(str, eplace) {
+function streplace(str: string, eplace: { [key: string]: string }) {
 	Object.keys(eplace).forEach(key => {
 		str = str.split(key).join(eplace[key]);
 	});
@@ -352,119 +279,111 @@ function streplace(str, eplace) {
 }
 
 bot.on("guildMemberAdd", async member => {
-	// serverNewMember // member.toString gives a mention that's cool
-	const info = await retrieveGuildInfo(member.guild);
-	const nameParts = info.nameScreening.filter(
+	const db = new Database(member.guild.id);
+	const nameParts = (await db.getAutoban()).filter(
 		screen =>
 			member.displayName.toLowerCase().indexOf(screen.toLowerCase()) > -1
 	);
 	if (nameParts.length > 0) {
 		// if any part of name contiains screen
 		if (member.bannable) {
-			member.ban(
-				`Name contains dissallowed words: ${nameParts.join`, `}`
-			);
-			if (info.logging) {
-				try {
-					guildLog(
-						member.guild.id,
-						`[${moment().format("YYYY-MM-DD HH:mm:ss Z")}] Banned ${
-							member.displayName
-						} because their name contains ${nameParts.join`, `}`
-					);
-				} catch (e) {
-					throw e;
-				}
-			}
+			member.ban({
+				reason: `Name contains dissallowed words: ${nameParts.join(
+					`, `
+				)}`
+			});
+			// if (info.logging) {
+			// 	try {
+			// 		guildLog(
+			// 			member.guild.id,
+			// 			`[${moment().format("YYYY-MM-DD HH:mm:ss Z")}] Banned ${
+			// 				member.displayName
+			// 			} because their name contains ${nameParts.join`, `}`
+			// 		);
+			// 	} catch (e) {
+			// 		throw e;
+			// 	}
+			// } !!!!!!!!!!!!!!!!!!!!!!!!!!!!! this should be logged on bot.on(ban)
 		} else {
-			console.log("COULD NOT BAN MEMBER MUST TELL SOMEONE");
+			db.addError(
+				`Unable to ban user named ${member.displayName}, possibly because interpunct bot does not have permission to ban members.`,
+				"name screening"
+			);
 		}
 	}
-	if (info.events.welcome) {
-		setTimeout(
-			() =>
+	const welcomeMessage = await db.getWelcomeMessage();
+	if (welcomeMessage) {
+		setTimeout(() => {
+			if (member.guild.systemChannel) {
 				member.guild.systemChannel.send(
-					streplace(info.events.welcome, {
+					streplace(welcomeMessage, {
 						"@s": member.toString(),
 						"%s": member.displayName
 					})
-				),
-			1000
-		);
+				);
+			} else {
+				db.addError(
+					`Unable to send welcome message because this server does not have a System Channel set. Set one in the server settings for this server.`,
+					"welcome message"
+				);
+			}
+		}, 1000);
 	}
 });
 
 bot.on("guildMemberRemove", async member => {
-	const info = await retrieveGuildInfo(member.guild);
-	if (info.events.goodbye) {
-		member.guild.systemChannel.send(
-			streplace(info.events.goodbye, {
-				"@s": member.toString(),
-				"%s": member.displayName
-			})
-		);
-	}
-});
-
-bot.on("channelCreate", async newC => {
-	const info = await retrieveGuildInfo(newC.guild);
-	if (info.channelSpacing) {
-		newC.setName(newC.name.split("-").join(" "));
-	}
-});
-
-bot.on("channelUpdate", async (old, newC) => {
-	const info = await retrieveGuildInfo(newC.guild);
-	if (info.channelSpacing) {
-		newC.setName(newC.name.split("-").join(" "));
-	}
-});
-
-async function checkMojiPerms(msg, info) {
-	// if user.hasPerm(nitro custom emojis) && user.isNitro) {//bypass emoji role check}
-	// Discord doesn't give this information to bot accounts :(
-	let mojimsg = msg.cleanContent;
-	const noPermMojis = [];
-	const noPermMojiReason = [];
-	info.rankmojis.forEach(({ rank, moji }) => {
-		if (msg.cleanContent.indexOf(moji) > -1) {
-			if (!msg.member.roles.has(rank)) {
-				mojimsg = mojimsg.split(moji).join(`[no perms]`);
-				noPermMojis.push(moji);
-				if (msg.guild.roles.get(rank)) {
-					noPermMojiReason.push(msg.guild.roles.get(rank).name);
-				} else {
-					noPermMojiReason.push("a rank that doesn't exist");
-				}
-			}
+	const db = new Database(member.guild.id); // it seems bad creating these objects just to forget them immediately
+	const goodbyeMessage = await db.getGoodbyeMessage();
+	if (goodbyeMessage) {
+		if (member.guild.systemChannel) {
+			member.guild.systemChannel.send(
+				streplace(goodbyeMessage, {
+					"@s": member.toString(),
+					"%s": member.displayName
+				})
+			);
+		} else {
+			db.addError(
+				`Unable to send welcome message because this server does not have a System Channel set. Set one in the server settings for this server.`,
+				"welcome message"
+			);
 		}
-	});
-	if (mojimsg !== msg.cleanContent) {
-		await msg.delete();
-		const response = await msg.reply(
-			`You do not have permission to use the emoji${
-				noPermMojis.length === 1 ? "" : "s"
-			}: ${noPermMojis.join`, `}. You need <${noPermMojiReason.join`>, <`}> to do that`
-		);
-		response.delete(10 * 1000);
-		const themsg = await msg.reply(mojimsg);
-		themsg.delete(20 * 1000);
-		return false;
 	}
-	return true;
-}
+});
 
-function logMsg({ msg, prefix }) {
+bot.on("channelCreate", async (newC: GuildChannel) => {
+	const db = new Database(newC.guild.id);
+	if (await db.getAutospaceChannels()) {
+		const newName = newC.name.split("-").join("\u0020");
+		if (newC.name !== newName) {
+			newC.setName(newName);
+		} // nbsp
+	}
+});
+
+bot.on("channelCreate", async (_oldC: GuildChannel, newC: GuildChannel) => {
+	const db = new Database(newC.guild.id);
+	if (await db.getAutospaceChannels()) {
+		const newName = newC.name.split("-").join("\u0020");
+		if (newC.name !== newName) {
+			newC.setName(newName);
+		} // nbsp
+	}
+});
+
+function logMsg({ msg, prefix }: { msg: Message; prefix: string }) {
 	if (msg.guild) {
 		devlog(
-			`${prefix}< [${msg.guild.nameAcronym}] <#${msg.channel.name}> \`${msg.author.tag}\`: ${msg.content}`
+			`${prefix}< [${msg.guild.nameAcronym}] <#${
+				(<TextChannel>msg.channel).name
+			}> \`${msg.author!.tag}\`: ${msg.content}`
 		);
 	} else {
-		devlog(`${prefix}< pm: ${msg.author.tag}: ${msg.content}`);
+		devlog(`${prefix}< pm: ${msg.author!.tag}: ${msg.content}`);
 	}
 }
 
-async function guildLog(id, log) {
+async function guildLog(id: string, log: string) {
 	await fs.appendFile(
 		path.join(__dirname, `logs/${id}.log`),
 		`${log}\n`,
@@ -473,289 +392,236 @@ async function guildLog(id, log) {
 }
 
 bot.on("message", async msg => {
-	if (msg.author.id === bot.user.id) {
+	if (!msg.author) {
+		return logError(
+			new Error("MESSAGE DOES NOT HAVE AUTHOR. This should never happen.")
+		);
+	}
+	if (msg.author.id === bot.user!.id) {
 		devlog(`i> ${msg.content}`);
 	}
 	if (msg.author.bot) {
 		return;
 	}
 	logMsg({ prefix: "I", msg: msg });
-	// right here do if(prefix)
-	const info = await retrieveGuildInfo(msg.guild, msg);
-	if (info.logging) {
-		try {
-			guildLog(
-				msg.guild.id,
-				`[${moment().format("YYYY-MM-DD HH:mm:ss Z")}] <#${
-					msg.channel.name
-				}> \`${msg.author.tag}\`: ${msg.content}`
-			);
-		} catch (e) {}
-	}
-	const handle = async prefixlessMessage => {
-		mostRecentCommands.push({
-			content: msg.cleanContent,
-			date: new Date()
-		});
-		while (mostRecentCommands.length > 5) {
-			mostRecentCommands.shift();
-		}
-
-		let output;
-
-		const outerUsage = new Usage({});
-		outerUsage.add("", usage);
-		Object.keys(info.allPastebin).forEach(spb =>
-			outerUsage.add(spb, handleQuote(spb))
-		);
-		info.commands = outerUsage;
-
-		try {
-			output = await outerUsage.parse(info, prefixlessMessage);
-		} catch (er) {
-			let error = "";
-			if (er instanceof DiscordAPIError) {
-				error = `The error is: ${er.message} (error code ${er.code})`;
-			}
-			try {
-				await msg.reply(
-					`❌ Error: An internal error occured while attempting to run this command. ${error}`
-				);
-			} catch (errr) {
-				await msg.author.send(
-					`❌ Error: An error occured while running your command. Additionally, an error occured while trying to tell you about it... Maybe I'm not allowed to talk? ${error}`
-				);
-			}
-			throw er; // To make sure I know of its existance
-		}
-
-		if (output.type !== "success") {
-			// TODO note this will change to like output.notFound or output.preCheckFailed or something
-			let resChannel = msg.channel;
-			if (output.type === "notFound" && !info.unknownCommandMessages) {
-				if (!o.perm("MANAGE_GUILD")(info)) {
-					return;
-				}
-				resChannel = msg.author;
-			}
-			if (
-				output.type === "preCheckFailed" &&
-				!info.failedPrecheckMessages
-			) {
-				if (!o.perm("MANAGE_GUILD")(info)) {
-					return;
-				}
-				resChannel = msg.author;
-			}
-			const mb = MB();
-			mb.title.tag`❌ Error:`;
-			mb.description.putRaw(output.defaultMessage); // WARNING this could potentionally ping people if mis set. Don't allow user input in outputs
-			// const resEmbed = new RichEmbed;
-			// resEmbed.description = output;
-			// resEmbed.title = "❌ Error:";
-			// msg.reply("", {embed: resEmbed});
-			return await resChannel.send(...mb.build(info.embed));
-		}
-		return true;
-	};
 
 	const newInfo = new Info(msg, {
-		startTime: info.startTime,
-		infoPerSecond: info.infoPerSecond
+		startTime: new Date().getTime(),
+		infoPerSecond: -1
 	});
+
+	if (newInfo.db && newInfo.db.getLogEnabled()) {
+		try {
+			guildLog(
+				msg.guild!.id, // db ? guild! : guild?
+				`[${moment().format("YYYY-MM-DD HH:mm:ss Z")}] <#${
+					(<TextChannel>msg.channel).name
+				}> \`${msg.author.tag}\`: ${msg.content}`
+			);
+		} catch (e) {
+			logError(e);
+		}
+	}
+
 	// await newInfo.setup(knex)
-	const messageRouter = new Router();
-	messageRouter.add(info.prefix, [], router); // prefixCommand
-	messageRouter.add(bot.user.toString(), [], router); // @botCommand
+	const messageRouter = new Router<Info, any>();
+	messageRouter.add(
+		newInfo.db ? await newInfo.db.getPrefix() : "",
+		[],
+		router
+	); // prefixCommand
+	messageRouter.add(bot.user!.toString(), [], router); // @botCommand
 
 	try {
-		messageRouter.handle(msg.content, newInfo);
+		await messageRouter.handle(msg.content, newInfo); // await in case there is an async function that errors.
 	} catch (er) {
 		msg.reply(
-			"An internal error occured :( maybe try again? If that doesn't work, submit a bug report on the support server in `about` or gitlab page."
+			"An internal error occured :( maybe try again? If that doesn't work, submit a bug report on the support server in `about`."
 		);
-		throw er;
+		logError(er);
 	}
-
-	// if(msg.cleanContent.startsWith(info.prefix)) {
-	// 	let prefixlessMessage = msg.cleanContent.replace(info.prefix, "").trim(); // replace without regex just replaces the first instance
-	// 	handle(prefixlessMessage);
-	// }else if(msg.mentions.members.array().map(member => member.id).indexOf(bot.user.id) > -1) {
-	// 	let prefixlessMessage = msg.cleanContent.split(`@${msg.guild.me.displayName}`).join``.trim();
-	// 	handle(prefixlessMessage);
-	// }
-	// right here do if(moji)
-	if (!(await checkMojiPerms(msg, info))) {
-		return;
-	}
-	// if(msg.channel.id === info.rankmojiChannel) {
-	//   info.rankmojis.forEach(({rank, moji}) => {
-	//     msg.react(msg.guild.emojis.get(moji.split`:`[2].replace(/[^0-9]/g, "")) || moji);
-	//   });
-	// }
 });
 
 bot.on("messageUpdate", async (from, msg) => {
-	if (msg.author.bot) {
+	if (msg.author!.bot) {
 		return;
 	}
-	logMsg({ prefix: "Eo", msg: from });
-	logMsg({ prefix: "E2", msg: msg });
-	const info = await retrieveGuildInfo(msg.guild, msg);
-	if (info.logging) {
-		try {
-			guildLog(
-				msg.guild.id,
-				`[${moment().format("YYYY-MM-DD HH:mm:ss Z")}] <#${
-					from.channel.name
-				}> \`${from.author.tag}\` Edited Message: ${from.content}`
-			);
-			guildLog(
-				msg.guild.id,
-				`[${moment().format("YYYY-MM-DD HH:mm:ss Z")}] <#${
-					msg.channel.name
-				}> \`${msg.author.tag}\` To: ${msg.content}`
-			);
-		} catch (e) {
-			throw e;
-		}
-	}
-
-	checkMojiPerms(msg, info);
-});
-
-function getEmojiKey(emoji) {
-	return emoji.id ? `${emoji.name}:${emoji.id}` : emoji.name;
-}
-
-bot.on("raw", async event => {
-	if (event.t !== "MESSAGE_REACTION_ADD") {
-		return;
-	}
-
-	const { d: data } = event;
-	const user = bot.users.get(data.user_id); // Not sure how there will ever be no user for an event but whatever
-	if (!user) {
-		return;
-	}
-	const channel = bot.channels.get(data.channel_id);
-	if (!channel) {
-		return;
-	}
-	let message;
-	message = await channel.fetchMessage(data.message_id);
-	if (!message.guild) {
-		return;
-	}
-	const emojiKey = getEmojiKey(data.emoji);
-	const reaction = message.reactions.get(emojiKey);
-
-	bot.emit("messageReactionAddCustom", reaction, user, message);
-});
-const rolesToAddToMessages = {};
-
-bot.on("messageReactionAddCustom", async (reaction, user, message) => {
-	if (user.bot) {
-		return;
-	}
-	// console.log(`R= ${reaction.emoji}`); // keeping this around because this isn't tested that well, if it crashes it might help // not keeping it around it'll be loud
-	const emoji = reaction.emoji.toString();
-	const info = await retrieveGuildInfo(message.guild);
-	// if(info.logging) try{guildLog(msg.guild.id, `[${moment().format("YYYY-MM-DD HH:mm:ss Z")}] <#${message.channel.name}> \`${message.author.tag}\` Edited Message: ${from.content}`)}catch(e){console.log(e);} // no point
-	const member = message.guild.member(user);
-	if (message.channel.id !== info.rankmojiChannel) {
-		return;
-	}
-	if (
-		member.hasPermission("MANAGE_ROLES") &&
-		message.guild.member(bot.user).hasPermission("MANAGE_ROLES")
-	) {
-		const delet = () => {
-			if (rolesToAddToMessages[message.id]) {
-				rolesToAddToMessages[message.id].reaxns.forEach(reaxn =>
-					message.reactions.get(reaxn).remove()
+	logMsg({ prefix: "Edit From", msg: from });
+	logMsg({ prefix: "Edit To  ", msg: msg });
+	if (msg.guild) {
+		const db = new Database(msg.guild.id);
+		if (await db.getLogEnabled()) {
+			try {
+				guildLog(
+					msg.guild.id,
+					`[${moment().format("YYYY-MM-DD HH:mm:ss Z")}] <#${
+						(<GuildChannel>from.channel).name
+					}> \`${from.author!.tag}\` Edited Message: ${from.content}`
 				);
-				delete rolesToAddToMessages[message.id];
-			}
-		};
-		info.rankmojis.forEach(async ({ rank, moji }) => {
-			if (moji !== emoji) {
-				return;
-			}
-			if (!message.guild.roles.get(rank)) {
-				return;
-			}
-			if (!rolesToAddToMessages[message.id]) {
-				rolesToAddToMessages[message.id] = { roles: [], reaxns: [] };
-			}
-			rolesToAddToMessages[message.id].roles.push(rank);
-			rolesToAddToMessages[message.id].reaxns.push(
-				getEmojiKey((await message.react("✅")).emoji)
-			); // after awaiting for something you should check if the conditions are still met
-			setTimeout(delet, 10 * 1000);
-		});
-		if (emoji === "✅") {
-			if (rolesToAddToMessages[message.id]) {
-				rolesToAddToMessages[message.id].roles.forEach(async rolid => {
-					const role = message.guild.roles.get(rolid);
-					try {
-						if (message.member.roles.get(rolid)) {
-							return;
-						}
-						await message.member.addRole(role);
-						if (role.mentionable) {
-							// TODO if !mentionable mention
-							await message.reply(`Ranked with ${role.name}`);
-						} else {
-							await message.reply(
-								`Ranked with ${role.toString()}`
-							);
-						}
-					} catch (e) {
-						(await message.reply(
-							`Could not rank, I need to be above the role you want me to rank with`
-						)).delete(10 * 1000);
-					}
-				});
+				guildLog(
+					msg.guild.id,
+					`[${moment().format("YYYY-MM-DD HH:mm:ss Z")}] <#${
+						(<GuildChannel>msg.channel).name
+					}> \`${msg.author!.tag}\` To: ${msg.content}`
+				);
+			} catch (e) {
+				logError(e);
 			}
 		}
 	}
 });
+
+// function getEmojiKey(emoji) {
+// 	return emoji.id ? `${emoji.name}:${emoji.id}` : emoji.name;
+// }
+//
+// bot.on("raw", async event => {
+// 	if (event.t !== "MESSAGE_REACTION_ADD") {
+// 		return;
+// 	}
+//
+// 	const { d: data } = event;
+// 	const user = bot.users.get(data.user_id); // Not sure how there will ever be no user for an event but whatever
+// 	if (!user) {
+// 		return;
+// 	}
+// 	const channel = bot.channels.get(data.channel_id);
+// 	if (!channel) {
+// 		return;
+// 	}
+// 	await channel.fetch();
+// 	if (!(channel instanceof GuildChannel)) {
+// 		return;
+// 	}
+// 	let message = await (channel).messages.fetch(data.message_id);
+// 	if (!(<GuildChannel>message).guild) {
+// 		return;
+// 	}
+// 	const emojiKey = getEmojiKey(data.emoji);
+// 	const reaction = message.reactions.get(emojiKey);
+//
+// 	bot.emit("messageReactionAddCustom", reaction, user, message);
+// });
+// const rolesToAddToMessages = {};
+//
+// bot.on(
+// 	"messageReactionAddCustom",
+// 	async (reaction: MessageReaction, user: User, message: Message) => {
+// 		if (user.bot) {
+// 			return;
+// 		}
+// 		if (!message.guild) {
+// 			return; // duplicate
+// 		}
+// 		const emoji = reaction.emoji.toString();
+// 		const db = new Database(message.guild.id);
+// 		const member = message.guild.member(user);
+// 	// 	if (message.channel.id !== db.getRankmojiChannel()) {
+// 	// 		return;
+// 	// 	}
+// 	// 	if (
+// 	// 		member.hasPermission("MANAGE_ROLES") &&
+// 	// 		message.guild.member(bot.user).hasPermission("MANAGE_ROLES")
+// 	// 	) {
+// 	// 		const delet = () => {
+// 	// 			if (rolesToAddToMessages[message.id]) {
+// 	// 				rolesToAddToMessages[message.id].reaxns.forEach(reaxn =>
+// 	// 					message.reactions.get(reaxn).remove()
+// 	// 				);
+// 	// 				delete rolesToAddToMessages[message.id];
+// 	// 			}
+// 	// 		};
+// 	// 		info.rankmojis.forEach(async ({ rank, moji }) => {
+// 	// 			if (moji !== emoji) {
+// 	// 				return;
+// 	// 			}
+// 	// 			if (!message.guild.roles.get(rank)) {
+// 	// 				return;
+// 	// 			}
+// 	// 			if (!rolesToAddToMessages[message.id]) {
+// 	// 				rolesToAddToMessages[message.id] = {
+// 	// 					roles: [],
+// 	// 					reaxns: []
+// 	// 				};
+// 	// 			}
+// 	// 			rolesToAddToMessages[message.id].roles.push(rank);
+// 	// 			rolesToAddToMessages[message.id].reaxns.push(
+// 	// 				getEmojiKey((await message.react("✅")).emoji)
+// 	// 			); // after awaiting for something you should check if the conditions are still met
+// 	// 			setTimeout(delet, 10 * 1000);
+// 	// 		});
+// 	// 		if (emoji === "✅") {
+// 	// 			if (rolesToAddToMessages[message.id]) {
+// 	// 				rolesToAddToMessages[message.id].roles.forEach(
+// 	// 					async rolid => {
+// 	// 						const role = message.guild.roles.get(rolid);
+// 	// 						try {
+// 	// 							if (message.member.roles.get(rolid)) {
+// 	// 								return;
+// 	// 							}
+// 	// 							await message.member.addRole(role);
+// 	// 							if (role.mentionable) {
+// 	// 								// TODO if !mentionable mention
+// 	// 								await message.reply(
+// 	// 									`Ranked with ${role.name}`
+// 	// 								);
+// 	// 							} else {
+// 	// 								await message.reply(
+// 	// 									`Ranked with ${role.toString()}`
+// 	// 								);
+// 	// 							}
+// 	// 						} catch (e) {
+// 	// 							(await message.reply(
+// 	// 								`Could not rank, I need to be above the role you want me to rank with`
+// 	// 							)).delete(10 * 1000);
+// 	// 						}
+// 	// 					}
+// 	// 				);
+// 	// 			}
+// 	// 		}
+// 	// 	}
+// 	// }
+// );
+
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 bot.on("guildCreate", guild => {
 	global.console.log(`_ Joined guild ${guild.name} (${guild.nameAcronym})`);
 });
 
-bot.on("guildDelete", guild => {
+bot.on("guildDelete", async guild => {
 	// forget about the guild at some point in time
 	global.console.log(`_ Left guild ${guild.name} (${guild.nameAcronym})`);
 	// TODO delete info in db after leaving a guild
 });
 
-process.on("unhandledRejection", (reason, p) => {
+function logError(message: Error) {
 	const finalMsg = `
 Hey @everyone, there was an error
 
 **Recent Commands:**
-${mostRecentCommands.map(c => `\`${c.content}\` / ${moment(c.date).fromNow()}`)
-	.join`\n`}
+${mostRecentCommands
+	.map(c => `\`${c.content}\` / ${moment(c.date).fromNow()}`)
+	.join(`\n`)}
 
 **Stacktrace**:
 \`\`\`
-${reason.stack}
+${message.stack}
 \`\`\`
 `;
-	console.log(p);
-	console.log(reason);
 	console.log(finalMsg);
 	try {
-		const rept = config.errorReporting.split`/`;
-		bot.guilds
-			.get(rept[0])
-			.channels.get(rept[1])
-			.send(finalMsg); // TODO disable logging in production and instead show the 10 messages before here with this
+		const rept = config.errorReporting.split(`/`);
+		const channel: TextChannel = bot.channels.get(rept[1])! as TextChannel;
+		channel.send(finalMsg);
 	} catch (e) {
 		console.log("Failed to report");
+		process.exit(1); // if an error message failed to report, it is likely the bot can no longer reach discord
 	}
-	// application specific logging, throwing an error, or other logic here
+}
+
+process.on("unhandledRejection", (reason, p) => {
+	console.log(p);
+	console.log(reason);
+	logError(reason as Error);
 });
