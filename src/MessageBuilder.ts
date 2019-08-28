@@ -67,7 +67,7 @@ export class MessageBuilder {
 		description: TextBuilder;
 		inline: boolean;
 	}[];
-	author?: { name: string; icon_url: string; url: string };
+	author?: { name: string; icon_url?: string; url?: string };
 	thumb?: string;
 	url: TextBuilder;
 	constructor() {
@@ -95,7 +95,7 @@ export class MessageBuilder {
 		});
 	}
 
-	setAuthor(author: string, image: string, url: string) {
+	setAuthor(author: string, image?: string, url?: string) {
 		this.author = { name: author, icon_url: image, url: url };
 	}
 	setThumbnail(thumb: string) {
@@ -113,7 +113,7 @@ export class MessageBuilder {
 		if (this.author) {
 			embed.author = this.author;
 			msg += `${new TextBuilder()
-				.tag`By ${this.author.name} <${this.author.url}>`.build()}\n\n`;
+				.tag`By ${this.author.name} <${this.author.url || ""}>`.build()}\n\n`;
 		}
 
 		const builtURL = this.url.build();
