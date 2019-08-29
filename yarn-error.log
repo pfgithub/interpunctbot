@@ -1,5 +1,5 @@
 Arguments: 
-  /usr/bin/node /usr/bin/yarn add --dev @types/moment-duration-foramt
+  /usr/bin/node /usr/bin/yarn add --dev @types/pastebin-js
 
 PATH: 
   /usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/opt/cuda/bin:/usr/lib/jvm/default/bin:/usr/bin/site_perl:/usr/bin/vendor_perl:/usr/bin/core_perl:/home/pfg/.yarn/bin:/home/pfg/.local/bin:/home/pfg/.gem/ruby/2.6.0/bin
@@ -8,23 +8,23 @@ Yarn version:
   1.17.3
 
 Node version: 
-  11.15.0
+  12.9.1
 
 Platform: 
   linux x64
 
 Trace: 
-  Error: https://registry.yarnpkg.com/@types%2fmoment-duration-foramt: Not found
+  Error: https://registry.yarnpkg.com/@types%2fpastebin-js: Not found
       at Request.params.callback [as _callback] (/usr/lib/node_modules/yarn/lib/cli.js:66830:18)
       at Request.self.callback (/usr/lib/node_modules/yarn/lib/cli.js:140464:22)
-      at Request.emit (events.js:193:13)
+      at Request.emit (events.js:209:13)
       at Request.<anonymous> (/usr/lib/node_modules/yarn/lib/cli.js:141436:10)
-      at Request.emit (events.js:193:13)
+      at Request.emit (events.js:209:13)
       at IncomingMessage.<anonymous> (/usr/lib/node_modules/yarn/lib/cli.js:141358:12)
-      at Object.onceWrapper (events.js:281:20)
-      at IncomingMessage.emit (events.js:198:15)
-      at endReadableNT (_stream_readable.js:1139:12)
-      at processTicksAndRejections (internal/process/task_queues.js:81:17)
+      at Object.onceWrapper (events.js:297:20)
+      at IncomingMessage.emit (events.js:214:15)
+      at endReadableNT (_stream_readable.js:1178:12)
+      at processTicksAndRejections (internal/process/task_queues.js:77:11)
 
 npm manifest: 
   {

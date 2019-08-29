@@ -21,10 +21,17 @@ import Info from "./src/Info";
 
 import ping from "./src/commands/ping";
 import speedrun from "./src/commands/speedrun";
+import logging from "./src/commands/logging";
 
-declare function require(name:never): never;
+declare function require(name: never): never;
 
-//@ts-ignore
+declare global {
+	namespace NodeJS {
+		interface Global {
+			__basedir: string;
+		}
+	}
+}
 global.__basedir = __dirname;
 
 import { EventEmitter } from "events"; // TODO add a thing for warning people like $warn [person] and have it be like 1 warning fine 2 warnings tempmute 3 warnings...and customizeable
@@ -46,8 +53,8 @@ function devlog(...msg: any) {
 
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!usage.add("settings", require("./src/commands/settings"));
 router.add("ping", [], ping);
-router.add([], require("./src/commands/speedrun"));
-router.add("log", [Info.r.manageBot], require("./src/commands/logging"));
+router.add([], speedrun);
+router.add("log", [Info.r.manageBot], logging);
 
 // usage.add(
 // 	"purge",
