@@ -1,13 +1,4 @@
 import * as Discord from "discord.js";
-
-/*
-So what does module do?
-Router routes commands, module does...?
-
-It holds a commandrouter, it has a method commandlist
-I think module shouldn't exist and it should be replaced with Router
-
- */
 import MB, { MessageBuilder } from "./MessageBuilder";
 import Database from "./Database";
 import * as config from "../config.json";
@@ -30,8 +21,7 @@ const r = {
 		}
 		return (
 			info.error(
-				"You need permisison to `Manage Server` to use this command",
-				undefined
+				"You need permisison to `Manage Server` to use this command"
 			) && false
 		);
 	},
@@ -39,10 +29,7 @@ const r = {
 		if (info.pm === expected) {
 			return true;
 		}
-		return (
-			info.error("This command cannot be used in a PM", undefined) &&
-			false
-		);
+		return info.error("This command cannot be used in a PM") && false;
 	}, // I want an r.load() that calls startloading and awaits for it
 	owner: (info: Info) => {
 		if (info.message.author!.id === config.owner) {
@@ -50,8 +37,7 @@ const r = {
 		}
 		return (
 			info.error(
-				"This command can only be used by the hoster of interpunct bot",
-				undefined
+				"This command can only be used by the hoster of interpunct bot"
 			) && false
 		);
 	}
@@ -62,10 +48,9 @@ export type MessageOptionsParameter =
 	| Discord.MessageEmbed
 	| Discord.MessageAttachment;
 
-export type MessageParametersType = [
-	string,
-	(MessageOptionsParameter) | undefined
-];
+export type MessageParametersType =
+	| [string, (MessageOptionsParameter) | undefined]
+	| [string];
 
 export default class Info {
 	loading: boolean;
@@ -132,11 +117,10 @@ export default class Info {
 	}
 	_formatMessageWithResultType(
 		type: string,
-		message: string,
-		options?: MessageOptionsParameter
+		...values: MessageParametersType
 	): MessageParametersType {
 		// In the future maybe adjust richembeds maybe probably not
-		return [type + message, options];
+		return [type + values[0], values[1]];
 	}
 	async _informMissingPermissions(
 		perm: Discord.PermissionString,
@@ -144,12 +128,10 @@ export default class Info {
 		channel = this.channel
 	) {}
 	async _tryReply(
-		content: string,
-		options?:
-			| Discord.MessageOptions
-			| Discord.MessageEmbed
-			| Discord.MessageAttachment
+		...values: MessageParametersType
 	): Promise<Discord.Message[] | undefined> {
+		const content = values[0];
+		const options = values[1];
 		// returns the message
 		if (content.length > 1999) {
 			return this._tryReply("message too long"); // FIX, make it send multiple messages and return the last or somethignfdlkjk
@@ -188,13 +170,14 @@ export default class Info {
 	}
 	async reply(
 		resultType: string,
-		message: string | MessageBuilder | MessageParametersType,
-		options?: MessageOptionsParameter | undefined
+		...value:
+			| [string | MessageBuilder, MessageOptionsParameter | undefined]
+			| [string | MessageBuilder]
 	) {
 		let showErrors = this.db ? await this.db.getCommandErrors() : true;
-		console.log("REMOVE THIS vvvvvv"); //TEMP
+		console.log("!!!!!!!!!!!!!!!!!!!!!!!!! REMOVE THIS vvvvvv"); //TEMP
 		showErrors = true;
-		console.log("REMOVE THIS ^^^^^^"); //TEMP
+		console.log("!!!!!!!!!!!!!!!!!!!!!!!!! REMOVE THIS ^^^^^^"); //TEMP
 		if (resultType === result.error && !showErrors) {
 			if (!this.authorPerms.manageBot) {
 				return; // command errors are disabled, return nothing
@@ -204,11 +187,15 @@ export default class Info {
 		// Stop any loading if it is happening, we're replying now we're done loading
 		this.stopLoading(); // not awaited for because it doesn't matter
 
+		let message: MessageParametersType;
+
 		// If the message is a messagebuilder, build the message builder
-		if (message instanceof MessageBuilder) {
-			message = message.build(true);
-		} else if (typeof message === "string") {
-			message = [message, options];
+		if (value[0] instanceof MessageBuilder) {
+			message = value[0].build(true);
+		} else if (typeof value[0] === "string") {
+			message = [value[0], value[1]];
+		} else {
+			message = [value[0]];
 		}
 
 		// Format the message with the correct result type

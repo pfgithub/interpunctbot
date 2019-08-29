@@ -19,6 +19,11 @@ import * as request from "request";
 import Router from "commandrouter";
 import Info from "./src/Info";
 
+import ping from "./src/commands/ping";
+import speedrun from "./src/commands/speedrun";
+
+declare function require(name:never): never;
+
 //@ts-ignore
 global.__basedir = __dirname;
 
@@ -40,7 +45,7 @@ function devlog(...msg: any) {
 }
 
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!usage.add("settings", require("./src/commands/settings"));
-router.add("ping", [], require("./src/commands/ping"));
+router.add("ping", [], ping);
 router.add([], require("./src/commands/speedrun"));
 router.add("log", [Info.r.manageBot], require("./src/commands/logging"));
 

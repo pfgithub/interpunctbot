@@ -16,4 +16,4 @@ router.add([], async (cmd: string, info) => {
 	);
 });
 
-export = router;
+export default router;
