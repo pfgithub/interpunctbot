@@ -1,39 +1,64 @@
-const Usage = require("command-parser");
-const o = require("../options");
+import { Message, Guild } from "discord.js";
+import Router from "commandrouter";
+import Info from "../Info";
+import { ilt } from "../..";
+const router = new Router<Info, any>();
 
 const channels = new Usage({
 	desription: "Commands related to managing channels"
 });
 
-const stripMentions = msg => {
+const stripMentions = (msg: Message) => {
 	return msg.content
 		.replace(/@(everyone|here)/g, "")
 		.replace(/<@!?[0-9]+>/g, "")
 		.replace(/<#!?[0-9]+>/g, "");
 };
 
-function spaceChannel(channel) {}
-
-function spaceChannels({ guild, from, to, msg }) {
-	const channelNames = [];
-	guild.channels.forEach(channel => {
+async function spaceChannels({
+	guild,
+	from,
+	to,
+	msg,
+	info
+}: {
+	guild: Guild;
+	from: string;
+	to: string;
+	msg: Message;
+	info: Info;
+}) {
+	const channelNames: string[] = [];
+	for (const channel of guild.channels.array()) {
 		if (channel.name.indexOf(from) > -1) {
 			channelNames.push(`<#${channel.id}>`);
-			channel
-				.setName(channel.name.split(from).join(to))
-				.catch(e =>
-					msg.reply(
-						`Could not space channels because I don't have permission to manage <#${channel.id}>.`
-					)
+			const setNameResult = await ilt(
+				channel.setName(channel.name.split(from).join(to))
+			);
+			if (setNameResult.error) {
+				await info.error(
+					`Could not space channels because I don't have permission to manage <#${channel.id}>.`
 				);
+				console.log("Channel space failure", setNameResult.error);
+			}
 		}
-	});
+	}
 	return channelNames.length > 10
 		? `${channelNames.length} channels`
 		: `${channelNames.join(", ")}.`;
 }
 
-channels.add(
+router.add(
+	"space channels",
+	[Info.theirPerm.manageChannels],
+	async (cmd, info) => {
+		if (!info.message.guild) {
+			return info.reply("This command may not be run in a PM");
+		}
+	}
+);
+
+router.add(
 	"spacing",
 	new Usage({
 		description: "Have spaces in channel names instead of dashes",

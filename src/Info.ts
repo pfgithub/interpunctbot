@@ -11,12 +11,25 @@ const result = {
 	success: "<:success:508840840416854026> Success: " // Discord uses a gray ✔️ emoji for some reason. It could be backslashed but some other platforms do too
 };
 
-const r = {
+export const theirPerm = {
 	manageBot: (info: Info) => {
-		if (!r.pm(false)(info)) {
+		if (!theirPerm.pm(false)(info)) {
 			return false;
 		}
 		if (info.authorPerms.manageBot) {
+			return true;
+		}
+		return (
+			info.error(
+				"You need permisison to `Manage Server` to use this command"
+			) && false
+		);
+	},
+	manageChannels: (info: Info) => {
+		if (!theirPerm.pm(false)(info)) {
+			return false;
+		}
+		if (info.authorPerms.manageChannel) {
 			return true;
 		}
 		return (
@@ -81,8 +94,8 @@ export default class Info {
 	static get result() {
 		return result;
 	}
-	static get r() {
-		return r;
+	static get theirPerm() {
+		return theirPerm;
 	}
 	get authorChannelPerms() {
 		if (this.channel instanceof Discord.TextChannel) {
@@ -133,10 +146,6 @@ export default class Info {
 		const content = values[0];
 		const options = values[1];
 		// returns the message
-		if (content.length > 1999) {
-			return this._tryReply("message too long"); // FIX, make it send multiple messages and return the last or somethignfdlkjk
-		}
-
 		if (this.pm || this.myChannelPerms!.has("SEND_MESSAGES")) {
 			return <Discord.Message[]>await this.message.reply(content, {
 				...options,

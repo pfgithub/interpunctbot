@@ -54,7 +54,7 @@ function devlog(...msg: any) {
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!usage.add("settings", require("./src/commands/settings"));
 router.add("ping", [], ping);
 router.add([], speedrun);
-router.add("log", [Info.r.manageBot], logging);
+router.add("log", [Info.theirPerm.manageBot], logging);
 
 // usage.add(
 // 	"purge",
@@ -120,7 +120,7 @@ remove(
 	"3.0"
 );
 
-router.add("crash", [Info.r.owner], () => {
+router.add("crash", [Info.theirPerm.owner], () => {
 	throw new Error("crash command used");
 });
 
