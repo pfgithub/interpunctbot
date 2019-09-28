@@ -36,6 +36,7 @@ type Fields = {
 	speedrun?: string; // "gameID, categoryID"
 	welcome?: string;
 	goodbye?: string;
+	pmonfailure?: string;
 };
 
 type JSONFields = {
@@ -47,6 +48,7 @@ type BooleanFields = {
 	unknownCommandMessages: boolean;
 	failedPrecheckMessages: boolean;
 	channel_spacing: boolean;
+	pmonfailure: boolean;
 };
 
 type ListsField = { [key: string]: string };
@@ -208,6 +210,12 @@ class Database {
 	}
 	async setGoodbyeMessage(newMessage: string) {
 		return await this._set("goodbye", newMessage);
+	}
+	async getPMOnFailure() {
+		return await this._getBool("pmonfailure", true);
+	}
+	async setPMOnFailure(value: boolean) {
+		return await this._setBool("pmonfailure", value);
 	}
 	// async getSpeedrun() {
 	// 	return await this._getJson("speedrunv2");

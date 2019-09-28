@@ -82,7 +82,7 @@ remove(
 );
 
 export async function ilt<T>(
-	v: Promise<T>
+	v: Promise<T> /*, reason: string (added to error message)*/
 ): Promise<
 	{ error: Error; result: undefined } | { error: undefined; result: T }
 > {
@@ -90,6 +90,7 @@ export async function ilt<T>(
 	try {
 		result = await v;
 	} catch (error) {
+		reportILTFailure(error);
 		return { error, result: undefined };
 	}
 	return { result, error: undefined };
@@ -607,9 +608,13 @@ bot.on("guildDelete", async guild => {
 	// TODO delete info in db after leaving a guild
 });
 
-function logError(message: Error) {
+export async function reportILTFailure(message: Error) {
+	logError(message, false);
+}
+
+export function logError(message: Error, atEveryone: boolean = true) {
 	const finalMsg = `
-Hey @everyone, there was an error
+Hey ${atEveryone ? "@everyone" : "the void of discord"}, there was an error
 
 **Recent Commands:**
 ${mostRecentCommands

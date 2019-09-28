@@ -632,8 +632,8 @@ commander@^2.15.1, commander@~2.20.0:
   integrity sha512-7j2y+40w61zy6YC2iRNpUe/NwhNyoXrYpHMrSunaMG64nRnaf96zO/KMQR4OyN/UnE5KLyEBnKHd4aG3rskjpQ==
 
 commandrouter@pfgithub/command-router:
-  version "1.2.0"
-  resolved "https://codeload.github.com/pfgithub/command-router/tar.gz/27df2b3b5da5c46bf4cd85ed9012a29215bdcb65"
+  version "1.2.1"
+  resolved "https://codeload.github.com/pfgithub/command-router/tar.gz/3cd8ff472558b18752c8520664390c330b9f653b"
   dependencies:
     string-similarity "^1.2.0"
 

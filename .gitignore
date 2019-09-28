@@ -6,3 +6,4 @@ knexfile.js
 .nyc_output
 coverage
 yarn-error.log
+built

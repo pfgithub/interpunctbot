@@ -56,6 +56,35 @@ export const theirPerm = {
 	}
 };
 
+export const ourPerm = {
+	manageBot: (info: Info) => {
+		if (!theirPerm.pm(false)(info)) {
+			return false;
+		}
+		if (info.authorPerms.manageBot) {
+			return true;
+		}
+		return (
+			info.error(
+				`${info.message.client.toString()} needs permisison to \`Manage Server\` to use this command.`
+			) && false
+		);
+	},
+	manageChannels: (info: Info) => {
+		if (!theirPerm.pm(false)(info)) {
+			return false;
+		}
+		if (info.myPerms.manageChannel) {
+			return true;
+		}
+		return (
+			info.error(
+				`${info.message.client.toString()} needs permisison to \`Manage Server\` to use this command.`
+			) && false
+		);
+	}
+};
+
 export type MessageOptionsParameter =
 	| Discord.MessageOptions
 	| Discord.MessageEmbed
@@ -97,6 +126,15 @@ export default class Info {
 	static get theirPerm() {
 		return theirPerm;
 	}
+	static get ourPerm() {
+		return ourPerm;
+	}
+	get prefix() {
+		if (this.db) {
+			return this.db.getPrefix();
+		}
+		return "";
+	}
 	get authorChannelPerms() {
 		if (this.channel instanceof Discord.TextChannel) {
 			return this.channel.permissionsFor(this.member!);
@@ -116,6 +154,16 @@ export default class Info {
 				: true,
 			manageChannel: this.authorChannelPerms
 				? this.authorChannelPerms.has("MANAGE_CHANNELS")
+				: true
+		};
+	}
+	get myPerms() {
+		return {
+			manageBot: this.myChannelPerms
+				? this.myChannelPerms.has("MANAGE_GUILD")
+				: true,
+			manageChannel: this.myChannelPerms
+				? this.myChannelPerms.has("MANAGE_CHANNELS")
 				: true
 		};
 	}
@@ -146,11 +194,14 @@ export default class Info {
 		const content = values[0];
 		const options = values[1];
 		// returns the message
-		if (this.pm || this.myChannelPerms!.has("SEND_MESSAGES")) {
-			return <Discord.Message[]>await this.message.reply(content, {
+		const replyResult = await ilt(
+			this.message.reply(content, {
 				...options,
 				split: true
-			});
+			})
+		);
+		if (replyResult.result) {
+			return replyResult.result as Discord.Message[];
 		}
 		if (this.authorPerms.manageChannel) {
 			// this._informMissingPermissions(SEND_MESSAGES, "reply to your message", this.message.author)

@@ -1,15 +1,12 @@
-import { Message, Guild } from "discord.js";
+import { Message, Guild, Channel } from "discord.js";
 import Router from "commandrouter";
 import Info from "../Info";
 import { ilt } from "../..";
 const router = new Router<Info, any>();
+import { messages } from "../../messages";
 
-const channels = new Usage({
-	desription: "Commands related to managing channels"
-});
-
-const stripMentions = (msg: Message) => {
-	return msg.content
+const stripMentions = (msg: string) => {
+	return msg
 		.replace(/@(everyone|here)/g, "")
 		.replace(/<@!?[0-9]+>/g, "")
 		.replace(/<#!?[0-9]+>/g, "");
@@ -27,123 +24,148 @@ async function spaceChannels({
 	to: string;
 	msg: Message;
 	info: Info;
-}) {
-	const channelNames: string[] = [];
-	for (const channel of guild.channels.array()) {
-		if (channel.name.indexOf(from) > -1) {
-			channelNames.push(`<#${channel.id}>`);
-			const setNameResult = await ilt(
-				channel.setName(channel.name.split(from).join(to))
+}) {}
+
+router.add(
+	"space channels automatically",
+	[
+		Info.theirPerm.manageChannels,
+		Info.theirPerm.manageBot,
+		Info.ourPerm.manageChannels
+	],
+	async (cmd, info) => {
+		if (!info.guild || !info.db) {
+			return info.error(
+				messages.general.command_cannot_be_used_in_pms(info)
 			);
-			if (setNameResult.error) {
-				await info.error(
-					`Could not space channels because I don't have permission to manage <#${channel.id}>.`
-				);
-				console.log("Channel space failure", setNameResult.error);
-			}
 		}
+		info.db.setAutospaceChannels(true);
+		return info.success(messages.settings.autospace_enabled(info));
 	}
-	return channelNames.length > 10
-		? `${channelNames.length} channels`
-		: `${channelNames.join(", ")}.`;
-}
+);
+
+router.add(
+	"space channels disable",
+	[
+		Info.theirPerm.manageChannels,
+		Info.theirPerm.manageBot,
+		Info.ourPerm.manageChannels
+	],
+	async (cmd, info) => {
+		if (!info.guild || !info.db) {
+			return info.error(
+				messages.general.command_cannot_be_used_in_pms(info)
+			);
+		}
+		info.db.setAutospaceChannels(false);
+		return info.success(messages.settings.autospace_disabled(info));
+	}
+);
 
 router.add(
 	"space channels",
 	[Info.theirPerm.manageChannels],
 	async (cmd, info) => {
-		if (!info.message.guild) {
-			return info.reply("This command may not be run in a PM");
+		const guild = info.guild;
+		if (!guild) {
+			return info.error(
+				messages.general.command_cannot_be_used_in_pms(info)
+			);
 		}
+		const characterToReplace = (cmd.match(/`(.+?)`/) ||
+			([, "-"] as const))[1];
+		const channelsNeedUpdating = guild.channels
+			.array()
+			.filter(
+				chan =>
+					chan.name.indexOf(characterToReplace) > -1 &&
+					chan.type !== "voice" &&
+					chan.type !== "category"
+			);
+
+		if (channelsNeedUpdating.length <= 0) {
+			return info.error(
+				messages.channels.spacing.no_channels_to_space(info)
+			);
+		}
+
+		const successChannels: Channel[] = [];
+		const failureChannels: Channel[] = [];
+
+		for (const channel of channelsNeedUpdating) {
+			const setNameResult = await ilt(
+				channel.setName(
+					channel.name.split(characterToReplace).join("\u0020")
+				)
+			);
+			if (setNameResult.error) {
+				failureChannels.push(channel);
+			} else {
+				successChannels.push(channel);
+			}
+		}
+
+		if (failureChannels.length === 0) {
+			return info.success(
+				messages.channels.spacing.succeeded_spacing(
+					info,
+					successChannels
+				)
+			);
+		}
+		if (successChannels.length === 0) {
+			return info.error(
+				messages.channels.spacing.failed_spacing(info, failureChannels)
+			);
+		}
+		return info.error(
+			messages.channels.spacing.partially_succeeded_spacing(
+				info,
+				successChannels,
+				failureChannels
+			)
+		);
 	}
 );
 
-router.add(
-	"spacing",
-	new Usage({
-		description: "Have spaces in channel names instead of dashes",
-		requirements: [
-			o.pm(false),
-			o.myPerm("MANAGE_CHANNELS"),
-			o.perm("MANAGE_CHANNELS") /*o.yourPerm("MANAGE_CHANNELS")*/
-		],
-		usage: [["space", "dash"]],
-		callback: async (data, yn) => {
-			const replyMessage = await data.msg.reply(
-				"<a:loading:393852367751086090>"
-			);
+router.add("send:", [Info.theirPerm.manageChannels], async (cmd, info) => {
+	//!!!!!!!!!!!!!!!!!!TODO
+	// await info.startLoading();
+	// const message = stripMentions(cmd).replace(/^.+?send: ?/i, ""); // TODO find a better way to do this
+	// const channelsToSendTo = info.message.mentions.channels.array();
+	//
+	// if (channelsToSendTo.length === 0) {
+	// 	return info.error(messages.channels.send_many.no_channels_tagged(info));
+	// }
+	//
+	// const failures: Channel[] = [];
+	// const successes: Message[] = [];
+	// for (const channel of channelsToSendTo) {
+	// 	const sent = await ilt(channel.send());
+	// 	if (sent.error) {
+	// 		failures.push(channel);
+	// 	} else {
+	// 		successes.push(sent.result);
+	// 	}
+	// }
+	//
+	// if (failures.length === 0) {
+	// 	return info.success(
+	// 		messages.channels.send_many.succeeded_sending(info, successes)
+	// 	);
+	// }
+	// if (successes.length === 0) {
+	// 	return info.error(
+	// 		messages.channels.send_many.failed_sending(info, failureChannels)
+	// 	);
+	// }
+	// return info.error(
+	// 	messages.channels.send_many.partially_succeeded_sending(
+	// 		info,
+	// 		successes,
+	// 		failures
+	// 	)
+	// );
+});
 
-			if (!yn) {
-				return data.msg.reply("Usage: channels spacing [space|dash]");
-			}
-			switch (yn) {
-				case "true":
-				case "space":
-				case "yes":
-					return replyMessage.edit(
-						`Spaced ${spaceChannels({
-							guild: data.msg.guild,
-							from: `-`,
-							to: ` `,
-							msg: data.msg
-						})}. To automatically space future channels, use \`${
-							data.prefix
-						}settings autospaceChannels true\``
-					);
-				case "false":
-				case "dash":
-				case "no":
-					return replyMessage.edit(
-						`Dashed ${spaceChannels({
-							guild: data.msg.guild,
-							to: `-`,
-							from: ` `,
-							msg: data.msg
-						})}`
-					);
-				default:
-					return replyMessage.edit(
-						"Usage: spaceChannels [space|dash]"
-					);
-			}
-		}
-	})
-);
-
-channels.add(
-	"sendMany",
-	new Usage({
-		description: "Have spaces in channel names instead of dashes",
-		requirements: [
-			o.pm(false),
-			o.perm("MANAGE_CHANNELS") /*o.yourPerm("MANAGE_CHANNELS")*/
-		],
-		usage: ["...message", "#channels #to #send #to"],
-		callback: async data => {
-			const replyMessage = await data.msg.reply(
-				"<a:loading:393852367751086090>"
-			);
-
-			const message = stripMentions(data.msg).replace(
-				/^.+channels sendMany /,
-				""
-			); // TODO find a better way to do this
-			const channelsToSendTo = data.msg.mentions.channels.array();
-			channelsToSendTo.forEach(channel => {
-				channel
-					.send(message)
-					.catch(errorNooneCaresAbout =>
-						data.msg.reply(
-							`Could not send to ${channel.toString()}. Maybe I don't have permission?`
-						)
-					);
-			});
-			await replyMessage.edit(
-				`Sent ${message} to ${channelsToSendTo.map(c => c.toString())
-					.join`, `}`
-			);
-		}
-	})
-);
-
-export default channels;
+export default router;

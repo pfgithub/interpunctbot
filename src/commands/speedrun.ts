@@ -341,7 +341,7 @@ async function getGameAtPage(abbreviation: string) {
 
 	return games[0];
 }
-adminrouter.add("speedrun set", [Info.r.manageBot], async (cmd, info) => {
+adminrouter.add("speedrun set", [Info.theirPerm.manageBot], async (cmd, info) => {
 	// extract the abbreviation from the command
 	const [speedrunpage, ...categoryNameArray] = cmd.split(` `);
 	const categoryName = categoryNameArray.join(` `);

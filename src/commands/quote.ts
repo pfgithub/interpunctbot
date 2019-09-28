@@ -117,7 +117,7 @@ router.add([], settingsRouter);
 
 settingsRouter.add(
 	"list lists",
-	[Info.r.manageBot],
+	[Info.theirPerm.manageBot],
 	async (cmd, info, next) => {
 		await info.startLoading();
 		if (!info.db) {
