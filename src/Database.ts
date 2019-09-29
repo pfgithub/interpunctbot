@@ -5,6 +5,7 @@ await db.getPrefix(guild.id, prefix)
 */
 
 import knex from "./db";
+import { logError } from "..";
 
 type GuildData = { [key in keyof Fields]?: Fields[key] };
 
@@ -15,10 +16,13 @@ const shouldCache: { [ey: string]: boolean | undefined } = {
 };
 
 function tryParse<T>(json: string | undefined, defaultValue: T): T {
+	if (!json) {
+		return defaultValue;
+	}
 	try {
-		return typeof json === "string" ? JSON.parse(json) : json;
+		return JSON.parse(json);
 	} catch (e) {
-		global.console.log(`Malformed JSON: ${json}`); // this might be useful to know
+		logError(new Error(`Malformed JSON: ${json}`));
 		return defaultValue;
 	}
 }

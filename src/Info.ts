@@ -234,10 +234,7 @@ export default class Info {
 			| [string | MessageBuilder, MessageOptionsParameter | undefined]
 			| [string | MessageBuilder]
 	) {
-		let showErrors = this.db ? await this.db.getCommandErrors() : true;
-		console.log("!!!!!!!!!!!!!!!!!!!!!!!!! REMOVE THIS vvvvvv"); //TEMP
-		showErrors = true;
-		console.log("!!!!!!!!!!!!!!!!!!!!!!!!! REMOVE THIS ^^^^^^"); //TEMP
+		const showErrors = this.db ? await this.db.getCommandErrors() : true;
 		if (resultType === result.error && !showErrors) {
 			if (!this.authorPerms.manageBot) {
 				return; // command errors are disabled, return nothing
