@@ -1,5 +1,5 @@
 //@ts-ignore
-import PastebinAPI from "pastebin-js";
+import * as PastebinAPI from "pastebin-js";
 const pastebin = new PastebinAPI();
 import { MessageEmbed } from "discord.js";
 import Router from "commandrouter";
