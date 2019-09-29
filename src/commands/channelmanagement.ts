@@ -95,7 +95,7 @@ router.add(
 		for (const channel of channelsNeedUpdating) {
 			const setNameResult = await ilt(
 				channel.setName(
-					channel.name.split(characterToReplace).join("\xa0")
+					channel.name.split(characterToReplace).join("\u2005")
 				),
 				"renaming channel for space channels"
 			);
