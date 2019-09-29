@@ -22,6 +22,8 @@ import Info from "./src/Info";
 import ping from "./src/commands/ping";
 import speedrun from "./src/commands/speedrun";
 import logging from "./src/commands/logging";
+import aboutRouter from "./src/commands/about";
+import quoteRouter from "./src/commands/quote";
 
 declare function require(name: never): never;
 
@@ -110,7 +112,8 @@ depricate("spaceChannels", "channels spacing", "2.0"); // 1.0 -> 2.0
 // usage.add("channels", require("./src/commands/channelmanagement")); !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 reroute("invite", "about", "2.0");
-router.add("about", [], require("./src/commands/about"));
+
+router.add("about", [], aboutRouter);
 
 depricate("downloadLog", "log download", "2.0");
 depricate("resetLog", "log reset", "2.0");
@@ -125,7 +128,7 @@ router.add("crash", [Info.theirPerm.owner], () => {
 	throw new Error("crash command used");
 });
 
-router.add([], require("./src/commands/quote"));
+router.add([], quoteRouter);
 
 function depricate(oldcmd: string, newcmd: string, version: string = "3.0") {
 	router.add(oldcmd, [], async (cmd, info) => {
