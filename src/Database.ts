@@ -163,7 +163,7 @@ class Database {
 	}
 
 	async getPrefix(): Promise<string> {
-		return await this._get(`prefix`);
+		return (await this._get(`prefix`)) || "ip!";
 	}
 	async setPrefix(newPrefix: string) {
 		await this._set("prefix", newPrefix);

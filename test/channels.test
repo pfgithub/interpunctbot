@@ -11,7 +11,8 @@ myDefaultPerms
 send #test_one: ip!space channels
 test
 !! [
-!! 	"MSG #test_one: testbot: ip!space channels"
+!! 	"MSG #test_one: testbot: ip!space channels",
+!! 	"MSG #test_one: botdev: @testbot, ❌ You need permisison to `Manage Channels` to use this command"
 !! ]
 
 myPerm MANAGE_CHANNELS
@@ -19,7 +20,8 @@ myPerm MANAGE_CHANNELS
 send #test_one: ip!space channels
 test
 !! [
-!! 	"MSG #test_one: testbot: ip!space channels"
+!! 	"MSG #test_one: testbot: ip!space channels",
+!! 	"MSG #test_one: botdev: @testbot, ❌ <@446517740388220968> needs permisison to `Manage Channels` to use this command."
 !! ]
 
 permission MANAGE_CHANNELS
@@ -27,5 +29,6 @@ permission MANAGE_CHANNELS
 send #test_one: ip!space channels
 test
 !! [
-!! 	"MSG #test_one: testbot: ip!space channels"
+!! 	"MSG #test_one: testbot: ip!space channels",
+!! 	"MSG #test_one: botdev: @testbot, ✅ The channels <#628000225482506281> now have spaces.\nIf you want channels to automatically have spaces in the future, use\n```\nip!space channels automatically\n```"
 !! ]
