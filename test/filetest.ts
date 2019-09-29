@@ -82,19 +82,24 @@ const actions: {
 
 (async () => {
 	const infileName = "channels.test";
-	const infilePath = path.join(__dirname, infileName);
-	const infile = await fs.readFile(infilePath, "utf-8");
 
 	test(infileName, async t => {
+		const infilePath = path.join(__dirname, infileName);
+		const infile = await fs.readFile(infilePath, "utf-8");
+
 		let lineNumber = 0;
-		for (const lineIn of infile.split("\n")) {
+		const inLines = infile
+			.split("\n")
+			.filter(line => !line.startsWith("!!"));
+		for (const lineIn of inLines) {
 			lineNumber++;
+			const i = lineNumber - 1;
+
+			// ---
+
 			const line = lineIn.trim();
 			const startTime = new Date().getTime();
 			if (!line) {
-				continue;
-			}
-			if (line.startsWith("!!")) {
 				continue;
 			}
 			if (line.startsWith("//")) {
@@ -126,7 +131,7 @@ const actions: {
 			}
 			try {
 				await action(t, args, async (newValue: string) => {
-					console.log(newValue);
+					inLines[i] = newValue;
 				});
 			} catch (e) {
 				// eslint-disable-next-line require-atomic-updates
@@ -139,5 +144,7 @@ const actions: {
 			const endTime = new Date().getTime();
 			console.log(`\t  Done in ${endTime - startTime} ms.`);
 		}
+		const resultText = inLines.join("\n");
+		await fs.writeFile(infilePath, resultText, "utf-8");
 	});
 })();
