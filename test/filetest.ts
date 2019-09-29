@@ -71,9 +71,9 @@ const actions: {
 	async test(t, args, rewrite) {
 		const events = await t.events();
 		rewrite(
-			`test\t${JSON.stringify(events, null, "\t")
+			`test\n${JSON.stringify(events, null, "\t")
 				.split("\n")
-				.map((l, i) => (i === 0 ? l : `!!\t\t${l}`))
+				.map(l => `!! ${l}`)
 				.join("\n")}`
 		);
 		// ^^ make sure to remove the !! below this line somehow

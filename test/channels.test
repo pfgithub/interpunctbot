@@ -9,23 +9,23 @@ startBot
 myDefaultPerms
 
 send #test_one: ip!space channels
-test	[
-!!			"MSG #test_one: testbot: ip!space channels",
-!!			"MSG #test_one: botdev: <@435610389145976843>, An internal error occured :( maybe try again? If that doesn't work, submit a bug report on the support server in `about`."
-!!		]
+test
+!! [
+!! 	"MSG #test_one: testbot: ip!space channels"
+!! ]
 
 myPerm MANAGE_CHANNELS
 
 send #test_one: ip!space channels
-test	[
-!!			"MSG #test_one: testbot: ip!space channels",
-!!			"MSG #test_one: botdev: <@435610389145976843>, An internal error occured :( maybe try again? If that doesn't work, submit a bug report on the support server in `about`."
-!!		]
+test
+!! [
+!! 	"MSG #test_one: testbot: ip!space channels"
+!! ]
 
 permission MANAGE_CHANNELS
 
 send #test_one: ip!space channels
-test	[
-!!			"MSG #test_one: testbot: ip!space channels",
-!!			"MSG #test_one: botdev: <@435610389145976843>, An internal error occured :( maybe try again? If that doesn't work, submit a bug report on the support server in `about`."
-!!		]
+test
+!! [
+!! 	"MSG #test_one: testbot: ip!space channels"
+!! ]
