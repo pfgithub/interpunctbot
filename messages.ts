@@ -62,6 +62,46 @@ If you wanted spaces in these channels, check the channel settings to see if ${i
 
 > Discord Support: https://support.discordapp.com/hc/en-us/articles/206029707-How-do-I-set-up-Permissions-
 > Command Help: https://interpunct.info/spacing-channels`
+		},
+		send_many: {
+			no_channels_tagged: (info: Info) =>
+				`**No channels were tagged!**
+To send a message to multiple channels, tag every channel you want to send the message to, like this:
+\`\`\`
+${info.prefix}send: This is my great message! #rules #general
+\`\`\`
+> More Info: https://interpunct.info/sending-messages-to-multiple-channels`,
+			succeeded_sending: (info: Info, channels: Discord.Channel[]) =>
+				`Your message was sent to ${channels
+					.map(c => c.toString())
+					.join(", ")}.`,
+			partially_succeeded_sending: (
+				info: Info,
+				channels: Discord.Channel[],
+				failedChannels: Discord.Channel[]
+			) =>
+				`Your message was sent to ${channels
+					.map(c => c.toString())
+					.join(", ")}.
+It could not be sent to ${failedChannels
+					.map(c => c.toString())
+					.join(
+						", "
+					)}. Maybe ${info.message.client.toString()} does not have permission to Read and Send Messages there?
+Check the channel settings to see if ${info.message.client.toString()} has permission to read and send messages.
+
+> Discord Support: https://support.discordapp.com/hc/en-us/articles/206029707-How-do-I-set-up-Permissions-
+> Command Help: https://interpunct.info/sending-messages-to-multiple-channels`,
+			failed_sending: (info: Info, failedChannels: Discord.Channel[]) =>
+				`Your message could not be sent to ${failedChannels
+					.map(c => c.toString())
+					.join(
+						", "
+					)}. Maybe ${info.message.client.toString()} does not have permission to Read and Send Messages there?
+Check the channel settings to see if ${info.message.client.toString()} has permission to read and send messages.
+
+> Discord Support: https://support.discordapp.com/hc/en-us/articles/206029707-How-do-I-set-up-Permissions-
+> Command Help: https://interpunct.info/sending-messages-to-multiple-channels`
 		}
 	}
 };

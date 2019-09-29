@@ -72,7 +72,7 @@ router.add(
 				messages.general.command_cannot_be_used_in_pms(info)
 			);
 		}
-		const characterToReplace = (cmd.match(/`(.+?)`/) ||
+		const characterToReplace = (cmd.match(/^[\s\S]+`(.+?)`/) ||
 			([, "-"] as const))[1];
 		const channelsNeedUpdating = guild.channels
 			.array()
@@ -129,43 +129,44 @@ router.add(
 );
 
 router.add("send:", [Info.theirPerm.manageChannels], async (cmd, info) => {
-	//!!!!!!!!!!!!!!!!!!TODO
-	// await info.startLoading();
-	// const message = stripMentions(cmd).replace(/^.+?send: ?/i, ""); // TODO find a better way to do this
-	// const channelsToSendTo = info.message.mentions.channels.array();
-	//
-	// if (channelsToSendTo.length === 0) {
-	// 	return info.error(messages.channels.send_many.no_channels_tagged(info));
-	// }
-	//
-	// const failures: Channel[] = [];
-	// const successes: Message[] = [];
-	// for (const channel of channelsToSendTo) {
-	// 	const sent = await ilt(channel.send());
-	// 	if (sent.error) {
-	// 		failures.push(channel);
-	// 	} else {
-	// 		successes.push(sent.result);
-	// 	}
-	// }
-	//
-	// if (failures.length === 0) {
-	// 	return info.success(
-	// 		messages.channels.send_many.succeeded_sending(info, successes)
-	// 	);
-	// }
-	// if (successes.length === 0) {
-	// 	return info.error(
-	// 		messages.channels.send_many.failed_sending(info, failureChannels)
-	// 	);
-	// }
-	// return info.error(
-	// 	messages.channels.send_many.partially_succeeded_sending(
-	// 		info,
-	// 		successes,
-	// 		failures
-	// 	)
-	// );
+	await info.startLoading();
+	const message = stripMentions(cmd).replace(/^.+?send: ?/i, ""); // TODO find a better way to do this
+	const channelsToSendTo = info.message.mentions.channels.array();
+
+	if (channelsToSendTo.length === 0) {
+		return info.error(messages.channels.send_many.no_channels_tagged(info));
+	}
+
+	const failures: Channel[] = [];
+	const successes: Channel[] = []; // maybe do Message[] and link to every message i.p sent?
+	for (const channel of channelsToSendTo) {
+		const sent = await ilt(channel.send());
+		if (sent.error) {
+			failures.push(channel);
+		} else {
+			successes.push(channel);
+		}
+	}
+
+	if (failures.length === 0) {
+		return info.success(
+			messages.channels.send_many.succeeded_sending(info, successes)
+		);
+	}
+	if (successes.length === 0) {
+		return info.error(
+			messages.channels.send_many.failed_sending(info, failures)
+		);
+	}
+	return info.error(
+		messages.channels.send_many.partially_succeeded_sending(
+			info,
+			successes,
+			failures
+		)
+	);
 });
+
+// !!!!!!!!!!!!!!! router.add("pin message")
 
 export default router;
