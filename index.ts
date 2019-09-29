@@ -121,9 +121,9 @@ reroute("invite", "about", "2.0");
 
 router.add("about", [], aboutRouter);
 
-depricate("downloadLog", "log download", "2.0");
-depricate("resetLog", "log reset", "2.0");
-depricate("listRoles", "settings listRoles", "2.0");
+reroute("downloadLog", "log download", "2.0");
+reroute("resetLog", "log reset", "2.0");
+reroute("listRoles", "settings listRoles", "2.0");
 remove(
 	"settings listroles",
 	"Discord now has a builtin way for you to get the ID of roles by right clicking a role in the Roles section of settings. Also, most interpunct commands will now accept a role name instead of ID.",
@@ -422,7 +422,7 @@ bot.on("message", async msg => {
 	if (msg.author.id === bot.user!.id) {
 		devlog(`i> ${msg.content}`);
 	}
-	if (msg.author.bot) {
+	if (msg.author.bot && msg.author.id !== config.allowMessagesFrom) {
 		return;
 	}
 	logMsg({ prefix: "I", msg: msg });
@@ -465,7 +465,7 @@ bot.on("message", async msg => {
 });
 
 bot.on("messageUpdate", async (from, msg) => {
-	if (msg.author!.bot) {
+	if (msg.author!.bot && msg.author!.id !== config.allowMessagesFrom) {
 		return;
 	}
 	logMsg({ prefix: "Edit From", msg: from });
@@ -529,7 +529,7 @@ bot.on("messageUpdate", async (from, msg) => {
 // bot.on(
 // 	"messageReactionAddCustom",
 // 	async (reaction: MessageReaction, user: User, message: Message) => {
-// 		if (user.bot) {
+// 		if (user.bot && user.id !== config.allowMessagesFrom) {
 // 			return;
 // 		}
 // 		if (!message.guild) {

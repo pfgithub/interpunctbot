@@ -1,12 +1,13 @@
 {
-  "token": "YOUR BOT TOKEN HERE",
-  "tokenProduction": "YOUR BOT TOKEN HERE FOR WHEN RUNNING IN PRODUCTION MODE",
-  "owner": "YOUR USER ID HERE",
-  "errorReporting": "SERVER ID/CHANNEL ID",
-  "bots.discord.pw": "YOUR BOTS.DISCORD.PW TOKEN HERE",
-  "bdpid": "YOUR BOT ID HERE",
-  "emoji":{
-    "success": "SUCCESS EMOJI",
-    "failure": "FAILURE EMOJI"
-  }
+	"token": "YOUR BOT TOKEN HERE",
+	"tokenProduction": "YOUR BOT TOKEN HERE FOR WHEN RUNNING IN PRODUCTION MODE",
+	"owner": "YOUR USER ID HERE",
+	"errorReporting": "SERVER ID/CHANNEL ID",
+	"bots.discord.pw": "YOUR BOTS.DISCORD.PW TOKEN HERE",
+	"bdpid": "YOUR BOT ID HERE",
+	"emoji": {
+		"success": "SUCCESS EMOJI",
+		"failure": "FAILURE EMOJI"
+	},
+	"allowMessagesFrom": "BOT USER TO ALLOW MESSAGES FROM"
 }

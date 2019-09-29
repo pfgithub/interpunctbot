@@ -1,0 +1,13 @@
+reset
+createChannels #test_one #test-two #test-three
+defaultPermissions
+
+send #test_one: ip!space channels
+wait
+test events []
+
+permission MANAGE_CHANNELS
+
+send #test_one: ip!space channels
+wait
+test events []

@@ -11,7 +11,6 @@
 	"dependencies": {
 		"async-request": "^1.2.0",
 		"bookshelf": "^0.13.3",
-		"command-parser": "gitlab:pfgitlab/command-parser",
 		"commandrouter": "pfgithub/command-router",
 		"discord.js": "discordjs/discord.js",
 		"knex": "^0.14.5",

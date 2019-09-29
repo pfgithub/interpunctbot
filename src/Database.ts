@@ -59,6 +59,8 @@ type ListsField = { [key: string]: string };
 type NameScreeningField = string[];
 type SpeedrunField = { gameID: string; categoryID: string };
 
+const lock: { [key: string]: (() => void)[] } = {};
+
 // database should be initialized with every Info
 class Database {
 	guild: string;
@@ -81,6 +83,11 @@ class Database {
 
 		let data = (await knex("guilds").where({ id: this.guild }))[0]; // THIS IS NOT THE RIGHT WAY
 		if (!data) {
+			if (lock[this.guild]) {
+				await new Promise(r => lock[this.guild].push(() => r()));
+				return this.getOrLoadData();
+			}
+			lock[this.guild] = [];
 			// we need a better way to do this
 			try {
 				data = await knex("guilds").insert({
@@ -92,6 +99,9 @@ class Database {
 					`no db entry was found for guild id ${this.guild}, but a new one could not be created because ${er}, the data was ${data}`
 				);
 			}
+			const values = lock[this.guild];
+			delete lock[this.guild];
+			values.forEach(e => e());
 		}
 		this._data = data;
 		return this._data!;
