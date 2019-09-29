@@ -1,13 +1,15 @@
 reset
-createChannels #test_one #test-two #test-three
+channel text #test_one
+channel text #test-two
+channel voice #test three
+channel category #test four
 defaultPermissions
+startBot
 
 send #test_one: ip!space channels
-wait
-test events []
+test []
 
 permission MANAGE_CHANNELS
 
 send #test_one: ip!space channels
-wait
-test events []
+test []

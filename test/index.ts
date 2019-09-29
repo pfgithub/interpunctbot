@@ -309,4 +309,7 @@ process.on("exit", cleanExit);
 process.on("SIGINT", cleanExitExit);
 process.on("SIGUSR1", cleanExitExit);
 process.on("SIGUSR2", cleanExitExit);
-process.on("uncaughtException", cleanExitExit);
+process.on("uncaughtException", err => {
+	console.log("UNCAUGHT PROMISE EXCEPTION", err);
+	cleanExitExit();
+});
