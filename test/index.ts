@@ -82,42 +82,79 @@ type ChannelType<T extends ChannelNameType> = T extends string
 	: never;
 
 export class TestHelper {
-	client: Discord.Client;
-	guild: Discord.Guild;
-	ipbot: Discord.GuildMember;
+	adminClient: Discord.Client;
+	adminGuild: Discord.Guild;
+	adminIPBot: Discord.GuildMember;
+	adminInteractionBot: Discord.GuildMember;
 
-	private waitingForMessages: MessageHandler[];
-	private mostRecentEvents: { type: "message"; value: string }[];
-	// private noEventsTimeout = NodeJS.Timeout // on(event) clearTimeout(..) setTimeout(..)
+	botInteractionClient: Discord.Client; // bot that interacts with i;p
+	botInteractionGuild: Discord.Guild;
+
+	private mostRecentEvents: any[];
+	private noEventsTimeout?: NodeJS.Timeout; // on(event) clearTimeout(..) setTimeout(..)
+	private noEventsCallback?: (events: any[]) => void;
 
 	private botProcess?: childProcess.ChildProcess;
 
 	constructor(
-		client: Discord.Client,
-		guild: Discord.Guild,
-		ipbot: Discord.GuildMember
+		adminClient: Discord.Client,
+		adminGuild: Discord.Guild,
+		botInteractionClient: Discord.Client,
+		botInteractionGuild: Discord.Guild
 	) {
-		this.client = client;
-		this.guild = guild;
-		this.ipbot = ipbot;
-		this.waitingForMessages = [];
+		this.adminClient = adminClient;
+		this.adminGuild = adminGuild;
+		this.adminIPBot = adminGuild.members.get(config.ipbot)!;
+		this.adminInteractionBot = adminGuild.members.get(config.testbot)!;
+
+		this.botInteractionClient = botInteractionClient;
+		this.botInteractionGuild = botInteractionGuild;
+
 		this.mostRecentEvents = [];
 
-		this.client.on("message", message => this._didRecieveMessage(message));
+		const resetTimeout = () => {
+			if (this.noEventsTimeout) {
+				clearTimeout(this.noEventsTimeout);
+			}
+			this.noEventsTimeout = setTimeout(() => {
+				if (this.noEventsCallback) {
+					this.noEventsCallback(this.mostRecentEvents);
+					this.mostRecentEvents = [];
+					this.noEventsTimeout = undefined;
+				} else {
+					console.log(
+						`Tried to report ${this.mostRecentEvents.length} events but there was no events callback. These events will be reported later.`
+					);
+				}
+			}, 2000);
+		};
+		this.adminClient.on("message", message => {
+			if (message.channel.type === "dm") {
+				this.mostRecentEvents.push(
+					`DM TO=${
+						(message.channel as Discord.DMChannel).recipient
+							.username
+					}: ${
+						message.author!.username
+					}: ${message.content.toString()}`
+				);
+				resetTimeout();
+				return;
+			}
+			this.mostRecentEvents.push(
+				`MSG #${(message.channel as Discord.TextChannel).name}: ${
+					message.member!.displayName
+				}: ${message.content.toString()}`
+			);
+			resetTimeout();
+		});
 	}
 
-	private _didRecieveMessage(message: Discord.Message) {
-		if (message.author!.id === this.client.user!.id) {
-			return; // our message, ignore.
-		}
-		this.waitingForMessages.shift()!(message);
-	}
-
-	nextMessage(): Promise<Discord.Message> {
+	events(): Promise<any[]> {
 		// await nextEvents()
 		// next events until 2000ms after there are no more events
 		return new Promise((r, re) => {
-			this.waitingForMessages.push(m => r(m));
+			this.noEventsCallback = ev => r(ev);
 		});
 	}
 
@@ -137,7 +174,7 @@ export class TestHelper {
 						: data;
 				return {
 					key: channelToCreate.name,
-					value: await this.guild.channels.create(
+					value: await this.adminGuild.channels.create(
 						channelToCreate.name,
 						{ type: channelToCreate.type }
 					)
@@ -152,16 +189,24 @@ export class TestHelper {
 		console.log("-- ResetAll");
 		// remove all channels
 		console.log("--- Removing channels");
-		for (const channel of this.guild.channels.array()) {
+		for (const channel of this.adminGuild.channels.array()) {
 			await channel.delete();
 		}
 		// remove all roles from ipbot
 		console.log("--- Removing roles from bot");
-		for (const role of this.ipbot.roles.array()) {
+		for (const role of this.adminIPBot.roles.array()) {
 			if (role.name === "@everyone") {
 				continue;
 			}
-			await this.ipbot.roles.remove(role);
+			await this.adminIPBot.roles.remove(role);
+		}
+		// remove all roles from tester
+		console.log("--- Removing roles from tester");
+		for (const role of this.adminInteractionBot.roles.array()) {
+			if (role.name === "@everyone") {
+				continue;
+			}
+			await this.adminInteractionBot.roles.remove(role);
 		}
 		// remove database
 		console.log("--- Removing database");
@@ -193,21 +238,35 @@ export class TestHelper {
 		console.log("--- Everything Reset");
 	}
 
-	async permissions(...permissions: PermissionRoleName[]) {
-		console.log(`----- Adding Permissions ${permissions.join(",")}`);
+	async permissions(
+		bot: "testbot" | "ipbot",
+		...permissions: PermissionRoleName[]
+	) {
+		const botMember =
+			bot === "testbot" ? this.adminInteractionBot : this.adminIPBot;
+		console.log(
+			`----- Adding Permissions ${permissions.join(",")} to ${bot}`
+		);
 		for (const permission of permissions) {
-			const role = this.guild.roles.find(r => r.name === permission);
+			console.log(
+				`------------- Adding role ${permission} to ${botMember.displayName}`
+			);
+			const role = this.adminGuild.roles.find(r => r.name === permission);
 			if (!role) {
+				console.log(
+					`------------- The role named ${permission} does not exist in the testing server`
+				);
 				throw new Error(
 					`The role named ${permission} does not exist in the testing server`
 				);
 			}
-			await this.ipbot.roles.add(role);
+			await botMember.roles.add(role);
 		}
 	}
 
-	async basePermissions() {
-		this.permissions(
+	async basePermissions(bot: "testbot" | "ipbot") {
+		await this.permissions(
+			bot,
 			"READ_MESSAGE_HISTORY",
 			"READ_TEXT_CHANNELS_SEE_VOICE_CHANNELS",
 			"SEND_MESSAGES"
@@ -254,14 +313,20 @@ export class TestHelper {
 
 (async () => {
 	let exitCode = 0;
-	const client = new Discord.Client();
-	client.login(config.token);
-	client.on("ready", async () => {
-		const guild = client.guilds.get(config.server)!;
+	const adminClient = new Discord.Client();
+	adminClient.login(config.rolegiverToken);
+	const botInteractionClient = new Discord.Client();
+	botInteractionClient.login(config.token);
+	const onReady = async () => {
+		const adminGuild = adminClient.guilds.get(config.server)!;
+		const botInteractionGuild = botInteractionClient.guilds.get(
+			config.server
+		)!;
 		const testHelper = new TestHelper(
-			client,
-			guild,
-			guild.members.get(config.ipbot)!
+			adminClient,
+			adminGuild,
+			botInteractionClient,
+			botInteractionGuild
 		);
 		let i = 0;
 		for (const tester of testQueue) {
@@ -289,6 +354,19 @@ export class TestHelper {
 		}
 		await new Promise(r => setTimeout(r, 1000)); //wait 1s before closing
 		process.exit(exitCode);
+	};
+	let readyCount = 0;
+	adminClient.on("ready", () => {
+		readyCount++;
+		if (readyCount >= 2) {
+			onReady();
+		}
+	});
+	botInteractionClient.on("ready", () => {
+		readyCount++;
+		if (readyCount >= 2) {
+			onReady();
+		}
 	});
 })();
 
@@ -310,6 +388,10 @@ process.on("SIGINT", cleanExitExit);
 process.on("SIGUSR1", cleanExitExit);
 process.on("SIGUSR2", cleanExitExit);
 process.on("uncaughtException", err => {
-	console.log("UNCAUGHT PROMISE EXCEPTION", err);
+	console.log("UNCAUGHT EXCEPTION", err);
+	cleanExitExit();
+});
+process.on("unhandledRejection", err => {
+	console.log("UNCAUGHT PROMISE REJECTION", err);
 	cleanExitExit();
 });

@@ -6,6 +6,13 @@ channel category #test four
 defaultPermissions
 startBot
 
+myDefaultPerms
+
+send #test_one: ip!space channels
+test []
+
+myPerm MANAGE_CHANNELS
+
 send #test_one: ip!space channels
 test []
 

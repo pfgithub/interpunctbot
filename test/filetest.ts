@@ -33,10 +33,22 @@ const actions: {
 		await t.createChannels({ type: channelType, name: channelName });
 	},
 	async defaultPermissions(t, args, rewrite) {
-		await t.basePermissions();
+		await t.basePermissions("ipbot");
 	},
 	async permission(t, args, rewrite) {
-		await t.permissions(...(args.split(" ") as PermissionRoleName[]));
+		await t.permissions(
+			"ipbot",
+			...(args.split(" ") as PermissionRoleName[])
+		);
+	},
+	async myDefaultPerms(t, args, rewrite) {
+		await t.basePermissions("testbot");
+	},
+	async myPerm(t, args, rewrite) {
+		await t.permissions(
+			"testbot",
+			...(args.split(" ") as PermissionRoleName[])
+		);
 	},
 	async startBot(t, args, rewrite) {
 		await t.startBot();
@@ -48,17 +60,23 @@ const actions: {
 			throw new Error(`Channel name does not start with #`);
 		}
 		channelName = channelName.substr(1);
-		const channel = t.guild.channels.find(c => c.name === channelName); // note that multiple channels with the same name is not testable
+		const channel = t.botInteractionGuild.channels.find(
+			c => c.name === channelName
+		); // note that multiple channels with the same name is not testable
 		if (!channel) {
 			throw new Error(`Could not find channel with name #${channelName}`);
 		}
 		(channel as Discord.TextChannel).send(message);
 	},
 	async test(t, args, rewrite) {
-		// let events = await t.events();
-		// rewrite(`test\t${JSON.stringify(events, null, "\t").split("\n").map((l, i) => i === 0 ? l : "!!\t\t"+l).join("\n")}`)
+		const events = await t.events();
+		rewrite(
+			`test\t${JSON.stringify(events, null, "\t")
+				.split("\n")
+				.map((l, i) => (i === 0 ? l : `!!\t\t${l}`))
+				.join("\n")}`
+		);
 		// ^^ make sure to remove the !! below this line somehow
-		await new Promise(r => setTimeout(r, 5000));
 	}
 };
 
@@ -69,18 +87,23 @@ const actions: {
 
 	test(infileName, async t => {
 		let lineNumber = 0;
-		for (const line of infile.split("\n")) {
+		for (const lineIn of infile.split("\n")) {
 			lineNumber++;
+			const line = lineIn.trim();
 			const startTime = new Date().getTime();
-			if (!line.trim()) {
+			if (!line) {
 				continue;
 			}
-			if (line.startsWith("!! ")) {
+			if (line.startsWith("!!")) {
 				continue;
 			}
-			if (line.startsWith("!! ")) {
+			if (line.startsWith("//")) {
 				continue;
 			}
+			// maybe:
+			// user!send #test_one: ip!space channels
+			// setup!perm user ADMINISTRATOR
+			// user!send #test_one: ip!space channels
 
 			console.log(`${lineNumber}:\tRunning: ${line}...`);
 
@@ -99,10 +122,12 @@ const actions: {
 
 			const action = actions[actionName];
 			if (!action) {
-				throw new Error(`Action named ${action} does not exist.`);
+				throw new Error(`Action named ${actionName} does not exist.`);
 			}
 			try {
-				await action(t, args, async (newValue: string) => undefined);
+				await action(t, args, async (newValue: string) => {
+					console.log(newValue);
+				});
 			} catch (e) {
 				// eslint-disable-next-line require-atomic-updates
 				global.console.log = realLog;
