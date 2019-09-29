@@ -198,15 +198,20 @@ export default class Info {
 			this.message.reply(content, {
 				...options,
 				split: true
-			})
+			}),
+			"replying to message directly"
 		);
 		if (replyResult.result) {
 			return replyResult.result as Discord.Message[];
 		}
+		if (!(this.db ? this.db.getPMOnFailure() : false)) {
+			// server does not have pmonfailure enabled. do nothing.
+			return undefined;
+		}
 		if (this.authorPerms.manageChannel) {
 			// this._informMissingPermissions(SEND_MESSAGES, "reply to your message", this.message.author)
 			// If the author has permission to manage the channel permissions, tell them the bot doesn't have permission to respond.
-			const errorMessage = await this.message.author!.send(
+			/*	const errorMessage =*/ await this.message.author!.send(
 				// how can a message not have an author
 				...this._formatMessageWithResultType(
 					result.error,
@@ -216,8 +221,8 @@ export default class Info {
 							: "this should never happen"
 					}`
 				)
-			); // this.channel.name does not require antiformatting because channels are already not allowed to have @everyone or whatever
-			errorMessage.delete({ timeout: 10 * 1000 }); // Don't await for this, you don't want to wait 10 seconds for it to delete do you
+			);
+			// errorMessage.delete({ timeout: 10 * 1000 });
 		}
 		// Send the actual result
 		return <Discord.Message[]>(<unknown>await this.message.author!.send(
@@ -271,9 +276,12 @@ export default class Info {
 		} else {
 			res = await this.reply("❌", ...msg);
 		}
-		const reactResult = await ilt(this.message.react("508841130503438356"));
+		const reactResult = await ilt(
+			this.message.react("508841130503438356"),
+			"reacting with custom failure emoji"
+		);
 		if (reactResult.error) {
-			await ilt(this.message.react("❌")); // may fail, not a problem
+			await ilt(this.message.react("❌"), "reacting with failure"); // may fail, not a problem
 		}
 		res && res.forEach(r => r.delete({ timeout: 20 * 1000 }));
 		return res;
@@ -288,9 +296,12 @@ export default class Info {
 		} else {
 			res = await this.reply("⚠", ...msg);
 		}
-		const reactResult = await ilt(this.message.react("508842207089000468"));
+		const reactResult = await ilt(
+			this.message.react("508842207089000468"),
+			"reacting with custom warning emoji"
+		);
 		if (reactResult.error) {
-			await ilt(this.message.react("⚠")); // may fail
+			await ilt(this.message.react("⚠"), "reacting with warning emoji"); // may fail
 		}
 		res && res.forEach(r => r.delete({ timeout: 20 * 1000 }));
 		return res;
@@ -305,9 +316,15 @@ export default class Info {
 		} else {
 			res = await this.reply("✅", ...msg);
 		}
-		const reactResult = await ilt(this.message.react("508840840416854026"));
+		const reactResult = await ilt(
+			this.message.react("508840840416854026"),
+			"reacting with custom check mark emoji"
+		);
 		if (reactResult.error) {
-			await ilt(this.message.react("✅")); // may fail
+			await ilt(
+				this.message.react("✅"),
+				"reacting with builtin check mark emoji"
+			); // may fail
 		}
 		// res && res.forEach(r => r.delete({ timeout: 20 * 1000 }));
 		return res;

@@ -341,57 +341,61 @@ async function getGameAtPage(abbreviation: string) {
 
 	return games[0];
 }
-adminrouter.add("speedrun set", [Info.theirPerm.manageBot], async (cmd, info) => {
-	// extract the abbreviation from the command
-	const [speedrunpage, ...categoryNameArray] = cmd.split(` `);
-	const categoryName = categoryNameArray.join(` `);
+adminrouter.add(
+	"speedrun set",
+	[Info.theirPerm.manageBot],
+	async (cmd, info) => {
+		// extract the abbreviation from the command
+		const [speedrunpage, ...categoryNameArray] = cmd.split(` `);
+		const categoryName = categoryNameArray.join(` `);
 
-	if (!info.db) {
-		return await info.error(
-			"Cannot use speedrun commands in private pm messages",
-			undefined
+		if (!info.db) {
+			return await info.error(
+				"Cannot use speedrun commands in private pm messages",
+				undefined
+			);
+		}
+
+		// parse the abbreviation from whatver the user provided and error if it fails, start loading, then get the games
+		const abbreviation = parseAbbreviation({ from: speedrunpage });
+		if (!abbreviation || !categoryName) {
+			return await info.error(
+				`Usage: \`speedrun set https://speedrun.com/mygame My Category\``,
+				undefined
+			);
+		}
+		await info.startLoading();
+		const game = await getGameAtPage(abbreviation);
+		if (typeof game === "string") {
+			return await info.error(game, undefined);
+		}
+
+		// get the provided category
+		const gameID = game.id;
+		const categories = game.categories.data;
+		const category = categories.find(
+			(category: any) =>
+				category.name.toLowerCase() === categoryName.toLowerCase()
 		);
-	}
-
-	// parse the abbreviation from whatver the user provided and error if it fails, start loading, then get the games
-	const abbreviation = parseAbbreviation({ from: speedrunpage });
-	if (!abbreviation || !categoryName) {
-		return await info.error(
-			`Usage: \`speedrun set https://speedrun.com/mygame My Category\``,
-			undefined
-		);
-	}
-	await info.startLoading();
-	const game = await getGameAtPage(abbreviation);
-	if (typeof game === "string") {
-		return await info.error(game, undefined);
-	}
-
-	// get the provided category
-	const gameID = game.id;
-	const categories = game.categories.data;
-	const category = categories.find(
-		(category: any) =>
-			category.name.toLowerCase() === categoryName.toLowerCase()
-	);
-	if (!category) {
-		return await info.error(
-			new TextBuilder()
-				.tag`The category \`${categoryName}\` is not in the game.
+		if (!category) {
+			return await info.error(
+				new TextBuilder()
+					.tag`The category \`${categoryName}\` is not in the game.
 	Valid categories: ${categories.map((cat: any) => cat.name).join`, `}`.build(),
+				undefined
+			);
+		}
+
+		// set the default speedrun
+		await info.db.setSpeedrunDefault(gameID, category.id);
+
+		// success
+		return await info.success(
+			new TextBuilder()
+				.tag`Default speedrun page updated to ${abbreviation}: ${categoryName} (ids: ${gameID}, ${category.id})`.build(),
 			undefined
 		);
 	}
-
-	// set the default speedrun
-	await info.db.setSpeedrunDefault(gameID, category.id);
-
-	// success
-	return await info.success(
-		new TextBuilder()
-			.tag`Default speedrun page updated to ${abbreviation}: ${categoryName} (ids: ${gameID}, ${category.id})`.build(),
-		undefined
-	);
-}); // set <abbreviaton> <category> // sets the default category
+); // set <abbreviaton> <category> // sets the default category
 
 export default router;

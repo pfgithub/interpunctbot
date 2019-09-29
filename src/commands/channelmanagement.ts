@@ -96,7 +96,8 @@ router.add(
 			const setNameResult = await ilt(
 				channel.setName(
 					channel.name.split(characterToReplace).join("\u0020")
-				)
+				),
+				"renaming channel for space channels"
 			);
 			if (setNameResult.error) {
 				failureChannels.push(channel);
@@ -140,7 +141,10 @@ router.add("send:", [Info.theirPerm.manageChannels], async (cmd, info) => {
 	const failures: Channel[] = [];
 	const successes: Channel[] = []; // maybe do Message[] and link to every message i.p sent?
 	for (const channel of channelsToSendTo) {
-		const sent = await ilt(channel.send());
+		const sent = await ilt(
+			channel.send(message),
+			"sending message for sendmany"
+		);
 		if (sent.error) {
 			failures.push(channel);
 		} else {

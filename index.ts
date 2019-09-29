@@ -22,6 +22,7 @@ import Info from "./src/Info";
 import ping from "./src/commands/ping";
 import speedrun from "./src/commands/speedrun";
 import logging from "./src/commands/logging";
+import channelsRouter from "./src/commands/channelmanagement";
 import aboutRouter from "./src/commands/about";
 import quoteRouter from "./src/commands/quote";
 
@@ -55,6 +56,7 @@ function devlog(...msg: any) {
 
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!usage.add("settings", require("./src/commands/settings"));
 router.add("ping", [], ping);
+router.add([], channelsRouter);
 router.add([], speedrun);
 router.add("log", [Info.theirPerm.manageBot], logging);
 
@@ -84,7 +86,8 @@ remove(
 );
 
 export async function ilt<T>(
-	v: Promise<T> /*, reason: string (added to error message)*/
+	v: Promise<T> /*, reason: string (added to error message)*/,
+	reason: string
 ): Promise<
 	{ error: Error; result: undefined } | { error: undefined; result: T }
 > {
@@ -92,14 +95,17 @@ export async function ilt<T>(
 	try {
 		result = await v;
 	} catch (error) {
-		reportILTFailure(error);
+		reportILTFailure(error, new Error(reason));
 		return { error, result: undefined };
 	}
 	return { result, error: undefined };
 }
 
 router.add("spoiler", [], async (cmd, info) => {
-	const deletedMessage = await ilt(info.message.delete());
+	const deletedMessage = await ilt(
+		info.message.delete(),
+		"Deleting original message for spoiler"
+	);
 	// if(er) send message...
 	info.error(
 		"Discord has added official spoiler support by surrounding your message in `||`vertical lines`||`.",
@@ -611,12 +617,26 @@ bot.on("guildDelete", async guild => {
 	// TODO delete info in db after leaving a guild
 });
 
-export async function reportILTFailure(message: Error) {
-	logError(message, false);
+export async function reportILTFailure(message: Error, reason: Error) {
+	logError(message, false, reason);
 }
 
-export function logError(message: Error, atEveryone: boolean = true) {
-	const finalMsg = `
+export async function logError(
+	message: Error,
+	atEveryone: boolean = true,
+	additionalDetails?: Error
+) {
+	const finalMsg = `${
+		additionalDetails
+			? `Details: ${additionalDetails}
+
+**Stacktrace**:
+\`\`\`
+${additionalDetails.stack}
+\`\`\``
+			: ""
+	}
+	
 Hey ${atEveryone ? "@everyone" : "the void of discord"}, there was an error
 
 **Recent Commands:**
@@ -629,15 +649,7 @@ ${mostRecentCommands
 ${message.stack}
 \`\`\`
 `;
-	console.log(finalMsg);
-	try {
-		const rept = config.errorReporting.split(`/`);
-		const channel: TextChannel = bot.channels.get(rept[1])! as TextChannel;
-		channel.send(finalMsg);
-	} catch (e) {
-		console.log("Failed to report");
-		process.exit(1); // if an error message failed to report, it is likely the bot can no longer reach discord
-	}
+	await sendMessageToErrorReportingChannel(finalMsg);
 }
 
 process.on("unhandledRejection", (reason, p) => {
@@ -645,3 +657,15 @@ process.on("unhandledRejection", (reason, p) => {
 	console.log(reason);
 	logError(reason as Error);
 });
+
+export async function sendMessageToErrorReportingChannel(message: string) {
+	console.log(message);
+	try {
+		const rept = config.errorReporting.split(`/`);
+		const channel: TextChannel = bot.channels.get(rept[1])! as TextChannel;
+		await channel.send(message);
+	} catch (e) {
+		console.log("Failed to report. Exiting.");
+		process.exit(1); // if an error message failed to report, it is likely the bot can no longer reach discord or something else bad happened
+	}
+}

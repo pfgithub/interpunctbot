@@ -112,8 +112,8 @@ export class MessageBuilder {
 
 		if (this.author) {
 			embed.author = this.author;
-			msg += `${new TextBuilder()
-				.tag`By ${this.author.name} <${this.author.url || ""}>`.build()}\n\n`;
+			msg += `${new TextBuilder().tag`By ${this.author.name} <${this
+				.author.url || ""}>`.build()}\n\n`;
 		}
 
 		const builtURL = this.url.build();
