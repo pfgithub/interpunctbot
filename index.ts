@@ -267,7 +267,7 @@ const infoPerSecond: number[] = [];
 function updateActivity() {
 	const count = bot.guilds.size;
 	bot.user && bot.user.setActivity(`ip!help on ${count} servers`);
-	// if(process.env.NODE_ENV === "development") return; // only production should post
+	// if(process.env.NODE_ENV !== "production") return; // only production should post
 	// let options = {
 	// 	url: `https://bots.discord.pw/api/bots/${config.bdpid}/stats`,
 	// 	headers: {
