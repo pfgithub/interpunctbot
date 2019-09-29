@@ -130,7 +130,7 @@ router.add(
 
 router.add("send:", [Info.theirPerm.manageChannels], async (cmd, info) => {
 	await info.startLoading();
-	const message = stripMentions(cmd).replace(/^.+?send: ?/i, ""); // TODO find a better way to do this
+	const message = stripMentions(cmd).replace(/^[\s\S]+?send: ?/i, ""); // TODO find a better way to do this
 	const channelsToSendTo = info.message.mentions.channels.array();
 
 	if (channelsToSendTo.length === 0) {
