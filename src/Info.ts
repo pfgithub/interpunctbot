@@ -283,7 +283,7 @@ export default class Info {
 		if (reactResult.error) {
 			await ilt(this.message.react("❌"), "reacting with failure"); // may fail, not a problem
 		}
-		res && res.forEach(r => r.delete({ timeout: 20 * 1000 }));
+		// res && res.forEach(r => r.delete({ timeout: 20 * 1000 }));
 		return res;
 	}
 	async warn(...msg: MessageParametersType) {
@@ -303,7 +303,7 @@ export default class Info {
 		if (reactResult.error) {
 			await ilt(this.message.react("⚠"), "reacting with warning emoji"); // may fail
 		}
-		res && res.forEach(r => r.delete({ timeout: 20 * 1000 }));
+		// res && res.forEach(r => r.delete({ timeout: 20 * 1000 }));
 		return res;
 	}
 	async success(...msg: MessageParametersType) {
