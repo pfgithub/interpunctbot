@@ -64,7 +64,7 @@ router.add(
 
 router.add(
 	"space channels",
-	[Info.theirPerm.manageChannels],
+	[Info.theirPerm.manageChannels, Info.ourPerm.manageChannels],
 	async (cmd, info) => {
 		const guild = info.guild;
 		if (!guild) {
@@ -95,7 +95,7 @@ router.add(
 		for (const channel of channelsNeedUpdating) {
 			const setNameResult = await ilt(
 				channel.setName(
-					channel.name.split(characterToReplace).join("\u0020")
+					channel.name.split(characterToReplace).join("\xa0")
 				),
 				"renaming channel for space channels"
 			);

@@ -34,7 +34,7 @@ export const theirPerm = {
 		}
 		return (
 			info.error(
-				"You need permisison to `Manage Server` to use this command"
+				"You need permisison to `Manage Channels` to use this command"
 			) && false
 		);
 	},
@@ -50,7 +50,7 @@ export const theirPerm = {
 		}
 		return (
 			info.error(
-				"This command can only be used by the hoster of interpunct bot"
+				"This command can only be used by the hoster of interpunct bot (@pfg#4865)"
 			) && false
 		);
 	}
@@ -66,7 +66,7 @@ export const ourPerm = {
 		}
 		return (
 			info.error(
-				`${info.message.client.toString()} needs permisison to \`Manage Server\` to use this command.`
+				`${info.atme} needs permisison to \`Manage Server\` to use this command.`
 			) && false
 		);
 	},
@@ -79,7 +79,7 @@ export const ourPerm = {
 		}
 		return (
 			info.error(
-				`${info.message.client.toString()} needs permisison to \`Manage Server\` to use this command.`
+				`${info.atme} needs permisison to \`Manage Channels\` to use this command.`
 			) && false
 		);
 	}
@@ -105,6 +105,7 @@ export default class Info {
 	};
 	db?: Database;
 	member?: Discord.GuildMember | null;
+	prefix: string;
 	constructor(
 		message: Discord.Message,
 		other?: {
@@ -119,6 +120,13 @@ export default class Info {
 		this.member = message.member;
 		this.other = other;
 		this.db = this.guild ? new Database(this.guild.id) : undefined;
+		// start fetching prefix
+		this.prefix = "@inter·punct ";
+		if (this.db) {
+			this.db.getPrefix().then(prefix => (this.prefix = prefix));
+		} else {
+			this.prefix = "";
+		}
 	}
 	static get result() {
 		return result;
@@ -129,11 +137,8 @@ export default class Info {
 	static get ourPerm() {
 		return ourPerm;
 	}
-	get prefix() {
-		if (this.db) {
-			return this.db.getPrefix();
-		}
-		return "";
+	get atme() {
+		return this.message.client.user!.toString();
 	}
 	get authorChannelPerms() {
 		if (this.channel instanceof Discord.TextChannel) {
@@ -181,7 +186,7 @@ export default class Info {
 		...values: MessageParametersType
 	): MessageParametersType {
 		// In the future maybe adjust richembeds maybe probably not
-		return [type + values[0], values[1]];
+		return [`${type} ${values[0]}`, values[1]];
 	}
 	async _informMissingPermissions(
 		perm: Discord.PermissionString,
@@ -195,14 +200,21 @@ export default class Info {
 		const options = values[1];
 		// returns the message
 		const replyResult = await ilt(
-			this.message.reply(content, {
-				...options,
-				split: true
-			}),
+			this.message.channel.send(
+				`@${
+					this.message.member
+						? this.message.member.displayName
+						: this.message.author!.username
+				}, ${content}`,
+				{
+					...options,
+					split: true
+				}
+			),
 			"replying to message directly"
 		);
 		if (replyResult.result) {
-			return replyResult.result as Discord.Message[];
+			return (replyResult.result as unknown) as Discord.Message[];
 		}
 		if (!(this.db ? this.db.getPMOnFailure() : false)) {
 			// server does not have pmonfailure enabled. do nothing.

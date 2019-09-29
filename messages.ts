@@ -26,7 +26,7 @@ To add spaces to a channel, put dashes (\`-\`) where you want the spaces to go o
 \`\`\`
 ${info.prefix}space channels \`_\`
 \`\`\`
-> More Info: https://interpunct.info/spacing-channels`,
+> More Info: <https://interpunct.info/spacing-channels>`,
 			succeeded_spacing: (info: Info, channels: Discord.Channel[]) =>
 				`The channels ${channels
 					.map(c => c.toString())
@@ -45,23 +45,26 @@ ${info.prefix}space channels automatically
 					.join(", ")} now have spaces.
 The channels ${failedChannels
 					.map(c => c.toString())
-					.join(
-						", "
-					)} could not be given spaces. Maybe ${info.message.client.toString()} does not have permission to Manage Channels?
-If you wanted spaces in these channels, check the channel settings to see if ${info.message.client.toString()} has permission to manage them.
+					.join(", ")} could not be given spaces. Maybe ${
+					info.atme
+				} does not have permission to Manage Channels?
+If you wanted spaces in these channels, check the channel settings to see if ${
+					info.atme
+				} has permission to manage them.
 
-> Discord Support: https://support.discordapp.com/hc/en-us/articles/206029707-How-do-I-set-up-Permissions-
-> Command Help: https://interpunct.info/spacing-channels`,
+> Discord Support: <https://support.discordapp.com/hc/en-us/articles/206029707-How-do-I-set-up-Permissions->
+> Command Help: <https://interpunct.info/spacing-channels>`,
 			failed_spacing: (info: Info, failedChannels: Discord.Channel[]) =>
 				`The channels ${failedChannels
 					.map(c => c.toString())
-					.join(
-						", "
-					)} could not be given spaces. Maybe ${info.message.client.toString()} does not have permission to Manage Channels?
-If you wanted spaces in these channels, check the channel settings to see if ${info.message.client.toString()} has permission to manage them.
-
-> Discord Support: https://support.discordapp.com/hc/en-us/articles/206029707-How-do-I-set-up-Permissions-
-> Command Help: https://interpunct.info/spacing-channels`
+					.join(", ")} could not be given spaces. Maybe ${
+					info.atme
+				} does not have permission to Manage Channels?
+If you wanted spaces in these channels, check the channel settings to see if ${
+					info.atme
+				} has permission to manage them.
+> Discord Support: <https://support.discordapp.com/hc/en-us/articles/206029707-How-do-I-set-up-Permissions->
+> Command Help: <https://interpunct.info/spacing-channels>`
 		},
 		send_many: {
 			no_channels_tagged: (info: Info) =>
@@ -70,7 +73,7 @@ To send a message to multiple channels, tag every channel you want to send the m
 \`\`\`
 ${info.prefix}send: This is my great message! #rules #general
 \`\`\`
-> More Info: https://interpunct.info/sending-messages-to-multiple-channels`,
+> More Info: <https://interpunct.info/sending-messages-to-multiple-channels>`,
 			succeeded_sending: (info: Info, channels: Discord.Channel[]) =>
 				`Your message was sent to ${channels
 					.map(c => c.toString())
@@ -85,23 +88,25 @@ ${info.prefix}send: This is my great message! #rules #general
 					.join(", ")}.
 It could not be sent to ${failedChannels
 					.map(c => c.toString())
-					.join(
-						", "
-					)}. Maybe ${info.message.client.toString()} does not have permission to Read and Send Messages there?
-Check the channel settings to see if ${info.message.client.toString()} has permission to read and send messages.
-
-> Discord Support: https://support.discordapp.com/hc/en-us/articles/206029707-How-do-I-set-up-Permissions-
-> Command Help: https://interpunct.info/sending-messages-to-multiple-channels`,
+					.join(", ")}. Maybe ${
+					info.atme
+				} does not have permission to Read and Send Messages there?
+Check the channel settings to see if ${
+					info.atme
+				} has permission to read and send messages.
+> Discord Support: <https://support.discordapp.com/hc/en-us/articles/206029707-How-do-I-set-up-Permissions->
+> Command Help: <https://interpunct.info/sending-messages-to-multiple-channels>`,
 			failed_sending: (info: Info, failedChannels: Discord.Channel[]) =>
 				`Your message could not be sent to ${failedChannels
 					.map(c => c.toString())
-					.join(
-						", "
-					)}. Maybe ${info.message.client.toString()} does not have permission to Read and Send Messages there?
-Check the channel settings to see if ${info.message.client.toString()} has permission to read and send messages.
-
-> Discord Support: https://support.discordapp.com/hc/en-us/articles/206029707-How-do-I-set-up-Permissions-
-> Command Help: https://interpunct.info/sending-messages-to-multiple-channels`
+					.join(", ")}. Maybe ${
+					info.atme
+				} does not have permission to Read and Send Messages there?
+Check the channel settings to see if ${
+					info.atme
+				} has permission to read and send messages.
+> Discord Support: <https://support.discordapp.com/hc/en-us/articles/206029707-How-do-I-set-up-Permissions->
+> Command Help: <https://interpunct.info/sending-messages-to-multiple-channels>`
 		}
 	}
 };
