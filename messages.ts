@@ -17,8 +17,8 @@ Logging <https://interpunct.info/logging>
 Emojis <https://interpunct.info/emojis>
 > [\` \`] Restrict Emoji by Role: \`ip!emoji restrict \`<:emoji:628119879798489089>\` RoleID\`
 Fun <https://interpunct.info/fun>
-> [\` \`] Disable fun: \`ip!fun disable\` (Enabled by default)
-> [\` \`] Enable fun: \`ip!fun enable\`
+> [\` \`] Disable fun: \`ip!fun disable\`
+> [\` \`] Enable fun: \`ip!fun enable\` (Enabled by default)
 > [\`X\`] Play ping pong: \`ip!ping\`
 > [\` \`] Play minesweeper: \`ip!minesweeper\`
 Speedrun.com <https://interpunct.info/speedrun>
