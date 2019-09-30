@@ -273,19 +273,9 @@ export class TestHelper {
 
 	startBot(): Promise<void> {
 		console.log("--- Starting bot...");
-		this.botProcess = childProcess.spawn(
-			"yarn",
-			[
-				"nyc",
-				"--reporter=lcov",
-				"--reporter=text-summary",
-				"ts-node",
-				"."
-			],
-			{
-				cwd: path.join(__dirname, "..")
-			}
-		);
+		this.botProcess = childProcess.spawn("yarn", ["nyc", "node", "built"], {
+			cwd: path.join(__dirname, "..")
+		});
 		const botProcess = this.botProcess;
 		spawnedProcesses.push(botProcess);
 		return new Promise(resolve => {
@@ -320,6 +310,24 @@ export class TestHelper {
 }
 
 (async () => {
+	console.log("-- Compiling Code");
+	const compileCode = childProcess.spawn("yarn", ["tsc"], {
+		cwd: path.join(__dirname, "..")
+	});
+	spawnedProcesses.push(compileCode);
+	const datahandler = (data: Buffer) => {
+		console.log(
+			`------- Compiler: ${data
+				.toString()
+				.split("\n")
+				.join("\\n")}`
+		);
+	};
+	compileCode.stdout!.on("data", datahandler);
+	compileCode.stderr!.on("data", datahandler);
+	await new Promise<void>((r, re) => compileCode.on("exit", () => r()));
+	console.log("-- Ready");
+
 	let exitCode = 0;
 	const adminClient = new Discord.Client();
 	adminClient.login(config.rolegiverToken);

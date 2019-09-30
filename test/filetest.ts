@@ -122,7 +122,7 @@ const actions: {
 				  })()
 				: mode === "preset"
 				? await (async () => {
-						return process.argv[3].split("\n");
+						return process.argv[3].split("\\n");
 				  })()
 				: await (async () => {
 						return readline.createInterface({

@@ -42,6 +42,10 @@ import { EventEmitter } from "events"; // TODO add a thing for warning people li
 import * as fs from "mz/fs";
 import Database from "./src/Database";
 
+try {
+	fs.mkdirSync(path.join(__dirname, `logs`));
+} catch (e) {}
+
 const router = new Router<Info, any>();
 
 const production = process.env.NODE_ENV === "production";
