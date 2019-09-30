@@ -136,7 +136,7 @@ const actions: {
 		const realLog = global.console.log;
 		const preContinue = () => {
 			global.console.log = realLog;
-			process.stdout.write("test> ");
+			mode === "repl" && process.stdout.write("test> ");
 		};
 
 		const linesForOutput: string[] = [];
