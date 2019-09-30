@@ -10,7 +10,15 @@ startBot
 myDefaultPerms
 
 watch
-send #test_one: ip!space channels
+	send #test_one: ip!send: my message #[test_one] #[test-two]
+test
+!! [
+!! 	"MSG #test_one: testbot: ip!send: my message #test_one #test-two",
+!! 	"MSG #test_one: botdev: @testbot, ❌ You need permisison to `Manage Channels` to use this command"
+!! ]
+
+watch
+	send #test_one: ip!space channels
 test
 !! [
 !! 	"MSG #test_one: testbot: ip!space channels",
@@ -20,7 +28,7 @@ test
 myPerm MANAGE_CHANNELS
 
 watch
-send #test_one: ip!space channels
+	send #test_one: ip!space channels
 test
 !! [
 !! 	"MSG #test_one: testbot: ip!space channels",
@@ -30,7 +38,17 @@ test
 permission MANAGE_CHANNELS
 
 watch
-send #test_one: ip!space channels
+	send #test_one: ip!send: my message #[test_one] #[test-two]
+test
+!! [
+!! 	"MSG #test_one: testbot: ip!send: my message #test_one #test-two",
+!! 	"MSG #test_one: botdev: my message",
+!! 	"MSG #test-two: botdev: my message",
+!! 	"MSG #test_one: botdev: @testbot, ✅ Your message was sent to #test_one, #test-two."
+!! ]
+
+watch
+	send #test_one: ip!space channels
 test
 !! [
 !! 	"MSG #test_one: testbot: ip!space channels",
@@ -39,9 +57,10 @@ test
 !! ]
 
 watch
-send #test_one: ip!space channels `_`
+	send #test_one: ip!space channels `_`
 test
 !! [
 !! 	"MSG #test_one: testbot: ip!space channels `_`",
-!! 	"MSG #test_one: botdev: @testbot, ❌ **There are no channels to put spaces in!**\nTo add spaces to a channel, put dashes (`-`) where you want the spaces to go or replace a custom character using\n```\nip!space channels `_`\n```\n> More Info: <https://interpunct.info/spacing-channels>"
+!! 	"CHANNEL #test_one -> #test one",
+!! 	"MSG #test one: botdev: @testbot, ✅ The channels #test one now have spaces.\nIf you want channels to automatically have spaces in the future, use\n```\nip!space channels automatically\n```"
 !! ]

@@ -67,7 +67,12 @@ const actions: {
 	},
 	async send(t, args, rewrite) {
 		let [channelName, ...messageArr] = args.split(": ");
-		const message = messageArr.join(": ");
+		let message = messageArr.join(": ");
+		for (const channel of t.adminGuild.channels.array()) {
+			message = message
+				.split(`#[${channel.name}]`)
+				.join(channel.toString());
+		}
 		if (!channelName.startsWith("#")) {
 			throw new Error(`Channel name does not start with #`);
 		}
