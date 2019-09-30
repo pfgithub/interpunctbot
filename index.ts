@@ -39,11 +39,11 @@ global.__basedir = __dirname;
 
 import { EventEmitter } from "events"; // TODO add a thing for warning people like $warn [person] and have it be like 1 warning fine 2 warnings tempmute 3 warnings...and customizeable
 
-import * as fs from "mz/fs";
+import { promises as fs, mkdirSync } from "fs";
 import Database from "./src/Database";
 
 try {
-	fs.mkdirSync(path.join(__dirname, `logs`));
+	mkdirSync(path.join(__dirname, `logs`));
 } catch (e) {}
 
 const router = new Router<Info, any>();
@@ -258,8 +258,6 @@ router.add([], async (cmd, info) => {
 		);
 	} // else do nothing
 });
-
-fs.readdirSync(path.join(__dirname, "src/commands"));
 
 const serverInfo = {};
 
