@@ -93,6 +93,7 @@ export class TestHelper {
 	private mostRecentEvents: any[];
 	private noEventsTimeout?: NodeJS.Timeout; // on(event) clearTimeout(..) setTimeout(..)
 	private noEventsCallback?: (events: any[]) => void;
+	private watchEvents: boolean;
 
 	private botProcess?: childProcess.ChildProcess;
 
@@ -111,6 +112,7 @@ export class TestHelper {
 		this.botInteractionGuild = botInteractionGuild;
 
 		this.mostRecentEvents = [];
+		this.watchEvents = false;
 
 		const resetTimeout = () => {
 			if (this.noEventsTimeout) {
@@ -121,6 +123,7 @@ export class TestHelper {
 					this.noEventsCallback(this.mostRecentEvents);
 					this.mostRecentEvents = [];
 					this.noEventsTimeout = undefined;
+					this.watchEvents = false;
 				} else {
 					console.log(
 						`Tried to report ${this.mostRecentEvents.length} events but there was no events callback. These events will be reported later.`
@@ -129,6 +132,9 @@ export class TestHelper {
 			}, 2000);
 		};
 		this.adminClient.on("message", message => {
+			if (!this.watchEvents) {
+				return;
+			}
 			if (message.channel.type === "dm") {
 				this.mostRecentEvents.push(
 					`DM TO=${
@@ -146,6 +152,17 @@ export class TestHelper {
 			);
 			resetTimeout();
 		});
+		this.adminClient.on("channelUpdate", (fromChannel, toChannel) => {
+			if (!this.watchEvents) {
+				return;
+			}
+			this.mostRecentEvents.push(
+				`CHANNEL #${(fromChannel as Discord.TextChannel).name} -> #${
+					(toChannel as Discord.TextChannel).name
+				}`
+			);
+			resetTimeout();
+		});
 	}
 
 	events(): Promise<any[]> {
@@ -154,6 +171,10 @@ export class TestHelper {
 		return new Promise((r, re) => {
 			this.noEventsCallback = ev => r(ev);
 		});
+	}
+
+	async startWatchingEvents() {
+		this.watchEvents = true;
 	}
 
 	async createChannels<ChannelNames extends (ChannelNameType)[]>(

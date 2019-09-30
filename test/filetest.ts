@@ -80,6 +80,10 @@ const actions: {
 		}
 		await (channel as Discord.TextChannel).send(message);
 	},
+	async watch(t, args, rewrite) {
+		await t.startWatchingEvents();
+		// ^^ make sure to remove the !! below this line somehowW
+	},
 	async test(t, args, rewrite) {
 		const events = await t.events();
 		rewrite(

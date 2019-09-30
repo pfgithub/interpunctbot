@@ -9,6 +9,7 @@ startBot
 
 myDefaultPerms
 
+watch
 send #test_one: ip!space channels
 test
 !! [
@@ -18,6 +19,7 @@ test
 
 myPerm MANAGE_CHANNELS
 
+watch
 send #test_one: ip!space channels
 test
 !! [
@@ -27,9 +29,19 @@ test
 
 permission MANAGE_CHANNELS
 
+watch
 send #test_one: ip!space channels
 test
 !! [
 !! 	"MSG #test_one: testbot: ip!space channels",
+!! 	"CHANNEL #test-two -> #test two",
 !! 	"MSG #test_one: botdev: @testbot, ✅ The channels #test two now have spaces.\nIf you want channels to automatically have spaces in the future, use\n```\nip!space channels automatically\n```"
+!! ]
+
+watch
+send #test_one: ip!space channels `_`
+test
+!! [
+!! 	"MSG #test_one: testbot: ip!space channels `_`",
+!! 	"MSG #test_one: botdev: @testbot, ❌ **There are no channels to put spaces in!**\nTo add spaces to a channel, put dashes (`-`) where you want the spaces to go or replace a custom character using\n```\nip!space channels `_`\n```\n> More Info: <https://interpunct.info/spacing-channels>"
 !! ]
