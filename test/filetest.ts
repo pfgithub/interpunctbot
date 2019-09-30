@@ -1,6 +1,7 @@
 import { promises as fs } from "fs";
 import * as path from "path";
 import * as Discord from "discord.js";
+import * as readline from "readline";
 import { test, TestHelper, PermissionRoleName } from ".";
 
 const actions: {
@@ -12,6 +13,14 @@ const actions: {
 		  ) => Promise<void>)
 		| undefined;
 } = {
+	async help(t, args, rewrite) {
+		console.log(
+			Object.keys(actions)
+				.sort()
+				.map(a => `- ${a}`)
+				.join("\n")
+		);
+	},
 	async reset(t, args, rewrite) {
 		await t.resetAll();
 	},
@@ -53,6 +62,9 @@ const actions: {
 	async startBot(t, args, rewrite) {
 		await t.startBot();
 	},
+	async exit(t, args, rewrite) {
+		process.exit(0);
+	},
 	async send(t, args, rewrite) {
 		let [channelName, ...messageArr] = args.split(": ");
 		const message = messageArr.join(": ");
@@ -66,7 +78,7 @@ const actions: {
 		if (!channel) {
 			throw new Error(`Could not find channel with name #${channelName}`);
 		}
-		(channel as Discord.TextChannel).send(message);
+		await (channel as Discord.TextChannel).send(message);
 	},
 	async test(t, args, rewrite) {
 		const events = await t.events();
@@ -81,28 +93,58 @@ const actions: {
 };
 
 (async () => {
-	const infileName = "channels.test";
+	const providedMode = process.argv[2] || "repl";
+
+	const infileName = providedMode;
+	const infilePath = path.join(__dirname, infileName);
+
+	const mode: "file" | "repl" = providedMode === "repl" ? "repl" : "file";
+
+	const exitOnFailure = false;
 
 	test(infileName, async t => {
-		const infilePath = path.join(__dirname, infileName);
-		const infile = await fs.readFile(infilePath, "utf-8");
+		const lineList =
+			mode === "file"
+				? await (async () => {
+						const infile = await fs.readFile(infilePath, "utf-8");
+
+						return infile
+							.split("\n")
+							.filter(line => !line.startsWith("!!"));
+				  })()
+				: await (async () => {
+						return readline.createInterface({
+							input: process.stdin,
+							output: process.stdout,
+							prompt: "test> "
+						});
+				  })();
 
 		let lineNumber = 0;
-		const inLines = infile
-			.split("\n")
-			.filter(line => !line.startsWith("!!"));
-		for (const lineIn of inLines) {
+		const realLog = global.console.log;
+		const preContinue = () => {
+			global.console.log = realLog;
+			process.stdout.write("test> ");
+		};
+
+		const linesForOutput: string[] = [];
+
+		preContinue();
+		for await (const lineIn of lineList) {
 			lineNumber++;
 			const i = lineNumber - 1;
+			linesForOutput.push(lineIn);
 
 			// ---
 
 			const line = lineIn.trim();
 			const startTime = new Date().getTime();
 			if (!line) {
+				preContinue();
 				continue;
 			}
 			if (line.startsWith("//")) {
+				preContinue();
 				continue;
 			}
 			// maybe:
@@ -127,24 +169,36 @@ const actions: {
 
 			const action = actions[actionName];
 			if (!action) {
-				throw new Error(`Action named ${actionName} does not exist.`);
+				console.log(
+					`${lineNumber}: Action named ${actionName} does not exist.`
+				);
+				if (exitOnFailure) {
+					process.exit(1);
+				} else {
+					linesForOutput[i] = `// error: ${line}`;
+				}
+				preContinue();
+				continue;
 			}
 			try {
 				await action(t, args, async (newValue: string) => {
-					inLines[i] = newValue;
+					linesForOutput[i] = newValue;
+					console.log(newValue);
 				});
 			} catch (e) {
-				// eslint-disable-next-line require-atomic-updates
-				global.console.log = realLog;
 				console.log(`${lineNumber}: Error! ${e.toString()}`);
-				throw e;
+				if (exitOnFailure) {
+					process.exit(1);
+				} else {
+					//eslint-disable-next-line require-atomic-updates
+					linesForOutput[i] = `// error: ${line}`;
+				}
 			}
-			// eslint-disable-next-line require-atomic-updates
-			global.console.log = realLog;
 			const endTime = new Date().getTime();
 			console.log(`\t  Done in ${endTime - startTime} ms.`);
+			preContinue();
 		}
-		const resultText = inLines.join("\n");
+		const resultText = linesForOutput.join("\n");
 		await fs.writeFile(infilePath, resultText, "utf-8");
 	});
 })();

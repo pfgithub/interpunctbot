@@ -134,9 +134,7 @@ export class TestHelper {
 					`DM TO=${
 						(message.channel as Discord.DMChannel).recipient
 							.username
-					}: ${
-						message.author!.username
-					}: ${message.content.toString()}`
+					}: ${message.author!.username}: ${message.cleanContent}`
 				);
 				resetTimeout();
 				return;
@@ -144,7 +142,7 @@ export class TestHelper {
 			this.mostRecentEvents.push(
 				`MSG #${(message.channel as Discord.TextChannel).name}: ${
 					message.member!.displayName
-				}: ${message.content.toString()}`
+				}: ${message.cleanContent}`
 			);
 			resetTimeout();
 		});
