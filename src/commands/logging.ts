@@ -1,6 +1,6 @@
 import Router from "commandrouter";
 import { MessageAttachment } from "discord.js";
-import * as fs from "mz/fs";
+import { promises as fs } from "fs";
 import * as path from "path";
 import Info from "../Info";
 
