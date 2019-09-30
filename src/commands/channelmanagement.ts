@@ -36,7 +36,7 @@ router.add(
 	async (cmd, info) => {
 		if (!info.guild || !info.db) {
 			return info.error(
-				messages.general.command_cannot_be_used_in_pms(info)
+				messages.failure.command_cannot_be_used_in_pms(info)
 			);
 		}
 		info.db.setAutospaceChannels(true);
@@ -54,7 +54,7 @@ router.add(
 	async (cmd, info) => {
 		if (!info.guild || !info.db) {
 			return info.error(
-				messages.general.command_cannot_be_used_in_pms(info)
+				messages.failure.command_cannot_be_used_in_pms(info)
 			);
 		}
 		info.db.setAutospaceChannels(false);
@@ -69,7 +69,7 @@ router.add(
 		const guild = info.guild;
 		if (!guild) {
 			return info.error(
-				messages.general.command_cannot_be_used_in_pms(info)
+				messages.failure.command_cannot_be_used_in_pms(info)
 			);
 		}
 		const characterToReplace = (cmd.match(/^[\s\S]+`(.+?)`/) ||

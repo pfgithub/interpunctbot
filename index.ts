@@ -18,8 +18,9 @@ import MB from "./src/MessageBuilder";
 import * as request from "request";
 import Router from "commandrouter";
 import Info from "./src/Info";
+import { messages } from "./messages";
 
-import ping from "./src/commands/ping";
+import fun from "./src/commands/fun";
 import speedrun from "./src/commands/speedrun";
 import logging from "./src/commands/logging";
 import channelsRouter from "./src/commands/channelmanagement";
@@ -59,7 +60,7 @@ function devlog(...msg: any) {
 }
 
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!usage.add("settings", require("./src/commands/settings"));
-router.add("ping", [], ping);
+router.add([], fun);
 router.add([], channelsRouter);
 router.add([], speedrun);
 router.add("log", [Info.theirPerm.manageBot], logging);
@@ -124,6 +125,9 @@ depricate("spaceChannels", "channels spacing", "2.0"); // 1.0 -> 2.0
 reroute("invite", "about", "2.0");
 
 router.add("about", [], aboutRouter);
+router.add("help", [], (cmd, info, next) => {
+	info.result(messages.help(info));
+});
 
 reroute("downloadLog", "log download", "2.0");
 reroute("resetLog", "log reset", "2.0");

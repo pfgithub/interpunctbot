@@ -2,10 +2,48 @@ import Info from "./src/Info";
 import * as Discord from "discord.js";
 
 export const messages = {
+	help: (info: Info) =>
+		`**inter\u00B7punct help**
+> Finding Role IDs: <https://interpunct.info/role-id>
+Channels <https://interpunct.info/channels>
+> [\`X\`] Replace Dashes with Spaces: \`ip!space channels\`
+> [\` \`] Pin Message: \`prefix!pin messagelink/id\` (Get a Message Link or ID by right clicking/long tapping a message and selecting Copy ...)
+> [\`X\`] Sending a message to multiple channels: \`ip!send: My message #channel-one #channel-two\`
+Logging <https://interpunct.info/logging>
+> [\`X\`] Enable message logging: \`ip!logging enable\`
+> [\`X\`] Download message log: \`ip!log download\` (The log file will be attached for anyone to donwload.)
+> [\`X\`] Clear log: \`ip!log reset\`
+> [\`X\`] Disable logging: \`ip!log disable\` (Any existing logs will be deleted)
+Emojis <https://interpunct.info/emojis>
+> [\` \`] Restrict Emoji by Role: \`ip!emoji restrict \`<:emoji:628119879798489089>\` RoleID\`
+Fun <https://interpunct.info/fun>
+> [\` \`] Disable fun: \`ip!fun disable\` (Enabled by default)
+> [\` \`] Enable fun: \`ip!fun enable\`
+> [\`X\`] Play ping pong: \`ip!ping\`
+> [\` \`] Play minesweeper: \`ip!minesweeper\`
+Speedrun.com <https://interpunct.info/speedrun>
+> [\` \`] Show WR: \`ip!wr\`
+> [\` \`] Show Rules: \`ip!speedrun rules CategoryName%\`
+> [\` \`] Set Game on speedrun.com: \`ip!speedrun set https://www.speedrun.com/yourgame%\`
+Quotes and Lists <https://interpunct.info/lists>
+> [\` \`] Create List: \`ip!lists add listname https://pastebin.com/\`
+> [\` \`] View List: \`ip!listname [optional "single"] [optional search term] [optional number]\`
+Configuration <https://interpunct.info/configuration>
+> [\` \`] Error messages: \`ip!settings errors show|hide\` (Default show)
+> [\` \`] PM Errors: \`ip!settings pm on|off\` (Default on)
+> [\` \`] Set Prefix: \`ip!settings prefix newprefix\` (Default \`ip!\`)
+Server Info
+> inter·punct prefix: \`ip!\`
+> If the prefix is broken, you can use ${info.atme} as a prefix instead.
+Bot Info
+> Website: <https://interpunct.info>
+> Support Server: <https://discord.gg/e7BmyqD>`
+			.split("ip!")
+			.join(info.prefix),
 	emoji: {
 		failure: "<:failure_2:547081084710682643>"
 	},
-	general: {
+	failure: {
 		command_cannot_be_used_in_pms: (info: Info) =>
 			`This command cannot be used in PMs!`
 	},
@@ -17,6 +55,13 @@ ${info.prefix}space channels disable
 \`\`\``,
 		autospace_disabled: (info: Info) =>
 			`Channels will no longer have spaces added to their names.`
+	},
+	fun: {
+		fun_disabled: (info: Info) => `Fun is not allowed on this server.`,
+		ping: (info: Info) => `<a:pingpong:482012177725653003>
+> Took ${new Date().getTime() - info.other!.startTime}ms, handling ${
+			info.other!.infoPerSecond
+		} db requests per second`
 	},
 	channels: {
 		spacing: {

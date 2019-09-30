@@ -41,6 +41,7 @@ type Fields = {
 	welcome?: string;
 	goodbye?: string;
 	pmonfailure?: string;
+	funEnabled?: string;
 };
 
 type JSONFields = {
@@ -53,6 +54,7 @@ type BooleanFields = {
 	failedPrecheckMessages: boolean;
 	channel_spacing: boolean;
 	pmonfailure: boolean;
+	funEnabled: boolean;
 };
 
 type ListsField = { [key: string]: string };
@@ -230,6 +232,12 @@ class Database {
 	}
 	async setPMOnFailure(value: boolean) {
 		return await this._setBool("pmonfailure", value);
+	}
+	async getFunEnabled() {
+		return await this._getBool("funEnabled", true);
+	}
+	async setFunEnabled(value: boolean) {
+		return await this._setBool("funEnabled", value);
 	}
 	// async getSpeedrun() {
 	// 	return await this._getJson("speedrunv2");
