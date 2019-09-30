@@ -93,14 +93,22 @@ const actions: {
 };
 
 (async () => {
-	const providedMode = process.argv[2] || "repl";
+	let providedMode = process.argv[2] || "repl";
+	if (providedMode === "-c") {
+		providedMode = "preset";
+	}
 
 	const infileName = providedMode;
 	const infilePath = path.join(__dirname, infileName);
 
-	const mode: "file" | "repl" = providedMode === "repl" ? "repl" : "file";
+	const mode: "file" | "repl" | "preset" =
+		providedMode === "repl"
+			? "repl"
+			: providedMode === "preset"
+			? "preset"
+			: "file";
 
-	const exitOnFailure = false;
+	const exitOnFailure = mode !== "repl";
 
 	test(infileName, async t => {
 		const lineList =
@@ -111,6 +119,10 @@ const actions: {
 						return infile
 							.split("\n")
 							.filter(line => !line.startsWith("!!"));
+				  })()
+				: mode === "preset"
+				? await (async () => {
+						return process.argv[3].split("\n");
 				  })()
 				: await (async () => {
 						return readline.createInterface({

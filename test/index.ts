@@ -273,9 +273,19 @@ export class TestHelper {
 
 	startBot(): Promise<void> {
 		console.log("--- Starting bot...");
-		this.botProcess = childProcess.spawn("ts-node", ["."], {
-			cwd: path.join(__dirname, "..")
-		});
+		this.botProcess = childProcess.spawn(
+			"yarn",
+			[
+				"nyc",
+				"--reporter=lcov",
+				"--reporter=text-summary",
+				"ts-node",
+				"."
+			],
+			{
+				cwd: path.join(__dirname, "..")
+			}
+		);
 		const botProcess = this.botProcess;
 		spawnedProcesses.push(botProcess);
 		return new Promise(resolve => {
