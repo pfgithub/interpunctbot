@@ -108,10 +108,14 @@ router.add(
 
 		if (failureChannels.length === 0) {
 			return info.success(
-				messages.channels.spacing.succeeded_spacing(
+				`${messages.channels.spacing.succeeded_spacing(
 					info,
 					successChannels
-				)
+				)}\n${
+					(await info.db!.getAutospaceChannels())
+						? messages.channels.spacing.autospace_info_on(info)
+						: messages.channels.spacing.autospace_info_off(info)
+				}`
 			);
 		}
 		if (successChannels.length === 0) {

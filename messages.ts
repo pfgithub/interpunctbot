@@ -10,10 +10,10 @@ Channels <https://interpunct.info/channels>
 > [\` \`] Pin Message: \`prefix!pin messagelink/id\` (Get a Message Link or ID by right clicking/long tapping a message and selecting Copy ...)
 > [\`X\`] Sending a message to multiple channels: \`ip!send: My message #channel-one #channel-two\`
 Logging <https://interpunct.info/logging>
-> [\`X\`] Enable message logging: \`ip!logging enable\`
-> [\`X\`] Download message log: \`ip!log download\` (The log file will be attached for anyone to donwload.)
-> [\`X\`] Clear log: \`ip!log reset\`
-> [\`X\`] Disable logging: \`ip!log disable\` (Any existing logs will be deleted)
+> [\` \`] Enable message logging: \`ip!logging enable\`
+> [\` \`] Download message log: \`ip!log download\` (The log file will be attached for anyone to donwload.)
+> [\` \`] Clear log: \`ip!log reset\`
+> [\` \`] Disable logging: \`ip!log disable\` (Any existing logs will be deleted)
 Emojis <https://interpunct.info/emojis>
 > [\` \`] Restrict Emoji by Role: \`ip!emoji restrict \`<:emoji:628119879798489089>\` RoleID\`
 Fun <https://interpunct.info/fun>
@@ -75,11 +75,11 @@ ${info.prefix}space channels \`_\`
 			succeeded_spacing: (info: Info, channels: Discord.Channel[]) =>
 				`The channels ${channels
 					.map(c => c.toString())
-					.join(", ")} now have spaces.
-If you want channels to automatically have spaces in the future, use
-\`\`\`
-${info.prefix}space channels automatically
-\`\`\``,
+					.join(", ")} now have spaces.`,
+			autospace_info_off: (info: Info) =>
+				`> If you want channels to automatically have spaces in the future, use \`${info.prefix}space channels automatically\``,
+			autospace_info_on: (info: Info) =>
+				`Channels should be given spaces automatically because you have \`ip!space channels enable\`d.`,
 			partially_succeeded_spacing: (
 				info: Info,
 				channels: Discord.Channel[],
