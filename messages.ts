@@ -26,14 +26,14 @@ Speedrun.com <https://interpunct.info/speedrun>
 > [\` \`] Show Rules: \`ip!speedrun rules CategoryName%\`
 > [\` \`] Set Game on speedrun.com: \`ip!speedrun set https://www.speedrun.com/yourgame%\`
 Quotes and Lists <https://interpunct.info/lists>
-> [\` \`] Create List: \`ip!lists add listname https://pastebin.com/\`
-> [\` \`] Edit List: \`ip!lists edit listname https://pastebin.com/\`
-> [\` \`] Remove List: \`ip!lists remove listname\`
-> [\` \`] List Lists: \`ip!lists list\`
+> [\`X\`] Create List: \`ip!lists add listname https://pastebin.com/\`
+> [\`X\`] Edit List: \`ip!lists edit listname https://pastebin.com/\`
+> [\`X\`] Remove List: \`ip!lists remove listname\`
+> [\`X\`] List Lists: \`ip!lists list\`
 ${Object.keys(lists)
 	.map(
 		l =>
-			`> [\`x\`] View ${l}: \`ip!${l} [optional "single"] [optional search term] [optional number]\``
+			`> [\`X\`] View ${l}: \`ip!${l} [optional "single"] [optional search term] [optional number]\``
 	)
 	.join("\n")}
 Configuration <https://interpunct.info/configuration>
