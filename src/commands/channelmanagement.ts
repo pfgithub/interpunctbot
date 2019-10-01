@@ -1,4 +1,4 @@
-import { Message, Guild, Channel } from "discord.js";
+import { Message, Guild, Channel, GuildChannel } from "discord.js";
 import Router from "commandrouter";
 import Info from "../Info";
 import { ilt } from "../..";
@@ -39,8 +39,14 @@ router.add(
 				messages.failure.command_cannot_be_used_in_pms(info)
 			);
 		}
-		info.db.setAutospaceChannels(true);
-		return info.success(messages.settings.autospace_enabled(info));
+		await info.db.setAutospaceChannels(true);
+		/*async*/ info.success(messages.settings.autospace_enabled(info));
+
+		// space now
+		const channelsToSpaceNow = findChannelsRequireSpacing(info.guild, "-");
+		for (const channel of channelsToSpaceNow) {
+			await spaceChannel(channel, "-");
+		}
 	}
 );
 
@@ -62,6 +68,42 @@ router.add(
 	}
 );
 
+export function findChannelsRequireSpacing(
+	guild: Guild,
+	characterToReplace: string
+) {
+	return guild.channels
+		.array()
+		.filter(chan => doesChannelRequireSpacing(chan, characterToReplace));
+}
+
+export function doesChannelRequireSpacing(
+	chan: GuildChannel,
+	characterToReplace: string
+) {
+	return (
+		chan.name.indexOf(characterToReplace) > -1 &&
+		chan.type !== "voice" &&
+		chan.type !== "category"
+	);
+}
+
+export async function spaceChannel(
+	channel: GuildChannel,
+	characterToReplace: string
+) {
+	if (!doesChannelRequireSpacing(channel, characterToReplace)) {
+		return {
+			error: new Error("Channel does not need spacing"),
+			result: undefined
+		};
+	}
+	return await ilt(
+		channel.setName(channel.name.split(characterToReplace).join("\u2005")),
+		"renaming channel for space channels"
+	);
+}
+
 router.add(
 	"space channels",
 	[Info.theirPerm.manageChannels, Info.ourPerm.manageChannels],
@@ -74,14 +116,10 @@ router.add(
 		}
 		const characterToReplace = (cmd.match(/^[\s\S]*`(.+?)`/) ||
 			([, "-"] as const))[1];
-		const channelsNeedUpdating = guild.channels
-			.array()
-			.filter(
-				chan =>
-					chan.name.indexOf(characterToReplace) > -1 &&
-					chan.type !== "voice" &&
-					chan.type !== "category"
-			);
+		const channelsNeedUpdating = findChannelsRequireSpacing(
+			guild,
+			characterToReplace
+		);
 
 		if (channelsNeedUpdating.length <= 0) {
 			return info.error(
@@ -89,15 +127,13 @@ router.add(
 			);
 		}
 
-		const successChannels: Channel[] = [];
-		const failureChannels: Channel[] = [];
+		const successChannels: GuildChannel[] = [];
+		const failureChannels: GuildChannel[] = [];
 
 		for (const channel of channelsNeedUpdating) {
-			const setNameResult = await ilt(
-				channel.setName(
-					channel.name.split(characterToReplace).join("\u2005")
-				),
-				"renaming channel for space channels"
+			const setNameResult = await spaceChannel(
+				channel,
+				characterToReplace
 			);
 			if (setNameResult.error) {
 				failureChannels.push(channel);

@@ -23,7 +23,11 @@ import { messages } from "./messages";
 import fun from "./src/commands/fun";
 import speedrun from "./src/commands/speedrun";
 import logging from "./src/commands/logging";
-import channelsRouter from "./src/commands/channelmanagement";
+import channelsRouter, {
+	findChannelsRequireSpacing,
+	doesChannelRequireSpacing,
+	spaceChannel
+} from "./src/commands/channelmanagement";
 import aboutRouter from "./src/commands/about";
 import quoteRouter from "./src/commands/quote";
 
@@ -381,25 +385,21 @@ bot.on("guildMemberRemove", async member => {
 	}
 });
 
-bot.on("channelCreate", async (newC: GuildChannel) => {
-	const db = new Database(newC.guild.id);
+async function spaceChannelIfNecessary(channel: GuildChannel) {
+	const db = new Database(channel.guild.id);
 	if (await db.getAutospaceChannels()) {
-		const newName = newC.name.split("-").join("\u0020");
-		if (newC.name !== newName) {
-			newC.setName(newName);
-		} // nbsp
+		if (doesChannelRequireSpacing(channel, "-")) {
+			await spaceChannel(channel, "-");
+		}
 	}
-});
+}
 
-bot.on("channelCreate", async (_oldC: GuildChannel, newC: GuildChannel) => {
-	const db = new Database(newC.guild.id);
-	if (await db.getAutospaceChannels()) {
-		const newName = newC.name.split("-").join("\u0020");
-		if (newC.name !== newName) {
-			newC.setName(newName);
-		} // nbsp
-	}
-});
+bot.on("channelCreate", async (newC: GuildChannel) =>
+	spaceChannelIfNecessary(newC)
+);
+bot.on("channelUpdate", async (_oldC: GuildChannel, newC: GuildChannel) =>
+	spaceChannelIfNecessary(newC)
+);
 
 function logMsg({ msg, prefix }: { msg: Message; prefix: string }) {
 	if (msg.guild) {

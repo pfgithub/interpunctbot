@@ -41,6 +41,24 @@ const actions: {
 		}
 		await t.createChannels({ type: channelType, name: channelName });
 	},
+	async renameChannel(t, args, rewrite) {
+		const [originalName, newName] = args.split(" ");
+		if (originalName[0] !== "#") {
+			throw new Error(`Channel name does not start with #`);
+		}
+		if (newName[0] !== "#") {
+			throw new Error(`Channel name does not start with #`);
+		}
+		const channelName = originalName.substr(1);
+		const newChannelName = newName.substr(1);
+		const channel = t.botInteractionGuild.channels.find(
+			c => c.name === channelName
+		);
+		if (!channel) {
+			throw new Error(`Channel ${channelName} not in guild`);
+		}
+		await channel.setName(newChannelName);
+	},
 	async defaultPermissions(t, args, rewrite) {
 		await t.basePermissions("ipbot");
 	},
