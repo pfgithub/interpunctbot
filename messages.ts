@@ -30,6 +30,8 @@ export const messages = {
 > Finding Role IDs: <https://interpunct.info/role-id>
 Channels <https://interpunct.info/channels>
 > [\`X\`] Replace Dashes with Spaces: \`ip!space channels\`
+> [\`X\`] Automatically put spaces in channel names: \`ip!space channels automatically\` (Off by default)
+> [\`X\`] Stop putting spaces in channel names: \`ip!space channels disable\`
 > [\` \`] Pin Message: \`prefix!pin messagelink/id\` (Get a Message Link or ID by right clicking/long tapping a message and selecting Copy ...)
 > [\`X\`] Sending a message to multiple channels: \`ip!send: My message #channel-one #channel-two\`
 Logging <https://interpunct.info/logging>
