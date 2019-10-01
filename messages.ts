@@ -2,7 +2,7 @@ import Info from "./src/Info";
 import * as Discord from "discord.js";
 
 export const messages = {
-	help: (info: Info) =>
+	help: (info: Info, lists: { [key: string]: string }) =>
 		`**inter\u00B7punct help**
 > Finding Role IDs: <https://interpunct.info/role-id>
 Channels <https://interpunct.info/channels>
@@ -27,7 +27,15 @@ Speedrun.com <https://interpunct.info/speedrun>
 > [\` \`] Set Game on speedrun.com: \`ip!speedrun set https://www.speedrun.com/yourgame%\`
 Quotes and Lists <https://interpunct.info/lists>
 > [\` \`] Create List: \`ip!lists add listname https://pastebin.com/\`
-> [\` \`] View List: \`ip!listname [optional "single"] [optional search term] [optional number]\`
+> [\` \`] Edit List: \`ip!lists edit listname https://pastebin.com/\`
+> [\` \`] Remove List: \`ip!lists remove listname\`
+> [\` \`] List Lists: \`ip!lists list\`
+${Object.keys(lists)
+	.map(
+		l =>
+			`> [\`x\`] View ${l}: \`ip!${l} [optional "single"] [optional search term] [optional number]\``
+	)
+	.join("\n")}
 Configuration <https://interpunct.info/configuration>
 > [\` \`] Error messages: \`ip!settings errors show|hide\` (Default show)
 > [\` \`] PM Errors: \`ip!settings pm on|off\` (Default on)

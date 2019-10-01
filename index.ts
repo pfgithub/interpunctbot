@@ -125,8 +125,10 @@ depricate("spaceChannels", "channels spacing", "2.0"); // 1.0 -> 2.0
 reroute("invite", "about", "2.0");
 
 router.add("about", [], aboutRouter);
-router.add("help", [], (cmd, info, next) => {
-	info.result(messages.help(info));
+router.add("help", [], async (cmd, info, next) => {
+	await info.result(
+		messages.help(info, info.db ? await info.db.getLists() : {})
+	);
 });
 
 reroute("downloadLog", "log download", "2.0");

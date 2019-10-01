@@ -116,7 +116,7 @@ const settingsRouter = new Router<Info, any>();
 router.add([], settingsRouter);
 
 settingsRouter.add(
-	"list lists",
+	"lists list",
 	[Info.theirPerm.manageBot],
 	async (cmd, info, next) => {
 		await info.startLoading();
@@ -133,7 +133,7 @@ settingsRouter.add(
 );
 
 function parsePastebinURL(url: string = "") {
-	const match = url.match(/^.+([A-Za-z0-9]{8})/);
+	const match = url.match(/^.*([A-Za-z0-9]{8})/);
 	if (!match) {
 		return undefined;
 	}
@@ -199,36 +199,48 @@ async function addOrEditList(add: boolean, cmd: string, info: Info) {
 	);
 }
 
-settingsRouter.add("lists add", [], async (cmd, info) => {
-	// if lists.length > 3 say "your list limit has been reached, join the support server in `about` and ask to increase it"
-	return await addOrEditList(true, cmd, info);
-});
-
-settingsRouter.add("lists edit", [], async (cmd, info) => {
-	// there's not much purpose to a distinction between add and edit...
-	return await addOrEditList(false, cmd, info);
-});
-
-settingsRouter.add("lists remove", [], async (cmd, info) => {
-	// there's not much purpose to a distinction between add and edit...
-	const listName = cmd;
-	if (!info.db) {
-		return info.error("This command cannot be used in PMs");
+settingsRouter.add(
+	"lists add",
+	[Info.theirPerm.manageBot],
+	async (cmd, info) => {
+		// if lists.length > 3 say "your list limit has been reached, join the support server in `about` and ask to increase it"
+		return await addOrEditList(true, cmd, info);
 	}
-	const lists = await info.db.getLists();
-	if (!lists[listName]) {
-		return await info.error(
-			`List ${listName} does not exist. View lists using \`list lists\``
-		);
+);
+
+settingsRouter.add(
+	"lists edit",
+	[Info.theirPerm.manageBot],
+	async (cmd, info) => {
+		// there's not much purpose to a distinction between add and edit...
+		return await addOrEditList(false, cmd, info);
 	}
-	delete lists[listName];
-	await info.db.setLists(lists);
-	return await info.success(`Removed list ${listName}`);
-});
+);
+
+settingsRouter.add(
+	"lists remove",
+	[Info.theirPerm.manageBot],
+	async (cmd, info) => {
+		// there's not much purpose to a distinction between add and edit...
+		const listName = cmd;
+		if (!info.db) {
+			return info.error("This command cannot be used in PMs");
+		}
+		const lists = await info.db.getLists();
+		if (!lists[listName]) {
+			return await info.error(
+				`List ${listName} does not exist. View lists using \`list lists\``
+			);
+		}
+		delete lists[listName];
+		await info.db.setLists(lists);
+		return await info.success(`Removed list ${listName}`);
+	}
+);
 
 router.add([], async (cmd, info, next) => {
 	if (!info.db) {
-		return info.error("This command cannot be used in PMs");
+		return next();
 	}
 	const lists = await info.db.getLists(); // TODO info.db.lists
 	const listNames = Object.keys(lists);
