@@ -72,6 +72,7 @@ Server Info
 > inter·punct prefix: \`ip!\`
 > If the prefix is broken, you can use ${info.atme} as a prefix instead.
 Bot Info
+> Invite: <https://discordapp.com/api/oauth2/authorize?client_id=433078185555656705&permissions=268445780&scope=bot>
 > Website: <https://interpunct.info>
 > Support Server: <https://interpunct.info/support>`
 			.split("ip!")

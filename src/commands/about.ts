@@ -9,12 +9,12 @@ router.add([], async (cmd, info) => {
 	mb.title.tag`Inter·punct Bot`;
 	mb.description.tag`A bot that does stuff.`;
 	mb.addField((title, description) => {
-		title.tag`<:list:476514785106591744> discordbots.org`;
-		description.tag`<https://discordbots.org/bot/433078185555656705>`;
+		title.tag`<:list:476514785106591744> top.gg (discordbots.org)`;
+		description.tag`<https://top.gg/bot/433078185555656705>`;
 	});
 	mb.addField((title, description) => {
-		title.tag`<:list:476514785106591744> bots.discord.pw`;
-		description.tag`<https://bots.discord.pw/bots/433078185555656705>`;
+		title.tag`<:list:476514785106591744> discord.bots.gg`;
+		description.tag`<https://discord.bots.gg/bots/433078185555656705>`;
 	});
 	mb.addField((title, description) => {
 		title.tag`<:list:476514785106591744> invite`;
