@@ -71,6 +71,53 @@ ${info.prefix}space channels disable
 			info.other!.infoPerSecond
 		} db requests per second`
 	},
+	lists: {
+		list_exists_but_not_really: (info: Info, listName: string) =>
+			`The list ${listName} does not exist.
+> More Info: <https://interpunct.info/lists>`,
+		failed_to_get_list: (info: Info) =>
+			`Failed to download list from pastebin.
+> More Info: <https://interpunct.info/lists>`,
+		nothing_found_for_search: (info: Info, searchString: string[]) =>
+			`No results for ${searchString.join(" ")}.`,
+		list_lists: (info: Info, lists: { [key: string]: string }) =>
+			`**Lists**:
+${Object.keys(lists)
+	.map(key => `> ${key}: <https://pastebin.com/${lists[key]}>`)
+	.join(`\n`)}`,
+		no_list_name_provided: (
+			info: Info
+		) => `A list name and pastebin URL is required. For example: \`${info.prefix}lists add listname https://pastebin.com/NFuKYjUN\`
+> More Info: <https://interpunct.info/lists>`,
+		list_already_exists: (
+			info: Info,
+			listName: string,
+			pastebinUrl: string
+		) =>
+			`List ${listName} already exists, edit it with \`${info.prefix}lists edit ${listName} ${pastebinUrl}\` or delete it with \`${info.prefix}lists delete ${listName}\`
+> More Info: <https://interpunct.info/lists>`,
+		list_does_not_exist: (
+			info: Info,
+			listName: string,
+			pastebinUrl: string
+		) =>
+			`List ${listName} does not exist, add it with \`lists add ${listName} ${pastebinUrl}\`
+> More Info: <https://interpunct.info/lists>`,
+		invalid_pastebin_url: (info: Info, listName: string) =>
+			`A valid pastebin URL is required as the second argument to this command. For example: \`${info.prefix}lists add ${listName} https://pastebin.com/NFuKYjUN\`.
+> More Info: <https://interpunct.info/lists>`,
+		add_successful: (info: Info, listName: string, pastebinID: string) =>
+			`Added list ${listName} with pastebin URL <https://pastebin.com/${pastebinID}>
+Try it out with \`${info.prefix}${listName}\``,
+		edit_succesful: (info: Info, listName: string, pastebinID: string) =>
+			`Updated list ${listName} with new pastebin URL <https://pastebin.com/${pastebinID}>
+Try it out with \`${info.prefix}${listName}\``,
+		remove_list_that_does_not_exist: (info: Info, listName: string) =>
+			`There is no list named ${listName}. See a list of lists using \`${info.prefix}lists list\`.
+> More Info: <https://interpunct.info/lists>`,
+		remove_list_succesful: (info: Info, listName: string) =>
+			`List ${listName} removed.`
+	},
 	channels: {
 		spacing: {
 			no_channels_to_space: (info: Info) =>

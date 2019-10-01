@@ -23,7 +23,7 @@ watch
 test
 !! [
 !! 	"MSG #lists: testbot: ip!lists add testlist https://pastebin.com/QAtE6Kv8",
-!! 	"MSG #lists: botdev: @testbot, ✅ Added list testlist with pastebin URL <https://pastebin.com/QAtE6Kv8>"
+!! 	"MSG #lists: botdev: @testbot, ✅ Added list testlist with pastebin URL <https://pastebin.com/QAtE6Kv8>\nTry it out with `ip!testlist`"
 !! ]
 
 // edit a list that doesn't exist
@@ -32,7 +32,7 @@ watch
 test
 !! [
 !! 	"MSG #lists: testbot: ip!lists edit joke QAtE6Kv8",
-!! 	"MSG #lists: botdev: @testbot, ❌ List joke does not exist, add it with `lists add joke QAtE6Kv8`"
+!! 	"MSG #lists: botdev: @testbot, ❌ List joke does not exist, add it with `lists add joke QAtE6Kv8`\n> More Info: <https://interpunct.info/lists>"
 !! ]
 
 // add a list with just pastebin id
@@ -41,7 +41,7 @@ watch
 test
 !! [
 !! 	"MSG #lists: testbot: ip!lists add joke QAtE6Kv8",
-!! 	"MSG #lists: botdev: @testbot, ✅ Added list joke with pastebin URL <https://pastebin.com/QAtE6Kv8>"
+!! 	"MSG #lists: botdev: @testbot, ✅ Added list joke with pastebin URL <https://pastebin.com/QAtE6Kv8>\nTry it out with `ip!joke`"
 !! ]
 
 // add a list that already exists
@@ -50,7 +50,7 @@ watch
 test
 !! [
 !! 	"MSG #lists: testbot: ip!lists add joke C3RD35d9",
-!! 	"MSG #lists: botdev: @testbot, ❌ List joke already exists, edit it with `lists edit joke C3RD35d9` or delete it with `lists delete joke`"
+!! 	"MSG #lists: botdev: @testbot, ❌ List joke already exists, edit it with `ip!lists edit joke C3RD35d9` or delete it with `ip!lists delete joke`\n> More Info: <https://interpunct.info/lists>"
 !! ]
 
 // edit a list
@@ -59,7 +59,7 @@ watch
 test
 !! [
 !! 	"MSG #lists: testbot: ip!lists edit joke C3RD35d9",
-!! 	"MSG #lists: botdev: @testbot, ✅ Changed list joke to <https://pastebin.com/C3RD35d9>"
+!! 	"MSG #lists: botdev: @testbot, ✅ Updated list joke with new pastebin URL <https://pastebin.com/C3RD35d9>\nTry it out with `ip!joke`"
 !! ]
 
 watch
@@ -67,7 +67,7 @@ watch
 test
 !! [
 !! 	"MSG #lists: testbot: ip!testlist 3",
-!! 	"MSG #lists: botdev: @testbot,"
+!! 	"MSG #lists: botdev: @testbot,  With Attribution\n> *\"What if I want a quote\"*\n3/6"
 !! ]
 
 watch
@@ -75,7 +75,15 @@ watch
 test
 !! [
 !! 	"MSG #lists: testbot: ip!joke 25",
-!! 	"MSG #lists: botdev: @testbot,"
+!! 	"MSG #lists: botdev: @testbot,  PBS\n> *25. A woman is on trial for beating her husband to death with his guitar collection. Judge says, \"First offender?\" She says, \"No, first a Gibson! Then a Fender!”*\n25/75"
+!! ]
+
+watch
+	send #lists: ip!lists remove testlist
+test
+!! [
+!! 	"MSG #lists: testbot: ip!lists remove testlist",
+!! 	"MSG #lists: botdev: @testbot, ✅ List testlist removed."
 !! ]
 
 watch
@@ -83,5 +91,5 @@ watch
 test
 !! [
 !! 	"MSG #lists: testbot: ip!lists list",
-!! 	"MSG #lists: botdev: @testbot,  ```testlist: https://pastebin.com/QAtE6Kv8\njoke: https://pastebin.com/C3RD35d9```"
+!! 	"MSG #lists: botdev: @testbot,  **Lists**:\n> joke: <https://pastebin.com/C3RD35d9>"
 !! ]

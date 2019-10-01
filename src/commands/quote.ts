@@ -4,6 +4,7 @@ const pastebin = new PastebinAPI();
 import { MessageEmbed } from "discord.js";
 import Router from "commandrouter";
 import Info from "../Info";
+import { messages } from "../../messages";
 
 const router = new Router<Info, any>();
 
@@ -13,8 +14,7 @@ function escapeMarkdown(text: string) {
 	return escaped;
 }
 
-function deUsererrorIfy(str: string) {
-	// 10/10/100
+function normalizeSearchTerm(str: string) {
 	return str.toLowerCase();
 }
 
@@ -28,7 +28,7 @@ async function handleList(
 	const pastebinId = listPastebin;
 	if (!pastebinId) {
 		return await info.error(
-			`The ${listName} list doesn't actually exist... Spooky`
+			messages.lists.list_exists_but_not_really(info, listName)
 		);
 	}
 
@@ -50,16 +50,14 @@ async function handleList(
 	) {
 		forceLine = parseInt(searchString.pop()!, 10);
 	}
-	searchString = deUsererrorIfy(searchString.join(` `)).split(` `);
+	searchString = normalizeSearchTerm(searchString.join(` `)).split(` `);
 
 	// Get the pastebin paste at the pastebin id, this might fail for many reason but one is used in catch(er)
 	let allQuotes;
 	try {
 		allQuotes = await pastebin.getPaste(pastebinId);
 	} catch (er) {
-		return await info.error(
-			"Failed to get list. Make sure it is set to a valid URL using `list lists`"
-		);
+		return await info.error(messages.lists.failed_to_get_list(info));
 	}
 
 	// aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
@@ -72,13 +70,15 @@ async function handleList(
 	// if there is a set search string, filter the quotes to only ones containing that search string
 	if (searchString) {
 		allQuotes = allQuotes.filter(q =>
-			searchString.every(z => deUsererrorIfy(q).indexOf(z) > -1)
+			searchString.every(z => normalizeSearchTerm(q).indexOf(z) > -1)
 		);
 	}
 
 	// If there are no quotes, fake the list to actually saying No Quotes Found
 	if (allQuotes.length < 1) {
-		allQuotes = [`No quotes found for ${searchString.join(` `)}`];
+		allQuotes = [
+			messages.lists.nothing_found_for_search(info, searchString)
+		];
 	}
 
 	// Set the line number to a random line unless a forceline is set
@@ -98,19 +98,27 @@ async function handleList(
 	const quoteAuthor = quoteSplit[1];
 	const quoteFull = quoteSplit[0];
 
-	// Create the resulting embed and populate it, in the future this could use a messagebuilder
-	const quoteEmbed = new MessageEmbed();
-	quoteEmbed.setDescription(`*${quoteFull}*`);
-	if (quoteAuthor) {
-		quoteEmbed.setAuthor(quoteAuthor);
-	} else {
-		quoteEmbed.setTitle("Quote");
-	}
-	quoteEmbed.setFooter(`${line + 1}/${allQuotes.length}`);
-	quoteEmbed.setColor(`RANDOM`);
+	if (info.myChannelPerms!.has("EMBED_LINKS")) {
+		// Create the resulting embed and populate it, in the future this could use a messagebuilder
+		const quoteEmbed = new MessageEmbed();
+		quoteEmbed.setDescription(`*${quoteFull}*`);
+		if (quoteAuthor) {
+			quoteEmbed.setAuthor(quoteAuthor);
+		} else {
+			quoteEmbed.setTitle("Quote");
+		}
+		quoteEmbed.setFooter(`${line + 1}/${allQuotes.length}`);
+		quoteEmbed.setColor(`RANDOM`);
 
-	// Return the result
-	await info.result("", { embed: quoteEmbed });
+		// Return the result
+		return await info.result("", { embed: quoteEmbed });
+	}
+	return await info.result(`${quoteAuthor || "Quote"}
+${quoteFull
+	.split("\n")
+	.map(l => `> *${l}*`)
+	.join("\n")}
+${line + 1}/${allQuotes.length}`);
 }
 const settingsRouter = new Router<Info, any>();
 router.add([], settingsRouter);
@@ -121,14 +129,12 @@ settingsRouter.add(
 	async (cmd, info, next) => {
 		await info.startLoading();
 		if (!info.db) {
-			return info.error("This command cannot be used in PMs");
+			return info.error(
+				messages.failure.command_cannot_be_used_in_pms(info)
+			);
 		}
 		const lists = await info.db.getLists();
-		return info.result(
-			`\`\`\`${Object.keys(lists)
-				.map(key => `${key}: https://pastebin.com/${lists[key]}`)
-				.join(`\n`)}\`\`\``
-		);
+		return info.result(messages.lists.list_lists(info, lists));
 	}
 );
 
@@ -143,7 +149,7 @@ function parsePastebinURL(url: string = "") {
 
 async function addOrEditList(add: boolean, cmd: string, info: Info) {
 	if (!info.db) {
-		return info.error("This command cannot be used in PMs");
+		return info.error(messages.failure.command_cannot_be_used_in_pms(info));
 	}
 
 	// <name> <pastebin.com/id
@@ -155,7 +161,7 @@ async function addOrEditList(add: boolean, cmd: string, info: Info) {
 	const pastebinUrl = splitCmd.join(` `).trim();
 
 	if (!listName) {
-		return info.error("Usage: `command name` `pastebin.com/paste`");
+		return info.error(messages.lists.no_list_name_provided(info));
 	}
 
 	// Get the lists from the database
@@ -166,11 +172,11 @@ async function addOrEditList(add: boolean, cmd: string, info: Info) {
 		// if !a !== b... !!a === b and a == b are the same and probably easier to read
 		if (add) {
 			return await info.error(
-				`List ${listName} already exists, edit it with \`lists edit ${listName} ${pastebinUrl}\` or delete it with \`lists delete ${listName}\``
+				messages.lists.list_already_exists(info, listName, pastebinUrl)
 			);
 		}
 		return await info.error(
-			`List ${listName} does not exist, add it with \`lists add ${listName} ${pastebinUrl}\``
+			messages.lists.list_does_not_exist(info, listName, pastebinUrl)
 		);
 	}
 
@@ -180,7 +186,7 @@ async function addOrEditList(add: boolean, cmd: string, info: Info) {
 	// If no pastebin URL could be found, inform the user that they need one
 	if (!pastebinID) {
 		return await info.error(
-			`Please supply a valid pastebin URL as the second argument to this command like \`https://pastebin.com/NFuKYjUN\` or just the code like \`NFuKYjUN\``
+			messages.lists.invalid_pastebin_url(info, listName)
 		);
 	}
 
@@ -191,11 +197,11 @@ async function addOrEditList(add: boolean, cmd: string, info: Info) {
 	// Return the right success message depending on if the list is being added or edited
 	if (add) {
 		return await info.success(
-			`Added list ${listName} with pastebin URL <https://pastebin.com/${pastebinID}>`
+			messages.lists.add_successful(info, listName, pastebinID)
 		);
 	}
 	return await info.success(
-		`Changed list ${listName} to <https://pastebin.com/${pastebinID}>`
+		messages.lists.edit_succesful(info, listName, pastebinID)
 	);
 }
 
@@ -224,17 +230,21 @@ settingsRouter.add(
 		// there's not much purpose to a distinction between add and edit...
 		const listName = cmd;
 		if (!info.db) {
-			return info.error("This command cannot be used in PMs");
+			return info.error(
+				messages.failure.command_cannot_be_used_in_pms(info)
+			);
 		}
 		const lists = await info.db.getLists();
 		if (!lists[listName]) {
 			return await info.error(
-				`List ${listName} does not exist. View lists using \`list lists\``
+				messages.lists.remove_list_that_does_not_exist(info, listName)
 			);
 		}
 		delete lists[listName];
 		await info.db.setLists(lists);
-		return await info.success(`Removed list ${listName}`);
+		return await info.success(
+			messages.lists.remove_list_succesful(info, listName)
+		);
 	}
 );
 
