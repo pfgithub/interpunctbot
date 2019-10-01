@@ -1,8 +1,10 @@
 import Router from "commandrouter";
 import Info from "../Info";
+import * as moment from "moment";
 const router = new Router<Info, any>();
 
 import { messages } from "../../messages";
+import { serverStartTime } from "../..";
 
 router.add("ping", [], async (cmd: string, info) => {
 	if (info.db ? await info.db.getFunEnabled() : true) {
@@ -12,6 +14,27 @@ router.add("ping", [], async (cmd: string, info) => {
 
 	if (!info.other) {
 		return await info.result("<a:pingpong:482012177725653003>", undefined);
+	}
+	await info.result(messages.fun.ping(info), undefined);
+});
+
+router.add("stats", [], async (cmd: string, info) => {
+	if (info.db ? await info.db.getFunEnabled() : true) {
+	} else {
+		return info.error(messages.fun.fun_disabled(info));
+	}
+
+	if (!info.other) {
+		return await info.result(
+			`**Statistics**:
+> **Servers**: ${info.message.client.guilds.size} servers
+> **Uptime**: ${moment
+				.duration(new Date().getTime() - serverStartTime)
+				.format(
+					"y [years] M [months] w [weeks] d [days,] h[h]:mm[m]:s.SSS[s]"
+				)}ms`,
+			undefined
+		);
 	}
 	await info.result(messages.fun.ping(info), undefined);
 });

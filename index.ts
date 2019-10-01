@@ -12,7 +12,6 @@ import {
 	MessageReaction,
 	User
 } from "discord.js";
-import * as moment from "moment";
 import handleQuote from "./src/commands/quote";
 import MB from "./src/MessageBuilder";
 import * as request from "request";
@@ -31,7 +30,9 @@ import channelsRouter, {
 import aboutRouter from "./src/commands/about";
 import quoteRouter from "./src/commands/quote";
 
-declare function require(name: never): never;
+import * as moment from "moment";
+import "moment-duration-format"; // for typescript
+require("moment-duration-format")(moment);
 
 declare global {
 	namespace NodeJS {
@@ -50,6 +51,8 @@ import Database from "./src/Database";
 try {
 	mkdirSync(path.join(__dirname, `logs`));
 } catch (e) {}
+
+export let serverStartTime = 0;
 
 const router = new Router<Info, any>();
 
@@ -300,6 +303,7 @@ function updateActivity() {
 
 bot.on("ready", async () => {
 	global.console.log("Ready");
+	serverStartTime = new Date().getTime();
 	updateActivity();
 });
 

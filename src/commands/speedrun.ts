@@ -33,7 +33,6 @@ import { messages } from "../../messages";
 import * as request from "async-request"; // this is a terrible library why am I using it
 
 import * as moment from "moment";
-require("moment-duration-format")(moment);
 
 const router = new Router<Info, any>();
 
@@ -167,7 +166,7 @@ router.add("wr", [], async (cmd, info) => {
 		runPlayer.weblink
 	);
 	const duration = moment.duration(run.times.primary_t, "seconds");
-	mb.description.tag`[${(<any>duration).format(
+	mb.description.tag`[${duration.format(
 		"y [years] M [months] w [weeks] d [days,] h[h]:mm[m]:s.SSS[s]"
 	)}](`;
 	mb.description.putRaw(run.weblink);
@@ -270,7 +269,7 @@ router.add("speedrun leaderboard", [], async (cmd, info) => {
 		runPlayer.weblink
 	);
 	const duration = moment.duration(run.times.primary_t, "seconds");
-	mb.description.tag`[${(duration as any).format(
+	mb.description.tag`[${duration.format(
 		"y [years] M [months] w [weeks] d [days,] h[h]:mm[m]:s.SSS[s]"
 	)}](`;
 	mb.description.putRaw(run.weblink);
