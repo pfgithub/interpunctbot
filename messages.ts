@@ -41,6 +41,7 @@ Logging <https://interpunct.info/logging>
 > [\` \`] Disable logging: \`ip!log disable\` (Any existing logs will be deleted)
 Emojis <https://interpunct.info/emojis>
 > [\` \`] Restrict Emoji by Role: \`ip!emoji restrict \`<:emoji:628119879798489089>\` RoleID\`
+> [\` \`] Give Users Ranks with Emojis: \`ip!command unknown\` (https://youtu.be/video)
 Fun <https://interpunct.info/fun>
 > [\`X\`] Disable fun: \`ip!fun disable\`
 > [\`X\`] Enable fun: \`ip!fun enable\` (Enabled by default)
@@ -64,6 +65,7 @@ ${Object.keys(lists)
 Administration <https://interpunct.info/administration>
 > [\` \`] Automatically ban users with specific words in their name:\n> \`\`\`\n> ip!autoban add\n> newline seperated\n> list of\n> words to ban if found\n> in someone's username\n> \`\`\`
 > [\` \`] Purge messages in a channel: \`ip!purge [number of messages to purge]\`
+> [\` \`] Welcome and Goodbye messages: \`ip!command unknown\`
 Configuration <https://interpunct.info/configuration>
 > [\` \`] Error messages: \`ip!settings errors show|hide\` (Default show)
 > [\` \`] PM Errors: \`ip!settings pm on|off\` (Default on)
