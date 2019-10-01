@@ -11,16 +11,16 @@ Channels <https://interpunct.info/channels>
 > [\`X\`] Sending a message to multiple channels: \`ip!send: My message #channel-one #channel-two\`
 Logging <https://interpunct.info/logging>
 > [\` \`] Enable message logging: \`ip!logging enable\`
-> [\` \`] Download message log: \`ip!log download\` (The log file will be attached for anyone to donwload.)
+> [\` \`] Download message log: \`ip!log download\` (The log file will be attached in a reply.)
 > [\` \`] Clear log: \`ip!log reset\`
 > [\` \`] Disable logging: \`ip!log disable\` (Any existing logs will be deleted)
 Emojis <https://interpunct.info/emojis>
 > [\` \`] Restrict Emoji by Role: \`ip!emoji restrict \`<:emoji:628119879798489089>\` RoleID\`
 Fun <https://interpunct.info/fun>
-> [\` \`] Disable fun: \`ip!fun disable\`
-> [\` \`] Enable fun: \`ip!fun enable\` (Enabled by default)
+> [\`X\`] Disable fun: \`ip!fun disable\`
+> [\`X\`] Enable fun: \`ip!fun enable\` (Enabled by default)
 > [\`X\`] Play ping pong: \`ip!ping\`
-> [\` \`] Play minesweeper: \`ip!minesweeper\`
+> [\`X\`] Play minesweeper: \`ip!minesweeper\`
 Speedrun.com <https://interpunct.info/speedrun>
 > [\` \`] Show WR: \`ip!wr\`
 > [\` \`] Show Rules: \`ip!speedrun rules CategoryName%\`
@@ -69,7 +69,24 @@ ${info.prefix}space channels disable
 		ping: (info: Info) => `<a:pingpong:482012177725653003>
 > Took ${new Date().getTime() - info.other!.startTime}ms, handling ${
 			info.other!.infoPerSecond
-		} db requests per second`
+		} db requests per second`,
+		command_not_found: (info: Info) =>
+			`Usage: \`${info.prefix} fun enable|disable\`.
+> More Info: <https://interpunct.info/fun`,
+		fun_has_been_enabled: (info: Info) => `Fun enabled.
+> Try it out with \`ip!minesweeper\``,
+		fun_has_been_disabled: (info: Info) =>
+			`Fun is no longer allowed on this server.`,
+		minesweeper_usage: (
+			info: Info,
+			difficulties: string[],
+			modes: string[]
+		) => `Usage: \`${info.prefix}minesweeper [optional ${difficulties.join(
+			"|"
+		)} = hard] [optional ${modes.join(
+			"|"
+		)} = emojis] [optional WIDTHxHEIGHT = 10x10]\`
+> More Info: <https://interpunct.info/minesweeper`
 	},
 	lists: {
 		list_exists_but_not_really: (info: Info, listName: string) =>
