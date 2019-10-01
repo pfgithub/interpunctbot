@@ -50,6 +50,9 @@ const actions: {
 			...(args.split(" ") as PermissionRoleName[])
 		);
 	},
+	async watchTime(t, args, rewrite) {
+		t.watchTime = +args;
+	},
 	async myDefaultPerms(t, args, rewrite) {
 		await t.basePermissions("testbot");
 	},

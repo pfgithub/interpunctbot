@@ -1,6 +1,29 @@
 import Info from "./src/Info";
 import * as Discord from "discord.js";
 
+export function raw(string: TemplateStringsArray | string) {
+	return { __raw: `${string}` };
+}
+
+export function safe(
+	strings: TemplateStringsArray,
+	...values: (string | { __raw: string })[]
+) {
+	const result: (string | { __raw: string })[] = [];
+	strings.forEach((str, i) => {
+		result.push(raw(str), values[i] || "");
+	});
+	return result
+		.map(el =>
+			"__raw" in (el as {})
+				? (el as { __raw: string }).__raw
+				: (el as string)
+						.replace(/(\*|_|`|~|\\|<|>|\[|\]"|'|\(|\))/g, "\\$1")
+						.replace(/(@)(everyone|here)/g, "\\$1\u200b\\$2")
+		)
+		.join("");
+}
+
 export const messages = {
 	help: (info: Info, lists: { [key: string]: string }) =>
 		`**inter\u00B7punct help**
@@ -22,9 +45,9 @@ Fun <https://interpunct.info/fun>
 > [\`X\`] Play ping pong: \`ip!ping\`
 > [\`X\`] Play minesweeper: \`ip!minesweeper\`
 Speedrun.com <https://interpunct.info/speedrun>
-> [\` \`] Show WR: \`ip!wr\`
-> [\` \`] Show Rules: \`ip!speedrun rules CategoryName%\`
-> [\` \`] Set Game on speedrun.com: \`ip!speedrun set https://www.speedrun.com/yourgame%\`
+> [\`X\`] Show WR: \`ip!wr\`
+> [\`X\`] Show Rules: \`ip!speedrun rules CategoryName%\`
+> [\`X\`] Set Game on speedrun.com: \`ip!speedrun set https://www.speedrun.com/yourgame%\`
 Quotes and Lists <https://interpunct.info/lists>
 > [\`X\`] Create List: \`ip!lists add listname https://pastebin.com/\`
 > [\`X\`] Edit List: \`ip!lists edit listname https://pastebin.com/\`
@@ -64,6 +87,38 @@ ${info.prefix}space channels disable
 		autospace_disabled: (info: Info) =>
 			`Channels will no longer have spaces added to their names.`
 	},
+	speedrun: {
+		requires_setup: (info: Info) =>
+			`Speedrun commands have not been set up on this server. Set them up with \`${info.prefix}speedrun set https://speedrun.com/game Category Name\`.
+> More Info: <https://interpunct.info/speedrun>`,
+		invalid_category_name: (
+			info: Info,
+			categoryName: string,
+			categoryNames: string[]
+		) =>
+			safe`The category ${categoryName} is not on the selected game. Valid categories are: ${categoryNames.join(
+				", "
+			)}.
+> More Info: <https://interpunct.info/speedrun>`,
+		no_wr_found: (info: Info) => `No world record found.
+> More Info: <https://interpunct.info/speedrun>`,
+		no_run_for_position: (
+			info: Info,
+			position: number
+		) => `No run found in ${position}${
+			`${position}`.endsWith("1")
+				? "st"
+				: `${position}`.endsWith("2")
+				? "nd"
+				: `${position}`.endsWith("3")
+				? "rd"
+				: "th"
+		} place.
+> More Info: <https://interpunct.info/speedrun>`,
+		position_required: (info: Info) =>
+			`A position is required, such as \`${info.prefix}speedrun leaderboard 26\`
+> More Info: <https://interpunct.info/speedrun>`
+	},
 	fun: {
 		fun_disabled: (info: Info) => `Fun is not allowed on this server.`,
 		ping: (info: Info) => `<a:pingpong:482012177725653003>
@@ -72,7 +127,7 @@ ${info.prefix}space channels disable
 		} db requests per second`,
 		command_not_found: (info: Info) =>
 			`Usage: \`${info.prefix} fun enable|disable\`.
-> More Info: <https://interpunct.info/fun`,
+> More Info: <https://interpunct.info/fun>`,
 		fun_has_been_enabled: (info: Info) => `Fun enabled.
 > Try it out with \`ip!minesweeper\``,
 		fun_has_been_disabled: (info: Info) =>
@@ -86,7 +141,7 @@ ${info.prefix}space channels disable
 		)} = hard] [optional ${modes.join(
 			"|"
 		)} = emojis] [optional WIDTHxHEIGHT = 10x10]\`
-> More Info: <https://interpunct.info/minesweeper`
+> More Info: <https://interpunct.info/minesweeper>`
 	},
 	lists: {
 		list_exists_but_not_really: (info: Info, listName: string) =>

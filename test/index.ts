@@ -90,6 +90,8 @@ export class TestHelper {
 	botInteractionClient: Discord.Client; // bot that interacts with i;p
 	botInteractionGuild: Discord.Guild;
 
+	watchTime: number;
+
 	private mostRecentEvents: any[];
 	private noEventsTimeout?: NodeJS.Timeout; // on(event) clearTimeout(..) setTimeout(..)
 	private noEventsCallback?: (events: any[]) => void;
@@ -111,6 +113,8 @@ export class TestHelper {
 		this.botInteractionClient = botInteractionClient;
 		this.botInteractionGuild = botInteractionGuild;
 
+		this.watchTime = 2000;
+
 		this.mostRecentEvents = [];
 		this.watchEvents = false;
 
@@ -129,7 +133,7 @@ export class TestHelper {
 						`Tried to report ${this.mostRecentEvents.length} events but there was no events callback. These events will be reported later.`
 					);
 				}
-			}, 2000);
+			}, this.watchTime);
 		};
 		this.adminClient.on("message", message => {
 			if (!this.watchEvents) {
@@ -142,14 +146,16 @@ export class TestHelper {
 							.username
 					}: ${message.author!.username}: ${message.cleanContent}`
 				);
-				resetTimeout();
-				return;
+			} else {
+				this.mostRecentEvents.push(
+					`MSG #${(message.channel as Discord.TextChannel).name}: ${
+						message.member!.displayName
+					}: ${message.cleanContent}`
+				);
 			}
-			this.mostRecentEvents.push(
-				`MSG #${(message.channel as Discord.TextChannel).name}: ${
-					message.member!.displayName
-				}: ${message.cleanContent}`
-			);
+			if (message.embeds.length > 0) {
+				this.mostRecentEvents.push(["embeds:", message.embeds]);
+			}
 			resetTimeout();
 		});
 		this.adminClient.on("channelUpdate", (fromChannel, toChannel) => {
@@ -388,6 +394,7 @@ export class TestHelper {
 			);
 			i++;
 			testHelper.stopBot();
+			testHelper.watchTime = 2000;
 		}
 		await new Promise(r => setTimeout(r, 1000)); //wait 1s before closing
 		process.exit(exitCode);
