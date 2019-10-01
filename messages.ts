@@ -61,6 +61,9 @@ ${Object.keys(lists)
 			`> [\`X\`] View ${l}: \`ip!${l} [optional "single"] [optional search term] [optional number]\``
 	)
 	.join("\n")}
+Administration <https://interpunct.info/administration>
+> [\` \`] Automatically ban users with specific words in their name:\n> \`\`\`\n> ip!autoban add\n> newline seperated\n> list of\n> words to ban if found\n> in someone's username\n> \`\`\`
+> [\` \`] Purge messages in a channel: \`ip!purge [number of messages to purge]\`
 Configuration <https://interpunct.info/configuration>
 > [\` \`] Error messages: \`ip!settings errors show|hide\` (Default show)
 > [\` \`] PM Errors: \`ip!settings pm on|off\` (Default on)
@@ -70,7 +73,7 @@ Server Info
 > If the prefix is broken, you can use ${info.atme} as a prefix instead.
 Bot Info
 > Website: <https://interpunct.info>
-> Support Server: <https://discord.gg/e7BmyqD>`
+> Support Server: <https://interpunct.info/support>`
 			.split("ip!")
 			.join(info.prefix),
 	emoji: {
