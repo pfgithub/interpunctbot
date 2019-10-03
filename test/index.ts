@@ -259,6 +259,15 @@ export class TestHelper {
 		createDB.stdout!.on("data", datahandler);
 		createDB.stderr!.on("data", datahandler);
 		await new Promise<void>((r, re) => createDB.on("exit", () => r()));
+		console.log("--- Resetting logs");
+		const logs = await fs.readdir(
+			path.join(__dirname, "..", "built", "logs")
+		);
+		for (const logfile of logs) {
+			await fs.unlink(
+				path.join(__dirname, "..", "built", "logs", logfile)
+			);
+		}
 		// done
 		console.log("--- Everything Reset");
 	}

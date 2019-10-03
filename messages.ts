@@ -94,6 +94,18 @@ ${info.prefix}space channels disable
 		autospace_disabled: (info: Info) =>
 			`Channels will no longer have spaces added to their names.`
 	},
+	logging: {
+		attach_files: (info: Info) =>
+			`${info.atme} needs permission to \`Attach Files\` to upload your log file here.
+> More Info: <https://interpunct.info/logging>`,
+		upload_probably_failed: (info: Info, errorCode: string) =>
+			`(Probably) Failed to upload the log file. For help, join the support server and ask with your error code \`${errorCode}\`.
+> More Info: <https://interpunct.info/logging>
+> Support Server: <https://discord.gg/HVWCeXc>`,
+		log_sent: (info: Info) =>
+			`
+> Use \`${info.prefix}log reset\` to clear the log and start a new one.`
+	},
 	speedrun: {
 		requires_setup: (info: Info) =>
 			`Speedrun commands have not been set up on this server. Set them up with \`${info.prefix}speedrun set https://speedrun.com/game Category Name\`.

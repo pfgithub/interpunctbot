@@ -211,7 +211,7 @@ export default class Info {
 					split: true
 				}
 			),
-			"replying to message directly"
+			false
 		);
 		if (replyResult.result) {
 			return (replyResult.result as unknown) as Discord.Message[];
@@ -290,10 +290,10 @@ export default class Info {
 		}
 		const reactResult = await ilt(
 			this.message.react("508841130503438356"),
-			"reacting with custom failure emoji"
+			false
 		);
 		if (reactResult.error) {
-			await ilt(this.message.react("❌"), "reacting with failure"); // may fail, not a problem
+			await ilt(this.message.react("❌"), false); // may fail, not a problem
 		}
 		// res && res.forEach(r => r.delete({ timeout: 20 * 1000 }));
 		return res;
@@ -310,10 +310,10 @@ export default class Info {
 		}
 		const reactResult = await ilt(
 			this.message.react("508842207089000468"),
-			"reacting with custom warning emoji"
+			false
 		);
 		if (reactResult.error) {
-			await ilt(this.message.react("⚠"), "reacting with warning emoji"); // may fail
+			await ilt(this.message.react("⚠"), false); // may fail
 		}
 		// res && res.forEach(r => r.delete({ timeout: 20 * 1000 }));
 		return res;
@@ -330,13 +330,10 @@ export default class Info {
 		}
 		const reactResult = await ilt(
 			this.message.react("508840840416854026"),
-			"reacting with custom check mark emoji"
+			false
 		);
 		if (reactResult.error) {
-			await ilt(
-				this.message.react("✅"),
-				"reacting with builtin check mark emoji"
-			); // may fail
+			await ilt(this.message.react("✅"), false); // may fail
 		}
 		// res && res.forEach(r => r.delete({ timeout: 20 * 1000 }));
 		return res;

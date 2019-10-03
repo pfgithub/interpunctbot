@@ -1,0 +1,88 @@
+reset
+channel text #logging
+defaultPermissions
+
+startBot
+
+myDefaultPerms
+
+watch
+	send #logging: ip!log enable
+test
+!! [
+!! 	"MSG #logging: testbot: ip!log enable",
+!! 	"MSG #logging: botdev: @testbot, ❌ You need permisison to `Manage Server` to use this command"
+!! ]
+
+myPerm MANAGE_SERVER
+
+watch
+	send #logging: ip!log enable
+test
+!! [
+!! 	"MSG #logging: testbot: ip!log enable",
+!! 	"MSG #logging: botdev: @testbot, ✅ Logs have been enabled."
+!! ]
+
+send #logging: Hi there!
+send #logging: How are you doing?
+
+watch
+	send #logging: ip!log download
+test
+!! [
+!! 	"MSG #logging: testbot: ip!log download",
+!! 	"MSG #logging: botdev: @testbot, ❌ @botdev needs permission to `Attach Files` to upload your log file here.\n> More Info: <https://interpunct.info/logging>"
+!! ]
+
+watch
+	send #logging: ip!log download
+test
+!! [
+!! 	"MSG #logging: testbot: ip!log download",
+!! 	"MSG #logging: botdev: @testbot, ❌ @botdev needs permission to `Attach Files` to upload your log file here.\n> More Info: <https://interpunct.info/logging>"
+!! ]
+
+permission ATTACH_FILES
+
+watch
+	send #logging: ip!log download
+test
+!! [
+!! 	"MSG #logging: testbot: ip!log download",
+!! 	"MSG #logging: botdev: @testbot, Log files:",
+!! 	"MSG #logging: botdev: @testbot,  > Use `ip!log reset` to clear the log and start a new one."
+!! ]
+
+watch
+	send #logging: ip!log reset
+test
+!! [
+!! 	"MSG #logging: testbot: ip!log reset",
+!! 	"MSG #logging: botdev: @testbot, ✅ Logs have been reset."
+!! ]
+
+watch
+	send #logging: ip!log download
+test
+!! [
+!! 	"MSG #logging: testbot: ip!log download",
+!! 	"MSG #logging: botdev: @testbot, Log files:",
+!! 	"MSG #logging: botdev: @testbot,  > Use `ip!log reset` to clear the log and start a new one."
+!! ]
+
+watch
+	send #logging: ip!log disable
+test
+!! [
+!! 	"MSG #logging: testbot: ip!log disable",
+!! 	"MSG #logging: botdev: @testbot, ✅ Logs have been disabled and deleted."
+!! ]
+
+watch
+	send #logging: ip!log download
+test
+!! [
+!! 	"MSG #logging: testbot: ip!log download",
+!! 	"MSG #logging: botdev: @testbot, ❌ Logging is not enabled on your server"
+!! ]

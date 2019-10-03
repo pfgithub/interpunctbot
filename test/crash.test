@@ -1,0 +1,10 @@
+reset
+channel text #crash
+defaultPermissions
+myDefaultPerms
+
+startBot
+
+watch
+	send #crash: ip!crash
+test

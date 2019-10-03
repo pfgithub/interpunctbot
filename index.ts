@@ -97,18 +97,30 @@ remove(
 	"Discord has added official spoilers, type your spoiler in between lines `||like this||`"
 );
 
+export type ErrorWithID = Error & { errorCode: string };
+
+export function wrapErrorAddID(error: Error): ErrorWithID {
+	(error as ErrorWithID).errorCode = Math.floor(
+		Math.random() * 100000000000000000
+	).toString(36);
+	return error as ErrorWithID;
+}
+
 export async function ilt<T>(
 	v: Promise<T> /*, reason: string (added to error message)*/,
-	reason: string
+	reason: string | false
 ): Promise<
-	{ error: Error; result: undefined } | { error: undefined; result: T }
+	{ error: ErrorWithID; result: undefined } | { error: undefined; result: T }
 > {
 	let result: T;
 	try {
 		result = await v;
 	} catch (error) {
-		reportILTFailure(error, new Error(reason));
-		return { error, result: undefined };
+		const ewid = wrapErrorAddID(error);
+		if (typeof reason === "string") {
+			reportILTFailure(ewid, new Error(reason));
+		}
+		return { error: ewid, result: undefined };
 	}
 	return { result, error: undefined };
 }
@@ -469,10 +481,11 @@ bot.on("message", async msg => {
 	try {
 		await messageRouter.handle(msg.content, newInfo); // await in case there is an async function that errors.
 	} catch (er) {
+		const ewid = wrapErrorAddID(er);
 		msg.reply(
-			"An internal error occured :( maybe try again? If that doesn't work, submit a bug report on the support server in `about`."
+			`An internal error occured :( maybe try again? If that doesn't work, submit a bug report on the support server <https://interpunct.bot/support> . Your error code is \`${ewid.errorCode}\``
 		);
-		logError(er);
+		logError(ewid);
 	}
 });
 
@@ -629,7 +642,7 @@ bot.on("guildDelete", async guild => {
 	// TODO delete info in db after leaving a guild
 });
 
-export async function reportILTFailure(message: Error, reason: Error) {
+export async function reportILTFailure(message: ErrorWithID, reason: Error) {
 	logError(message, false, reason);
 }
 
@@ -638,7 +651,9 @@ export async function logError(
 	atEveryone: boolean = true,
 	additionalDetails?: Error
 ) {
-	const finalMsg = `${
+	const finalMsg = `ERROR CODE: \`${
+		(message as ErrorWithID).errorCode
+	}\`!!. ${
 		additionalDetails
 			? `Details: ${additionalDetails}
 

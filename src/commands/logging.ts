@@ -3,6 +3,8 @@ import { MessageAttachment } from "discord.js";
 import { promises as fs } from "fs";
 import * as path from "path";
 import Info from "../Info";
+import { messages } from "../../messages";
+import { ilt } from "../..";
 
 const router = new Router<Info, any>();
 
@@ -14,14 +16,29 @@ router.add("download", [], async (cmd, info) => {
 	if (!(await info.db.getLogEnabled())) {
 		return await info.error("Logging is not enabled on your server");
 	}
+	if (!info.myChannelPerms!.has("ATTACH_FILES")) {
+		return await info.error(messages.logging.attach_files(info));
+	}
 	await info.startLoading();
-	await info.result(
-		"Use `log reset` to reset the log.",
-		new MessageAttachment(
-			`./logs/${info.guild.id}.log`,
-			`${info.guild.name}.log`
-		)
+	const logDownloadMessageResult = await ilt(
+		info.message.reply(
+			"Log files:",
+			new MessageAttachment(
+				`./logs/${info.guild.id}.log`,
+				`${info.guild.name}.log`
+			)
+		),
+		"downloading log"
 	);
+	if (logDownloadMessageResult.error) {
+		return await info.error(
+			messages.logging.upload_probably_failed(
+				info,
+				logDownloadMessageResult.error.errorCode
+			)
+		);
+	}
+	await info.result(messages.logging.log_sent(info));
 });
 
 async function deleteLogs(guildID: string) {
