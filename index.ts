@@ -30,6 +30,7 @@ import channelsRouter, {
 import aboutRouter from "./src/commands/about";
 import settingsRouter from "./src/commands/settings";
 import quoteRouter from "./src/commands/quote";
+import emojiRouter from "./src/commands/emoji";
 
 import * as moment from "moment";
 import "moment-duration-format"; // for typescript
@@ -165,6 +166,7 @@ router.add("crash", [Info.theirPerm.owner], () => {
 });
 
 router.add([], settingsRouter);
+router.add([], emojiRouter);
 router.add([], quoteRouter);
 
 function depricate(oldcmd: string, newcmd: string, version: string = "3.0") {
@@ -413,7 +415,11 @@ async function spaceChannelIfNecessary(channel: GuildChannel) {
 	const db = new Database(channel.guild.id);
 	if (await db.getAutospaceChannels()) {
 		if (doesChannelRequireSpacing(channel, "-")) {
-			await spaceChannel(channel, "-");
+			await spaceChannel(
+				channel,
+				"-",
+				`automatically spaced. \`${await db.getPrefix()}space channels disable\` to stop`
+			);
 		}
 	}
 }

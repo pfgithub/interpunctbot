@@ -45,7 +45,11 @@ router.add(
 		// space now
 		const channelsToSpaceNow = findChannelsRequireSpacing(info.guild, "-");
 		for (const channel of channelsToSpaceNow) {
-			await spaceChannel(channel, "-");
+			await spaceChannel(
+				channel,
+				"-",
+				`started autospacing by @${info.message.member!.displayName}`
+			);
 		}
 	}
 );
@@ -90,7 +94,8 @@ export function doesChannelRequireSpacing(
 
 export async function spaceChannel(
 	channel: GuildChannel,
-	characterToReplace: string
+	characterToReplace: string,
+	reason: string
 ) {
 	if (!doesChannelRequireSpacing(channel, characterToReplace)) {
 		return {
@@ -99,8 +104,11 @@ export async function spaceChannel(
 		};
 	}
 	return await ilt(
-		channel.setName(channel.name.split(characterToReplace).join("\u2005")),
-		"renaming channel for space channels"
+		channel.setName(
+			channel.name.split(characterToReplace).join("\u2005"),
+			reason
+		),
+		"renaming channel for spacechannels"
 	);
 }
 
@@ -133,7 +141,8 @@ router.add(
 		for (const channel of channelsNeedUpdating) {
 			const setNameResult = await spaceChannel(
 				channel,
-				characterToReplace
+				characterToReplace,
+				`@${info.message.member!.displayName}`
 			);
 			if (setNameResult.error) {
 				failureChannels.push(channel);

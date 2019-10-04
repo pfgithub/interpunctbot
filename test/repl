@@ -1,1 +1,8 @@
+// error: resetAll
+reset
+channel text #sending_messages
+defaultPermissions
+// error: myDefaultPerm
+myDefaultPerms
 startBot
+// error: stopBot

@@ -40,7 +40,10 @@ Logging <https://interpunct.info/logging>
 > [\` \`] Clear log: \`ip!log reset\`
 > [\` \`] Disable logging: \`ip!log disable\` (Any existing logs will be deleted)
 Emojis <https://interpunct.info/emojis>
-> [\` \`] Restrict Emoji by Role: \`ip!emoji restrict \`<:emoji:629134046332583946>\` RoleID\`
+> [\` \`] Restrict Emoji by Role: \`ip!emoji restrict \`<:emoji:629134046332583946>\` Role\` (Role name, id, or mention)
+> [\` \`] Remove all restrictions from emoji: \`ip!emoji unrestrict \`<:emoji:629134046332583946>
+> [\` \`] Remove one restriction from emoji: \`ip!emoji unrestrict \`<:emoji:629134046332583946>\` Role\`
+> [\` \`] Inspect emoji: \`ip!emoji inspect \`<:emoji:629134046332583946>\`
 > [\` \`] Give Users Ranks with Emojis: \`ip!command unknown\` (https://youtu.be/video)
 Fun <https://interpunct.info/fun>
 > [\`X\`] Disable fun: \`ip!fun disable\`
@@ -83,8 +86,88 @@ Bot Info
 			.join(info.prefix)
 			.split("{defaultprefix}")
 			.join("ip!"),
+	role: (role: Discord.Role) =>
+		role.mentionable ? safe`${`@${role.name}`}` : role.toString(),
 	emoji: {
-		failure: "<:failure_2:547081084710682643>"
+		failure: "<:failure_2:547081084710682643>",
+		restrict_usage: (info: Info) =>
+			`Usage: \`${info.prefix}emoji restrict\`<:emoji:629134046332583946>\` Role\`
+> Role can be a role name, id, or mention.
+> **More Info**: <https://interpunct.info/emoji>`,
+		could_not_find_emoji: (
+			info: Info,
+			emojiID: string
+		) => safe`Could not find emoji with the ID ${emojiID}.
+> **More Info**: <https://interpunct.info/emoji>`,
+		role_does_not_exist: (
+			info: Info,
+			roleID: string
+		) => safe`Could not find role with the ID ${roleID}.
+> **More Info**: <https://interpunct.info/emoji>`,
+		multiple_roles_found: (
+			info: Info,
+			roleName: string,
+			roles: Discord.Role[]
+		) => safe`There are multiple roles named ${
+			roleName[0] === "@" ? roleName : `@${roleName}`
+		}. Use the ID of the role you meant instead. <https://interpunct.info/role>
+Found Roles:
+${roles
+	.map(
+		r =>
+			safe`- **ID**: ${r.id}, **Name**: ${`@${r.name}`}, **Color**: ${
+				r.hexColor
+			}\n`
+	)
+	.join("")}> **More Info**: <https://interpunct.info/emoji>`,
+		no_roles_found: (info: Info, roleName: string) =>
+			`No role could be found with the name ${
+				roleName[0] === "@" ? roleName : `@${roleName}`
+			}. Try using the role ID instead: <https://interpunct.info/role>
+> **More Info**: <https://interpunct.info/emoji>`,
+		added_restriction: (
+			info: Info,
+			emoji: Discord.GuildEmoji,
+			addedRole: Discord.Role,
+			fullList: Discord.Role[]
+		) =>
+			`Role ${messages.role(
+				addedRole
+			)} added to restrictions for ${emoji.toString()}. This emoji can now only be used by members with any of these roles:
+${fullList.map(role => `- ${messages.role(role)}\n`).join("")}${
+				fullList.length === 1
+					? `Members without access to this emoji may have to restart or refresh discord before the emoji dissapears from their emoji list. Even if they can see the emoji, they won't be able to use it.`
+					: `Members who just gained access to this emoji may have to restart or refresh discord before the emoji shows up in their emoji list.`
+			}
+> If this was a mistake, reset the restrictions for this emoji with \`${
+				info.prefix
+			}emoji unrestrict ${emoji.id}\``,
+		removed_restriction: (
+			info: Info,
+			emoji: Discord.GuildEmoji,
+			removedRole: Discord.Role,
+			fullList: Discord.Role[]
+		) =>
+			`Role ${messages.role(
+				removedRole
+			)} removed from restrictions for ${emoji.toString()}. This emoji can now only be used by members with any of these roles:
+${fullList.map(role => `- ${messages.role(role)}\n`).join("")}${
+				fullList.length === 0
+					? `Members who just gained access to this emoji may have to restart or refresh discord before the emoji shows up in their emoji list.`
+					: `Members without access to this emoji may have to restart or refresh discord before the emoji dissapears from their emoji list. Even if they can see the emoji, they won't be able to use it.`
+			}
+> If this was a mistake, reset the restrictions for this emoji with \`${
+				info.prefix
+			}emoji unrestrict ${emoji.id}\``,
+		removed_all_restrictions: (info: Info, emoji: Discord.GuildEmoji) =>
+			`Removed all restrictions for ${emoji.toString()}. Anyone can now use this emoji. Some members may have to restart or refresh discord before the emoji shows up in their emoji list.`,
+		inspect: (info: Info, emoji: Discord.GuildEmoji) =>
+			`**Emoji ${emoji.toString()}**:
+This emoji can only be used by members with at least one of these roles:
+${emoji.roles
+	.array()
+	.map(role => `- ${messages.role(role)}\n`)
+	.join("")}**Image**: ${emoji.url}`
 	},
 	failure: {
 		command_cannot_be_used_in_pms: (info: Info) =>
@@ -92,7 +175,7 @@ Bot Info
 		generic_internal_error: (info: Info, errorCode: string) =>
 			`An internal error occured while running the command.
 For help, ask on the support server with your error code \`${errorCode}\`
-> **Support Server**: <https://interpunct.bot/support>
+> **Support Server**: <https://interpunct.info/support>
 > **Error Code**: \`${errorCode}\``,
 		command_not_found: (info: Info, command: string) =>
 			safe`Command \`${command}\` not found. Type \`${raw(

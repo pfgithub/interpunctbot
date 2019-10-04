@@ -38,6 +38,19 @@ export const theirPerm = {
 			) && false
 		);
 	},
+	manageEmoji: (info: Info) => {
+		if (!theirPerm.pm(false)(info)) {
+			return false;
+		}
+		if (info.authorPerms.manageEmoji) {
+			return true;
+		}
+		return (
+			info.error(
+				"You need permisison to `Manage Emojis` to use this command"
+			) && false
+		);
+	},
 	pm: (expected: boolean) => (info: Info) => {
 		if (info.pm === expected) {
 			return true;
@@ -80,6 +93,19 @@ export const ourPerm = {
 		return (
 			info.error(
 				`${info.atme} needs permisison to \`Manage Channels\` to use this command.`
+			) && false
+		);
+	},
+	manageEmoji: (info: Info) => {
+		if (!theirPerm.pm(false)(info)) {
+			return false;
+		}
+		if (info.myPerms.manageEmoji) {
+			return true;
+		}
+		return (
+			info.error(
+				`${info.atme} needs permisison to \`Manage Emojis\` to use this command.`
 			) && false
 		);
 	}
@@ -159,6 +185,9 @@ export default class Info {
 				: true,
 			manageChannel: this.authorChannelPerms
 				? this.authorChannelPerms.has("MANAGE_CHANNELS")
+				: true,
+			manageEmoji: this.authorChannelPerms
+				? this.authorChannelPerms.has("MANAGE_EMOJIS")
 				: true
 		};
 	}
@@ -169,6 +198,9 @@ export default class Info {
 				: true,
 			manageChannel: this.myChannelPerms
 				? this.myChannelPerms.has("MANAGE_CHANNELS")
+				: true,
+			manageEmoji: this.myChannelPerms
+				? this.myChannelPerms.has("MANAGE_EMOJIS")
 				: true
 		};
 	}
