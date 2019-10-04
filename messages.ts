@@ -134,11 +134,7 @@ ${roles
 			`Role ${messages.role(
 				addedRole
 			)} added to restrictions for ${emoji.toString()}. This emoji can now only be used by members with any of these roles:
-${fullList.map(role => `- ${messages.role(role)}\n`).join("")}${
-				fullList.length === 1
-					? `Members without access to this emoji may have to restart or refresh discord before the emoji dissapears from their emoji list. Even if they can see the emoji, they won't be able to use it.`
-					: `Members who just gained access to this emoji may have to restart or refresh discord before the emoji shows up in their emoji list.`
-			}
+${fullList.map(role => `- ${messages.role(role)}\n`).join("")}
 > If this was a mistake, reset the restrictions for this emoji with \`${
 				info.prefix
 			}emoji unrestrict ${emoji.id}\``,
@@ -151,16 +147,12 @@ ${fullList.map(role => `- ${messages.role(role)}\n`).join("")}${
 			`Role ${messages.role(
 				removedRole
 			)} removed from restrictions for ${emoji.toString()}. This emoji can now only be used by members with any of these roles:
-${fullList.map(role => `- ${messages.role(role)}\n`).join("")}${
-				fullList.length === 0
-					? `Members who just gained access to this emoji may have to restart or refresh discord before the emoji shows up in their emoji list.`
-					: `Members without access to this emoji may have to restart or refresh discord before the emoji dissapears from their emoji list. Even if they can see the emoji, they won't be able to use it.`
-			}
+${fullList.map(role => `- ${messages.role(role)}\n`).join("")}
 > If this was a mistake, reset the restrictions for this emoji with \`${
 				info.prefix
 			}emoji unrestrict ${emoji.id}\``,
 		removed_all_restrictions: (info: Info, emoji: Discord.GuildEmoji) =>
-			`Removed all restrictions for ${emoji.toString()}. Anyone can now use this emoji. Some members may have to restart or refresh discord before the emoji shows up in their emoji list.`,
+			`Removed all restrictions for ${emoji.toString()}. Anyone can now use this emoji.`,
 		inspect: (info: Info, emoji: Discord.GuildEmoji) =>
 			`**Emoji ${emoji.toString()}**:
 This emoji can only be used by members with at least one of these roles:

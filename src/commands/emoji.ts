@@ -117,7 +117,7 @@ async function getEmojiAndRole(
 
 router.add(
 	"emoji restrict",
-	[Info.theirPerm.manageEmoji],
+	[Info.theirPerm.manageEmoji, Info.ourPerm.manageEmoji],
 	async (cmd, info, next) => {
 		if (!info.guild) {
 			return await info.error(
@@ -152,7 +152,7 @@ router.add(
 
 router.add(
 	"emoji unrestrict",
-	[Info.theirPerm.manageEmoji],
+	[Info.theirPerm.manageEmoji, Info.ourPerm.manageEmoji],
 	async (cmd, info, next) => {
 		if (!info.guild) {
 			return await info.error(
