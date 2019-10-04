@@ -35,15 +35,15 @@ Channels <https://interpunct.info/channels>
 > [\` \`] Pin Message: \`prefix!pin messagelink/id\` (Get a Message Link or ID by right clicking/long tapping a message and selecting Copy ...)
 > [\`X\`] Sending a message to multiple channels: \`ip!send: My message #channel-one #channel-two\`
 Logging <https://interpunct.info/logging>
-> [\` \`] Enable message logging: \`ip!logging enable\`
-> [\` \`] Download message log: \`ip!log download\` (The log file will be attached in a reply.)
-> [\` \`] Clear log: \`ip!log reset\`
-> [\` \`] Disable logging: \`ip!log disable\` (Any existing logs will be deleted)
+> [\`X\`] Enable message logging: \`ip!logging enable\`
+> [\`X\`] Download message log: \`ip!log download\` (The log file will be attached in a reply.)
+> [\`X\`] Clear log: \`ip!log reset\`
+> [\`X\`] Disable logging: \`ip!log disable\` (Any existing logs will be deleted)
 Emojis <https://interpunct.info/emojis>
-> [\` \`] Restrict Emoji by Role: \`ip!emoji restrict \`<:emoji:629134046332583946>\` Role\` (Role name, id, or mention)
-> [\` \`] Remove all restrictions from emoji: \`ip!emoji unrestrict \`<:emoji:629134046332583946>
-> [\` \`] Remove one restriction from emoji: \`ip!emoji unrestrict \`<:emoji:629134046332583946>\` Role\`
-> [\` \`] Inspect emoji: \`ip!emoji inspect \`<:emoji:629134046332583946>\`
+> [\`X\`] Restrict Emoji by Role: \`ip!emoji restrict \`<:emoji:629134046332583946>\` Role\` (Role name, id, or mention)
+> [\`X\`] Remove all restrictions from emoji: \`ip!emoji unrestrict \`<:emoji:629134046332583946>
+> [\`X\`] Remove one restriction from emoji: \`ip!emoji unrestrict \`<:emoji:629134046332583946>\` Role\`
+> [\`X\`] Inspect emoji: \`ip!emoji inspect \`<:emoji:629134046332583946>\`
 > [\` \`] Give Users Ranks with Emojis: \`ip!command unknown\` (https://youtu.be/video)
 Fun <https://interpunct.info/fun>
 > [\`X\`] Disable fun: \`ip!fun disable\`
