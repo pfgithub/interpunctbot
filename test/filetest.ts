@@ -80,6 +80,12 @@ const actions: {
 			...(args.split(" ") as PermissionRoleName[])
 		);
 	},
+	async removeMyPerm(t, args, rewrite) {
+		await t.removePermissions(
+			"testbot",
+			...(args.split(" ") as PermissionRoleName[])
+		);
+	},
 	async startBot(t, args, rewrite) {
 		await t.startBot();
 	},

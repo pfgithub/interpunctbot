@@ -279,6 +279,19 @@ export default class Info {
 		return await this._tryReply(...message);
 	}
 	async error(...msg: MessageParametersType) {
+		const unknownCommandMessages = this.db
+			? await this.db.getCommandErrors()
+			: "always";
+		if (
+			unknownCommandMessages === "always" ||
+			(unknownCommandMessages === "admins" && this.authorPerms.manageBot)
+		) {
+		} else {
+			return [];
+		}
+		return this.errorAlways(...msg);
+	}
+	async errorAlways(...msg: MessageParametersType) {
 		let res;
 		if (
 			!this.myChannelPerms ||

@@ -156,6 +156,12 @@ export class TestHelper {
 			if (message.embeds.length > 0) {
 				this.mostRecentEvents.push(["embeds:", message.embeds]);
 			}
+			if (message.attachments.array().length > 0) {
+				this.mostRecentEvents.push([
+					"attachments:",
+					message.attachments.array().map(a => a.toJSON())
+				]);
+			}
 			resetTimeout();
 		});
 		this.adminClient.on("channelUpdate", (fromChannel, toChannel) => {
@@ -295,6 +301,32 @@ export class TestHelper {
 				);
 			}
 			await botMember.roles.add(role);
+		}
+	}
+
+	async removePermissions(
+		bot: "testbot" | "ipbot",
+		...permissions: PermissionRoleName[]
+	) {
+		const botMember =
+			bot === "testbot" ? this.adminInteractionBot : this.adminIPBot;
+		console.log(
+			`----- Adding Permissions ${permissions.join(",")} to ${bot}`
+		);
+		for (const permission of permissions) {
+			console.log(
+				`------------- Adding role ${permission} to ${botMember.displayName}`
+			);
+			const role = this.adminGuild.roles.find(r => r.name === permission);
+			if (!role) {
+				console.log(
+					`------------- The role named ${permission} does not exist in the testing server`
+				);
+				throw new Error(
+					`The role named ${permission} does not exist in the testing server`
+				);
+			}
+			await botMember.roles.remove(role);
 		}
 	}
 

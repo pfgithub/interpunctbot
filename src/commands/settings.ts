@@ -1,3 +1,88 @@
+import Router from "commandrouter";
+import Info from "../Info";
+import * as moment from "moment";
+const router = new Router<Info, any>();
+
+import { messages } from "../../messages";
+
+router.add(
+	"set prefix",
+	[Info.theirPerm.manageBot],
+	async (cmd, info, next) => {
+		if (!info.db) {
+			return await info.error(
+				messages.failure.command_cannot_be_used_in_pms(info)
+			);
+		}
+		const newPrefix = cmd.trim();
+		if (!newPrefix) {
+			// !"" === true
+			return await info.error(messages.settings.no_prefix_provided(info));
+		}
+		await info.db.setPrefix(newPrefix);
+		return await info.success(
+			messages.settings.prefix_updated(info, newPrefix)
+		);
+	}
+);
+
+router.add(
+	"set show errors",
+	[Info.theirPerm.manageBot],
+	async (cmd, info, next) => {
+		if (!info.db) {
+			return info.error(
+				messages.failure.command_cannot_be_used_in_pms(info)
+			);
+		}
+		if (cmd === "always" || cmd === "admins" || cmd === "never") {
+			await info.db.setCommandErrors(cmd);
+			return await info.success(
+				messages.settings.show_errors_set(
+					info,
+					cmd,
+					await info.db.getUnknownCommandMessages()
+				)
+			);
+		}
+		return info.error(
+			messages.settings.show_errors_usage(
+				info,
+				await info.db.getCommandErrors()
+			)
+		);
+	}
+);
+router.add(
+	"set show unknown command",
+	[Info.theirPerm.manageBot],
+	async (cmd, info, next) => {
+		if (!info.db) {
+			return info.error(
+				messages.failure.command_cannot_be_used_in_pms(info)
+			);
+		}
+		if (cmd === "always" || cmd === "admins" || cmd === "never") {
+			await info.db.setUnknownCommandMessages(cmd);
+			return await info.success(
+				messages.settings.unknown_commands_set(
+					info,
+					cmd,
+					await info.db.getCommandErrors()
+				)
+			);
+		}
+		return info.error(
+			messages.settings.unknown_commands_usage(
+				info,
+				await info.db.getUnknownCommandMessages()
+			)
+		);
+	}
+);
+
+export default router;
+
 // import Usage from "command-parser";
 // import o from "../options";
 // import {RichEmbed} from "discord.js";

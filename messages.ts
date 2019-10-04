@@ -15,7 +15,7 @@ export function safe(
 	});
 	return result
 		.map(el =>
-			"__raw" in (el as {})
+			typeof (el as { __raw: string }).__raw === "string"
 				? (el as { __raw: string }).__raw
 				: (el as string)
 						.replace(/(\*|_|`|~|\\|<|>|\[|\]"|'|\(|\))/g, "\\$1")
@@ -40,7 +40,7 @@ Logging <https://interpunct.info/logging>
 > [\` \`] Clear log: \`ip!log reset\`
 > [\` \`] Disable logging: \`ip!log disable\` (Any existing logs will be deleted)
 Emojis <https://interpunct.info/emojis>
-> [\` \`] Restrict Emoji by Role: \`ip!emoji restrict \`<:emoji:628119879798489089>\` RoleID\`
+> [\` \`] Restrict Emoji by Role: \`ip!emoji restrict \`<:emoji:629134046332583946>\` RoleID\`
 > [\` \`] Give Users Ranks with Emojis: \`ip!command unknown\` (https://youtu.be/video)
 Fun <https://interpunct.info/fun>
 > [\`X\`] Disable fun: \`ip!fun disable\`
@@ -52,8 +52,8 @@ Speedrun.com <https://interpunct.info/speedrun>
 > [\`X\`] Show Rules: \`ip!speedrun rules CategoryName%\`
 > [\`X\`] Set Game on speedrun.com: \`ip!speedrun set https://www.speedrun.com/yourgame%\`
 Quotes and Lists <https://interpunct.info/lists>
-> [\`X\`] Create List: \`ip!lists add listname https://pastebin.com/\`
-> [\`X\`] Edit List: \`ip!lists edit listname https://pastebin.com/\`
+> [\`X\`] Create List: \`ip!lists add listname pastebin.com/NFuKYjUN\`
+> [\`X\`] Edit List: \`ip!lists edit listname pastebin.com/NFuKYjUN\`
 > [\`X\`] Remove List: \`ip!lists remove listname\`
 > [\`X\`] List Lists: \`ip!lists list\`
 ${Object.keys(lists)
@@ -66,24 +66,38 @@ ${Object.keys(lists)
 > [\` \`] Purge messages in a channel: \`ip!purge [number of messages to purge]\`
 > [\` \`] Welcome and Goodbye messages: \`ip!command unknown\`
 Configuration <https://interpunct.info/configuration>
-> [\` \`] Error messages: \`ip!settings errors show|hide\` (Default show)
-> [\` \`] PM Errors: \`ip!settings pm on|off\` (Default on)
-> [\` \`] Set Prefix: \`ip!settings prefix newprefix\` (Default \`ip!\`)
+> [\`X\`] Error messages: \`ip!set show errors always|admins|never\` (Default: always)
+> [\`X\`] Unknown command errors: \`ip!set show unknown command show|admins|hide\` (Default: show)
+> [\` \`] PM Errors: \`ip!settings pm on|off\` (Default: on)
+> [\`X\`] Set Prefix: \`ip!set prefix newprefix\` (Default \`{defaultprefix}\`)
 Server Info
-> inter·punct prefix: \`ip!\`
+> inter·punct prefix: ${
+			info.prefix ? `\`ip!\`` : "no prefix is required in PMs."
+		}
 > If the prefix is broken, you can use ${info.atme} as a prefix instead.
 Bot Info
 > Invite: <https://discordapp.com/api/oauth2/authorize?client_id=433078185555656705&permissions=268445780&scope=bot>
 > Website: <https://interpunct.info>
 > Support Server: <https://interpunct.info/support>`
 			.split("ip!")
-			.join(info.prefix),
+			.join(info.prefix)
+			.split("{defaultprefix}")
+			.join("ip!"),
 	emoji: {
 		failure: "<:failure_2:547081084710682643>"
 	},
 	failure: {
 		command_cannot_be_used_in_pms: (info: Info) =>
-			`This command cannot be used in PMs!`
+			`This command cannot be used in PMs!`,
+		generic_internal_error: (info: Info, errorCode: string) =>
+			`An internal error occured while running the command.
+For help, ask on the support server with your error code \`${errorCode}\`
+> **Support Server**: <https://interpunct.bot/support>
+> **Error Code**: \`${errorCode}\``,
+		command_not_found: (info: Info, command: string) =>
+			safe`Command \`${command}\` not found. Type \`${raw(
+				info.prefix
+			)}help\` for a list of commands.`
 	},
 	settings: {
 		autospace_enabled: (info: Info) =>
@@ -92,7 +106,79 @@ Bot Info
 ${info.prefix}space channels disable
 \`\`\``,
 		autospace_disabled: (info: Info) =>
-			`Channels will no longer have spaces added to their names.`
+			`Channels will no longer have spaces added to their names.`,
+		show_errors_set: (
+			info: Info,
+			showErrors: "always" | "admins" | "never",
+			unknownCommandMessages: "always" | "admins" | "never"
+		) =>
+			showErrors === "always"
+				? `Errors will be shown to all users.${
+						unknownCommandMessages === "never"
+							? `\n> Unknown command errors are currently hidden. To show them for admins or all users, use \`${info.prefix}set show unknown command always\` or \`${info.prefix}set show unknown command admins\``
+							: ""
+				  }`
+				: showErrors === "admins"
+				? `Bot errors will only be shown to members with the \`Manage Server\` permission.${
+						unknownCommandMessages === "always"
+							? `\n> Unknown command errors will still be shown to all users. To show them for admins or disable them entirely, use \`${info.prefix}set show unknown command admins\` or \`${info.prefix}set show unknown command never\``
+							: ""
+				  }`
+				: showErrors === "never"
+				? `Bot errors will never be shown. If a command is not working and not giving any output, try re-enabling command errors with \`${
+						info.prefix
+				  }set show errors always\`.${
+						unknownCommandMessages === "always"
+							? `\n> Unknown command errors will still be shown to all users. To show them for admins only or disable them entirely, use \`${info.prefix}set show unknown command admins\` or \`${info.prefix}set show unknown command never\``
+							: ""
+				  }`
+				: `this should never happen`,
+		no_prefix_provided: (info: Info) =>
+			`The current prefix for this server is ${info.prefix}. To change it, use \`${info.prefix}set prefix new_prefix\``,
+		prefix_updated: (info: Info, newPrefix: string) =>
+			`Prefix changed to ${newPrefix}. Try it out with \`${newPrefix}ping\`.`,
+		show_errors_usage: (
+			info: Info,
+			showErrors: "always" | "admins" | "never"
+		) =>
+			`Error messages are currently ${
+				showErrors === "always"
+					? "shown to all users"
+					: showErrors === "admins"
+					? "shown to members with the `Manage Server` permission"
+					: showErrors === "never"
+					? "never shown"
+					: "this should never happen"
+			}. To change this, use \`${
+				info.prefix
+			}set show errors always|admins|never\``,
+		unknown_commands_set: (
+			info: Info,
+			unknownCommandMessages: "always" | "admins" | "never",
+			showErrors: "always" | "admins" | "never"
+		) =>
+			unknownCommandMessages === "always"
+				? `Unknown command messages will be shown to all users.`
+				: unknownCommandMessages === "admins"
+				? `Unknown command messages will only be shown to members with the \`Manage Server\` permission.`
+				: unknownCommandMessages === "never"
+				? `Unknown command messages will be hidden. If a command is not working and not giving any output, try re-enabling unknown command messages with \`${info.prefix}set show unknown command always\``
+				: `this should never happen`,
+		unknown_commands_usage: (
+			info: Info,
+			unknownCommandMessages: "always" | "admins" | "never"
+		) =>
+			`Unknown command messages are currently ${
+				unknownCommandMessages === "always"
+					? "shown to all users"
+					: unknownCommandMessages === "admins"
+					? "shown to members with the `Manage Server` permission"
+					: unknownCommandMessages === "never"
+					? "never shown"
+					: "this should never happen"
+			}. To change this, use \`${
+				info.prefix
+			}set show unknown command always|admins|never\``
 	},
 	logging: {
 		attach_files: (info: Info) =>
@@ -178,7 +264,7 @@ ${Object.keys(lists)
 	.join(`\n`)}`,
 		no_list_name_provided: (
 			info: Info
-		) => `A list name and pastebin URL is required. For example: \`${info.prefix}lists add listname https://pastebin.com/NFuKYjUN\`
+		) => `A list name and pastebin URL is required. For example: \`${info.prefix}lists add listname pastebin.com/NFuKYjUN\`
 > More Info: <https://interpunct.info/lists>`,
 		list_already_exists: (
 			info: Info,

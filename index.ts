@@ -28,6 +28,7 @@ import channelsRouter, {
 	spaceChannel
 } from "./src/commands/channelmanagement";
 import aboutRouter from "./src/commands/about";
+import settingsRouter from "./src/commands/settings";
 import quoteRouter from "./src/commands/quote";
 
 import * as moment from "moment";
@@ -163,6 +164,7 @@ router.add("crash", [Info.theirPerm.owner], () => {
 	throw new Error("crash command used");
 });
 
+router.add([], settingsRouter);
 router.add([], quoteRouter);
 
 function depricate(oldcmd: string, newcmd: string, version: string = "3.0") {
@@ -276,9 +278,15 @@ depricate("settings", "help");
 */
 
 router.add([], async (cmd, info) => {
-	if (!info.db || (await info.db.getUnknownCommandMessages())) {
-		return await info.error(
-			"Command not found, use help for a list of commands",
+	const unknownCommandMessages = info.db
+		? await info.db.getUnknownCommandMessages()
+		: "always";
+	if (
+		unknownCommandMessages === "always" ||
+		(unknownCommandMessages === "admins" && info.authorPerms.manageBot)
+	) {
+		return await info.errorAlways(
+			messages.failure.command_not_found(info, cmd),
 			undefined
 		);
 	} // else do nothing
@@ -456,7 +464,7 @@ bot.on("message", async msg => {
 		infoPerSecond: -1
 	});
 
-	if (newInfo.db && newInfo.db.getLogEnabled()) {
+	if (newInfo.db && (await newInfo.db.getLogEnabled())) {
 		try {
 			guildLog(
 				msg.guild!.id, // db ? guild! : guild?
@@ -482,10 +490,10 @@ bot.on("message", async msg => {
 		await messageRouter.handle(msg.content, newInfo); // await in case there is an async function that errors.
 	} catch (er) {
 		const ewid = wrapErrorAddID(er);
-		msg.reply(
-			`An internal error occured :( maybe try again? If that doesn't work, submit a bug report on the support server <https://interpunct.bot/support> . Your error code is \`${ewid.errorCode}\``
-		);
 		logError(ewid);
+		await newInfo.error(
+			messages.failure.generic_internal_error(newInfo, ewid.errorCode)
+		);
 	}
 });
 

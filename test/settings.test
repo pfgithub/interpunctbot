@@ -1,0 +1,136 @@
+reset
+channel text #settings
+defaultPermissions
+
+startBot
+
+myDefaultPerms
+
+watch
+	send #settings: ip!set prefix $
+test
+!! [
+!! 	"MSG #settings: testbot: ip!set prefix $",
+!! 	"MSG #settings: botdev: @testbot, ❌ You need permisison to `Manage Server` to use this command"
+!! ]
+
+myPerm MANAGE_SERVER
+
+watch
+	send #settings: ip!set prefix $
+test
+!! [
+!! 	"MSG #settings: testbot: ip!set prefix $",
+!! 	"MSG #settings: botdev: @testbot, ✅ Prefix changed to $. Try it out with `$ping`."
+!! ]
+
+watch
+	send #settings: $set show errors never
+test
+!! [
+!! 	"MSG #settings: testbot: $set show errors never",
+!! 	"MSG #settings: botdev: @testbot, ✅ Bot errors will never be shown. If a command is not working and not giving any output, try re-enabling command errors with `$set show errors always`.\n> Unknown command errors will still be shown to all users. To show them for admins only or disable them entirely, use `$set show unknown command admins` or `$set show unknown command never`"
+!! ]
+
+watch
+	send #settings: $log download
+test
+!! [
+!! 	"MSG #settings: testbot: $log download"
+!! ]
+
+removeMyPerm MANAGE_SERVER
+
+watch
+	send #settings: $set prefix ip!
+test
+!! [
+!! 	"MSG #settings: testbot: $set prefix ip!"
+!! ]
+
+myPerm MANAGE_SERVER
+
+watch
+	send #settings: $set show errors admins
+test
+!! [
+!! 	"MSG #settings: testbot: $set show errors admins",
+!! 	"MSG #settings: botdev: @testbot, ✅ Bot errors will only be shown to members with the `Manage Server` permission.\n> Unknown command errors will still be shown to all users. To show them for admins or disable them entirely, use `$set show unknown command admins` or `$set show unknown command never`"
+!! ]
+
+watch
+	send #settings: $log download
+test
+!! [
+!! 	"MSG #settings: testbot: $log download",
+!! 	"MSG #settings: botdev: @testbot, ❌ Logging is not enabled on your server"
+!! ]
+
+removeMyPerm MANAGE_SERVER
+
+watch
+	send #settings: $set prefix ip!
+test
+!! [
+!! 	"MSG #settings: testbot: $set prefix ip!"
+!! ]
+
+myPerm MANAGE_SERVER
+
+watch
+	send #settings: $set show errors always
+test
+!! [
+!! 	"MSG #settings: testbot: $set show errors always",
+!! 	"MSG #settings: botdev: @testbot, ✅ Errors will be shown to all users."
+!! ]
+
+watch
+	send #settings: $unknown command!!
+test
+!! [
+!! 	"MSG #settings: testbot: $unknown command!!",
+!! 	"MSG #settings: botdev: @testbot, ❌ Command `unknown command!!` not found. Type `$help` for a list of commands."
+!! ]
+
+watch
+	send #settings: $set show unknown command never
+test
+!! [
+!! 	"MSG #settings: testbot: $set show unknown command never",
+!! 	"MSG #settings: botdev: @testbot, ✅ Unknown command messages will be hidden. If a command is not working and not giving any output, try re-enabling unknown command messages with `$set show unknown command always`"
+!! ]
+
+watch
+	send #settings: the price was
+	send #settings: $2500000,00000000 dollars
+test
+!! [
+!! 	"MSG #settings: testbot: the price was",
+!! 	"MSG #settings: testbot: $2500000,00000000 dollars"
+!! ]
+
+watch
+	send #settings: $set show unknown command admins
+test
+!! [
+!! 	"MSG #settings: testbot: $set show unknown command admins",
+!! 	"MSG #settings: botdev: @testbot, ✅ Unknown command messages will only be shown to members with the `Manage Server` permission."
+!! ]
+
+watch
+	send #settings: $unknown command!!
+test
+!! [
+!! 	"MSG #settings: testbot: $unknown command!!",
+!! 	"MSG #settings: botdev: @testbot, ❌ Command `unknown command!!` not found. Type `$help` for a list of commands."
+!! ]
+
+removeMyPerm MANAGE_SERVER
+
+watch
+	send #settings: $unknown command but im not adminnn
+test
+!! [
+!! 	"MSG #settings: testbot: $unknown command but im not adminnn"
+!! ]

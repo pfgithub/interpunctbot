@@ -50,8 +50,6 @@ type JSONFields = {
 };
 type BooleanFields = {
 	logging: boolean;
-	unknownCommandMessages: boolean;
-	failedPrecheckMessages: boolean;
 	channel_spacing: boolean;
 	pmonfailure: boolean;
 	funEnabled: boolean;
@@ -195,18 +193,53 @@ class Database {
 	async setLogEnabled(bool: boolean) {
 		return await this._set("logging", bool.toString());
 	}
-	async getUnknownCommandMessages() {
-		return await this._getBool("unknownCommandMessages", true);
+	async getUnknownCommandMessages(): Promise<"always" | "admins" | "never"> {
+		const value = await this._get("unknownCommandMessages");
+		if (value === "true") {
+			return "always";
+		}
+		if (value === "admins") {
+			return "admins";
+		}
+		if (value === "false") {
+			return "never";
+		}
+		return "always"; // default
 	}
-	async setUnknownCommandMessages(bool: boolean) {
-		return await this._set("unknownCommandMessages", bool.toString());
+	async setUnknownCommandMessages(bool: "always" | "admins" | "never") {
+		if (bool === "always") {
+			return await this._set("unknownCommandMessages", "true");
+		}
+		if (bool === "admins") {
+			return await this._set("unknownCommandMessages", "admins");
+		}
+		if (bool === "never") {
+			return await this._set("unknownCommandMessages", "false");
+		}
 	}
-	async getCommandErrors() {
-		// true = all, false = manage_guild only
-		return await this._getBool("failedPrecheckMessages", true);
+	async getCommandErrors(): Promise<"always" | "admins" | "never"> {
+		const value = await this._get("failedPrecheckMessages");
+		if (value === "true") {
+			return "always";
+		}
+		if (value === "false") {
+			return "admins";
+		}
+		if (value === "noone") {
+			return "never";
+		}
+		return "always"; // default
 	}
-	async setCommandErrors(bool: boolean) {
-		return await this._set("failedPrecheckMessages", bool.toString());
+	async setCommandErrors(bool: "always" | "admins" | "never") {
+		if (bool === "always") {
+			return await this._set("failedPrecheckMessages", "true");
+		}
+		if (bool === "admins") {
+			return await this._set("failedPrecheckMessages", "false");
+		}
+		if (bool === "never") {
+			return await this._set("failedPrecheckMessages", "noone");
+		}
 	}
 	async getAutospaceChannels() {
 		return await this._getBool("channel_spacing", false);

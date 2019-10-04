@@ -51,7 +51,22 @@ test
 !! [
 !! 	"MSG #logging: testbot: ip!log download",
 !! 	"MSG #logging: botdev: @testbot, Log files:",
-!! 	"MSG #logging: botdev: @testbot,  > Use `ip!log reset` to clear the log and start a new one."
+!! 	[
+!! 		"attachments:",
+!! 		[
+!! 			{
+!! 				"attachment": "https://cdn.discordapp.com/attachments/629126204766683162/629126298585006108/inter_punct_automated_tests.log",
+!! 				"name": "inter_punct_automated_tests.log",
+!! 				"id": "629126298585006108",
+!! 				"size": 5700,
+!! 				"url": "https://cdn.discordapp.com/attachments/629126204766683162/629126298585006108/inter_punct_automated_tests.log",
+!! 				"proxyURL": "https://media.discordapp.net/attachments/629126204766683162/629126298585006108/inter_punct_automated_tests.log",
+!! 				"height": null,
+!! 				"width": null
+!! 			}
+!! 		]
+!! 	],
+!! 	"MSG #logging: botdev: @testbot,  \n> Use `ip!log reset` to clear the log and start a new one."
 !! ]
 
 watch
@@ -68,7 +83,22 @@ test
 !! [
 !! 	"MSG #logging: testbot: ip!log download",
 !! 	"MSG #logging: botdev: @testbot, Log files:",
-!! 	"MSG #logging: botdev: @testbot,  > Use `ip!log reset` to clear the log and start a new one."
+!! 	[
+!! 		"attachments:",
+!! 		[
+!! 			{
+!! 				"attachment": "https://cdn.discordapp.com/attachments/629126204766683162/629126320122626058/inter_punct_automated_tests.log",
+!! 				"name": "inter_punct_automated_tests.log",
+!! 				"id": "629126320122626058",
+!! 				"size": 5700,
+!! 				"url": "https://cdn.discordapp.com/attachments/629126204766683162/629126320122626058/inter_punct_automated_tests.log",
+!! 				"proxyURL": "https://media.discordapp.net/attachments/629126204766683162/629126320122626058/inter_punct_automated_tests.log",
+!! 				"height": null,
+!! 				"width": null
+!! 			}
+!! 		]
+!! 	],
+!! 	"MSG #logging: botdev: @testbot,  \n> Use `ip!log reset` to clear the log and start a new one."
 !! ]
 
 watch
