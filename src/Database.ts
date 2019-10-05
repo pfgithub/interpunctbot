@@ -40,7 +40,7 @@ type Fields = {
 	speedrun?: string; // "gameID, categoryID"
 	welcome?: string;
 	goodbye?: string;
-	pmonfailure?: string;
+	// pmonfailure?: string;
 	funEnabled?: string;
 };
 
@@ -51,7 +51,6 @@ type JSONFields = {
 type BooleanFields = {
 	logging: boolean;
 	channel_spacing: boolean;
-	pmonfailure: boolean;
 	funEnabled: boolean;
 };
 
@@ -241,6 +240,30 @@ class Database {
 			return await this._set("failedPrecheckMessages", "noone");
 		}
 	}
+	// async getPMOnFailure(): Promise<"always" | "admins" | "never"> {
+	// 	const value = await this._get("pmonfailure");
+	// 	if (value === "true") {
+	// 		return "always";
+	// 	}
+	// 	if (value === "false") {
+	// 		return "admins";
+	// 	}
+	// 	if (value === "noone") {
+	// 		return "never";
+	// 	}
+	// 	return "never"; // default
+	// }
+	// async setPMOnFailure(bool: "always" | "admins" | "never") {
+	// 	if (bool === "always") {
+	// 		return await this._set("pmonfailure", "true");
+	// 	}
+	// 	if (bool === "admins") {
+	// 		return await this._set("pmonfailure", "false");
+	// 	}
+	// 	if (bool === "never") {
+	// 		return await this._set("pmonfailure", "noone");
+	// 	}
+	// }
 	async getAutospaceChannels() {
 		return await this._getBool("channel_spacing", false);
 	}
@@ -259,12 +282,6 @@ class Database {
 	}
 	async setGoodbyeMessage(newMessage: string) {
 		return await this._set("goodbye", newMessage);
-	}
-	async getPMOnFailure() {
-		return await this._getBool("pmonfailure", true);
-	}
-	async setPMOnFailure(value: boolean) {
-		return await this._setBool("pmonfailure", value);
 	}
 	async getFunEnabled() {
 		return await this._getBool("funEnabled", true);

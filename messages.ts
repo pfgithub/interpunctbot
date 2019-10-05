@@ -71,7 +71,7 @@ ${Object.keys(lists)
 Configuration <https://interpunct.info/configuration>
 > [\`X\`] Error messages: \`ip!set show errors always|admins|never\` (Default: always)
 > [\`X\`] Unknown command errors: \`ip!set show unknown command show|admins|hide\` (Default: show)
-> [\` \`] PM Errors: \`ip!settings pm on|off\` (Default: on)
+> [\`X\`] PM Errors: \`ip!settings pm on|off\` (Default: on)
 > [\`X\`] Set Prefix: \`ip!set prefix newprefix\` (Default \`{defaultprefix}\`)
 Server Info
 > inter·punct prefix: ${

@@ -248,34 +248,36 @@ export default class Info {
 		if (replyResult.result) {
 			return (replyResult.result as unknown) as Discord.Message[];
 		}
-		if (!(this.db ? this.db.getPMOnFailure() : false)) {
-			// server does not have pmonfailure enabled. do nothing.
-			return undefined;
-		}
-		if (this.authorPerms.manageChannel) {
-			// this._informMissingPermissions(SEND_MESSAGES, "reply to your message", this.message.author)
-			// If the author has permission to manage the channel permissions, tell them the bot doesn't have permission to respond.
-			/*	const errorMessage =*/ await this.message.author!.send(
-				// how can a message not have an author
-				...this._formatMessageWithResultType(
-					result.error,
-					`I do not have permission to reply to your message in #${
-						this.channel instanceof Discord.TextChannel
-							? this.channel.name
-							: "this should never happen"
-					}`
-				)
-			);
-			// errorMessage.delete({ timeout: 10 * 1000 });
-		}
-		// Send the actual result
-		return <Discord.Message[]>(<unknown>await this.message.author!.send(
-			content,
-			{
-				...options,
-				split: true
-			}
-		));
+		// if (!(this.db ? this.db.getPMOnFailure() : false)) {
+		// 	// server does not have pmonfailure enabled. do nothing.
+		// 	return undefined;
+		// }
+		// if (this.authorPerms.manageChannel) {
+		// 	// this._informMissingPermissions(SEND_MESSAGES, "reply to your message", this.message.author)
+		// 	// If the author has permission to manage the channel permissions, tell them the bot doesn't have permission to respond.
+		// 	/*	const errorMessage =*/ await this.message.author!.send(
+		// 		// how can a message not have an author
+		// 		...this._formatMessageWithResultType(
+		// 			result.error,
+		// 			`I do not have permission to reply to your message in #${
+		// 				this.channel instanceof Discord.TextChannel
+		// 					? this.channel.name
+		// 					: "this should never happen"
+		// 			}`
+		// 		)
+		// 	);
+		// 	// errorMessage.delete({ timeout: 10 * 1000 });
+		// }
+		// // Send the actual result
+		// if (this.db && (await this.db.getPMOnFailure())) {
+		// 	return <Discord.Message[]>(<unknown>await this.message.author!.send(
+		// 		content,
+		// 		{
+		// 			...options,
+		// 			split: true
+		// 		}
+		// 	));
+		// }
 	}
 	async reply(
 		resultType: string,
@@ -324,6 +326,13 @@ export default class Info {
 		return this.errorAlways(...msg);
 	}
 	async errorAlways(...msg: MessageParametersType) {
+		const reactResult = await ilt(
+			this.message.react("508841130503438356"),
+			false
+		);
+		if (reactResult.error) {
+			await ilt(this.message.react("❌"), false); // may fail, not a problem
+		}
 		let res;
 		if (
 			!this.myChannelPerms ||
@@ -333,17 +342,17 @@ export default class Info {
 		} else {
 			res = await this.reply("❌", ...msg);
 		}
-		const reactResult = await ilt(
-			this.message.react("508841130503438356"),
-			false
-		);
-		if (reactResult.error) {
-			await ilt(this.message.react("❌"), false); // may fail, not a problem
-		}
 		// res && res.forEach(r => r.delete({ timeout: 20 * 1000 }));
 		return res;
 	}
 	async warn(...msg: MessageParametersType) {
+		const reactResult = await ilt(
+			this.message.react("508842207089000468"),
+			false
+		);
+		if (reactResult.error) {
+			await ilt(this.message.react("⚠"), false); // may fail
+		}
 		let res;
 		if (
 			!this.myChannelPerms ||
@@ -353,17 +362,17 @@ export default class Info {
 		} else {
 			res = await this.reply("⚠", ...msg);
 		}
-		const reactResult = await ilt(
-			this.message.react("508842207089000468"),
-			false
-		);
-		if (reactResult.error) {
-			await ilt(this.message.react("⚠"), false); // may fail
-		}
 		// res && res.forEach(r => r.delete({ timeout: 20 * 1000 }));
 		return res;
 	}
 	async success(...msg: MessageParametersType) {
+		const reactResult = await ilt(
+			this.message.react("508840840416854026"),
+			false
+		);
+		if (reactResult.error) {
+			await ilt(this.message.react("✅"), false); // may fail
+		}
 		let res;
 		if (
 			!this.myChannelPerms ||
@@ -372,13 +381,6 @@ export default class Info {
 			res = await this.reply("<:success:508840840416854026>", ...msg);
 		} else {
 			res = await this.reply("✅", ...msg);
-		}
-		const reactResult = await ilt(
-			this.message.react("508840840416854026"),
-			false
-		);
-		if (reactResult.error) {
-			await ilt(this.message.react("✅"), false); // may fail
 		}
 		// res && res.forEach(r => r.delete({ timeout: 20 * 1000 }));
 		return res;
