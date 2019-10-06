@@ -96,7 +96,10 @@ router.add(
 		const messagesToDelete = await channel.messages.fetch({
 			limit: messageLimit
 		});
-		// let confirmationResult = await info.confirm("are you sure?")
+		// const confirmationResult = await info.confirm("are you sure?");
+		// if (!confirmationResult) {
+		// 	return;
+		// }
 		const progressMessage = await info.channel.send(
 			messages.channels.purge.in_progress(info, messagesToDelete.size)
 		);
