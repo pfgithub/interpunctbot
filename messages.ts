@@ -65,7 +65,14 @@ ${Object.keys(lists)
 			`> [\`X\`] View ${l}: \`ip!${l} [optional "single"] [optional search term] [optional number]\`\n`
 	)
 	.join("")}Administration <https://interpunct.info/administration>
-> [\` \`] Automatically ban users with specific words in their name:\n> \`\`\`\n> ip!autoban add\n> newline seperated\n> list of\n> words to ban if found\n> in someone's username\n> \`\`\`
+> [\` \`] Automatically ban users with specific words in their name:
+> \`\`\`
+> ip!autoban add
+> newline seperated
+> list of
+> words to ban if found
+> in someone's username
+> \`\`\`
 > [\`X\`] Purge messages in a channel: \`ip!purge [number of messages to purge]\`
 > [\` \`] Welcome and Goodbye messages: \`ip!command unknown\`
 Configuration <https://interpunct.info/configuration>
