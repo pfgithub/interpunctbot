@@ -43,7 +43,7 @@ Emojis <https://interpunct.info/emojis>
 > [\`X\`] Restrict Emoji by Role: \`ip!emoji restrict \`<:emoji:629134046332583946>\` Role\` (Role name, id, or mention)
 > [\`X\`] Remove all restrictions from emoji: \`ip!emoji unrestrict \`<:emoji:629134046332583946>
 > [\`X\`] Remove one restriction from emoji: \`ip!emoji unrestrict \`<:emoji:629134046332583946>\` Role\`
-> [\`X\`] Inspect emoji: \`ip!emoji inspect \`<:emoji:629134046332583946>\`
+> [\`X\`] Inspect emoji: \`ip!emoji inspect \`<:emoji:629134046332583946>
 > [\` \`] Give Users Ranks with Emojis: \`ip!command unknown\` (https://youtu.be/video)
 Fun <https://interpunct.info/fun>
 > [\`X\`] Disable fun: \`ip!fun disable\`
@@ -66,7 +66,7 @@ ${Object.keys(lists)
 	)
 	.join("")}Administration <https://interpunct.info/administration>
 > [\` \`] Automatically ban users with specific words in their name:\n> \`\`\`\n> ip!autoban add\n> newline seperated\n> list of\n> words to ban if found\n> in someone's username\n> \`\`\`
-> [\` \`] Purge messages in a channel: \`ip!purge [number of messages to purge]\`
+> [\`X\`] Purge messages in a channel: \`ip!purge [number of messages to purge]\`
 > [\` \`] Welcome and Goodbye messages: \`ip!command unknown\`
 Configuration <https://interpunct.info/configuration>
 > [\`X\`] Error messages: \`ip!set show errors always|admins|never\` (Default: always)
@@ -371,6 +371,20 @@ Try it out with \`${info.prefix}${listName}\``,
 			`List ${listName} removed.`
 	},
 	channels: {
+		purge: {
+			message_limit: (info: Info, messageLimit: number) =>
+				!messageLimit
+					? `A message limit must be given, such as \`${info.prefix}purge 25\``
+					: messageLimit < 1
+					? `Message limit must be positive.`
+					: messageLimit > 1000
+					? `Message limit must be less than 1000`
+					: `Message limit must be an integer.`,
+			in_progress: (info: Info, messagesToDelete: number) =>
+				`Deleting ${messagesToDelete} messages...`,
+			success: (info: Info, messagesToDelete: number) =>
+				`Succesfully deleted ${messagesToDelete} messages.`
+		},
 		spacing: {
 			no_channels_to_space: (info: Info) =>
 				`**There are no channels to put spaces in!**

@@ -1,4 +1,4 @@
-import { Message, Guild, Channel, GuildChannel } from "discord.js";
+import { Message, Guild, Channel, GuildChannel, TextChannel } from "discord.js";
 import Router from "commandrouter";
 import Info from "../Info";
 import { ilt } from "../..";
@@ -69,6 +69,42 @@ router.add(
 		}
 		info.db.setAutospaceChannels(false);
 		return info.success(messages.settings.autospace_disabled(info));
+	}
+);
+
+router.add(
+	"purge",
+	[Info.theirPerm.manageMessages, Info.ourPerm.manageMessages],
+	async (cmd, info) => {
+		if (!info.guild || !info.db) {
+			return info.error(
+				messages.failure.command_cannot_be_used_in_pms(info)
+			);
+		}
+		const messageLimit = +cmd;
+		if (
+			!messageLimit ||
+			messageLimit < 1 ||
+			messageLimit > 1000 ||
+			Math.floor(messageLimit) !== messageLimit
+		) {
+			return info.error(
+				messages.channels.purge.message_limit(info, messageLimit)
+			);
+		}
+		const channel = info.message.channel as TextChannel;
+		const messagesToDelete = await channel.messages.fetch({
+			limit: messageLimit
+		});
+		// let confirmationResult = await info.confirm("are you sure?")
+		const progressMessage = await info.channel.send(
+			messages.channels.purge.in_progress(info, messagesToDelete.size)
+		);
+		await channel.bulkDelete(messagesToDelete);
+		await info.success(
+			messages.channels.purge.success(info, messagesToDelete.size)
+		);
+		await progressMessage.delete();
 	}
 );
 
