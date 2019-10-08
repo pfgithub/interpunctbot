@@ -44,7 +44,10 @@ Emojis <https://interpunct.info/emojis>
 > [\`X\`] Remove all restrictions from emoji: \`ip!emoji unrestrict \`<:emoji:629134046332583946>
 > [\`X\`] Remove one restriction from emoji: \`ip!emoji unrestrict \`<:emoji:629134046332583946>\` Role\`
 > [\`X\`] Inspect emoji: \`ip!emoji inspect \`<:emoji:629134046332583946>
-> [\` \`] Give Users Ranks with Emojis: \`ip!command unknown\` (https://youtu.be/video)
+> [\` \`] Set channel for emoji ranking: \`ip!emojirank channel #channel\`
+> [\` \`] Disable emoji ranking: \`ip!emojirank disable\`
+> [\` \`] Add an emoji for emoji ranking: \`ip!emojirank add for=everyone|admins \`<:emoji:629134046332583946>\` Role\`
+> [\` \`] Remove an emoji for emoji ranking: \`ip!emojirank remove \`<:emoji:629134046332583946>
 Fun <https://interpunct.info/fun>
 > [\`X\`] Disable fun: \`ip!fun disable\`
 > [\`X\`] Enable fun: \`ip!fun enable\` (Enabled by default)
