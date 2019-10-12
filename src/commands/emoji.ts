@@ -202,6 +202,7 @@ router.add(
 	"emoji inspect",
 	[Info.theirPerm.manageEmoji],
 	async (cmd, info, next) => {
+		// argparser(ap.channel, ap.emojilong);
 		if (!info.guild) {
 			return await info.error(
 				messages.failure.command_cannot_be_used_in_pms(info)

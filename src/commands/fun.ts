@@ -11,6 +11,10 @@ router.add("ping", [], async (cmd: string, info) => {
 	} else {
 		return info.error(messages.fun.fun_disabled(info));
 	}
+	
+	if(Math.random() > 0.9){
+		await info.result("*misses*");
+	}
 
 	if (!info.other) {
 		return await info.result("<a:pingpong:482012177725653003>", undefined);
@@ -89,7 +93,7 @@ router.add("minesweeper", [], async (cmd: string, info) => {
 	mode = mode || "emojis";
 	width = width || 10;
 	height = height || 10;
-	if (remainingWords.length > 0) {
+	if (remainingWords.join(" ").trim().length > 0) {
 		return await info.error(
 			messages.fun.minesweeper_usage(info, difficulties, modesl)
 		);
@@ -109,7 +113,7 @@ router.add("minesweeper", [], async (cmd: string, info) => {
 	const linesUnder2000: string[] = [];
 	const splitQuotedBoard = generatedBoard.split("\n").map(l => `> ${l}`);
 	splitQuotedBoard.push(
-		`**${width}**x**${height}** | theme: **${mode}** | difficulty: **${difficulty}** ${
+		`**${width}**x**${height}** | theme: **${mode}** | difficulty: **${difficulty}** | top left is always safe ${
 			flag ? "flag" : ""
 		}`
 	);
