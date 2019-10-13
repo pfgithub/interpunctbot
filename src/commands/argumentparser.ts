@@ -33,11 +33,17 @@ export async function ChannelArgumentParser(
 	info: Info,
 	arg: ArgType,
 	cmd: string,
-	index: number
+	index: number,
+	commandhelp: string
 ): ArgumentParserResult<Discord.GuildChannel> {
 	if (!cmd.trim()) {
 		await info.error(
-			messages.arguments.channel_arg_not_provided(info, cmd, index)
+			messages.arguments.channel_arg_not_provided(
+				info,
+				cmd,
+				index,
+				commandhelp
+			)
 		);
 		return { result: "exit" };
 	}
@@ -47,14 +53,26 @@ export async function ChannelArgumentParser(
 	}
 	const match = cmd.match(/^[\S\s]*?([0-9]{14,})[^\s]*?\s*([\S\s]*)$/);
 	if (!match) {
-		await info.error(messages.arguments.no_channel(info, cmd, index));
+		await info.error(
+			messages.arguments.channel_arg_not_provided(
+				info,
+				cmd,
+				index,
+				commandhelp
+			)
+		);
 		return { result: "exit" };
 	}
 	const [, channelID, remainingCmd] = match;
 	const channel = info.guild.channels.get(channelID);
 	if (!channel) {
 		await info.error(
-			messages.arguments.channel_not_found(info, channelID, index)
+			messages.arguments.channel_not_found(
+				info,
+				channelID,
+				index,
+				commandhelp
+			)
 		);
 		return { result: "exit" };
 	}
@@ -69,11 +87,17 @@ export async function EmojiArgumentParser(
 	info: Info,
 	arg: ArgType,
 	cmd: string,
-	index: number
+	index: number,
+	commandhelp: string
 ): ArgumentParserResult<Discord.GuildEmoji> {
 	if (!cmd.trim()) {
 		await info.error(
-			messages.arguments.emoji_arg_not_provided(info, cmd, index)
+			messages.arguments.emoji_arg_not_provided(
+				info,
+				cmd,
+				index,
+				commandhelp
+			)
 		);
 		return { result: "exit" };
 	}
@@ -83,14 +107,26 @@ export async function EmojiArgumentParser(
 	}
 	const match = cmd.match(/^[\S\s]*?([0-9]{14,})[^\s]*?\s*([\S\s]*)$/);
 	if (!match) {
-		await info.error(messages.arguments.no_channel(info, cmd, index));
+		await info.error(
+			messages.arguments.emoji_arg_not_provided(
+				info,
+				cmd,
+				index,
+				commandhelp
+			)
+		);
 		return { result: "exit" };
 	}
 	const [, emojiID, remainingCmd] = match;
 	const emoji = info.guild.emojis.get(emojiID);
 	if (!emoji) {
 		await info.error(
-			messages.arguments.emoji_not_found(info, emojiID, index)
+			messages.arguments.emoji_not_found(
+				info,
+				emojiID,
+				index,
+				commandhelp
+			)
 		);
 		return { result: "exit" };
 	}
@@ -105,17 +141,30 @@ export async function WordArgumentParser(
 	info: Info,
 	arg: ArgType,
 	cmd: string,
-	index: number
+	index: number,
+	commandhelp: string
 ): ArgumentParserResult<string> {
 	if (!cmd.trim()) {
 		await info.error(
-			messages.arguments.word_arg_not_provided(info, cmd, index)
+			messages.arguments.word_arg_not_provided(
+				info,
+				cmd,
+				index,
+				commandhelp
+			)
 		);
 		return { result: "exit" };
 	}
 	const word = cmd.match(/^([\s]+)\s+([\S\s]+)/m);
 	if (!word) {
-		await info.error(messages.arguments.no_word(info, cmd, index));
+		await info.error(
+			messages.arguments.word_arg_not_provided(
+				info,
+				cmd,
+				index,
+				commandhelp
+			)
+		);
 		return { result: "exit" };
 	}
 	const [, result, newCmd] = word;
@@ -126,11 +175,17 @@ export async function WordsArgumentParser(
 	info: Info,
 	arg: ArgType,
 	cmd: string,
-	index: number
+	index: number,
+	commandhelp: string
 ): ArgumentParserResult<string> {
 	if (!cmd.trim()) {
 		await info.error(
-			messages.arguments.words_arg_not_provided(info, cmd, index)
+			messages.arguments.words_arg_not_provided(
+				info,
+				cmd,
+				index,
+				commandhelp
+			)
 		);
 		return { result: "exit" };
 	}
@@ -141,11 +196,17 @@ export async function RoleArgumentParser(
 	info: Info,
 	arg: ArgType,
 	cmd: string,
-	index: number
+	index: number,
+	commandhelp: string
 ): ArgumentParserResult<Discord.Role> {
 	if (!cmd.trim()) {
 		await info.error(
-			messages.arguments.role_arg_not_provided(info, cmd, index)
+			messages.arguments.role_arg_not_provided(
+				info,
+				cmd,
+				index,
+				commandhelp
+			)
 		);
 		return { result: "exit" };
 	}
@@ -155,7 +216,14 @@ export async function RoleArgumentParser(
 	}
 	const rolename = cmd.trim();
 	if (!rolename) {
-		await info.error(messages.arguments.no_role(info, cmd, index));
+		await info.error(
+			messages.arguments.role_arg_not_provided(
+				info,
+				cmd,
+				index,
+				commandhelp
+			)
+		);
 		return { result: "exit" };
 	}
 	const roleID = (rolename.trim().match(/^[\S\s]*?([0-9]{16,})[\S\s]*$/) || [
@@ -167,7 +235,12 @@ export async function RoleArgumentParser(
 		const foundRole = info.guild.roles.get(roleID);
 		if (!foundRole) {
 			await info.error(
-				messages.arguments.role_name_not_provided(info, roleID, index)
+				messages.arguments.role_name_not_provided(
+					info,
+					roleID,
+					index,
+					commandhelp
+				)
 			);
 			return { result: "exit" };
 		}
@@ -181,14 +254,20 @@ export async function RoleArgumentParser(
 				messages.arguments.multiple_roles_found(
 					info,
 					rolename,
-					matchingRoles
+					matchingRoles,
+					commandhelp
 				)
 			);
 			return { result: "exit" };
 		}
 		if (matchingRoles.length === 0) {
 			await info.error(
-				messages.arguments.no_roles_found(info, rolename, index)
+				messages.arguments.no_roles_found(
+					info,
+					rolename,
+					index,
+					commandhelp
+				)
 			);
 			return { result: "exit" };
 		}
@@ -199,7 +278,8 @@ export async function RoleArgumentParser(
 			messages.arguments.role_this_should_never_happen(
 				info,
 				rolename,
-				index
+				index,
+				commandhelp
 			)
 		);
 		return { result: "exit" };
@@ -215,25 +295,26 @@ export async function OneArgumentParser(
 	info: Info,
 	arg: ArgType,
 	cmd: string,
-	index: number
+	index: number,
+	commandhelp: string
 ): Promise<
 	| { result: "continue"; value: ArgTypeValue<typeof arg>; cmd: string }
 	| { result: "exit" }
 > {
 	if (arg === "channel") {
-		return ChannelArgumentParser(info, arg, cmd, index);
+		return ChannelArgumentParser(info, arg, cmd, index, commandhelp);
 	}
 	if (arg === "emoji") {
-		return EmojiArgumentParser(info, arg, cmd, index);
+		return EmojiArgumentParser(info, arg, cmd, index, commandhelp);
 	}
 	if (arg === "word") {
-		return WordArgumentParser(info, arg, cmd, index);
+		return WordArgumentParser(info, arg, cmd, index, commandhelp);
 	}
 	if (arg === "words...") {
-		return WordsArgumentParser(info, arg, cmd, index);
+		return WordsArgumentParser(info, arg, cmd, index, commandhelp);
 	}
 	if (arg === "role...") {
-		return RoleArgumentParser(info, arg, cmd, index);
+		return RoleArgumentParser(info, arg, cmd, index, commandhelp);
 	}
 	throw new Error(`Argument parser tried to parse ${arg}`);
 }
@@ -241,12 +322,19 @@ export async function OneArgumentParser(
 export async function ArgumentParser<ArgTypes extends ArgType[]>(
 	info: Info,
 	schema: ArgTypes,
-	cmd: string
+	cmd: string,
+	commandhelp: string
 ): Promise<ArgTypeArrayValue<ArgTypes> | undefined> {
 	const resarr: ArgTypeValue<any>[] = [];
 	let index = 0;
 	for (const value of schema) {
-		const parseResult = await OneArgumentParser(info, value, cmd, index);
+		const parseResult = await OneArgumentParser(
+			info,
+			value,
+			cmd,
+			index,
+			commandhelp
+		);
 		if (parseResult.result === "exit") {
 			return undefined;
 		}
