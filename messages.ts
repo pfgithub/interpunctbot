@@ -52,7 +52,7 @@ Fun <https://interpunct.info/fun>
 > [\`X\`] Disable fun: \`ip!fun disable\`
 > [\`X\`] Enable fun: \`ip!fun enable\` (Enabled by default)
 > [\`X\`] Play ping pong: \`ip!ping\`
-> [\`X\`] Play minesweeper: \`ip!minesweeper\`
+> [\`X\`] Play minesweeper: \`ip!minesweeper [optional settings]\`
 Speedrun.com <https://interpunct.info/speedrun>
 > [\`X\`] Show WR: \`ip!wr\`
 > [\`X\`] Show Rules: \`ip!speedrun rules CategoryName%\`
@@ -328,9 +328,9 @@ ${info.prefix}space channels disable
 			modes: string[]
 		) => `Usage: \`${info.prefix}minesweeper [optional ${difficulties.join(
 			"|"
-		)} = hard] [optional ${modes.join(
+		)} = medium] [optional ${modes.join(
 			"|"
-		)} = emojis] [optional WIDTHxHEIGHT = 10x10]\`
+		)} = customemojis] [optional WIDTHxHEIGHT = 10x10] [optional difficulty% = 15%]\`
 > More Info: <https://interpunct.info/minesweeper>`
 	},
 	lists: {

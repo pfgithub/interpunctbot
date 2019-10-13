@@ -11,8 +11,8 @@ router.add("ping", [], async (cmd: string, info) => {
 	} else {
 		return info.error(messages.fun.fun_disabled(info));
 	}
-	
-	if(Math.random() > 0.9){
+
+	if (Math.random() > 0.9) {
 		await info.result("*misses*");
 	}
 
@@ -64,6 +64,7 @@ router.add("minesweeper", [], async (cmd: string, info) => {
 	}
 	const words = cmd.split(" ");
 	let difficulty: keyof (typeof dv) | undefined;
+	let customvalue: number = 0;
 	let mode: string | undefined;
 	let width: number | undefined;
 	let height: number | undefined;
@@ -87,12 +88,22 @@ router.add("minesweeper", [], async (cmd: string, info) => {
 			height = Math.min(+sizeMatch[2], 25);
 			return false;
 		}
+		const percentMatch = word.match(/^([0-9]+)%$/);
+		if (percentMatch) {
+			difficulty = "custom";
+			customvalue = Math.min(Math.max(+percentMatch[1], 0), 100) / 100;
+			return false;
+		}
 		return true;
 	});
-	difficulty = difficulty || "hard";
-	mode = mode || "emojis";
+	difficulty = difficulty || "medium";
+	mode =
+		mode ||
+		(!info.myChannelPerms || info.myChannelPerms.has("USE_EXTERNAL_EMOJIS")
+			? "customemojis"
+			: "emojis");
 	width = width || 10;
-	height = height || 10;
+	height = height || (mode === "customemojis" ? 6 : 10);
 	if (remainingWords.join(" ").trim().length > 0) {
 		return await info.error(
 			messages.fun.minesweeper_usage(info, difficulties, modesl)
@@ -104,7 +115,8 @@ router.add("minesweeper", [], async (cmd: string, info) => {
 		mode,
 		width,
 		height,
-		flag
+		flag,
+		customvalue
 	});
 
 	// if (info.myChannelPerms ? info.myChannelPerms.has("EMBED_LINKS") : true) {
@@ -113,9 +125,9 @@ router.add("minesweeper", [], async (cmd: string, info) => {
 	const linesUnder2000: string[] = [];
 	const splitQuotedBoard = generatedBoard.split("\n").map(l => `> ${l}`);
 	splitQuotedBoard.push(
-		`**${width}**x**${height}** | theme: **${mode}** | difficulty: **${difficulty}** | top left is always safe ${
-			flag ? "flag" : ""
-		}`
+		`**${width}**x**${height}** | theme: **${mode}** | difficulty: **${difficulty}** (${Math.round(
+			(dv[difficulty] === -1 ? customvalue : dv[difficulty]) * 100
+		)}%) | top left is always safe ${flag ? "flag" : ""}`
 	);
 	splitQuotedBoard.forEach(line => {
 		const newLine = `${linesUnder2000[linesUnder2000.length - 1] ||
@@ -133,12 +145,13 @@ router.add("minesweeper", [], async (cmd: string, info) => {
 });
 
 const dv = {
-	easy: 10,
-	medium: 15,
-	hard: 20,
-	veryhard: 25,
-	epic: 30,
-	ultra: 35
+	easy: 0.05,
+	medium: 0.15,
+	hard: 0.2,
+	veryhard: 0.25,
+	epic: 0.3,
+	ultra: 0.45,
+	custom: -1
 };
 const difficulties: (keyof (typeof dv))[] = [
 	"easy",
@@ -209,13 +222,15 @@ const badMinesweeperGenerator = ({
 	mode,
 	width,
 	height,
-	flag
+	flag,
+	customvalue
 }: {
 	difficulty: keyof (typeof dv);
 	mode: keyof (typeof modes);
 	width: number;
 	height: number;
 	flag: boolean;
+	customvalue: number;
 }) => {
 	const v = modes[mode];
 	const vals = v;
@@ -223,16 +238,13 @@ const badMinesweeperGenerator = ({
 	//else vals = JSON.parse(v);
 	const w = width;
 	const h = height;
-	const b = dv[difficulty];
+	const b = dv[difficulty] === -1 ? customvalue : dv[difficulty];
 	const arr: number[][] = [];
 	for (let y = 0; y < h; y++) {
 		arr[y] = [];
 		for (let x = 0; x < w; x++) {
-			arr[y][x] = 0;
+			arr[y][x] = Math.random() > b ? 0 : 9;
 		}
-	}
-	for (let _ = 0; _ < b; _++) {
-		arr[Math.floor(Math.random() * h)][Math.floor(Math.random() * w)] = 9;
 	}
 	arr[0][0] = 0;
 	arr[1][0] = 0;
