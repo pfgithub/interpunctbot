@@ -97,13 +97,9 @@ router.add("minesweeper", [], async (cmd: string, info) => {
 		return true;
 	});
 	difficulty = difficulty || "medium";
-	mode =
-		mode ||
-		(!info.myChannelPerms || info.myChannelPerms.has("USE_EXTERNAL_EMOJIS")
-			? "customemojis"
-			: "emojis");
-	width = width || 10;
-	height = height || (mode === "customemojis" ? 6 : 10);
+	mode = mode || "emojis";
+	width = width || 25;
+	height = height || 9;
 	if (remainingWords.join(" ").trim().length > 0) {
 		return await info.error(
 			messages.fun.minesweeper_usage(info, difficulties, modesl)
@@ -273,7 +269,8 @@ const badMinesweeperGenerator = ({
 					flag ? "||||;" : ""
 				}||`
 		)
-		.join(`\n`);
+		.join(`\n`)
+		.replace(/^\|\|(.+?)\|\|/, "$1");
 };
 
 export default router;
