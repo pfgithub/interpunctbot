@@ -1,6 +1,8 @@
 import Router from "commandrouter";
-import Info from "../Info";
 import * as moment from "moment";
+
+import Info from "../Info";
+
 const router = new Router<Info, any>();
 
 import { messages } from "../../messages";
@@ -17,7 +19,8 @@ router.add("ping", [], async (cmd: string, info) => {
 	}
 
 	if (!info.other) {
-		return await info.result("<a:pingpong:482012177725653003>", undefined);
+		// return await info.result("<a:pingpong:482012177725653003>", undefined);
+    		return await info.result("Pong!", undefined);
 	}
 	await info.result(messages.fun.ping(info), undefined);
 });
@@ -98,8 +101,8 @@ router.add("minesweeper", [], async (cmd: string, info) => {
 	});
 	difficulty = difficulty || "medium";
 	mode = mode || "emojis";
-	width = width || 25;
-	height = height || 9;
+	width = width || 13;
+	height = height || 15;
 	if (remainingWords.join(" ").trim().length > 0) {
 		return await info.error(
 			messages.fun.minesweeper_usage(info, difficulties, modesl)
@@ -230,8 +233,9 @@ const badMinesweeperGenerator = ({
 }) => {
 	const v = modes[mode];
 	const vals = v;
-	//if(v === "custom") {vals = [0,1,2,3,4,5,6,7,8,9].map(i=>document.getElementById(i).value)}
-	//else vals = JSON.parse(v);
+	// if(v === "custom") {vals =
+	// [0,1,2,3,4,5,6,7,8,9].map(i=>document.getElementById(i).value)} else
+	// vals = JSON.parse(v);
 	const w = width;
 	const h = height;
 	const b = dv[difficulty] === -1 ? customvalue : dv[difficulty];
