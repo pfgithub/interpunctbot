@@ -339,6 +339,11 @@ function streplace(str: string, eplace: { [key: string]: string }) {
 }
 
 bot.on("guildMemberAdd", async member => {
+	if(member.partial){
+		// partial is not supported
+		console.log("!!! PARTIAL MEMBER WAS AQUIRED IN A MEMBER ADD EVENT");
+		return;
+	}
 	const db = new Database(member.guild.id);
 	const nameParts = (await db.getAutoban()).filter(
 		screen =>
@@ -392,6 +397,11 @@ bot.on("guildMemberAdd", async member => {
 });
 
 bot.on("guildMemberRemove", async member => {
+	if(member.partial){
+		// partial is not supported
+		console.log("!!! PARTIAL MEMBER WAS AQUIRED IN A MEMBER REMOVE EVENT");
+		return;
+	}
 	const db = new Database(member.guild.id); // it seems bad creating these objects just to forget them immediately
 	const goodbyeMessage = await db.getGoodbyeMessage();
 	if (goodbyeMessage) {
@@ -452,6 +462,11 @@ async function guildLog(id: string, log: string) {
 }
 
 bot.on("message", async msg => {
+	if(msg.partial){
+		// partial is not supported
+		console.log("!!! PARTIAL MESSAGE WAS AQUIRED IN A MESSAGE EVENT");
+		return;
+	}
 	if (!msg.author) {
 		return logError(
 			new Error("MESSAGE DOES NOT HAVE AUTHOR. This should never happen.")
@@ -504,7 +519,11 @@ bot.on("message", async msg => {
 });
 
 bot.on("messageUpdate", async (from, msg) => {
-	if (msg.author!.bot && msg.author!.id !== config.allowMessagesFrom) {
+	if(from.partial || msg.partial){
+		console.log("!! MESSAGE UPDATE HAD A PARTIAL MESSAGE");
+		return;
+	}
+	if (msg.author.bot && msg.author.id !== config.allowMessagesFrom) {
 		return;
 	}
 	logMsg({ prefix: "Edit From", msg: from });

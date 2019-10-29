@@ -133,8 +133,8 @@ router.add(
 		}
 		const { emoji, role } = emojiAndRole;
 
-		const newRoles = new Discord.Collection(emoji.roles);
-		newRoles.set(role.id, role);
+		const newRoles = emoji.roles.array();
+		newRoles.push(role);
 		await emoji.edit(
 			{ roles: newRoles },
 			`@${info.message.member!.displayName}`
@@ -144,7 +144,7 @@ router.add(
 				info,
 				emoji,
 				role,
-				newRoles.array()
+				newRoles
 			)
 		);
 	}
@@ -168,21 +168,20 @@ router.add(
 		}
 		const { emoji, role } = emojiAndRole;
 
-		const newRoles = new Discord.Collection(emoji.roles);
+		let newRoles = emoji.roles.array();
 
 		// note that emojirolestore.set() and .add() exist. this way makes it possible to set a reason and await for completion.
 
 		if (!role) {
-			newRoles.clear();
 			await emoji.edit(
-				{ roles: newRoles },
+				{ roles: [] },
 				`@${info.message.member!.displayName}`
 			);
 			return await info.success(
 				messages.emoji.removed_all_restrictions(info, emoji)
 			);
 		}
-		newRoles.delete(role.id);
+		newRoles = newRoles.filter(roles => roles.id !== role.id);
 		await emoji.edit(
 			{ roles: newRoles },
 			`@${info.message.member!.displayName}`
@@ -192,7 +191,7 @@ router.add(
 				info,
 				emoji,
 				role,
-				newRoles.array()
+				newRoles
 			)
 		);
 	}

@@ -10,17 +10,17 @@
 	},
 	"dependencies": {
 		"async-request": "^1.2.0",
-		"bookshelf": "^0.13.3",
+		"bookshelf": "^1.0.1",
 		"commandrouter": "pfgithub/command-router",
 		"discord.js": "discordjs/discord.js",
-		"knex": "^0.14.5",
-		"moment": "^2.22.2",
-		"moment-duration-format": "^2.2.2",
-		"pastebin-js": "^0.5.1",
-		"pg": "^7.4.3",
+		"knex": "^0.19.5",
+		"moment": "^2.24.0",
+		"moment-duration-format": "^2.3.2",
+		"pastebin-js": "^1.0.3",
+		"pg": "^7.12.1",
 		"request": "^2.88.0",
 		"speedrunapi": "^1.0.1",
-		"sqlite3": "^4.0.3"
+		"sqlite3": "^4.1.0"
 	},
 	"devDependencies": {
 		"@istanbuljs/nyc-config-typescript": "^0.1.3",
