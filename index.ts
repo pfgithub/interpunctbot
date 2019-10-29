@@ -191,10 +191,7 @@ function reroute(oldcmd: string, newcmd: string, version: string = "3.0") {
 function remove(oldcmd: string, reason: string, version: string = "3.0") {
 	router.add(oldcmd, [], async (cmd, info) => {
 		return await info.error(
-			`\`${oldcmd}\` has been removed as part of ${version}.
-			${reason ? `${reason} ` : ""}
-			Join the support server in \`about\` if you have any issues.`,
-			undefined
+			messages.failure.command_removed(info, oldcmd, version, reason)
 		);
 	});
 }
@@ -339,7 +336,7 @@ function streplace(str: string, eplace: { [key: string]: string }) {
 }
 
 bot.on("guildMemberAdd", async member => {
-	if(member.partial){
+	if (member.partial) {
 		// partial is not supported
 		console.log("!!! PARTIAL MEMBER WAS AQUIRED IN A MEMBER ADD EVENT");
 		return;
@@ -397,7 +394,7 @@ bot.on("guildMemberAdd", async member => {
 });
 
 bot.on("guildMemberRemove", async member => {
-	if(member.partial){
+	if (member.partial) {
 		// partial is not supported
 		console.log("!!! PARTIAL MEMBER WAS AQUIRED IN A MEMBER REMOVE EVENT");
 		return;
@@ -462,7 +459,7 @@ async function guildLog(id: string, log: string) {
 }
 
 bot.on("message", async msg => {
-	if(msg.partial){
+	if (msg.partial) {
 		// partial is not supported
 		console.log("!!! PARTIAL MESSAGE WAS AQUIRED IN A MESSAGE EVENT");
 		return;
@@ -519,7 +516,7 @@ bot.on("message", async msg => {
 });
 
 bot.on("messageUpdate", async (from, msg) => {
-	if(from.partial || msg.partial){
+	if (from.partial || msg.partial) {
 		console.log("!! MESSAGE UPDATE HAD A PARTIAL MESSAGE");
 		return;
 	}

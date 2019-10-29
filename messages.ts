@@ -269,7 +269,21 @@ For help, ask on the support server with your error code \`${errorCode}\`
 		command_not_found: (info: Info, command: string) =>
 			safe`Command \`${command}\` not found. Type \`${raw(
 				info.prefix
-			)}help\` for a list of commands.`
+			)}help\` for a list of commands.`,
+		command_removed: (
+			info: Info,
+			old: string,
+			version: string,
+			description?: string
+		) =>
+			safe`The command \`${
+				info.prefix
+			}${old}\` has been removed as part  of inter·punct bot version ${version}.${raw(
+				description ? `\n\n${description}` : ""
+			)}	
+> Join the support server to complain if this removal affects you: <https://interpunct.info/support>${raw(
+				info.prefix
+			)}`
 	},
 	settings: {
 		autospace_enabled: (info: Info) =>
