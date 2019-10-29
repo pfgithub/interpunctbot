@@ -94,11 +94,6 @@ router.add("log", [Info.theirPerm.manageBot], logging);
 // 	})
 // ); !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-remove(
-	"spoiler",
-	"Discord has added official spoilers, type your spoiler in between lines `||like this||`"
-);
-
 export type ErrorWithID = Error & { errorCode: string };
 
 export function wrapErrorAddID(error: Error): ErrorWithID {
@@ -134,8 +129,12 @@ router.add("spoiler", [], async (cmd, info) => {
 	);
 	// if(er) send message...
 	info.error(
-		"Discord has added official spoiler support by surrounding your message in `||`vertical lines`||`.",
-		undefined
+		messages.failure.command_removed(
+			info,
+			"spoiler",
+			"3.0",
+			"Discord has added official spoiler support by surrounding your message in `||vertical lines||`."
+		)
 	);
 });
 
