@@ -15,14 +15,21 @@ router.add("ping", [], async (cmd: string, info) => {
 	}
 
 	if (Math.random() > 0.9) {
-		await info.result("*misses*");
+		return await info.result("\\*misses\\*");
+	}
+	return await info.result("Pong!");
+});
+
+router.add("pong", [], async (cmd: string, info) => {
+	if (info.db ? await info.db.getFunEnabled() : true) {
+	} else {
+		return info.error(messages.fun.fun_disabled(info));
 	}
 
-	if (!info.other) {
-		// return await info.result("<a:pingpong:482012177725653003>", undefined);
-    		return await info.result("Pong!", undefined);
+	if (Math.random() > 0.9) {
+		return await info.result("\\*misses\\*");
 	}
-	await info.result(messages.fun.ping(info), undefined);
+	return await info.result("Ping!");
 });
 
 router.add("stats", [], async (cmd: string, info) => {
@@ -30,20 +37,19 @@ router.add("stats", [], async (cmd: string, info) => {
 	} else {
 		return info.error(messages.fun.fun_disabled(info));
 	}
-
-	if (!info.other) {
-		return await info.result(
-			`**Statistics**:
+	return await info.result(
+		`**Statistics**:
 > **Servers**: ${info.message.client.guilds.size} servers
 > **Uptime**: ${moment
-				.duration(new Date().getTime() - serverStartTime)
-				.format(
-					"y [years] M [months] w [weeks] d [days,] h[h]:mm[m]:s.SSS[s]"
-				)}ms`,
-			undefined
-		);
-	}
-	await info.result(messages.fun.ping(info), undefined);
+			.duration(new Date().getTime() - serverStartTime)
+			.format(
+				"y [years] M [months] w [weeks] d [days,] h[h]:mm[m]:s.SSS[s]"
+			)}
+> Took ${new Date().getTime() - info.other!.startTime}ms, handling ${
+			info.other!.infoPerSecond
+		} db requests per second`,
+		undefined
+	);
 });
 
 router.add("fun", [Info.theirPerm.manageBot], async (cmd: string, info) => {
@@ -52,10 +58,10 @@ router.add("fun", [Info.theirPerm.manageBot], async (cmd: string, info) => {
 	}
 	if (cmd === "enable") {
 		await info.db.setFunEnabled(true);
-		return info.error(messages.fun.fun_has_been_enabled(info));
+		return info.success(messages.fun.fun_has_been_enabled(info));
 	} else if (cmd === "disable") {
 		await info.db.setFunEnabled(false);
-		return info.error(messages.fun.fun_has_been_disabled(info));
+		return info.success(messages.fun.fun_has_been_disabled(info));
 	}
 	return info.error(messages.fun.command_not_found(info));
 });

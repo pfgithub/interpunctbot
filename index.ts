@@ -195,16 +195,13 @@ function remove(oldcmd: string, reason: string, version: string = "3.0") {
 	});
 }
 
-depricate("settings prefix", "prefix");
-depricate("settings lists", "lists <add/remove>");
+depricate("settings prefix", "set prefix [new prefix]");
+depricate("settings lists", "lists [add/edit/remove]");
 depricate(
 	"settings discmoji",
-	"IMPLEMENT BEFORE RELEASE;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;"
+	"IMPLEMENT BEFORE RELEASE;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;" // > Warning: It is recommended to use rankmoji instead.
 );
-depricate(
-	"settings rankmoji",
-	"IMPLEMENT BEFORE RELEASE;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;"
-);
+depricate("settings rankmoji", "emoji");
 remove(
 	"settings permreplacements",
 	"Permreplacements were never tested and probably didn't work."
@@ -221,20 +218,14 @@ depricate(
 );
 depricate(
 	"settings unknownCommandMessages",
-	"IMPLEMENT BEFORE RELEASE;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;"
+	"set show unknown command [always/admins/never]"
 );
 depricate(
 	"settings commandFailureMessages",
-	"IMPLEMENT BEFORE RELEASE;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;"
+	"set show errors [always/admins/never]"
 );
-depricate(
-	"settings autospaceChannels",
-	"IMPLEMENT BEFORE RELEASE;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;"
-);
-depricate(
-	"settings listRoles",
-	"IMPLEMENT BEFORE RELEASE;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;"
-);
+depricate("settings autospaceChannels", "space channels automatically");
+depricate("settings listRoles", "https://interpunct.info/role-id");
 depricate("settings", "help");
 
 /*
