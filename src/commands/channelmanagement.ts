@@ -85,7 +85,7 @@ router.add(
 		if (
 			!messageLimit ||
 			messageLimit < 1 ||
-			messageLimit > 1000 ||
+			messageLimit > 100 ||
 			Math.floor(messageLimit) !== messageLimit
 		) {
 			return info.error(

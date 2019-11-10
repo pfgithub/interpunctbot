@@ -480,8 +480,8 @@ Try it out with \`${info.prefix}${listName}\``,
 					? `A message limit must be given, such as \`${info.prefix}purge 25\``
 					: messageLimit < 1
 					? `Message limit must be positive.`
-					: messageLimit > 1000
-					? `Message limit must be less than 1000`
+					: messageLimit > 100
+					? `Message limit must be less than 100`
 					: `Message limit must be an integer.`,
 			in_progress: (info: Info, messagesToDelete: number) =>
 				`Deleting ${messagesToDelete} messages...`,
