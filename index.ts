@@ -411,6 +411,7 @@ bot.on("guildMemberRemove", async member => {
 });
 
 async function spaceChannelIfNecessary(channel: GuildChannel) {
+	if (!channel.guild) return; // ???
 	const db = new Database(channel.guild.id);
 	if (await db.getAutospaceChannels()) {
 		if (doesChannelRequireSpacing(channel, "-")) {
