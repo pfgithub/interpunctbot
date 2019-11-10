@@ -2,9 +2,10 @@ import Router from "commandrouter";
 import Info from "../Info";
 import * as moment from "moment";
 import * as Discord from "discord.js";
-const router = new Router<Info, any>();
-
+import { AP } from "./argumentparser";
 import { messages } from "../../messages";
+
+const router = new Router<Info, any>();
 
 function roleNameMatch(rolename: string, message: string) {
 	const rn = rolename.trim().toLowerCase();
@@ -119,19 +120,9 @@ router.add(
 	"emoji restrict",
 	[Info.theirPerm.manageEmoji, Info.ourPerm.manageEmoji],
 	async (cmd, info, next) => {
-		if (!info.guild) {
-			return await info.error(
-				messages.failure.command_cannot_be_used_in_pms(info)
-			);
-		}
-
-		const emojiAndRole = await getEmojiAndRole(cmd, info, {
-			allowJustEmoji: false
-		});
-		if (!emojiAndRole) {
-			return;
-		}
-		const { emoji, role } = emojiAndRole;
+		const apresult = await AP({ info, cmd }, "emoji", "role...");
+		if (!apresult) return;
+		const [emoji, role] = apresult;
 
 		const newRoles = emoji.roles.array();
 		newRoles.push(role);
@@ -191,31 +182,9 @@ router.add(
 	"emoji inspect",
 	[Info.theirPerm.manageEmoji],
 	async (cmd, info, next) => {
-		// argparser(ap.channel, ap.emojilong);
-		if (!info.guild) {
-			return await info.error(
-				messages.failure.command_cannot_be_used_in_pms(info)
-			);
-		}
-
-		const [, emojiID] = cmd.trim().match(/^[\S\s]*?([0-9]{16,})[^ ]*$/) || [
-			"",
-			""
-		];
-		if (!emojiID) {
-			await info.error(
-				messages.emoji.could_not_find_emoji(info, emojiID)
-			);
-			return;
-		}
-
-		const emoji = info.guild.emojis.get(emojiID);
-		if (!emoji) {
-			await info.error(
-				messages.emoji.could_not_find_emoji(info, emojiID)
-			);
-			return;
-		}
+		const apresult = await AP({ info, cmd }, "emoji");
+		if (!apresult) return;
+		const [emoji] = apresult;
 
 		await info.result(messages.emoji.inspect(info, emoji));
 	}

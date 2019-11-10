@@ -89,7 +89,7 @@ module.exports = {
 		"block-scoped-var": 0, // treat var statements as if they were block scoped (off by default)
 		complexity: 0, // specify the maximum cyclomatic complexity allowed in a program (off by default)
 		"consistent-return": 0, // require return statements to either always or never specify values
-		curly: [1], // specify curly brace conventions for all control statements
+		curly: [1, "multi-line"], // specify curly brace conventions for all control statements
 		"default-case": 1, // require default case in switch statements (off by default)
 		"dot-notation": 1, // encourages use of dot notation whenever possible
 		eqeqeq: ["error", "always", { null: "never" }], // require the use of === and !==

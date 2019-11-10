@@ -332,10 +332,8 @@ export async function OneArgumentParser<K extends ArgType>(
 }
 
 export async function ArgumentParser<ArgTypes extends Readonly<ArgType[]>>(
-	info: Info,
-	schema: ArgTypes,
-	cmd: string,
-	commandhelp: string
+	{ info, cmd, help }: { info: Info; cmd: string; help?: string },
+	...schema: ArgTypes
 ): Promise<ArgTypeArrayValue<ArgTypes> | undefined> {
 	const resarr: ArgTypeValue<any>[] = [];
 	let index = 0;
@@ -345,7 +343,7 @@ export async function ArgumentParser<ArgTypes extends Readonly<ArgType[]>>(
 			value,
 			cmd,
 			index,
-			commandhelp,
+			help || "",
 			"" // not implemented yet :(
 		);
 		if (parseResult.result === "exit") {
@@ -357,3 +355,5 @@ export async function ArgumentParser<ArgTypes extends Readonly<ArgType[]>>(
 	}
 	return (resarr as unknown) as ArgTypeArrayValue<ArgTypes>;
 }
+
+export const AP = ArgumentParser;
