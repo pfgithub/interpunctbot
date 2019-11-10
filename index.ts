@@ -702,10 +702,11 @@ ${message.stack}
 	await sendMessageToErrorReportingChannel(finalMsg);
 }
 
-process.on("unhandledRejection", (reason, p) => {
+process.on("unhandledRejection", (reason: any, p) => {
 	console.log(p);
 	console.log(reason);
-	logError(reason as Error);
+	reason.errorCode = "Unhandled Rejection; No Error Code";
+	logError(reason); // no error code
 });
 
 export async function sendMessageToErrorReportingChannel(message: string) {
