@@ -15,7 +15,7 @@ export type ArgTypeValue<T> = T extends "emoji"
 	: T extends "role..."
 	? Discord.Role
 	: never;
-export type ArgTypeArrayValue<T extends ArgType[]> = {
+export type ArgTypeArrayValue<T extends Readonly<ArgType[]>> = {
 	[key in keyof T]: ArgTypeValue<T[key]>;
 };
 
@@ -34,7 +34,8 @@ export async function ChannelArgumentParser(
 	arg: ArgType,
 	cmd: string,
 	index: number,
-	commandhelp: string
+	commandhelp: string,
+	argpurpose: string
 ): ArgumentParserResult<Discord.GuildChannel> {
 	if (!cmd.trim()) {
 		await info.error(
@@ -42,7 +43,8 @@ export async function ChannelArgumentParser(
 				info,
 				cmd,
 				index,
-				commandhelp
+				commandhelp,
+				argpurpose
 			)
 		);
 		return { result: "exit" };
@@ -58,7 +60,8 @@ export async function ChannelArgumentParser(
 				info,
 				cmd,
 				index,
-				commandhelp
+				commandhelp,
+				argpurpose
 			)
 		);
 		return { result: "exit" };
@@ -88,7 +91,8 @@ export async function EmojiArgumentParser(
 	arg: ArgType,
 	cmd: string,
 	index: number,
-	commandhelp: string
+	commandhelp: string,
+	argpurpose: string
 ): ArgumentParserResult<Discord.GuildEmoji> {
 	if (!cmd.trim()) {
 		await info.error(
@@ -96,7 +100,8 @@ export async function EmojiArgumentParser(
 				info,
 				cmd,
 				index,
-				commandhelp
+				commandhelp,
+				argpurpose
 			)
 		);
 		return { result: "exit" };
@@ -112,7 +117,8 @@ export async function EmojiArgumentParser(
 				info,
 				cmd,
 				index,
-				commandhelp
+				commandhelp,
+				argpurpose
 			)
 		);
 		return { result: "exit" };
@@ -125,7 +131,8 @@ export async function EmojiArgumentParser(
 				info,
 				emojiID,
 				index,
-				commandhelp
+				commandhelp,
+				argpurpose
 			)
 		);
 		return { result: "exit" };
@@ -142,7 +149,8 @@ export async function WordArgumentParser(
 	arg: ArgType,
 	cmd: string,
 	index: number,
-	commandhelp: string
+	commandhelp: string,
+	argpurpose: string
 ): ArgumentParserResult<string> {
 	if (!cmd.trim()) {
 		await info.error(
@@ -150,7 +158,8 @@ export async function WordArgumentParser(
 				info,
 				cmd,
 				index,
-				commandhelp
+				commandhelp,
+				argpurpose
 			)
 		);
 		return { result: "exit" };
@@ -162,7 +171,8 @@ export async function WordArgumentParser(
 				info,
 				cmd,
 				index,
-				commandhelp
+				commandhelp,
+				argpurpose
 			)
 		);
 		return { result: "exit" };
@@ -176,7 +186,8 @@ export async function WordsArgumentParser(
 	arg: ArgType,
 	cmd: string,
 	index: number,
-	commandhelp: string
+	commandhelp: string,
+	argpurpose: string
 ): ArgumentParserResult<string> {
 	if (!cmd.trim()) {
 		await info.error(
@@ -184,7 +195,8 @@ export async function WordsArgumentParser(
 				info,
 				cmd,
 				index,
-				commandhelp
+				commandhelp,
+				argpurpose
 			)
 		);
 		return { result: "exit" };
@@ -197,7 +209,8 @@ export async function RoleArgumentParser(
 	arg: ArgType,
 	cmd: string,
 	index: number,
-	commandhelp: string
+	commandhelp: string,
+	argpurpose: string
 ): ArgumentParserResult<Discord.Role> {
 	if (!cmd.trim()) {
 		await info.error(
@@ -205,7 +218,8 @@ export async function RoleArgumentParser(
 				info,
 				cmd,
 				index,
-				commandhelp
+				commandhelp,
+				argpurpose
 			)
 		);
 		return { result: "exit" };
@@ -221,7 +235,8 @@ export async function RoleArgumentParser(
 				info,
 				cmd,
 				index,
-				commandhelp
+				commandhelp,
+				argpurpose
 			)
 		);
 		return { result: "exit" };
@@ -274,15 +289,7 @@ export async function RoleArgumentParser(
 		role = matchingRoles[0];
 	}
 	if (!role) {
-		await info.error(
-			messages.arguments.role_this_should_never_happen(
-				info,
-				rolename,
-				index,
-				commandhelp
-			)
-		);
-		return { result: "exit" };
+		throw new Error("This should never happen."); // should give people an error id and stuff
 	}
 	return {
 		result: "continue",
@@ -291,35 +298,40 @@ export async function RoleArgumentParser(
 	};
 }
 
-export async function OneArgumentParser(
-	info: Info,
-	arg: ArgType,
-	cmd: string,
-	index: number,
-	commandhelp: string
-): Promise<
-	| { result: "continue"; value: ArgTypeValue<typeof arg>; cmd: string }
+type OAPRV<K extends ArgType> = Promise<
+	| { result: "continue"; value: ArgTypeValue<K>; cmd: string }
 	| { result: "exit" }
-> {
+>;
+
+export async function OneArgumentParser<K extends ArgType>(
+	info: Info,
+	arg: K,
+	cmd: string,
+	i: number,
+	cmdh: string,
+	argp: string
+): OAPRV<K> {
 	if (arg === "channel") {
-		return ChannelArgumentParser(info, arg, cmd, index, commandhelp);
+		return ChannelArgumentParser(info, arg, cmd, i, cmdh, argp) as OAPRV<K>;
 	}
 	if (arg === "emoji") {
-		return EmojiArgumentParser(info, arg, cmd, index, commandhelp);
+		return EmojiArgumentParser(info, arg, cmd, i, cmdh, argp) as OAPRV<K>;
 	}
 	if (arg === "word") {
-		return WordArgumentParser(info, arg, cmd, index, commandhelp);
+		return WordArgumentParser(info, arg, cmd, i, cmdh, argp) as OAPRV<K>;
 	}
 	if (arg === "words...") {
-		return WordsArgumentParser(info, arg, cmd, index, commandhelp);
+		return WordsArgumentParser(info, arg, cmd, i, cmdh, argp) as OAPRV<K>;
 	}
 	if (arg === "role...") {
-		return RoleArgumentParser(info, arg, cmd, index, commandhelp);
+		return RoleArgumentParser(info, arg, cmd, i, cmdh, argp) as OAPRV<K>;
 	}
-	throw new Error(`Argument parser tried to parse ${arg}`);
+	throw new Error(
+		`Argument parser tried to parse ${arg} which isn't a thing.`
+	);
 }
 
-export async function ArgumentParser<ArgTypes extends ArgType[]>(
+export async function ArgumentParser<ArgTypes extends Readonly<ArgType[]>>(
 	info: Info,
 	schema: ArgTypes,
 	cmd: string,
@@ -333,7 +345,8 @@ export async function ArgumentParser<ArgTypes extends ArgType[]>(
 			value,
 			cmd,
 			index,
-			commandhelp
+			commandhelp,
+			"" // not implemented yet :(
 		);
 		if (parseResult.result === "exit") {
 			return undefined;
@@ -342,5 +355,5 @@ export async function ArgumentParser<ArgTypes extends ArgType[]>(
 		cmd = parseResult.cmd;
 		index++;
 	}
-	return resarr as ArgTypeArrayValue<ArgTypes>;
+	return (resarr as unknown) as ArgTypeArrayValue<ArgTypes>;
 }

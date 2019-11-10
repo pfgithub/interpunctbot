@@ -1,6 +1,6 @@
 {
 	"development": {
-		"dialect": "sqlite3",
+		"client": "sqlite3",
 		"connection": {
 			"filename": "data.db"
 		},

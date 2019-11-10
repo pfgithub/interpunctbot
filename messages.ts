@@ -76,7 +76,7 @@ ${Object.keys(lists)
 > words to ban if found
 > in someone's username
 > \`\`\`
-> [\`X\`] Purge messages in a channel: \`ip!purge [number of messages to purge]\`
+> [\`X\`] Purge messages in a channel: \`ip!purge [number of messages to purge]\` (No confirmation, be careful)
 > [\` \`] Welcome and Goodbye messages: \`ip!command unknown\`
 Configuration <https://interpunct.info/configuration>
 > [\`X\`] Error messages: \`ip!set show errors always|admins|never\` (Default: always)
@@ -89,7 +89,10 @@ Server Info
 		}
 > If the prefix is broken, you can use ${info.atme} as a prefix instead.
 Bot Info
-> Invite: <https://discordapp.com/api/oauth2/authorize?client_id=433078185555656705&permissions=268445780&scope=bot>
+> [\`X\`] Help: \`ip!help\`
+> [\`X\`] Statistics: \`ip!stats\`
+> [\`X\`] About: \`ip!about\`
+> Invite: <https://discordapp.com/api/oauth2/authorize?client_id=433078185555656705&permissions=1342221396&scope=bot> (Select only the permissions you need. Others can be granted later)
 > Website: <https://interpunct.info>
 > Support Server: <https://interpunct.info/support>`
 			.split("ip!")
@@ -99,7 +102,8 @@ Bot Info
 	role: (role: Discord.Role) =>
 		role.mentionable ? safe`${`@${role.name}`}` : role.toString(),
 	nd: (number: number) =>
-		number > 10 && number < 20 // 12th, 13th, 14th
+		number +
+		(number > 10 && number < 20 // 12th, 13th, 14th
 			? "th"
 			: `${number}`.endsWith("1") // 1st, 21st
 			? "st"
@@ -107,16 +111,17 @@ Bot Info
 			? "nd"
 			: `${number}`.endsWith("3") // 3rd, 23rd
 			? "rd"
-			: "th",
+			: "th"),
 	arguments: {
 		channel_arg_not_provided: (
 			info: Info,
 			cmd: string,
 			index: number,
-			commandhelp: string
+			commandhelp: string,
+			purpose: string
 		) => `The ${messages.nd(
 			index
-		)} argument to this command must be a channel. Mention a channel by typing # and selecting a channel, or use the channel ID.
+		)} argument to this command must be a channel${purpose}. Mention a channel by typing # and selecting a channel, or use the channel ID.
 > **Using Channels in Commands**: <https://interpunct.info/channel-arg>${
 			commandhelp ? `\n${commandhelp}` : ""
 		}`,
@@ -124,19 +129,23 @@ Bot Info
 			info: Info,
 			cmd: string,
 			index: number,
-			commandhelp: string
+			commandhelp: string,
+			purpose: string
 		) => `The ${messages.nd(
-			index
-		)} argument to this command must be an emoji. Use an emoji by selecting it from the emoji menu, or use the emoji's id.
-	> **Using Emojis in Commands**: <https://interpunct.info/emoji-arg>${
-		commandhelp ? `\n${commandhelp}` : ""
-	}`,
+			index + 1
+		)} argument to this command must be an emoji${purpose}. Use an emoji by selecting it from the emoji menu, or use the emoji's id.
+> **Using Emojis in Commands**: <https://interpunct.info/emoji-arg>${
+			commandhelp ? `\n${commandhelp}` : ""
+		}`,
 		word_arg_not_provided: (
 			info: Info,
 			cmd: string,
 			index: number,
-			commandhelp: string
-		) => `The ${messages.nd(index)} argument to this command must be a word.
+			commandhelp: string,
+			purpose: string
+		) => `The ${messages.nd(
+			index + 1
+		)} argument to this command must be a word.${purpose}
 > **Using Words in Commands**: <https://interpunct.info/word-arg>${
 			commandhelp ? `\n${commandhelp}` : ""
 		}`,
@@ -144,10 +153,9 @@ Bot Info
 			info: Info,
 			cmd: string,
 			index: number,
-			commandhelp: string
-		) => `The last argument to this command must be the message${
-			/*to send*/ ""
-		}
+			commandhelp: string,
+			purpose: string
+		) => `The last argument to this command must be the message${purpose}
 > **Using in Commands**: <https://interpunct.info/words-arg>${
 			commandhelp ? `\n${commandhelp}` : ""
 		}`,
@@ -155,10 +163,9 @@ Bot Info
 			info: Info,
 			cmd: string,
 			index: number,
-			commandhelp: string
-		) => `The last argument to this command must be the role name, @mention, or id${
-			/*to use for what*/ ""
-		}
+			commandhelp: string,
+			purpose: string
+		) => `The last argument to this command must be the role name, @mention, or id${purpose}
 > **Using Roles in Commands**: <https://interpunct.info/role-arg>${
 			commandhelp ? `\n${commandhelp}` : ""
 		}`,
@@ -168,7 +175,7 @@ Bot Info
 			index: number,
 			commandhelp: string
 		) => `The channel with the ID ${channelID} could not be found. Make sure the ${messages.nd(
-			index
+			index + 1
 		)} argument to this command has a real channel on this server.
 > **Using Channels in Commands**: <https://interpunct.info/channel-arg>${
 			commandhelp ? `\n${commandhelp}` : ""
@@ -177,13 +184,44 @@ Bot Info
 			info: Info,
 			channelID: string,
 			index: number,
-			commandhelp: string
+			commandhelp: string,
+			purpose: string
 		) => `The emoji with the ID ${channelID} could not be found. Make sure the ${messages.nd(
-			index
+			index + 1
 		)} argument to this command has a real emoji on this server.
 > **Using Emojis in Commands**: <https://interpunct.info/emoji-arg>${
 			commandhelp ? `\n${commandhelp}` : ""
-		}`
+		}`,
+		role_name_not_provided: (
+			info: Info,
+			roleID: string,
+			index: number,
+			commandhelp: string
+		) => `The role in the last argument could not be found.
+> **Using Roles in Commands**: <https://interpunct.info/role-arg>${
+			commandhelp ? `\n${commandhelp}` : ""
+		}`,
+		multiple_roles_found: (
+			info: Info,
+			rolename: string,
+			matchingRoles: Discord.Role[],
+			commandhelp: string
+		) => `There are ${
+			matchingRoles.length
+		} roles named ${safe`${rolename}`}. Either rename the others or use a Role ID.
+> **Using Roles in Commands**: <https://interpunct.info/role-arg>${
+			commandhelp ? `\n${commandhelp}` : ""
+		}`,
+		no_roles_found: (
+			info: Info,
+			rolename: string,
+			index: number,
+			commandhelp: string
+		) => `I could not find any roles named ${safe`${rolename}`}. Check your spelling or directly copy and paste the name. If that doesn't work, use a Role ID.
+> **Using Roles in Commands**: <https://interpunct.info/role-arg>${
+			commandhelp ? `\n${commandhelp}` : ""
+		}`,
+		role_this_should_never_happen: () => ``
 	},
 	emoji: {
 		failure: "<:failure_2:547081084710682643>",
@@ -250,13 +288,19 @@ ${fullList.map(role => `- ${messages.role(role)}\n`).join("")}
 			}emoji unrestrict ${emoji.id}\``,
 		removed_all_restrictions: (info: Info, emoji: Discord.GuildEmoji) =>
 			`Removed all restrictions for ${emoji.toString()}. Anyone can now use this emoji.`,
-		inspect: (info: Info, emoji: Discord.GuildEmoji) =>
-			`**Emoji ${emoji.toString()}**:
-This emoji can only be used by members with at least one of these roles:
+		inspect: (
+			info: Info,
+			emoji: Discord.GuildEmoji
+		) => `**Emoji ${emoji.toString()}**:
+${
+	emoji.roles.array().length > 0
+		? `This emoji can only be used by members with at least one of these roles:
 ${emoji.roles
 	.array()
 	.map(role => `- ${messages.role(role)}\n`)
-	.join("")}**Image**: ${emoji.url}`
+	.join("")}`
+		: ""
+}**Image**: ${emoji.url}`
 	},
 	failure: {
 		command_cannot_be_used_in_pms: (info: Info) =>
@@ -396,7 +440,7 @@ ${info.prefix}space channels disable
 		no_run_for_position: (
 			info: Info,
 			position: number
-		) => `No run found in ${position}${messages.nd(position)} place.
+		) => `No run found in ${messages.nd(position)} place.
 > More Info: <https://interpunct.info/speedrun>`,
 		position_required: (info: Info) =>
 			`A position is required, such as \`${info.prefix}speedrun leaderboard 26\`

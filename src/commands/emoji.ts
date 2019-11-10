@@ -140,12 +140,7 @@ router.add(
 			`@${info.message.member!.displayName}`
 		);
 		await info.success(
-			messages.emoji.added_restriction(
-				info,
-				emoji,
-				role,
-				newRoles
-			)
+			messages.emoji.added_restriction(info, emoji, role, newRoles)
 		);
 	}
 );
@@ -187,12 +182,7 @@ router.add(
 			`@${info.message.member!.displayName}`
 		);
 		await info.success(
-			messages.emoji.removed_restriction(
-				info,
-				emoji,
-				role,
-				newRoles
-			)
+			messages.emoji.removed_restriction(info, emoji, role, newRoles)
 		);
 	}
 );
@@ -227,7 +217,7 @@ router.add(
 			return;
 		}
 
-		await info.success(messages.emoji.inspect(info, emoji));
+		await info.result(messages.emoji.inspect(info, emoji));
 	}
 );
 

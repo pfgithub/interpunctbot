@@ -31,6 +31,7 @@ import aboutRouter from "./src/commands/about";
 import settingsRouter from "./src/commands/settings";
 import quoteRouter from "./src/commands/quote";
 import emojiRouter from "./src/commands/emoji";
+import testRouter from "./src/commands/test";
 
 import * as moment from "moment";
 import "moment-duration-format"; // for typescript
@@ -166,6 +167,7 @@ router.add("crash", [Info.theirPerm.owner], () => {
 
 router.add([], settingsRouter);
 router.add([], emojiRouter);
+router.add([], testRouter);
 router.add([], quoteRouter);
 
 function depricate(oldcmd: string, newcmd: string, version: string = "3.0") {
