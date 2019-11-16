@@ -221,7 +221,33 @@ Bot Info
 > **Using Roles in Commands**: <https://interpunct.info/role-arg>${
 			commandhelp ? `\n${commandhelp}` : ""
 		}`,
-		role_this_should_never_happen: () => ``
+		role_this_should_never_happen: () => ``,
+
+		num_arg_not_provided: (
+			info: Info,
+			cmd: string,
+			index: number,
+			commandhelp: string,
+			purpose: string
+		) => `The ${messages.nd(
+			index + 1
+		)} argument to this command must be a number.${purpose}
+> **Using Numbers in Commands**: <https://interpunct.info/number-arg>${
+			commandhelp ? `\n${commandhelp}` : ""
+		}`,
+
+		num_is_nan: (
+			info: Info,
+			cmd: string,
+			index: number,
+			commandhelp: string,
+			purpose: string
+		) => `I could not find a number in the ${messages.nd(
+			index + 1
+		)} argument to this command.${purpose}
+> **Using Numbers in Commands**: <https://interpunct.info/number-arg>${
+			commandhelp ? `\n${commandhelp}` : ""
+		}`
 	},
 	emoji: {
 		failure: "<:failure_2:547081084710682643>",

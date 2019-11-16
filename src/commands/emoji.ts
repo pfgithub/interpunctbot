@@ -2,7 +2,7 @@ import Router from "commandrouter";
 import Info from "../Info";
 import * as moment from "moment";
 import * as Discord from "discord.js";
-import { AP } from "./argumentparser";
+import { AP, a } from "./argumentparser";
 import { messages } from "../../messages";
 
 const router = new Router<Info, any>();
@@ -120,7 +120,7 @@ router.add(
 	"emoji restrict",
 	[Info.theirPerm.manageEmoji, Info.ourPerm.manageEmoji],
 	async (cmd, info, next) => {
-		const apresult = await AP({ info, cmd }, "emoji", "role...");
+		const apresult = await AP({ info, cmd }, a.emoji(), ...a.role());
 		if (!apresult) return;
 		const [emoji, role] = apresult;
 
@@ -182,7 +182,7 @@ router.add(
 	"emoji inspect",
 	[Info.theirPerm.manageEmoji],
 	async (cmd, info, next) => {
-		const apresult = await AP({ info, cmd }, "emoji");
+		const apresult = await AP({ info, cmd }, a.emoji());
 		if (!apresult) return;
 		const [emoji] = apresult;
 

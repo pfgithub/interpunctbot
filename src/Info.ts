@@ -143,7 +143,7 @@ export type MessageOptionsParameter =
 	| Discord.MessageAttachment;
 
 export type MessageParametersType =
-	| [string, (MessageOptionsParameter) | undefined]
+	| [string, MessageOptionsParameter | undefined]
 	| [string];
 
 export default class Info {
@@ -198,6 +198,12 @@ export default class Info {
 		}
 		return undefined;
 	}
+	get authorGuildPerms() {
+		if (this.member) {
+			return this.member.permissions;
+		}
+		return undefined;
+	}
 	get myChannelPerms() {
 		if (this.channel instanceof Discord.TextChannel) {
 			return this.channel.permissionsFor(this.guild!.me!);
@@ -206,17 +212,17 @@ export default class Info {
 	}
 	get authorPerms() {
 		return {
-			manageBot: this.authorChannelPerms
-				? this.authorChannelPerms.has("MANAGE_GUILD")
+			manageBot: this.authorGuildPerms
+				? this.authorGuildPerms.has("MANAGE_GUILD")
 				: true,
-			manageChannel: this.authorChannelPerms
-				? this.authorChannelPerms.has("MANAGE_CHANNELS")
+			manageChannel: this.authorGuildPerms
+				? this.authorGuildPerms.has("MANAGE_CHANNELS")
 				: true,
-			manageEmoji: this.authorChannelPerms
-				? this.authorChannelPerms.has("MANAGE_EMOJIS")
+			manageEmoji: this.authorGuildPerms
+				? this.authorGuildPerms.has("MANAGE_EMOJIS")
 				: true,
-			manageMessages: this.authorChannelPerms
-				? this.authorChannelPerms.has("MANAGE_MESSAGES")
+			manageMessages: this.authorGuildPerms // maybe we should only allow send: to send to channels author has manage messages perms for
+				? this.authorGuildPerms.has("MANAGE_MESSAGES")
 				: true
 		};
 	}

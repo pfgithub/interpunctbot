@@ -3,20 +3,45 @@ import * as Discord from "discord.js";
 import Info from "../Info";
 import { messages } from "../../messages";
 
-export type ArgType = "emoji" | "channel" | "word" | "words..." | "role..."; // | {type: "enum", values: ["one", "two"]}
-export type ArgTypeValue<T> = T extends "emoji"
-	? Discord.GuildEmoji
-	: T extends "channel"
-	? Discord.GuildChannel
-	: T extends "word"
-	? string
-	: T extends "words"
-	? string
-	: T extends "role..."
-	? Discord.Role
+export type BaseArgType<S, T> = {
+	type: S;
+	validator?: (v: T) => Promise<boolean>;
+};
+export type EmojiArgType = BaseArgType<"emoji", Discord.GuildEmoji>;
+export type ChannelArgType = BaseArgType<"channel", Discord.GuildChannel>;
+export type WordArgType = BaseArgType<"word", string>;
+export type NumberArgType = BaseArgType<"number", number>;
+export type WordsArgType = BaseArgType<"words...", string>;
+export type RoleArgType = BaseArgType<"role...", Discord.Role>;
+
+export const a = {
+	emoji(validator?: EmojiArgType["validator"]): EmojiArgType {
+		return { type: "emoji", validator };
+	},
+	channel(validator?: ChannelArgType["validator"]): ChannelArgType {
+		return { type: "channel", validator };
+	},
+	word(validator?: WordArgType["validator"]): WordArgType {
+		return { type: "word", validator };
+	},
+	number(validator?: NumberArgType["validator"]): NumberArgType {
+		return { type: "number", validator };
+	},
+	words(validator?: WordsArgType["validator"]): [WordsArgType] {
+		return [{ type: "words...", validator }];
+	},
+	role(validator?: RoleArgType["validator"]): [RoleArgType] {
+		return [{ type: "role...", validator }];
+	}
+};
+
+export type ArgTypeToReturnType<T> = T extends BaseArgType<any, infer Q>
+	? Q
 	: never;
-export type ArgTypeArrayValue<T extends Readonly<ArgType[]>> = {
-	[key in keyof T]: ArgTypeValue<T[key]>;
+export type ArgTypeArrayToReturnType<
+	T extends Readonly<BaseArgType<any, any>[]>
+> = {
+	[key in keyof T]: ArgTypeToReturnType<T[key]>;
 };
 
 function roleNameMatch(rolename: string, message: string) {
@@ -31,7 +56,7 @@ export type ArgumentParserResult<T> = Promise<
 
 export async function ChannelArgumentParser(
 	info: Info,
-	arg: ArgType,
+	arg: ChannelArgType,
 	cmd: string,
 	index: number,
 	commandhelp: string,
@@ -88,7 +113,7 @@ export async function ChannelArgumentParser(
 
 export async function EmojiArgumentParser(
 	info: Info,
-	arg: ArgType,
+	arg: EmojiArgType,
 	cmd: string,
 	index: number,
 	commandhelp: string,
@@ -146,7 +171,7 @@ export async function EmojiArgumentParser(
 
 export async function WordArgumentParser(
 	info: Info,
-	arg: ArgType,
+	arg: WordArgType,
 	cmd: string,
 	index: number,
 	commandhelp: string,
@@ -164,7 +189,7 @@ export async function WordArgumentParser(
 		);
 		return { result: "exit" };
 	}
-	const word = cmd.match(/^([\s]+)\s+([\S\s]+)/m);
+	const word = cmd.match(/^([\S]+)\s*([\S\s]*)/m);
 	if (!word) {
 		await info.error(
 			messages.arguments.word_arg_not_provided(
@@ -181,9 +206,57 @@ export async function WordArgumentParser(
 	return { result: "continue", value: result, cmd: newCmd };
 }
 
+export async function NumberArgumentParser(
+	info: Info,
+	arg: NumberArgType,
+	cmd: string,
+	index: number,
+	commandhelp: string,
+	argpurpose: string
+): ArgumentParserResult<number> {
+	if (!cmd.trim()) {
+		await info.error(
+			messages.arguments.num_arg_not_provided(
+				info,
+				cmd,
+				index,
+				commandhelp,
+				argpurpose
+			)
+		);
+		return { result: "exit" };
+	}
+	const wordval = cmd.match(/^([\S]+)\s*([\S\s]*)/m);
+	if (!wordval) {
+		await info.error(
+			messages.arguments.num_arg_not_provided(
+				info,
+				cmd,
+				index,
+				commandhelp,
+				argpurpose
+			)
+		);
+		return { result: "exit" };
+	}
+	const [, num, newCmd] = wordval;
+	if (Number.isNaN(+num)) {
+		await info.error(
+			messages.arguments.num_is_nan(
+				info,
+				cmd,
+				index,
+				commandhelp,
+				argpurpose
+			)
+		);
+	}
+	return { result: "continue", value: +num, cmd: newCmd };
+}
+
 export async function WordsArgumentParser(
 	info: Info,
-	arg: ArgType,
+	arg: WordsArgType,
 	cmd: string,
 	index: number,
 	commandhelp: string,
@@ -206,7 +279,7 @@ export async function WordsArgumentParser(
 
 export async function RoleArgumentParser(
 	info: Info,
-	arg: ArgType,
+	arg: RoleArgType,
 	cmd: string,
 	index: number,
 	commandhelp: string,
@@ -298,44 +371,44 @@ export async function RoleArgumentParser(
 	};
 }
 
-type OAPRV<K extends ArgType> = Promise<
-	| { result: "continue"; value: ArgTypeValue<K>; cmd: string }
-	| { result: "exit" }
->;
-
-export async function OneArgumentParser<K extends ArgType>(
+export async function OneArgumentParser<K extends BaseArgType<any, any>>(
 	info: Info,
 	arg: K,
 	cmd: string,
 	i: number,
 	cmdh: string,
 	argp: string
-): OAPRV<K> {
-	if (arg === "channel") {
-		return ChannelArgumentParser(info, arg, cmd, i, cmdh, argp) as OAPRV<K>;
+): ArgumentParserResult<K> {
+	if (arg.type === "channel") {
+		return ChannelArgumentParser(info, arg, cmd, i, cmdh, argp) as any;
 	}
-	if (arg === "emoji") {
-		return EmojiArgumentParser(info, arg, cmd, i, cmdh, argp) as OAPRV<K>;
+	if (arg.type === "emoji") {
+		return EmojiArgumentParser(info, arg, cmd, i, cmdh, argp) as any;
 	}
-	if (arg === "word") {
-		return WordArgumentParser(info, arg, cmd, i, cmdh, argp) as OAPRV<K>;
+	if (arg.type === "word") {
+		return WordArgumentParser(info, arg, cmd, i, cmdh, argp) as any;
 	}
-	if (arg === "words...") {
-		return WordsArgumentParser(info, arg, cmd, i, cmdh, argp) as OAPRV<K>;
+	if (arg.type === "number") {
+		return NumberArgumentParser(info, arg, cmd, i, cmdh, argp) as any;
 	}
-	if (arg === "role...") {
-		return RoleArgumentParser(info, arg, cmd, i, cmdh, argp) as OAPRV<K>;
+	if (arg.type === "words...") {
+		return WordsArgumentParser(info, arg, cmd, i, cmdh, argp) as any;
+	}
+	if (arg.type === "role...") {
+		return RoleArgumentParser(info, arg, cmd, i, cmdh, argp) as any;
 	}
 	throw new Error(
-		`Argument parser tried to parse ${arg} which isn't a thing.`
+		`Argument parser tried to parse ${arg} which isn't a thing. Why isn't this done using classes/callback functions? who knows`
 	);
 }
 
-export async function ArgumentParser<ArgTypes extends Readonly<ArgType[]>>(
+export async function ArgumentParser<
+	ArgTypes extends Readonly<BaseArgType<any, any>[]>
+>(
 	{ info, cmd, help }: { info: Info; cmd: string; help?: string },
 	...schema: ArgTypes
-): Promise<ArgTypeArrayValue<ArgTypes> | undefined> {
-	const resarr: ArgTypeValue<any>[] = [];
+): Promise<ArgTypeArrayToReturnType<ArgTypes> | undefined> {
+	const resarr: ArgTypeToReturnType<any>[] = [];
 	let index = 0;
 	for (const value of schema) {
 		const parseResult = await OneArgumentParser(
@@ -349,11 +422,16 @@ export async function ArgumentParser<ArgTypes extends Readonly<ArgType[]>>(
 		if (parseResult.result === "exit") {
 			return undefined;
 		}
+		if (value.validator) {
+			if (!(await value.validator(parseResult.value))) {
+				return;
+			}
+		}
 		resarr.push(parseResult.value);
 		cmd = parseResult.cmd;
 		index++;
 	}
-	return (resarr as unknown) as ArgTypeArrayValue<ArgTypes>;
+	return (resarr as unknown) as ArgTypeArrayToReturnType<ArgTypes>;
 }
 
 export const AP = ArgumentParser;

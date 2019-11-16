@@ -4,6 +4,7 @@ import Info from "../Info";
 import { ilt } from "../..";
 const router = new Router<Info, any>();
 import { messages } from "../../messages";
+import { AP, a } from "./argumentparser";
 
 const stripMentions = (msg: string) => {
 	return msg
@@ -81,17 +82,24 @@ router.add(
 				messages.failure.command_cannot_be_used_in_pms(info)
 			);
 		}
-		const messageLimit = +cmd;
-		if (
-			!messageLimit ||
-			messageLimit < 1 ||
-			messageLimit > 100 ||
-			Math.floor(messageLimit) !== messageLimit
-		) {
-			return info.error(
-				messages.channels.purge.message_limit(info, messageLimit)
-			);
-		}
+
+		const apresult = await AP(
+			{ info, cmd },
+			a.number(async num => {
+				if (num < 1 || num > 100 || !Number.isInteger(num)) {
+					await info.error(
+						messages.channels.purge.message_limit(info, num)
+					);
+					return false;
+				}
+				return true;
+			})
+			// what if we want an optional channel? oh no
+			// now the argument parser gets messy
+		);
+		if (!apresult) return;
+		const [messageLimit] = apresult;
+
 		const channel = info.message.channel as TextChannel;
 		const messagesToDelete = await channel.messages.fetch({
 			limit: messageLimit
@@ -100,10 +108,42 @@ router.add(
 		// if (!confirmationResult) {
 		// 	return;
 		// }
+		// if(!await info.confirm("are you sure?")){ return; }
+		// this can be done with an emoji reaction system like goirankbot has
 		const progressMessage = await info.channel.send(
 			messages.channels.purge.in_progress(info, messagesToDelete.size)
 		);
-		await channel.bulkDelete(messagesToDelete);
+		const now = new Date().getTime();
+		const toBulkDelete = messagesToDelete.filter(
+			m => m.createdAt.getTime() > now - 13 * 24 * 60 * 60 * 1000 // 13 just in case. discord limit is 14
+		);
+		const toSlowDelete = messagesToDelete.filter(
+			m => m.createdAt.getTime() <= now - 13 * 24 * 60 * 60 * 1000
+		);
+		await channel.bulkDelete(toBulkDelete);
+		let deletedCount = toBulkDelete.size;
+		const startUpdateThing = () =>
+			setTimeout(async () => {
+				const progressPerdeci = Math.floor(
+					(deletedCount / toSlowDelete.size) * 10
+				);
+				await ilt(
+					progressMessage.edit(
+						`Deleting messages... [\`${"X".repeat(progressPerdeci) +
+							" ".repeat(
+								10 - progressPerdeci
+							)}\`] (${deletedCount} / ${messagesToDelete.size})`
+					),
+					"purge messages progress bar"
+				);
+				updateProgressInterval = startUpdateThing();
+			}, 1000);
+		let updateProgressInterval = startUpdateThing();
+		for (const [key, message] of toSlowDelete) {
+			await message.delete();
+			deletedCount++;
+		}
+		clearInterval(updateProgressInterval);
 		await info.success(
 			messages.channels.purge.success(info, messagesToDelete.size)
 		);
@@ -155,6 +195,9 @@ router.add(
 	"space channels",
 	[Info.theirPerm.manageChannels, Info.ourPerm.manageChannels],
 	async (cmd, info) => {
+		const apresult = await AP({ info, cmd });
+		if (!apresult) return;
+
 		const guild = info.guild;
 		if (!guild) {
 			return info.error(
