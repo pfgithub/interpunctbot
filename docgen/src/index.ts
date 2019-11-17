@@ -241,7 +241,9 @@ function sidebar(...items: string[]) {
 
 (async () => {
 	const start = path.join(__dirname, "../doc/content");
-	await fs.rmdir(path.join(__dirname, "../dist"), { recursive: true });
+	try {
+		await fs.rmdir(path.join(__dirname, "../dist"), { recursive: true });
+	} catch (e) {}
 	const filesToCopy = await recursiveReaddir(
 		path.join(__dirname, "../doc/public")
 	);
