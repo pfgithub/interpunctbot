@@ -169,6 +169,7 @@ blockquote {
 	justify-content: flex-start;
 	cursor: default;
 	color: var(--channels-default);
+	margin-top: 16px;
 }
 
 .category.active {
@@ -186,4 +187,73 @@ blockquote {
 .category-name {
 	text-transform: uppercase;
 	font-size: 12px;
+}
+
+.banner {
+	position: relative;
+	cursor: pointer;
+}
+
+.banner-header {
+	box-shadow: none;
+	background-color: transparent;
+	color: #fff;
+	filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.8));
+	position: relative;
+	font-weight: 500;
+	padding: 0 16px;
+	height: 48px;
+	box-sizing: border-box;
+	display: flex;
+	-webkit-box-align: center;
+	align-items: center;
+	z-index: 3;
+	transition: background-color 0.1s linear;
+}
+
+.banner-name {
+	font-size: 16px;
+	line-height: 20px;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	-webkit-box-flex: 1;
+	flex: 1;
+}
+
+.banner-dropdown {
+	position: relative;
+	top: 3px;
+	opacity: 0.8;
+	transition: transform 0.2s ease-out, stroke-dasharray 0.2s ease-out,
+		-webkit-transform 0.2s ease-out;
+	margin-left: 4px;
+}
+
+.banner-image-container {
+	position: absolute;
+	height: 135px;
+	top: 0;
+	left: 0;
+	width: 100%;
+	overflow: hidden;
+	background-color: var(--background-modifier-active);
+	box-shadow: var(--elevation-low);
+}
+
+.banner-image {
+	background-repeat: no-repeat;
+	background-position: 50%;
+	background-size: cover;
+	width: 240px;
+	position: absolute;
+	height: 135px;
+	top: 0;
+	left: 0;
+	cursor: default;
+}
+
+.scroll-container,
+.content {
+	overflow-y: scroll;
 }

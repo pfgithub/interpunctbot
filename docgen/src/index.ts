@@ -206,7 +206,6 @@ function sidebar(
 	const items: string[] = [];
 	json.forEach(([type, link, name]) => {
 		if (!name) name = path.basename(link);
-		console.log(thisurl, link);
 		if (type === "category") {
 			items.push(category(name, link, thisurl === link));
 		}
@@ -217,16 +216,16 @@ function sidebar(
 	return html`
 		<div
 			tabindex="0"
-			class="container-2Rl01u clickable-2ap7je hasBanner-14PPlG bannerVisible-14J9lQ"
+			class="banner"
 			aria-controls="popout_48642"
 			aria-expanded="false"
 			role="button"
 		>
-			<header class="header-2o-2hj">
-				<div class="guildIconContainer-E1JUVt"></div>
-				<h1 class="name-3YKhmS">inter·punct bot</h1>
+			<header class="banner-header">
+				<div class="banner-icon"></div>
+				<h1 class="banner-name">inter·punct bot</h1>
 				<svg
-					class="icon-WnO6o2"
+					class="banner-dropdown"
 					width="24"
 					height="24"
 					viewBox="0 0 24 24"
@@ -240,16 +239,20 @@ function sidebar(
 				</svg>
 			</header>
 			<div
-				class="server-banner"
+				class="banner-image-container"
 				style="opacity: 1; transform: translateY(0px);"
 			>
 				<div
-					class="server-banner-image"
+					class="banner-image"
 					style='background-image: url("https://cdn.discordapp.com/icons/446481361692524545/3e6a4d43d6a9aebe3fde441190fb6cb1.webp"); transform: translateY(0px) scale(1); background-position: center center; background-size: 50%; background-color: rgb(239, 71, 71);'
 				></div>
 			</div>
 		</div>
-		${raw(items.join("\n"))}
+		<div class="scroll-container">
+			<div style="width: 100%; height: 84px; visibility: hidden;"></div>
+			<div style="height: 16px;"></div>
+			${raw(items.join(" "))}
+		</div>
 	`;
 }
 
