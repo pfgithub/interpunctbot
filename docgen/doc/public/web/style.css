@@ -28,6 +28,10 @@
 	--activity-card-background: #202225;
 }
 
+html {
+	height: 100%;
+}
+
 body {
 	background-color: var(--background-primary);
 	color: var(--text-normal);
@@ -36,6 +40,7 @@ body {
 	grid-template-columns: minmax(0, 240px) 1fr;
 	margin: 0;
 	padding: 0;
+	height: 100%;
 }
 
 .hc {
