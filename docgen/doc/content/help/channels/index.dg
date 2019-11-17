@@ -1,0 +1,6 @@
+## Channels <https://interpunct.info/channels>
+*text*: > [\`X\`] Replace Dashes with Spaces: \`ip!space channels\`
+*text*: > [\`X\`] Automatically put spaces in channel names: \`ip!space channels automatically\` (Off by default)
+*text*: > [\`X\`] Stop putting spaces in channel names: \`ip!space channels disable\`
+*text*: > [\` \`] Pin Message: \`prefix!pin messagelink/id\` (Get a Message Link or ID by right clicking/long tapping a message and selecting Copy ...)
+*text*: > [\`X\`] Sending a message to multiple channels: {{Command|send: My message {{Channel|#channel-one}} {{Channel|#channel-two}}}}

@@ -24,17 +24,17 @@ export function templateGenerator<InType>(helper: (str: InType) => string) {
 
 export function escapeHTML(html: string) {
 	return html
+		.split("&")
+		.join("&amp;")
 		.split('"')
 		.join("&quot;")
 		.split("<")
 		.join("&lt;")
 		.split(">")
-		.join("&gt;")
-		.split("&")
-		.join("&amp;");
+		.join("&gt;");
 }
 
-export const html_ = templateGenerator((v: string) => escapeHTML(v));
+export const html_ = templateGenerator((v: string) => htmlMD(escapeHTML(v)));
 // just html triggers prettier
 
 async function recursiveReaddir(start: string): Promise<string[]> {
@@ -57,7 +57,35 @@ async function recursiveReaddir(start: string): Promise<string[]> {
 	return finalFiles;
 }
 
-async function process(
+function parseDoubleBrackets(
+	remaining: string
+): { done: string; remaining: string } | undefined {
+	// {{Command|text... {{Link|hmm}}text...}}
+	const firstDoubleBrackets = remaining.indexOf("{{");
+	if (firstDoubleBrackets < 0) {
+		return;
+	}
+	let finalDone = "";
+	let parseInsideResult: ReturnType<typeof parseDoubleBrackets>;
+	while (
+		(parseInsideResult = parseDoubleBrackets(
+			remaining.substr(firstDoubleBrackets)
+		))
+	) {
+		finalDone += parseInsideResult.done;
+		remaining = parseInsideResult.remaining;
+	}
+}
+
+function htmlMD(text: string) {
+	text = text.replace(
+		/{{Channel\|(.+?)}}/g,
+		(q, v) => `<a class="tag">${v}</a>`
+	);
+	return text;
+}
+
+async function processText(
 	path: string[],
 	text: string
 ): Promise<{ html: string; discord: string }> {
@@ -78,11 +106,20 @@ async function process(
 			discordResult.push(v);
 			continue;
 		}
-		if (line.startsWith("*link web=inline*: ")) {
-			// todo web=inline
+		if (line.startsWith("*link*: ")) {
 			const v = line.substring(19 + 1, line.length - 1);
 			htmlResult.push(
 				html_`<p><a href="/${[...path, v].join("/")}">${v}</a></p>`
+			);
+			discordResult.push(`\`ip!${[...path, v].join(" ")}\``);
+			continue;
+		}
+		if (line.startsWith("*link web=inline*: ")) {
+			const v = line.substring(19 + 1, line.length - 1);
+			htmlResult.push(
+				html_`<p><a inline="true" href="/${[...path, v].join(
+					"/"
+				)}">${v}</a></p>`
 			);
 			discordResult.push(`\`ip!${[...path, v].join(" ")}\``);
 			continue;
@@ -106,14 +143,40 @@ const dirname = (fullpath: string) =>
 	fullpath.substr(0, fullpath.lastIndexOf("/"));
 
 (async () => {
-	const start = path.join(__dirname, "../doc");
+	const start = path.join(__dirname, "../doc/content");
+	await fs.rmdir(path.join(__dirname, "../dist"), { recursive: true });
+	const filesToCopy = await recursiveReaddir(
+		path.join(__dirname, "../doc/public")
+	);
+	for (const fileToCopy of filesToCopy) {
+		await fs.mkdir(path.join(__dirname, "../dist/", dirname(fileToCopy)), {
+			recursive: true
+		});
+		await fs.copyFile(
+			path.join(__dirname, "../doc/public", fileToCopy),
+			path.join(__dirname, "../dist", fileToCopy)
+		);
+	}
 	const discorddist = path.join(__dirname, "../dist/discord");
 	const webdist = path.join(__dirname, "../dist/web");
-	const filesToProcess = await recursiveReaddir(start);
+	const filesToProcess = (await recursiveReaddir(start)).filter(f =>
+		f.endsWith(".dg")
+	);
+	const htmlTemplate = await fs.readFile(
+		path.join(__dirname, "../doc/template.html"),
+		"utf-8"
+	);
+
+	let completed = 0;
+	const count = filesToProcess.length;
+	const logProgress = () =>
+		process.stdout.write(`\r... (${completed} / ${count})`);
+	logProgress();
+
 	await Promise.all(
 		filesToProcess.map(async f => {
 			const fileCont = await fs.readFile(path.join(start, f), "utf-8");
-			const { html, discord } = await process(
+			const { html, discord } = await processText(
 				dirname(f).split("/"),
 				fileCont
 			);
@@ -125,7 +188,14 @@ const dirname = (fullpath: string) =>
 			await fs.mkdir(dirname(discordfile), { recursive: true });
 			await fs.mkdir(dirname(webfile), { recursive: true });
 			await fs.writeFile(discordfile, discord, "utf-8");
-			await fs.writeFile(webfile, html, "utf-8");
+			await fs.writeFile(
+				webfile,
+				htmlTemplate.replace("{{html|content}}", html),
+				"utf-8"
+			);
+			completed++;
+			logProgress();
 		})
 	);
+	console.log();
 })();

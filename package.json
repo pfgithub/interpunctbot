@@ -6,7 +6,8 @@
 	"scripts": {
 		"test": "nyc mocha",
 		"posttest": "nyc report --reporter lcov",
-		"test-error": "mocha"
+		"test-error": "mocha",
+		"docs": "ts-node docgen/src"
 	},
 	"dependencies": {
 		"async-request": "^1.2.0",
@@ -25,7 +26,7 @@
 	"devDependencies": {
 		"@istanbuljs/nyc-config-typescript": "^0.1.3",
 		"@types/moment-duration-format": "^2.2.2",
-		"@types/node": "^11.12.2",
+		"@types/node": "^12.12.8",
 		"@types/request": "^2.48.2",
 		"@types/ws": "^6.0.3",
 		"@typescript-eslint/eslint-plugin": "^2.0.0",

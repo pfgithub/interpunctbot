@@ -1,0 +1,5 @@
+*when discord*: <https://interpunct.info/speedrun>
+## setup
+*text*: - {{Config}} Set game: {{Command|speedrun set https://www.speedrun.com/yourgame%}}
+*text*: - Show WR: {{Command|wr}}
+*text*: - Show Rules: {{Command|speedrun rules {{Optional|CategoryName%}}}}

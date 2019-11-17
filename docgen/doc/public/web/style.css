@@ -1,0 +1,124 @@
+:root {
+	/*discord colors*/
+	--header-primary: #fff;
+	--header-secondary: #b9bbbe;
+	--text-normal: #dcddde;
+	--text-muted: #72767d;
+	--text-link: #00b0f4;
+	--channels-default: #8e9297;
+	--interactive-normal: #b9bbbe;
+	--interactive-hover: #dcddde;
+	--interactive-active: #fff;
+	--interactive-muted: #4f545c;
+	--background-primary: #36393f;
+	--background-secondary: #2f3136;
+	--background-tertiary: #202225;
+	--background-accent: #4f545c;
+	--background-floating: #18191c;
+	--background-mobile-header: #2f3136;
+	--background-modifier-hover: rgba(79, 84, 92, 0.16);
+	--background-modifier-active: rgba(79, 84, 92, 0.24);
+	--background-modifier-selected: rgba(79, 84, 92, 0.32);
+	--background-modifier-accent: hsla(0, 0%, 100%, 0.06);
+	--elevation-low: 0 1px 0 rgba(4, 4, 5, 0.2), 0 1.5px 0 rgba(6, 6, 7, 0.05),
+		0 2px 0 rgba(4, 4, 5, 0.05);
+	--elevation-high: 0 8px 16px rgba(0, 0, 0, 0.24);
+	--logo-primary: #fff;
+	--guild-header-text-shadow: 0 1px 1px rgba(0, 0, 0, 0.4);
+	--channeltextarea-background: #40444b;
+	--activity-card-background: #202225;
+}
+
+body {
+	background-color: var(--background-primary);
+	color: var(--text-normal);
+	font-family: Whitney, "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+.hc {
+	display: -webkit-box;
+	display: -ms-flexbox;
+	display: flex;
+	-webkit-box-align: center;
+	-ms-flex-align: center;
+	align-items: center;
+	line-height: 22px;
+	font-size: 14px;
+}
+.hc::after,
+.hc::before {
+	content: "";
+	background-color: var(--background-modifier-accent);
+	height: 1px;
+	-webkit-box-flex: 1;
+	-ms-flex: 1 1 auto;
+	flex: 1 1 auto;
+}
+.hc::before {
+	right: 100%;
+	margin-right: 8px;
+}
+.hc::after {
+	left: 100%;
+	margin-left: 8px;
+}
+
+a {
+	color: var(--text-link);
+	text-decoration: none;
+}
+a:hover {
+	text-decoration: underline;
+}
+
+code {
+	font-size: 0.875rem;
+	line-height: 1rem;
+	text-indent: 0;
+	background-color: var(--background-secondary);
+
+	width: auto;
+	height: auto;
+	padding: 0.2em;
+	margin: -0.2em 0;
+	border-radius: 3px;
+	font-size: 85%;
+	font-family: SourceCodePro, Consolas, Liberation Mono, Menlo, Courier,
+		monospace;
+	text-indent: 0;
+	border: none;
+}
+
+.tag {
+	padding: 0 2px;
+	font-weight: 500;
+	-webkit-transition: background-color 50ms ease-out, color 50ms ease-out;
+	transition: background-color 50ms ease-out, color 50ms ease-out;
+	cursor: pointer;
+	color: #7289da;
+	background-color: rgba(114, 137, 218, 0.1);
+}
+
+.tag:hover {
+	color: #fff;
+	background-color: rgba(114, 137, 218, 0.7);
+	text-decoration: none;
+}
+
+.blockquote-container {
+	display: flex;
+}
+
+.blockquote-divider {
+	margin: 8px 0;
+	width: 4px;
+	border-radius: 4px;
+	background-color: var(--interactive-muted);
+}
+
+blockquote {
+	padding: 0 8px 0 12px;
+	box-sizing: border-box;
+	text-indent: 0;
+	margin: 8px 0;
+}
