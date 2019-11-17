@@ -143,3 +143,16 @@ code {
 	cursor: default;
 	color: var(--channels-default);
 }
+
+.category-collapse {
+	position: absolute;
+	left: 2px;
+	top: 6px;
+	width: 12px;
+	height: 12px;
+}
+
+.category-name {
+	text-transform: uppercase;
+	font-size: 12px;
+}
