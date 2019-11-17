@@ -131,6 +131,24 @@ code {
 	color: var(--interactive-muted);
 }
 
+.blockquote-container {
+	display: flex;
+}
+
+.blockquote-divider {
+	margin: 8px 0;
+	width: 4px;
+	border-radius: 4px;
+	background-color: var(--interactive-muted);
+}
+
+blockquote {
+	padding: 0 8px 0 12px;
+	text-indent: 0;
+	box-sizing: border-box;
+	margin: 8px 0;
+}
+
 .category {
 	position: relative;
 	box-sizing: border-box;
