@@ -1,4 +1,4 @@
-## Channels <https://interpunct.info/channels>
+## Channels
 *text*: > [\`X\`] Replace Dashes with Spaces: \`ip!space channels\`
 *text*: > [\`X\`] Automatically put spaces in channel names: \`ip!space channels automatically\` (Off by default)
 *text*: > [\`X\`] Stop putting spaces in channel names: \`ip!space channels disable\`

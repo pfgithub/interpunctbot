@@ -158,7 +158,7 @@ async function processText(
 		);
 		continue;
 	}
-	discordResult.push("", `https://interpunct.info${path.join("/")}`);
+	discordResult.push("", `https://interpunct.info/${path.join("/")}`);
 	return { html: htmlResult.join("\n"), discord: discordResult.join("\n") };
 }
 

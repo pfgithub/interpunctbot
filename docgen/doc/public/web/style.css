@@ -179,14 +179,22 @@ code {
 	flex-direction: row;
 	align-items: center;
 	overflow: hidden;
+	color: var(--channels-default);
 }
 
 .channel.active {
 	background-color: var(--background-modifier-selected);
+	color: var(--interactive-active);
 }
 
 .channel-icon {
-	color: var(--interactive-muted);
+	color: color: var(--text-muted);
+	display: block;
+	width: 20px;
+	height: 20px;
+	-webkit-box-flex: 0;
+	flex: 0 0 auto;
+	margin-right: 6px;
 }
 
 .blockquote-container {
