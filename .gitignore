@@ -7,3 +7,4 @@ knexfile.json
 coverage
 yarn-error.log
 built
+dist

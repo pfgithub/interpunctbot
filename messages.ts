@@ -25,21 +25,38 @@ export function safe(
 }
 
 export const messages = {
-	help: (info: Info, lists: { [key: string]: string }) =>
-		`**inter\u00B7punct help**
-> Finding Role IDs: <https://interpunct.info/role-id>
-Channels <https://interpunct.info/channels>
+	help: {
+		overall: (info: Info, lists: { [key: string]: string }) =>
+			`**inter\u00B7punct help**
+
+Server Info
+> inter·punct prefix: ${
+				info.prefix ? `\`ip!\`` : "no prefix is required in PMs."
+			}
+> If the prefix is broken, you can use ${info.atme} as a prefix instead.
+Bot Info
+> [\`X\`] Help: \`ip!help\`
+> [\`X\`] Statistics: \`ip!stats\`
+> [\`X\`] About: \`ip!about\`
+> Invite: <https://discordapp.com/api/oauth2/authorize?client_id=433078185555656705&permissions=1342221396&scope=bot> (Select only the permissions you need. Others can be granted later)
+> Website: <https://interpunct.info>
+> Support Server: <https://interpunct.info/support>`
+				.split("ip!")
+				.join(info.prefix)
+				.split("{defaultprefix}")
+				.join("ip!"),
+		channels: `Channels <https://interpunct.info/channels>
 > [\`X\`] Replace Dashes with Spaces: \`ip!space channels\`
 > [\`X\`] Automatically put spaces in channel names: \`ip!space channels automatically\` (Off by default)
 > [\`X\`] Stop putting spaces in channel names: \`ip!space channels disable\`
 > [\` \`] Pin Message: \`prefix!pin messagelink/id\` (Get a Message Link or ID by right clicking/long tapping a message and selecting Copy ...)
-> [\`X\`] Sending a message to multiple channels: \`ip!send: My message #channel-one #channel-two\`
-Logging <https://interpunct.info/logging>
+> [\`X\`] Sending a message to multiple channels: \`ip!send: My message #channel-one #channel-two\``,
+		logging: `Logging <https://interpunct.info/logging>
 > [\`X\`] Enable message logging: \`ip!logging enable\`
 > [\`X\`] Download message log: \`ip!log download\` (The log file will be attached in a reply.)
 > [\`X\`] Clear log: \`ip!log reset\`
-> [\`X\`] Disable logging: \`ip!log disable\` (Any existing logs will be deleted)
-Emojis <https://interpunct.info/emojis>
+> [\`X\`] Disable logging: \`ip!log disable\` (Any existing logs will be deleted)`,
+		emoji: `Emojis <https://interpunct.info/emojis>
 > [\`X\`] Restrict Emoji by Role: \`ip!emoji restrict \`<:emoji:629134046332583946>\` Role\` (Role name, id, or mention)
 > [\`X\`] Remove all restrictions from emoji: \`ip!emoji unrestrict \`<:emoji:629134046332583946>
 > [\`X\`] Remove one restriction from emoji: \`ip!emoji unrestrict \`<:emoji:629134046332583946>\` Role\`
@@ -47,17 +64,17 @@ Emojis <https://interpunct.info/emojis>
 > [\` \`] Set channel for emoji ranking: \`ip!emojirank channel #channel\`
 > [\` \`] Disable emoji ranking: \`ip!emojirank disable\`
 > [\` \`] Add an emoji for emoji ranking: \`ip!emojirank add for=everyone|admins \`<:emoji:629134046332583946>\` Role\`
-> [\` \`] Remove an emoji for emoji ranking: \`ip!emojirank remove \`<:emoji:629134046332583946>
-Fun <https://interpunct.info/fun>
+> [\` \`] Remove an emoji for emoji ranking: \`ip!emojirank remove \`<:emoji:629134046332583946>`,
+		fun: `Fun <https://interpunct.info/fun>
 > [\`X\`] Disable fun: \`ip!fun disable\`
 > [\`X\`] Enable fun: \`ip!fun enable\` (Enabled by default)
 > [\`X\`] Play ping pong: \`ip!ping\`
-> [\`X\`] Play minesweeper: \`ip!minesweeper [optional settings]\`
-Speedrun.com <https://interpunct.info/speedrun>
+> [\`X\`] Play minesweeper: \`ip!minesweeper [optional settings]\``,
+		speedrun: `Speedrun.com <https://interpunct.info/speedrun>
 > [\`X\`] Show WR: \`ip!wr\`
 > [\`X\`] Show Rules: \`ip!speedrun rules CategoryName%\`
-> [\`X\`] Set Game on speedrun.com: \`ip!speedrun set https://www.speedrun.com/yourgame%\`
-Quotes and Lists <https://interpunct.info/lists>
+> [\`X\`] Set Game on speedrun.com: \`ip!speedrun set https://www.speedrun.com/yourgame%\``,
+		lists: `Quotes and Lists <https://interpunct.info/lists>
 > [\`X\`] Create List: \`ip!lists add listname pastebin.com/NFuKYjUN\`
 > [\`X\`] Edit List: \`ip!lists edit listname pastebin.com/NFuKYjUN\`
 > [\`X\`] Remove List: \`ip!lists remove listname\`
@@ -67,7 +84,8 @@ ${Object.keys(lists)
 		l =>
 			`> [\`X\`] View ${l}: \`ip!${l} [optional "single"] [optional search term] [optional number]\`\n`
 	)
-	.join("")}Administration <https://interpunct.info/administration>
+	.join("")}`,
+		administration: `Administration <https://interpunct.info/administration>
 > [\` \`] Automatically ban users with specific words in their name:
 > \`\`\`
 > ip!autoban add
@@ -77,28 +95,13 @@ ${Object.keys(lists)
 > in someone's username
 > \`\`\`
 > [\`X\`] Purge messages in a channel: \`ip!purge [number of messages to purge]\` (No confirmation, be careful)
-> [\` \`] Welcome and Goodbye messages: \`ip!command unknown\`
-Configuration <https://interpunct.info/configuration>
+> [\` \`] Welcome and Goodbye messages: \`ip!command unknown\``,
+		configuration: `Configuration <https://interpunct.info/configuration>
 > [\`X\`] Error messages: \`ip!set show errors always|admins|never\` (Default: always)
 > [\`X\`] Unknown command errors: \`ip!set show unknown command show|admins|hide\` (Default: show)
 > [\`X\`] PM Errors: \`ip!settings pm on|off\` (Default: on)
-> [\`X\`] Set Prefix: \`ip!set prefix newprefix\` (Default \`{defaultprefix}\`)
-Server Info
-> inter·punct prefix: ${
-			info.prefix ? `\`ip!\`` : "no prefix is required in PMs."
-		}
-> If the prefix is broken, you can use ${info.atme} as a prefix instead.
-Bot Info
-> [\`X\`] Help: \`ip!help\`
-> [\`X\`] Statistics: \`ip!stats\`
-> [\`X\`] About: \`ip!about\`
-> Invite: <https://discordapp.com/api/oauth2/authorize?client_id=433078185555656705&permissions=1342221396&scope=bot> (Select only the permissions you need. Others can be granted later)
-> Website: <https://interpunct.info>
-> Support Server: <https://interpunct.info/support>`
-			.split("ip!")
-			.join(info.prefix)
-			.split("{defaultprefix}")
-			.join("ip!"),
+> [\`X\`] Set Prefix: \`ip!set prefix newprefix\` (Default \`{defaultprefix}\`)`
+	},
 	role: (role: Discord.Role) =>
 		role.mentionable ? safe`${`@${role.name}`}` : role.toString(),
 	nd: (number: number) =>

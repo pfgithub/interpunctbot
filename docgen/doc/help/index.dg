@@ -1,0 +1,32 @@
+## Channels
+*text*: Put spaces in channel names, send a message to many channels at once, pin a message to the bottom of a channel
+*link web=inline*: `channels`
+## Logging
+*text*: Enable, disable, and manage message logging for the server. Disabled by default.
+*link web=inline*: `logging`
+## Emoji
+*text*: Restrict certain custom emojis so only people with specific roles can use them, let admins give people ranks by reacting to messages with emojis
+*link web=inline*: `emoji`
+## Fun
+*text*: Play games like ping-pong and minesweeper
+*link web=inline*: `fun`
+## speedrun.com
+*text*: View world record, leaderboard, and submission rules for speedrun.com pages
+*link web=inline*: `speedrun.com`
+## Lists
+*text*: Create custom commands for the server with random quotes from a list
+*link web=inline*: `lists`
+## Administration
+*text*: Purge messages, automatically ban spambots or trolls
+*link web=inline*: `administration`
+## Configuration
+*text*: Change prefix, enable or disable bot error messages and unknown command messages. //todo, other settings like channel spacing and fun enabling should be available here too
+*link web=inline*: `configuration`
+## Custom Commands
+*text*: The custom commands available on this server
+*link web=inline*: `customcommands`
+## Bot Info
+*text*: Invite inter·punct to your server, join the support server
+*link web=inline*: `botinfo`
+
+*when discord*: <https://interpunct.info/help>
