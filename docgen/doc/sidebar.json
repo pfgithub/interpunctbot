@@ -1,5 +1,6 @@
 [
 	["channel", "/about"],
+	["channel", "/updates"],
 	["category", "/help"],
 	["channel", "/help/administration"],
 	["channel", "/help/botinfo", "bot info"],

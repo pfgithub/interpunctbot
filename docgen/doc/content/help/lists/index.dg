@@ -1,0 +1,7 @@
+## Create List
+
+> [\`X\`] Create List: \`ip!lists add listname pastebin.com/NFuKYjUN\`
+> [\`X\`] Edit List: \`ip!lists edit listname pastebin.com/NFuKYjUN\`
+> [\`X\`] Remove List: \`ip!lists remove listname\`
+> [\`X\`] List Lists: \`ip!lists list\`
+*each list*: View {{list}}: {{Command|{{List}} {{Optional|single}} {{Optional|search...}} {{Optional|item number}}}}

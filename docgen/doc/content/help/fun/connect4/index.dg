@@ -1,0 +1,12 @@
+## Connect 4
+
+*text*: Connect 4
+// <<< {{Prefix}}connect4
+// >>> {{Mention|user}} has started a game of Connect 4
+// >>> > React {{Emoji|plus}} to join
+// >>R plus
+// in discord, a demo image will be rendered and uploaded
+// or just don't show this or say **Demo**: (web url)
+// or instead of this complicated thing just do a link
+// obviously having a chat thing would look nicer but
+// it's not necessary

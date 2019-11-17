@@ -146,9 +146,19 @@ async function processText(
 			discordResult.push(v);
 			continue;
 		}
-		throw new Error(`unrecognized option:::${line}`);
+		if (line.startsWith("//")) {
+			continue;
+		}
+		console.log(`unrecognized:::${line}`);
+		discordResult.push(`unrecognized:::${line}`);
+		htmlResult.push(
+			html`
+				<p>unrecognized:::${line}</p>
+			`
+		);
+		continue;
 	}
-
+	discordResult.push("", `https://interpunct.info${path.join("/")}`);
 	return { html: htmlResult.join("\n"), discord: discordResult.join("\n") };
 }
 
