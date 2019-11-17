@@ -1,0 +1,17 @@
+[
+	["category", "/help", "what can interpunct bot do?"],
+	["channel", "/help", "spaces in channel names"],
+	["channel", "/help", "per-role emojis"],
+	["channel", "/help", "welcome/goodbye messages"],
+	["channel", "/help", "pin message to the bottom of a channel"],
+	["category", "/help"],
+	["channel", "/help/administration"],
+	["channel", "/help/botinfo"],
+	["channel", "/help/channels"],
+	["channel", "/help/configuration"],
+	["channel", "/help/customcommands"],
+	["channel", "/help/emoji"],
+	["channel", "/help/lists"],
+	["channel", "/help/logging"],
+	["channel", "/help/speedrun.com"]
+]

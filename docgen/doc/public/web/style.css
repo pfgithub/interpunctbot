@@ -1,5 +1,4 @@
 :root {
-	/*discord colors*/
 	--header-primary: #fff;
 	--header-secondary: #b9bbbe;
 	--text-normal: #dcddde;
@@ -33,6 +32,10 @@ body {
 	background-color: var(--background-primary);
 	color: var(--text-normal);
 	font-family: Whitney, "Helvetica Neue", Helvetica, Arial, sans-serif;
+	display: grid;
+	grid-template-columns: minmax(0, 240px) 1fr;
+	margin: 0;
+	padding: 0;
 }
 
 .hc {
@@ -105,20 +108,38 @@ code {
 	text-decoration: none;
 }
 
-.blockquote-container {
-	display: flex;
+.sidebar {
+	background-color: var(--background-secondary);
+}
+.content {
+	padding: 25px;
 }
 
-.blockquote-divider {
-	margin: 8px 0;
-	width: 4px;
-	border-radius: 4px;
-	background-color: var(--interactive-muted);
-}
-
-blockquote {
-	padding: 0 8px 0 12px;
+.channel {
 	box-sizing: border-box;
-	text-indent: 0;
-	margin: 8px 0;
+	height: 32px;
+	padding: 0 8px;
+	margin: 1px 0 1px 8px;
+	border-radius: 4px;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	overflow: hidden;
+}
+
+.channel-icon {
+	color: var(--interactive-muted);
+}
+
+.category {
+	position: relative;
+	box-sizing: border-box;
+	height: 24px;
+	padding-right: 8px;
+	padding-left: 16px;
+	display: flex;
+	align-items: center;
+	justify-content: flex-start;
+	cursor: default;
+	color: var(--channels-default);
 }
