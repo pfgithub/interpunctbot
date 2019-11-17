@@ -155,9 +155,9 @@ async function processText(
 const dirname = (fullpath: string) =>
 	fullpath.substr(0, fullpath.lastIndexOf("/"));
 
-function category(name: string, link: string) {
+function category(name: string, link: string, active: boolean) {
 	return html`
-		<div class="category">
+		<a class="category${active ? " active" : ""}" href="${link}">
 			<svg
 				class="category-collapse"
 				width="24"
@@ -174,13 +174,13 @@ function category(name: string, link: string) {
 			<header class="category-name">
 				${name}
 			</header>
-		</div>
+		</a>
 	`;
 }
 
-function channel(name: string, url: string) {
+function channel(name: string, url: string, active: boolean) {
 	return html`
-		<a class="channel" href="${url}">
+		<a class="channel${active ? " active" : ""}" href="${url}">
 			<svg
 				width="24"
 				height="24"
@@ -199,7 +199,21 @@ function channel(name: string, url: string) {
 	`;
 }
 
-function sidebar(activeURL: string, items: string[]) {
+function sidebar(
+	thisurl: string,
+	json: [string, string, string | undefined][]
+) {
+	const items: string[] = [];
+	json.forEach(([type, link, name]) => {
+		if (!name) name = path.basename(link);
+		console.log(thisurl, link);
+		if (type === "category") {
+			items.push(category(name, link, thisurl === link));
+		}
+		if (type === "channel") {
+			items.push(channel(name, link, thisurl === link));
+		}
+	});
 	return html`
 		<div
 			tabindex="0"
@@ -271,13 +285,7 @@ function sidebar(activeURL: string, items: string[]) {
 		path.join(__dirname, "../doc/sidebar.json"),
 		"utf-8"
 	);
-	JSON.parse(sidebarJSON).forEach(
-		([type, link, name]: [string, string, string | undefined]) => {
-			if (!name) name = path.basename(link);
-			if (type === "category") sidebarItems.push(category(name, link));
-			if (type === "channel") sidebarItems.push(channel(name, link));
-		}
-	);
+	const sidebarCont = JSON.parse(sidebarJSON);
 
 	let completed = 0;
 	const count = filesToProcess.length;
@@ -296,7 +304,7 @@ function sidebar(activeURL: string, items: string[]) {
 				discorddist,
 				f.replace(/\.dg$/, ".md")
 			);
-			const sidebart = sidebar(f, sidebarItems);
+			const sidebart = sidebar(`/${dirname(f)}`, sidebarCont);
 			const webfile = path.join(webdist, f.replace(/\.dg$/, ".html"));
 			await fs.mkdir(dirname(discordfile), { recursive: true });
 			await fs.mkdir(dirname(webfile), { recursive: true });

@@ -132,6 +132,10 @@ code {
 	overflow: hidden;
 }
 
+.channel.active {
+	background-color: var(--background-modifier-selected);
+}
+
 .channel-icon {
 	color: var(--interactive-muted);
 }
@@ -165,6 +169,10 @@ blockquote {
 	justify-content: flex-start;
 	cursor: default;
 	color: var(--channels-default);
+}
+
+.category.active {
+	background-color: var(--background-modifier-selected);
 }
 
 .category-collapse {
