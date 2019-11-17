@@ -155,7 +155,7 @@ async function processText(
 const dirname = (fullpath: string) =>
 	fullpath.substr(0, fullpath.lastIndexOf("/"));
 
-function category(name: string) {
+function category(name: string, link: string) {
 	return html`
 		<div class="category">
 			<svg
@@ -199,7 +199,7 @@ function channel(name: string, url: string) {
 	`;
 }
 
-function sidebar(...items: string[]) {
+function sidebar(activeURL: string, items: string[]) {
 	return html`
 		<div
 			tabindex="0"
@@ -266,6 +266,19 @@ function sidebar(...items: string[]) {
 		"utf-8"
 	);
 
+	const sidebarItems: string[] = [];
+	const sidebarJSON = await fs.readFile(
+		path.join(__dirname, "../doc/sidebar.json"),
+		"utf-8"
+	);
+	JSON.parse(sidebarJSON).forEach(
+		([type, link, name]: [string, string, string | undefined]) => {
+			if (!name) name = path.basename(link);
+			if (type === "category") sidebarItems.push(category(name, link));
+			if (type === "channel") sidebarItems.push(channel(name, link));
+		}
+	);
+
 	let completed = 0;
 	const count = filesToProcess.length;
 	const logProgress = () =>
@@ -283,6 +296,7 @@ function sidebar(...items: string[]) {
 				discorddist,
 				f.replace(/\.dg$/, ".md")
 			);
+			const sidebart = sidebar(f, sidebarItems);
 			const webfile = path.join(webdist, f.replace(/\.dg$/, ".html"));
 			await fs.mkdir(dirname(discordfile), { recursive: true });
 			await fs.mkdir(dirname(webfile), { recursive: true });
@@ -291,13 +305,7 @@ function sidebar(...items: string[]) {
 				webfile,
 				htmlTemplate
 					.replace("{{html|content}}", html)
-					.replace(
-						"{{html|sidebar}}",
-						sidebar(
-							category("help"),
-							channel("channels", "/help/channels")
-						)
-					),
+					.replace("{{html|sidebar}}", sidebart),
 				"utf-8"
 			);
 			completed++;
