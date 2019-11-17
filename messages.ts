@@ -333,7 +333,13 @@ ${emoji.roles
 	},
 	failure: {
 		command_cannot_be_used_in_pms: (info: Info) =>
-			`This command cannot be used in PMs!`,
+			`This command cannot be used in PMs!
+> **Support Server**: <https://interpunct.info/support>
+> **About this Error**: <https://interpunct.info/command-cannot-be-used-in-pms>`,
+		command_must_use_pms: (info: Info) =>
+			`PM me to use this command.
+> **Support Server**: <https://interpunct.info/support>
+> **About this Error**: <https://interpunct.info/command-must-use-pms>`,
 		generic_internal_error: (info: Info, errorCode: string) =>
 			`An internal error occured while running the command.
 For help, ask on the support server with your error code \`${errorCode}\`

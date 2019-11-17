@@ -431,6 +431,13 @@ export async function ArgumentParser<
 		cmd = parseResult.cmd;
 		index++;
 	}
+	if (cmd.trim()) {
+		// extra arguments
+		await info.error(
+			`This command only uses arguments, but you gave ${index} arguments` // !!!!!!! str->messages
+		);
+		return undefined;
+	}
 	return (resarr as unknown) as ArgTypeArrayToReturnType<ArgTypes>;
 }
 

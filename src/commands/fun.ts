@@ -8,6 +8,8 @@ const router = new Router<Info, any>();
 import { messages } from "../../messages";
 import { serverStartTime } from "../..";
 
+import { AP, a } from "./argumentparser";
+
 router.add("ping", [], async (cmd: string, info) => {
 	if (info.db ? await info.db.getFunEnabled() : true) {
 	} else {
@@ -66,13 +68,26 @@ router.add("fun", [Info.theirPerm.manageBot], async (cmd: string, info) => {
 	return info.error(messages.fun.command_not_found(info));
 });
 
+// ------------------- MINESWEEPER -----------------------
+
+/////////////////////////////////////
+// WARNING. Viewing the code below //
+//   may be bad. Viewer discretion //
+//   advised.                      //
+/////////////////////////////////////
+
+// TODO: rewrite this and make it support revealing the top left by default as
+// well as batching together groups of mines so they aren't all over the place.
+
+// Or code golf it instead. Maybe the code will be more readable.
+
 router.add("minesweeper", [], async (cmd: string, info) => {
 	if (info.db ? await info.db.getFunEnabled() : true) {
 	} else {
 		return info.error(messages.fun.fun_disabled(info));
 	}
 	const words = cmd.split(" ");
-	let difficulty: keyof (typeof dv) | undefined;
+	let difficulty: keyof typeof dv | undefined;
 	let customvalue: number = 0;
 	let mode: string | undefined;
 	let width: number | undefined;
@@ -158,7 +173,7 @@ const dv = {
 	ultra: 0.45,
 	custom: -1
 };
-const difficulties: (keyof (typeof dv))[] = [
+const difficulties: (keyof typeof dv)[] = [
 	"easy",
 	"medium",
 	"hard",
@@ -170,7 +185,7 @@ const difficulties: (keyof (typeof dv))[] = [
 const modesl = ["numbers", "customemojis", "emojis"];
 
 const modes: {
-	[key in (typeof modesl)[number]]: [
+	[key in typeof modesl[number]]: [
 		string,
 		string,
 		string,
@@ -221,7 +236,6 @@ const modes: {
 	]
 };
 
-// why am I still using this code
 const badMinesweeperGenerator = ({
 	difficulty,
 	mode,
@@ -230,8 +244,8 @@ const badMinesweeperGenerator = ({
 	flag,
 	customvalue
 }: {
-	difficulty: keyof (typeof dv);
-	mode: keyof (typeof modes);
+	difficulty: keyof typeof dv;
+	mode: keyof typeof modes;
 	width: number;
 	height: number;
 	flag: boolean;
