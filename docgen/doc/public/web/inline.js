@@ -29,8 +29,11 @@ clickaway.addEventListener("click", () =>
 	document.querySelector(".sidebar").classList.remove("shown")
 );
 
-const sidebar = document.querySelector(".sidebar");
-const bannerimg = document.querySelector(".banner-image");
+const sidebar = document.querySelector(".scroll-container");
+const bannerimg = document.querySelector(".banner-image-container");
 sidebar.addEventListener("scroll", () => {
-	console.log(sidebar.scrollTop);
+	const h = sidebar.scrollTop;
+	const hv = Math.min(0, Math.max(-h, -87));
+	bannerimg.style.transform = `translateY(${hv}px)`;
+	bannerimg.style.opacity = -(hv / -87) + 1;
 });

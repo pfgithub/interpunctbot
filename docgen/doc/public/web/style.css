@@ -166,16 +166,17 @@ code {
 .sidebar {
 	background-color: var(--background-secondary);
 	display: grid;
-    grid-template-rows: max-content 1fr;
+	grid-template-rows: max-content 1fr;
 }
 .content {
 	padding: 25px;
 	overflow-y: scroll;
+	-webkit-overflow-scrolling: touch;
 }
 
-.sidebar, .content{
+.sidebar,
+.content {
 	max-height: 100vh;
-	-webkit-overflow-scrolling: touch;
 }
 
 .channel {
@@ -197,7 +198,7 @@ code {
 }
 
 .channel-icon {
-	color: color: var(--text-muted);
+	color: var(--text-muted);
 	display: block;
 	width: 20px;
 	height: 20px;
@@ -323,4 +324,5 @@ blockquote {
 .scroll-container,
 .content {
 	overflow-y: scroll;
+	-webkit-overflow-scrolling: touch;
 }
