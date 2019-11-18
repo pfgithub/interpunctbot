@@ -1,1 +1,8 @@
-*text*: wip
+## Logging
+
+*text*: inter·punct has the ability to log all the messages sent on your server for you to download and review later.
+
+*text*: {{Link|enable-log,text={{Bold|Enable Log}}: {{Command|log enable}}}}
+*text*: {{Link|enable-log,text={{Bold|Disable Log}}: {{Command|log disable}}}}
+
+// this should web=inline, discord=prefixed
