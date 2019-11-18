@@ -343,3 +343,16 @@ blockquote {
 	opacity: 1;
 	pointer-events: all;
 }
+
+code.inline {
+	width: auto;
+	height: auto;
+	padding: 0.2em;
+	margin: -0.2em 0;
+	border-radius: 3px;
+	font-size: 85%;
+	font-family: SourceCodePro, Consolas, Liberation Mono, Menlo, Courier,
+		monospace;
+	text-indent: 0;
+	border: none;
+}

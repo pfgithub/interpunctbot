@@ -1,6 +1,8 @@
 import { promises as fs } from "fs";
 import * as path from "path";
 
+import { parseDGMD } from "./dgmd";
+
 export function raw(string: TemplateStringsArray | string) {
 	return { __raw: `${string}` };
 }
@@ -34,7 +36,8 @@ export function escapeHTML(html: string) {
 		.join("&gt;");
 }
 
-export const html = templateGenerator((v: string) => htmlMD(escapeHTML(v)));
+export const html = templateGenerator((v: string) => escapeHTML(v));
+export const phtml = templateGenerator((v: string) => htmlprocess(v));
 
 async function recursiveReaddir(start: string): Promise<string[]> {
 	const files = await fs.readdir(start);
@@ -56,33 +59,21 @@ async function recursiveReaddir(start: string): Promise<string[]> {
 	return finalFiles;
 }
 
-function parseDoubleBrackets(
-	remaining: string
-): { done: string; remaining: string } | undefined {
-	// {{Command|text... {{Link|hmm}}text...}}
-	const firstDoubleBrackets = remaining.indexOf("{{");
-	if (firstDoubleBrackets < 0) {
-		return;
-	}
-	let finalDone = "";
-	let parseInsideResult: ReturnType<typeof parseDoubleBrackets>;
-	while (
-		(parseInsideResult = parseDoubleBrackets(
-			remaining.substr(firstDoubleBrackets)
-		))
-	) {
-		finalDone += parseInsideResult.done;
-		remaining = parseInsideResult.remaining;
-	}
-}
-
-function htmlMD(text: string) {
-	text = text.replace(
-		/{{Channel\|(.+?)}}/g,
-		(q, v) => `<a class="tag">${v}</a>`
-	);
-	return text;
-}
+const htmlprocess = (str: string) =>
+	parseDGMD(str, {
+		cleanText: str => escapeHTML(str),
+		callFunction: (name, v) => {
+			if (name === "Channel") {
+				return html`
+					<a class="tag">${v}</a>
+				`;
+			}
+			console.log(`Unsupported HTML function ${name}`);
+			return html`
+				<code class="inline">{{${name}|${v}}}</code>
+			`;
+		}
+	}).res;
 
 async function processText(
 	path: string[],
@@ -96,7 +87,7 @@ async function processText(
 		if (line.startsWith("## ")) {
 			const v = line.substr(3);
 			htmlResult.push(
-				html`
+				phtml`
 					<h2>${v}</h2>
 				`
 			);
@@ -106,7 +97,7 @@ async function processText(
 		if (line.startsWith("*text*: ")) {
 			const v = line.substr(8);
 			htmlResult.push(
-				html`
+				phtml`
 					<p>${v}</p>
 				`
 			);
