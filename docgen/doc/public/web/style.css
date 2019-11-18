@@ -326,3 +326,20 @@ blockquote {
 	overflow-y: scroll;
 	-webkit-overflow-scrolling: touch;
 }
+
+.skip-to-main-content {
+	position: fixed;
+	top: 0;
+	opacity: 0;
+	pointer-events: none;
+	z-index: 10000;
+	padding: 10px;
+	margin: 10px;
+	background-color: white;
+}
+
+.skip-to-main-content:focus,
+.skip-to-main-content:active {
+	opacity: 1;
+	pointer-events: all;
+}

@@ -8,16 +8,19 @@
 		<link rel="stylesheet" href="/style.css" />
 	</head>
 	<body>
+		<a href="#main-content" class="skip-to-main-content"
+			>Skip to main content</a
+		>
 		<section class="sidebar">
 			{{html|sidebar}}
 		</section>
 		<div class="clickaway"></div>
-		<article class="content">
+		<main class="content" id="main-content">
 			<button class="showsidebar">Show Sidebar</button>
 			<!-- CONTENT STARTS HERE -->
 			{{html|content}}
 			<!-- CONTENT ENDS HERE -->
-		</article>
+		</main>
 		<script src="/inline.js" charset="utf-8"></script>
 	</body>
 </html>
