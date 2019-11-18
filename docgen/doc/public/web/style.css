@@ -165,14 +165,16 @@ code {
 
 .sidebar {
 	background-color: var(--background-secondary);
+	display: grid;
+    grid-template-rows: max-content 1fr;
 }
 .content {
 	padding: 25px;
+	overflow-y: scroll;
 }
 
 .sidebar, .content{
 	max-height: 100vh;
-	overflow-y: scroll;
 	-webkit-overflow-scrolling: touch;
 }
 

@@ -28,3 +28,9 @@ const clickaway = document.querySelector(".clickaway");
 clickaway.addEventListener("click", () =>
 	document.querySelector(".sidebar").classList.remove("shown")
 );
+
+const sidebar = document.querySelector(".sidebar");
+const bannerimg = document.querySelector(".banner-image");
+sidebar.addEventListener("scroll", () => {
+	console.log(sidebar.scrollTop);
+});
