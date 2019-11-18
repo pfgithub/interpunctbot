@@ -37,5 +37,5 @@ sidebar.addEventListener("scroll", () => {
 	const hv = Math.min(0, Math.max(-h, -87));
 	bannerimgcont.style.transform = `translateY(${hv}px)`;
 	bannerimgcont.style.opacity = -(hv / -87) + 1;
-	bannerimg.style.transform = `translateY(${h / 2}px) scale(1)`;
+	bannerimg.style.transform = `translateY(${-hv / 2}px) scale(1)`;
 });
