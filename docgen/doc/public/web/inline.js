@@ -30,10 +30,12 @@ clickaway.addEventListener("click", () =>
 );
 
 const sidebar = document.querySelector(".scroll-container");
-const bannerimg = document.querySelector(".banner-image-container");
+const bannerimgcont = document.querySelector(".banner-image-container");
+const bannerimg = document.querySelector(".banner-image");
 sidebar.addEventListener("scroll", () => {
 	const h = sidebar.scrollTop;
 	const hv = Math.min(0, Math.max(-h, -87));
-	bannerimg.style.transform = `translateY(${hv}px)`;
-	bannerimg.style.opacity = -(hv / -87) + 1;
+	bannerimgcont.style.transform = `translateY(${hv}px)`;
+	bannerimgcont.style.opacity = -(hv / -87) + 1;
+	bannerimg.style.transform = `translateY(${h / 2}px) scale(1)`;
 });
