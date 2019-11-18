@@ -224,13 +224,7 @@ function sidebar(
 		}
 	});
 	return html`
-		<div
-			tabindex="0"
-			class="banner"
-			aria-controls="popout_48642"
-			aria-expanded="false"
-			role="button"
-		>
+		<a class="banner" href="/">
 			<header class="banner-header">
 				<div class="banner-icon"></div>
 				<h1 class="banner-name">inter·punct bot</h1>
@@ -257,7 +251,7 @@ function sidebar(
 					style='background-image: url("https://cdn.discordapp.com/icons/446481361692524545/3e6a4d43d6a9aebe3fde441190fb6cb1.webp"); transform: translateY(0px) scale(1); background-position: center center; background-size: 50%; background-color: rgb(239, 71, 71);'
 				></div>
 			</div>
-		</div>
+		</a>
 		<div class="scroll-container">
 			<div style="width: 100%; height: 84px; visibility: hidden;"></div>
 			<div style="height: 16px;"></div>
