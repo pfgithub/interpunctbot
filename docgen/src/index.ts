@@ -115,26 +115,37 @@ async function processText(
 		}
 		if (line.startsWith("*link*: ")) {
 			const v = line.substring(19 + 1, line.length - 1);
-			htmlResult.push(
-				html`
-					<p><a href="/${[...path, v].join("/")}">${v}</a></p>
-				`
-			);
-			discordResult.push(`\`ip!${[...path, v].join(" ")}\``);
-			continue;
-		}
-		if (line.startsWith("*link web=inline*: ")) {
-			const v = line.substring(19 + 1, line.length - 1);
+			const respath = v.startsWith("/")
+				? v.split("/").map(l => l)
+				: [...path, ...v.split("/")];
 			htmlResult.push(
 				html`
 					<p>
-						<a inline="true" href="/${[...path, v].join("/")}"
-							>${v}</a
+						<a href="/${respath.join("/")}"
+							>${respath[respath.length - 1]}</a
 						>
 					</p>
 				`
 			);
-			discordResult.push(`\`ip!${[...path, v].join(" ")}\``);
+			discordResult.push(`\`ip!${respath.join(" ")}\``);
+			continue;
+		}
+		if (line.startsWith("*link web=inline*: ")) {
+			const v = line.substring(19 + 1, line.length - 1);
+			const respath = (v.startsWith("/")
+				? v.split("/")
+				: [...path, ...v.split("/")]
+			).filter(l => l.trim());
+			htmlResult.push(
+				html`
+					<p>
+						<a inline="true" href="/${respath.join("/")}"
+							>${respath[respath.length - 1]}</a
+						>
+					</p>
+				`
+			);
+			discordResult.push(`\`ip!${respath.join(" ")}\``);
 			continue;
 		}
 		if (!line.trim()) {
