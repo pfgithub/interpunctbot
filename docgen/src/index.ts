@@ -36,7 +36,8 @@ export function escapeHTML(html: string) {
 		.join("&gt;");
 }
 
-export const html = templateGenerator((v: string) => escapeHTML(v));
+export const rhtml = templateGenerator((v: string) => v);
+export const html = templateGenerator((v: string) => escapeHTML(v)); // could be replaced with jsx
 export const phtml = templateGenerator((v: string) => htmlprocess(v));
 
 async function recursiveReaddir(start: string): Promise<string[]> {
@@ -59,18 +60,25 @@ async function recursiveReaddir(start: string): Promise<string[]> {
 	return finalFiles;
 }
 
+const htmlmethods: { [key: string]: (v: string) => string } = {
+	Channel: v => rhtml`<a class="tag">${v}</a>`,
+	Link: v => rhtml`<a href="${encodeURIComponent(v)}">${v}</a>`, // very basic version
+	Command: v => rhtml`<code class="inline">ip!${v}</code>`,
+	Bold: v => rhtml`<b>${v}</b>`,
+	Argument: v => v
+};
+
 const htmlprocess = (str: string) =>
 	parseDGMD(str, {
 		cleanText: str => escapeHTML(str),
 		callFunction: (name, v) => {
-			if (name === "Channel") {
-				return html`
-					<a class="tag">${v}</a>
-				`;
+			const method = htmlmethods[name];
+			if (method) {
+				return method(v);
 			}
 			console.log(`Unsupported HTML function ${name}`);
 			return html`
-				<code class="inline">{{${name}|${v}}}</code>
+				<span class="callerr">${name}|${v}</span>
 			`;
 		}
 	}).res;

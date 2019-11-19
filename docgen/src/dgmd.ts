@@ -1,3 +1,9 @@
+function infIndexOf(str: string, c: string) {
+	const r = str.indexOf(c);
+	if (r === -1) return Infinity;
+	return r;
+}
+
 export function parseDGMD(
 	str: string,
 	{
@@ -13,9 +19,10 @@ export function parseDGMD(
 	while (str) {
 		if (str.startsWith("{{")) {
 			str = str.substr(2);
-			const fnNameEnd = str.indexOf("|");
-			const fnName = str.substr(0, fnNameEnd);
-			str = str.substr(fnNameEnd + 1);
+			const fnNameEnd = infIndexOf(str, "|");
+			const nextClose = infIndexOf(str, "}}");
+			const fnName = str.substr(0, Math.min(nextClose, fnNameEnd));
+			str = str.substr(Math.min(fnNameEnd + 1, nextClose));
 			const callv = parseDGMD(str, { cleanText, callFunction });
 			res += callFunction(fnName, callv.res);
 			str = callv.remaining;

@@ -134,17 +134,6 @@ code {
 	line-height: 1rem;
 	text-indent: 0;
 	background-color: var(--background-secondary);
-
-	width: auto;
-	height: auto;
-	padding: 0.2em;
-	margin: -0.2em 0;
-	border-radius: 3px;
-	font-size: 85%;
-	font-family: SourceCodePro, Consolas, Liberation Mono, Menlo, Courier,
-		monospace;
-	text-indent: 0;
-	border: none;
 }
 
 .tag {
@@ -355,4 +344,9 @@ code.inline {
 		monospace;
 	text-indent: 0;
 	border: none;
+}
+
+.callerr {
+	background-color: var(--background-secondary);
+	color: red;
 }
