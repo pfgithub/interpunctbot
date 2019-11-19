@@ -38,14 +38,17 @@ const bannerimgcont = document.querySelector(".banner-image-container");
 const bannerimg = document.querySelector(".banner-image");
 const bannerheader = document.querySelector(".banner-header");
 let prevV;
+let prevTime;
 sidebar.addEventListener("scroll", () => {
 	const h = sidebar.scrollTop;
 	const hv = Math.max(-133, Math.min(h, 87));
-	if (h === 0 && prevV !== 0) {
+	if (h === 0 && prevV !== 0 && new Date().getTime() < prevTime + 10) {
 		prevV = h;
+		prevTime = new Date().getTime();
 		return;
 	}
 	prevV = h;
+	prevTime = new Date().getTime();
 	console.log(h);
 	bannerimgcont.style.transform = `translateY(${-hv}px)`;
 	bannerimgcont.style.opacity = scale(hv, 0, 87, 1, 0);
