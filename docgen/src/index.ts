@@ -60,11 +60,21 @@ async function recursiveReaddir(start: string): Promise<string[]> {
 	return finalFiles;
 }
 
+type Methods = "Channel" | "Link" | "Command" | "Bold" | "Argument";
+
 const htmlmethods: { [key: string]: (v: string) => string } = {
 	Channel: v => rhtml`<a class="tag">${v}</a>`,
 	Link: v => rhtml`<a href="${encodeURIComponent(v)}">${v}</a>`, // very basic version
 	Command: v => rhtml`<code class="inline">ip!${v}</code>`,
 	Bold: v => rhtml`<b>${v}</b>`,
+	Argument: v => v
+};
+
+const discordmethods: { [key: string]: (v: string) => string } = {
+	Channel: v => `#${v}`,
+	Link: v => v, // very basic version
+	Command: v => `{{insert!prefix}}${v}`,
+	Bold: v => `**${v}**`,
 	Argument: v => v
 };
 
@@ -79,6 +89,21 @@ const htmlprocess = (str: string) =>
 			console.log(`Unsupported HTML function ${name}`);
 			return html`
 				<span class="callerr">${name}|${v}</span>
+			`;
+		}
+	}).res;
+
+const discordprocess = (str: string) =>
+	parseDGMD(str, {
+		cleanText: str => escapeHTML(str),
+		callFunction: (name, v) => {
+			const method = discordmethods[name];
+			if (method) {
+				return method(v);
+			}
+			console.log(`Unsupported Discord function ${name}`);
+			return html`
+				\`{{${name}|${v}</span>}}\`
 			`;
 		}
 	}).res;
@@ -99,7 +124,7 @@ async function processText(
 					<h2>${v}</h2>
 				`
 			);
-			discordResult.push(`**${v}**`);
+			discordResult.push(`**${discordprocess(v)}**`);
 			continue;
 		}
 		if (line.startsWith("*text*: ")) {
@@ -109,7 +134,7 @@ async function processText(
 					<p>${v}</p>
 				`
 			);
-			discordResult.push(v);
+			discordResult.push(discordprocess(v));
 			continue;
 		}
 		if (line.startsWith("*link*: ")) {
