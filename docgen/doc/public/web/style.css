@@ -173,8 +173,13 @@ code {
 
 .sidebar,
 .content {
-	max-height: 100%;
 	max-height: 100vh;
+}
+
+@supports (-webkit-overflow-scrolling: touch) {
+	.sidebar {
+		max-height: 100%;
+	}
 }
 
 .channel {
@@ -323,6 +328,10 @@ blockquote {
 .content {
 	overflow-y: scroll;
 	-webkit-overflow-scrolling: touch;
+}
+
+.scroll-container {
+	z-index: 4;
 }
 
 .skip-to-main-content {
