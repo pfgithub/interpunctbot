@@ -306,23 +306,32 @@ function sidebar(
 	`;
 }
 
+async function copyFolder(dir: string, to: string) {
+	const filesToCopy = await recursiveReaddir(dir);
+	for (const fileToCopy of filesToCopy) {
+		await fs.mkdir(path.join(to, dirname(fileToCopy)), {
+			recursive: true
+		});
+		await fs.copyFile(
+			path.join(dir, fileToCopy),
+			path.join(to, fileToCopy)
+		);
+	}
+}
+
 (async () => {
 	const start = path.join(__dirname, "../doc/content");
 	try {
 		await fs.rmdir(path.join(__dirname, "../dist"), { recursive: true });
 	} catch (e) {}
-	const filesToCopy = await recursiveReaddir(
-		path.join(__dirname, "../doc/public")
+	await copyFolder(
+		path.join(__dirname, "../doc/public"),
+		path.join(__dirname, "../dist")
 	);
-	for (const fileToCopy of filesToCopy) {
-		await fs.mkdir(path.join(__dirname, "../dist/", dirname(fileToCopy)), {
-			recursive: true
-		});
-		await fs.copyFile(
-			path.join(__dirname, "../doc/public", fileToCopy),
-			path.join(__dirname, "../dist", fileToCopy)
-		);
-	}
+	await copyFolder(
+		path.join(__dirname, "../doc/public2"),
+		path.join(__dirname, "../dist")
+	);
 	const discorddist = path.join(__dirname, "../dist/discord");
 	const webdist = path.join(__dirname, "../dist/web");
 	const filesToProcess = (await recursiveReaddir(start)).filter(f =>
