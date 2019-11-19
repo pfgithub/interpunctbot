@@ -41,6 +41,7 @@ body {
 	grid-template-columns: 240px 1fr;
 	margin: 0;
 	padding: 0;
+	width: 100%;
 	height: 100%;
 	max-height: 100vh;
 	max-width: 100vw;
@@ -65,19 +66,20 @@ body {
 
 @media (max-width: 740px) {
 	body {
-		grid-template-columns: max-content;
+		grid-template-columns: 100%;
 	}
 	.sidebar {
 		width: 240px;
 		transform: translate(-100vw, 0);
 		position: absolute;
 		opacity: 0; /*hide from screen readers*/
-		transition: 0.1s transform;
+		transition: 0.1s transform ease-out;
 		z-index: 2;
 	}
 	.sidebar.shown {
 		transform: translate(0, 0);
 		opacity: 1;
+		transition: 0.1s transform ease-in;
 	}
 	.sidebar.shown + .clickaway {
 		opacity: 0.3;
@@ -144,7 +146,6 @@ code {
 .tag {
 	padding: 0 2px;
 	font-weight: 500;
-	-webkit-transition: background-color 50ms ease-out, color 50ms ease-out;
 	transition: background-color 50ms ease-out, color 50ms ease-out;
 	cursor: pointer;
 	color: #7289da;
@@ -318,7 +319,7 @@ blockquote {
 	display: flex;
 	-webkit-box-align: center;
 	align-items: center;
-	z-index: 3;
+	z-index: 5;
 	transition: background-color 0.1s linear;
 }
 
@@ -336,8 +337,7 @@ blockquote {
 	position: relative;
 	top: 3px;
 	opacity: 0.8;
-	transition: transform 0.2s ease-out, stroke-dasharray 0.2s ease-out,
-		-webkit-transform 0.2s ease-out;
+	transition: transform 0.2s ease-out, stroke-dasharray 0.2s ease-out;
 	margin-left: 4px;
 }
 
