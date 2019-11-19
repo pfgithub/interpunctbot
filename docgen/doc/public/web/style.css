@@ -350,3 +350,7 @@ code.inline {
 	background-color: var(--background-secondary);
 	color: red;
 }
+
+.shadow {
+	box-shadow: var(--elevation-low);
+}

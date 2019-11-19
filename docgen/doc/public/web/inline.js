@@ -29,13 +29,28 @@ clickaway.addEventListener("click", () =>
 	document.querySelector(".sidebar").classList.remove("shown")
 );
 
+function scale(x, a, b, c, d) {
+	return ((d - c) / (b - a)) * (x - a) + c;
+}
+
 const sidebar = document.querySelector(".scroll-container");
 const bannerimgcont = document.querySelector(".banner-image-container");
 const bannerimg = document.querySelector(".banner-image");
+const bannerheader = document.querySelector(".banner-header");
 sidebar.addEventListener("scroll", () => {
 	const h = sidebar.scrollTop;
-	const hv = Math.min(0, Math.max(-h, -87));
-	bannerimgcont.style.transform = `translateY(${hv}px)`;
-	bannerimgcont.style.opacity = -(hv / -87) + 1;
-	bannerimg.style.transform = `translateY(${-hv / 2}px) scale(1)`;
+	const hv = Math.max(0, Math.min(h, 87));
+	bannerimgcont.style.transform = `translateY(${-hv}px)`;
+	bannerimgcont.style.opacity = scale(hv, 0, 87, 1, 0);
+	bannerimg.style.transform = `translateY(${hv / 2}px) scale(${scale(
+		hv,
+		0,
+		87,
+		1,
+		1.2
+	)})`; // scale goes from 1 to 1.2
+	bannerheader.classList.remove("shadow");
+	if (hv === 87) {
+		bannerheader.classList.add("shadow");
+	}
 });
