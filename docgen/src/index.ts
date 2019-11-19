@@ -293,7 +293,7 @@ function sidebar(
 			>
 				<div
 					class="banner-image"
-					style='background-image: url("https://cdn.discordapp.com/icons/446481361692524545/3e6a4d43d6a9aebe3fde441190fb6cb1.png"); transform: translateY(0px) scale(1); background-position: center center; background-size: 50%; background-color: rgb(239, 71, 71);'
+					style='background-image: url("/logo.png"); background-image: url("/logo.svg"); transform: translateY(0px) scale(1); background-position: center center; background-size: 50%; background-color: rgb(239, 71, 71);'
 				></div>
 			</div>
 		</div>
