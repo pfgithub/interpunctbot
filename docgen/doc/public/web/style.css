@@ -182,6 +182,47 @@ code {
 	}
 }
 
+*::-webkit-scrollbar-thumb {
+	background-color: #202225;
+	border-color: transparent;
+}
+
+*::-webkit-scrollbar-track-piece {
+	background-color: rgba(47, 49, 54, 0.3);
+	border-color: transparent;
+	background-color: transparent;
+}
+
+*::-webkit-scrollbar {
+	width: 8px;
+	height: 14px;
+}
+
+*::-webkit-scrollbar-thumb {
+	background-clip: padding-box;
+	border-width: 2px;
+	border-style: solid;
+	border-radius: 7px;
+}
+
+*::-webkit-scrollbar-track {
+	border-width: initial;
+}
+
+*::-webkit-scrollbar-corner {
+	background-color: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+	opacity: 0;
+	background-color: transparent;
+}
+
+*:hover::-webkit-scrollbar-thumb {
+	opacity: 1;
+	background-color: #202225;
+}
+
 .channel {
 	box-sizing: border-box;
 	height: 32px;
