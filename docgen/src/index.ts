@@ -64,7 +64,7 @@ type Methods = "Channel" | "Link" | "Command" | "Bold" | "Argument";
 
 const htmlmethods: { [key: string]: (v: string) => string } = {
 	Channel: v => rhtml`<a class="tag">${v}</a>`,
-	Link: v => rhtml`<a href="${encodeURIComponent(v)}">${v}</a>`, // very basic version
+	Link: v => rhtml`<a href="${v}">${v}</a>`, // very basic version
 	Command: v => rhtml`<code class="inline">ip!${v}</code>`,
 	Bold: v => rhtml`<b>${v}</b>`,
 	Argument: v => v
