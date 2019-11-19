@@ -40,7 +40,7 @@ const bannerheader = document.querySelector(".banner-header");
 let prevV;
 sidebar.addEventListener("scroll", () => {
 	const h = sidebar.scrollTop;
-	const hv = Math.max(0, Math.min(h, 87));
+	const hv = Math.max(-133, Math.min(h, 87));
 	if (h === 0 && prevV !== 0) {
 		prevV = h;
 		return;
