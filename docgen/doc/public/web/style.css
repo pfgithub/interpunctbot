@@ -231,7 +231,6 @@ blockquote {
 	display: flex;
 	align-items: center;
 	justify-content: flex-start;
-	cursor: default;
 	color: var(--channels-default);
 	margin-top: 16px;
 }
