@@ -37,9 +37,16 @@ const sidebar = document.querySelector(".scroll-container");
 const bannerimgcont = document.querySelector(".banner-image-container");
 const bannerimg = document.querySelector(".banner-image");
 const bannerheader = document.querySelector(".banner-header");
+let prevV;
 sidebar.addEventListener("scroll", () => {
 	const h = sidebar.scrollTop;
 	const hv = Math.max(0, Math.min(h, 87));
+	if (h === 0 && prevV !== 0) {
+		prevV = h;
+		return;
+	}
+	prevV = h;
+	console.log(h);
 	bannerimgcont.style.transform = `translateY(${-hv}px)`;
 	bannerimgcont.style.opacity = scale(hv, 0, 87, 1, 0);
 	bannerimg.style.transform = `translateY(${hv / 2}px) scale(${scale(
