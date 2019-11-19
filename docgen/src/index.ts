@@ -184,6 +184,16 @@ async function processText(
 		if (line.startsWith("//")) {
 			continue;
 		}
+		if (line.startsWith("---")) {
+			const v = line.substr(3).trim();
+			htmlResult.push(
+				phtml`
+					<span class="divider">${v}</span>
+				`
+			);
+			discordResult.push(line);
+			continue;
+		}
 		console.log(`unrecognized:::${line}`);
 		discordResult.push(`unrecognized:::${line}`);
 		htmlResult.push(

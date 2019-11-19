@@ -354,3 +354,29 @@ code.inline {
 .shadow {
 	box-shadow: var(--elevation-low);
 }
+
+.divider {
+	display: flex;
+	align-items: center;
+	line-height: 22px;
+	font-size: 14px;
+	color: var(--text-muted);
+}
+
+.divider:before,
+.divider:after {
+	content: "";
+	background-color: var(--background-modifier-accent);
+	height: 1px;
+	flex: 1 1 auto;
+}
+
+.divider:before {
+	right: 100%;
+	margin-right: 8px;
+}
+
+.divider:after {
+	left: 100%;
+	margin-left: 8px;
+}
