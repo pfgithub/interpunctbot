@@ -499,3 +499,8 @@ sup {
 	height: 1.375em;
 	vertical-align: bottom;
 }
+
+.sizimg {
+	width: 100%;
+	max-width: max-content;
+}

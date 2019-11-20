@@ -84,7 +84,7 @@ const htmlmethods: { [key: string]: (v: string) => string } = {
 		];
 		return rhtml`<img class="emoji" src="${emojiurl}" title="${emojiname}" aria-label="${emojiname}" alt="${emojiname}" draggable="false" />`;
 	},
-	Image: v => rhtml`<img src="${v}" />`,
+	Image: v => rhtml`<img src="${v}" class="sizimg" />`,
 	Interpunct: v => htmlmethods.Atmention("inter·punct"),
 	Atmention: v => rhtml`<a class="tag">@${v}</a>`
 };
