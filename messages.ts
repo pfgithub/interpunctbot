@@ -79,7 +79,7 @@ Bot Info
 > [\`X\`] Edit List: \`ip!lists edit listname pastebin.com/NFuKYjUN\`
 > [\`X\`] Remove List: \`ip!lists remove listname\`
 > [\`X\`] List Lists: \`ip!lists list\`
-${Object.keys(lists)
+${Object.keys("lists")
 	.map(
 		l =>
 			`> [\`X\`] View ${l}: \`ip!${l} [optional "single"] [optional search term] [optional number]\`\n`

@@ -147,9 +147,9 @@ reroute("invite", "about", "2.0");
 
 router.add("about", [], aboutRouter);
 router.add("help", [], async (cmd, info, next) => {
-	await info.result(
-		messages.help(info, info.db ? await info.db.getLists() : {})
-	);
+	// await info.result(
+	// 	messages.help(info, info.db ? await info.db.getLists() : {})
+	// );
 });
 
 reroute("downloadLog", "log download", "2.0");
