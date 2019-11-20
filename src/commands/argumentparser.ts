@@ -135,7 +135,7 @@ export async function EmojiArgumentParser(
 		await info.error(messages.failure.command_cannot_be_used_in_pms(info));
 		return { result: "exit" };
 	}
-	const match = cmd.match(/^[\S\s]*?([0-9]{14,})[^\s]*?\s*([\S\s]*)$/);
+	const match = cmd.match(/^[\S\s]*?([0-9]{14,})[^\s]*?(?:\s+|$)([\S\s]*)$/);
 	if (!match) {
 		await info.error(
 			messages.arguments.emoji_arg_not_provided(
@@ -149,6 +149,7 @@ export async function EmojiArgumentParser(
 		return { result: "exit" };
 	}
 	const [, emojiID, remainingCmd] = match;
+	console.log("!!!!!!!!!!!!!!!!!!", match);
 	const emoji = info.guild.emojis.get(emojiID);
 	if (!emoji) {
 		await info.error(

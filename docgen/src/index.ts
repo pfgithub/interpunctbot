@@ -3,7 +3,9 @@ import * as path from "path";
 
 import { parseDGMD } from "./dgmd";
 
-type Context = { emojiCont: { [key: string]: [string, string, string] } };
+type Context = {
+	emojiCont: { [key: string]: [string, string, string | undefined] };
+};
 
 export function raw(string: TemplateStringsArray | string) {
 	return { __raw: `${string}` };
@@ -77,12 +79,11 @@ const htmlmethods: { [key: string]: (v: string) => string } = {
 	Blockquote: v =>
 		rhtml`<div class="blockquote-container"><div class="blockquote-divider"></div><blockquote>${v}</blockquote></div>`,
 	Emoji: v => {
-		const [, emojiurl, emojiname] = global_context.emojiCont[v] || [
-			"",
-			"err_no_emoji",
-			":err_no_emoji:"
+		const [emojiname, emojiid] = global_context.emojiCont[v] || [
+			":err_no_emoji:",
+			"err_no_emoji"
 		];
-		return rhtml`<img class="emoji" src="${emojiurl}" title="${emojiname}" aria-label="${emojiname}" alt="${emojiname}" draggable="false" />`;
+		return rhtml`<img class="emoji" src="https://cdn.discordapp.com/emojis/${emojiid}.png" title="${emojiname}" aria-label="${emojiname}" alt="${emojiname}" draggable="false" />`;
 	},
 	Image: v => rhtml`<img src="${v}" class="sizimg" />`,
 	Interpunct: v => htmlmethods.Atmention("inter·punct"),
@@ -102,7 +103,16 @@ const discordmethods: { [key: string]: (v: string) => string } = {
 			.split("\n")
 			.map(l => `> ${l}`)
 			.join("\n"),
-	Emoji: v => (global_context.emojiCont[v] || ["err_no_emoji"])[0],
+	Emoji: v => {
+		const [emojiname, emojiid, surround] = global_context.emojiCont[v] || [
+			":err_no_emoji:",
+			"err_no_emoji"
+		];
+		if (surround) {
+			return `\`<${emojiname}${emojiid}>\``;
+		}
+		return `<${emojiname}${emojiid}>`;
+	},
 	Image: v => `<${v}> (image)`,
 	Interpunct: v => `{{Computed|atme}}`,
 	Atmention: v => `@${v}`

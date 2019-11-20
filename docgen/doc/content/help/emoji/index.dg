@@ -1,1 +1,11 @@
-*text*: wip
+## Emoji
+: Restrict certain custom emojis so only people with specific roles can use them, let admins give people ranks by reacting to messages with emojis
+
+## Restrict an Emoji
+: {{Command|emoji restrict {{Emoji|emoji}} {{Role|role}}}} (Role name, id, or {{Atmention|mention}}. {{Link|/help/using-roles-in-commands}})
+: Restrict an emoji so only people with certain roles can use it
+: {{Blockquote|Note that this command only works with custom emojis on your server. If you want to disable people's access to builtin emojis, use rankmojis. More info below.}}
+: {{Blockquote|Note that this will also remove administrator's access to the emoji unless administrator roles are given permission.}}
+
+Command: ip!emoji restrict {{Emoji|emoji}} @Emoji People
+Output: @you, {{Emoji|success}} Role @Emoji People added to restrictions for {{Emoji|emoji}}. This emoji can now only be used by members with any of these roles:{{Newline}}- @Emoji People{{Newline}}{{Newline}}{{Blockquote|If this was a mistake, reset the restrictions for this emoji with {{Command|emoji unrestrict 629134046332583946}}}}
