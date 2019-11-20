@@ -71,7 +71,7 @@ type Methods = "Channel" | "Link" | "Command" | "Bold" | "Argument";
 const htmlmethods: { [key: string]: (v: string) => string } = {
 	Channel: v => rhtml`<a class="tag">${v}</a>`,
 	Link: v => rhtml`<a href="${v}">${v}</a>`, // very basic version
-	Command: v => rhtml`<code class="inline">ip!${v}</code>`,
+	Command: v => rhtml`<span class="command">ip!${v}</span>`,
 	Bold: v => rhtml`<b>${v}</b>`,
 	Argument: v => v,
 	Srclink: v => rhtml`<sup><a href="" title="view source">src</a></sup>`,
@@ -87,7 +87,11 @@ const htmlmethods: { [key: string]: (v: string) => string } = {
 	},
 	Image: v => rhtml`<img src="${v}" class="sizimg" />`,
 	Interpunct: v => htmlmethods.Atmention("inter·punct"),
-	Atmention: v => rhtml`<a class="tag">@${v}</a>`
+	Atmention: v => rhtml`<a class="tag">@${v}</a>`,
+	Optional: v =>
+		rhtml`<span class="optional"><span class="optionallabel">Optional</span> ${v}</span>`,
+	Enum: v => rhtml`<span class="enum">${v}</span>`,
+	Number: v => rhtml`<span class="number">${v}</span>`
 };
 
 const discordmethods: { [key: string]: (v: string) => string } = {
@@ -115,7 +119,10 @@ const discordmethods: { [key: string]: (v: string) => string } = {
 	},
 	Image: v => `<${v}> (image)`,
 	Interpunct: v => `{{Computed|atme}}`,
-	Atmention: v => `@${v}`
+	Atmention: v => `@${v}`,
+	Optional: v => `[Optional ${v}]`,
+	Enum: v => v,
+	Number: v => `[Number ${v}]`
 };
 
 const htmlprocess = (str: string) =>
