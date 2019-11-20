@@ -253,7 +253,7 @@ async function processText(
 			continue;
 		}
 		if (!line.trim()) {
-			discordResult.push("");
+			// discordResult.push("");
 			continue;
 		}
 		if (line.startsWith("*when discord*: ")) {

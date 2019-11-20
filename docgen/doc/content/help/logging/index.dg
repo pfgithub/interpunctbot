@@ -2,27 +2,27 @@
 
 : inter·punct has the ability to log all the messages sent on your server for you to download and review later.
 
-## Enable Log {{Srclink|$$ENABLELOG$$}}
+## {{Emoji|admins}} Enable Log {{Srclink|$$ENABLELOG$$}}
 : {{Command|log enable}}
 : Enable logging on this server.
 : {{Blockquote|Note that logs are stored in plaintext on interpunct's host server.}}
 Command: log enable
 Output: @you, {{Emoji|success}} Log enabled.{{Newline}}{{Blockquote|Download it with {{Command|log download}}}}
 
-## Disable Log {{Srclink|$$DISABLELOG$$}}
+## {{Emoji|admins}} Disable Log {{Srclink|$$DISABLELOG$$}}
 : {{Command|log disable}}
 : Disable logging on this server. Also deletes any saved logs. If you want the logs, make sure to download them first before disabling them.
 Command: log disable
 Output: @you, {{Emoji|success}} Logs have been disabled and deleted.
 
-## Download Log {{Srclink|$$DOWNLOADLOG$$}}
+## {{Emoji|admins}} Download Log {{Srclink|$$DOWNLOADLOG$$}}
 : {{Command|log download}}
 : Download the saved logs on this server. Logs must be enabled, and {{Interpunct}} needs permission to attach files.
 : {{Blockquote|Logs will be sent in whatever channel you run the command in. If you do not want everyone to be able to download the logs, run the command in an admin-only channel that {{Interpunct}} has access to.}}
 Command: log disable
 Output: @you, Log files:{{Newline}}{{Image|https://i.imgur.com/VVVPlQr.png}}{{Newline}}@you, {{Newline}}{{Blockquote|Use {{Command|log reset}} to clear the log and start a new one.}}
 
-## Reset Log {{Srclink|$$RESETLOG$$}}
+## {{Emoji|admins}} Reset Log {{Srclink|$$RESETLOG$$}}
 : {{Command|log download}}
 : Disable logging on this server. Also deletes any saved logs. If you want the logs, make sure to download them first before disabling them.
 Command: log reset

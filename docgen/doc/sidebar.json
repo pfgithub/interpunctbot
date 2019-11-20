@@ -8,6 +8,7 @@
 	["channel", "/help/configuration"],
 	["channel", "/help/customcommands", "custom commands"],
 	["channel", "/help/emoji"],
+	["channel", "/help/fun"],
 	["channel", "/help/lists"],
 	["channel", "/help/logging"],
 	["channel", "/help/speedrun.com"]

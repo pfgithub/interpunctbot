@@ -1,0 +1,38 @@
+## Fun
+: Fun commands. On by default.
+
+## ping
+: {{Command|ping}}
+: Check that {{Interpunct}} is working properly
+
+Command: ping
+Output: @you, Pong!
+
+## Minesweeper
+: {{Command|minesweeper}}
+: {{Command|minesweeper {{Optional|{{Enum|=medium|easy|medium|hard|veryhard|epic|ultra}}}} {{Optional|{{Enum|=emojis|numbers|emojis|customemojis}}}} {{Optional|{{Number|=13|WIDTH}}x{{Number|=15|HEIGHT}}}} {{Optional|{{Number|=15|difficulty}}%}}}}
+: Play a game of discord minesweeper with spoiler tags
+
+Command: minesweeper
+Output: {{Image|https://i.imgur.com/dIjkbuK.png}}
+
+## Statistics
+: {{Command|stats}}
+: Various statistics about {{Interpunct}}
+
+Command: stats
+Output: @you, {{Bold|Statistics}}:{{Newline}}{{Blockquote|{{Bold|Servers}}: 1956 servers{{Newline}}{{Bold|Uptime}}: 1h:20m:50.101s{{Newline}}Took 33ms, handling -1 db requests per second}}
+
+## {{Emoji|admins}} Disable fun
+: {{Command|fun disable}}
+: Disable fun on this server
+
+Command: fun disable
+Output: @you, {{Emoji|success}} Fun is no longer allowed on this server.
+
+## {{Emoji|admins}} Enable fun
+: {{Command|fun enable}}
+: Enable fun on this server
+
+Command: fun enable
+Output: @you, {{Emoji|success}} Fun enabled.{{Newline}}{{Blockquote|Try it out with {{Command|minesweeper}}}}
