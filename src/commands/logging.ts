@@ -68,6 +68,7 @@ router.add("disable", [], async (cmd, info) => {
 });
 
 router.add("enable", [], async (cmd, info) => {
+	// $$ENABLELOG$$
 	if (!info.db || !info.guild) {
 		return info.error("This command cannot be used in PMs");
 	}

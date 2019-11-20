@@ -3,6 +3,8 @@ import * as path from "path";
 
 import { parseDGMD } from "./dgmd";
 
+type Context = { emojiCont: { [key: string]: [string, string, string] } };
+
 export function raw(string: TemplateStringsArray | string) {
 	return { __raw: `${string}` };
 }
@@ -36,6 +38,8 @@ export function escapeHTML(html: string) {
 		.join("&gt;");
 }
 
+let global_context: Context; // don't do this. instead, remove phtml and call htmlprocess manually and pass in a context argument.
+
 export const rhtml = templateGenerator((v: string) => v);
 export const html = templateGenerator((v: string) => escapeHTML(v)); // could be replaced with jsx
 export const phtml = templateGenerator((v: string) => htmlprocess(v));
@@ -67,15 +71,41 @@ const htmlmethods: { [key: string]: (v: string) => string } = {
 	Link: v => rhtml`<a href="${v}">${v}</a>`, // very basic version
 	Command: v => rhtml`<code class="inline">ip!${v}</code>`,
 	Bold: v => rhtml`<b>${v}</b>`,
-	Argument: v => v
+	Argument: v => v,
+	Srclink: v => rhtml`<sup><a href="" title="view source">src</a></sup>`,
+	Newline: () => rhtml`<br />`,
+	Blockquote: v =>
+		rhtml`<div class="blockquote-container"><div class="blockquote-divider"></div><blockquote>${v}</blockquote></div>`,
+	Emoji: v => {
+		const [, emojiurl, emojiname] = global_context.emojiCont[v] || [
+			"",
+			"err_no_emoji",
+			":err_no_emoji:"
+		];
+		return rhtml`<img class="emoji" src="${emojiurl}" title="${emojiname}" aria-label="${emojiname}" alt="${emojiname}" draggable="false" />`;
+	},
+	Image: v => rhtml`<img src="${v}" />`,
+	Interpunct: v => htmlmethods.Atmention("inter·punct"),
+	Atmention: v => rhtml`<a class="tag">@${v}</a>`
 };
 
 const discordmethods: { [key: string]: (v: string) => string } = {
 	Channel: v => `#${v}`,
-	Link: v => v, // very basic version
-	Command: v => `{{insert!prefix}}${v}`,
+	Link: v => `<${v}>`, // very basic version
+	Command: v => `{{Computed|prefix}}${v}`,
 	Bold: v => `**${v}**`,
-	Argument: v => v
+	Argument: v => v,
+	Srclink: v => "",
+	Newline: () => "\n",
+	Blockquote: v =>
+		v
+			.split("\n")
+			.map(l => `> ${l}`)
+			.join("\n"),
+	Emoji: v => (global_context.emojiCont[v] || ["err_no_emoji"])[0],
+	Image: v => `<${v}> (image)`,
+	Interpunct: v => `{{Computed|atme}}`,
+	Atmention: v => `@${v}`
 };
 
 const htmlprocess = (str: string) =>
@@ -110,10 +140,13 @@ const discordprocess = (str: string) =>
 
 async function processText(
 	path: string[],
-	text: string
+	text: string,
+	context: Context
 ): Promise<{ html: string; discord: string }> {
 	const htmlResult: string[] = [];
 	const discordResult: string[] = [];
+
+	global_context = context; // don't do this. instead, remove phtml and call htmlprocess manually and pass in a context argument.
 
 	const lines = text.split("\n");
 	for (const line of lines) {
@@ -135,6 +168,53 @@ async function processText(
 				`
 			);
 			discordResult.push(discordprocess(v));
+			continue;
+		}
+		if (line.startsWith(": ")) {
+			const v = line.substr(2);
+			htmlResult.push(
+				phtml`
+					<p>${v}</p>
+				`
+			);
+			discordResult.push(discordprocess(v));
+			continue;
+		}
+		if (line.startsWith("Command: ")) {
+			const v = line.substr(9);
+			htmlResult.push(
+				phtml`
+					<div class="message">
+						<img
+							class="profile"
+							src="https://cdn.discordapp.com/embed/avatars/0.png"
+						/>
+						<div class="author you">you</div>
+						<div class="msgcontent">ip!${v}</div>
+					</div>
+				`
+			);
+			// discordResult.push(`\`{{Computed|prefix}}${discordprocess(v)}\``);
+			continue;
+		}
+		if (line.startsWith("Output: ")) {
+			const v = line.substr(8);
+			htmlResult.push(
+				phtml`
+					<div class="message">
+						<img
+							class="profile"
+							src="https://cdn.discordapp.com/avatars/433078185555656705/bcc3d8799adc00afd50b9c3168b4743e.png"
+						/>
+						<div class="author bot">
+							inter·punct
+							<span class="bottag">BOT</span>
+						</div>
+						<div class="msgcontent">${v}</div>
+					</div>
+				`
+			);
+			// discordResult.push(`→ ${discordprocess(v)}`);
 			continue;
 		}
 		if (line.startsWith("*link*: ")) {
@@ -203,7 +283,7 @@ async function processText(
 		);
 		continue;
 	}
-	discordResult.push("", `https://interpunct.info/${path.join("/")}`);
+	discordResult.push("", `> <https://interpunct.info/${path.join("/")}>`);
 	return { html: htmlResult.join("\n"), discord: discordResult.join("\n") };
 }
 
@@ -349,6 +429,12 @@ async function copyFolder(dir: string, to: string) {
 	);
 	const sidebarCont = JSON.parse(sidebarJSON);
 
+	const emojiJSON = await fs.readFile(
+		path.join(__dirname, "../doc/emoji.json"),
+		"utf-8"
+	);
+	const emojiCont = JSON.parse(emojiJSON);
+
 	let completed = 0;
 	const count = filesToProcess.length;
 	const logProgress = () =>
@@ -360,7 +446,8 @@ async function copyFolder(dir: string, to: string) {
 			const fileCont = await fs.readFile(path.join(start, f), "utf-8");
 			const { html, discord } = await processText(
 				dirname(f).split("/"),
-				fileCont
+				fileCont,
+				{ emojiCont }
 			);
 			const discordfile = path.join(
 				discorddist,
