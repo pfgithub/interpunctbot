@@ -88,10 +88,12 @@ const htmlmethods: { [key: string]: (v: string) => string } = {
 	Image: v => rhtml`<img src="${v}" class="sizimg" />`,
 	Interpunct: v => htmlmethods.Atmention("inter·punct"),
 	Atmention: v => rhtml`<a class="tag">@${v}</a>`,
+	Required: v => rhtml`<span class="optional">${v}</span>`,
 	Optional: v =>
 		rhtml`<span class="optional"><span class="optionallabel">Optional</span> ${v}</span>`,
 	Enum: v => rhtml`<span class="enum">${v}</span>`,
-	Number: v => rhtml`<span class="number">${v}</span>`
+	Number: v => rhtml`<span class="number">${v}</span>`,
+	Argtag: v => rhtml`<span class="optionallabel">${v}</span>`
 };
 
 const discordmethods: { [key: string]: (v: string) => string } = {
