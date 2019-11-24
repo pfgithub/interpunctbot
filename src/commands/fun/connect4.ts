@@ -18,7 +18,7 @@ const themes = [
 		y: "<:y:648197111900405790>"
 	},
 	{
-		".": "<:w:648226589972365342>",
+		".": "<:w:648293750216327168>",
 		R: "<:r:648226318017626132>",
 		y: "<:y:648226318118420500>"
 	}
@@ -26,7 +26,19 @@ const themes = [
 
 const playerIndexToColor: ("R" | "y")[] = ["R", "y"];
 
-const laneEmojis = ["1⃣", "2⃣", "3⃣", "4⃣", "5⃣", "6⃣", "7⃣"];
+const laneEmojis = [
+	"648291430028279808",
+	"648291429864701952",
+	"648291429893931008",
+	"648291429839273994",
+	"648291429856051201",
+	"648291429554192419",
+	"648291429977948160"
+];
+
+const topBar = "1⃣2⃣3⃣4⃣5⃣6⃣7⃣";
+
+const joinEmoji = "455896379210989568";
 
 import { messages, safe, raw } from "../../../messages";
 import { serverStartTime } from "../../..";
@@ -220,7 +232,7 @@ router.add("connect4", [], async (cmd: string, info) => {
 > (${`${playersInGame.length}`}/${playerLimit}) ${playersInGame
 				.map(pl => `<@${pl}>`)
 				.join(", ")}
-> React ➕ to join. (${`${60 -
+> React <:j:${joinEmoji}> to join. (${`${60 -
 				Math.floor(
 					(new Date().getTime() - startTime) / 1000
 				)}`}s left)`;
@@ -235,7 +247,7 @@ router.add("connect4", [], async (cmd: string, info) => {
 		const handleReactions = info.handleReactions(
 			joinRequestMessage,
 			async (reaction, user) => {
-				if (reaction.emoji.name !== "➕") {
+				if (reaction.emoji.id !== joinEmoji) {
 					await reaction.users.remove(user);
 				}
 				if (playersInGame.length < playerLimit) {
@@ -251,7 +263,7 @@ router.add("connect4", [], async (cmd: string, info) => {
 			}
 		);
 
-		await joinRequestMessage.react("➕");
+		await joinRequestMessage.react(joinEmoji);
 
 		const tempt = setTimeout(async () => {
 			await updateMessage();
@@ -286,7 +298,7 @@ router.add("connect4", [], async (cmd: string, info) => {
 								: info.message.client.users.get(pl)!.username
 						}`
 				)
-				.join(", ")} \n---\n> ${laneEmojis.join("")}\n${game
+				.join(", ")} \n---\n> ${topBar}\n${game
 				.getText()
 				.map(l => `> ${l.map(q => theme[q]).join("")}`)
 				.join("\n")}\n---\n${
@@ -310,14 +322,15 @@ router.add("connect4", [], async (cmd: string, info) => {
 				await reaction.users.remove(user);
 				updateNoEventsTimeout();
 				// if valid emoji
-				if (laneEmojis.indexOf(reaction.emoji.name) === -1) {
+				console.log(reaction.emoji);
+				if (laneEmojis.indexOf(reaction.emoji.id!) === -1) {
 					return; // invalid
 				}
 				// if your turn
 				if (playersInGame[game.turnIndex] === user.id) {
 					// drop tile
 					const color = playerIndexToColor[game.turnIndex];
-					const success = game.dropTile(reaction.emoji.name);
+					const success = game.dropTile(reaction.emoji.id!);
 					if (success) game.nextTurn();
 				}
 			}
