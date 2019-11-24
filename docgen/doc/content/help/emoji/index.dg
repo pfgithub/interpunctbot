@@ -2,7 +2,7 @@
 : Restrict certain custom emojis so only people with specific roles can use them, let admins give people ranks by reacting to messages with emojis
 
 ## Restrict an Emoji
-: {{Command|emoji restrict {{Emoji|emoji}} {{Role|role}}}} (Role name, id, or {{Atmention|mention}}. {{Link|/help/using-roles-in-commands}})
+: {{Command|emoji restrict {{Emoji|emoji}} {{Required|role}}}} (Role name, id, or {{Atmention|mention}}. {{Link|/help/using-roles-in-commands}})
 : Restrict an emoji so only people with certain roles can use it
 : {{Blockquote|Note that this command only works with custom emojis on your server. If you want to disable people's access to builtin emojis, use rankmojis. More info below.}}
 : {{Blockquote|Note that this will also remove administrator's access to the emoji unless administrator roles are given permission.}}

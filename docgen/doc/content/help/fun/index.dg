@@ -36,3 +36,7 @@ Output: @you, {{Emoji|success}} Fun is no longer allowed on this server.
 
 Command: fun enable
 Output: @you, {{Emoji|success}} Fun enabled.{{Newline}}{{Blockquote|Try it out with {{Command|minesweeper}}}}
+
+## Possible Errors
+
+: Most errors should be self explanatory. If you encouter an error with an error code or an error you cannot figure out, ask on the support server: {{Link|https://interpunct.info/support/fun}}.
