@@ -1,14 +1,16 @@
 import Router from "commandrouter";
 import * as moment from "moment";
 
-import Info from "../Info";
+import Info from "../../Info";
 
 const router = new Router<Info, any>();
 
-import { messages } from "../../messages";
-import { serverStartTime } from "../..";
+import { messages } from "../../../messages";
+import { serverStartTime } from "../../..";
 
-import { AP, a } from "./argumentparser";
+import connect4 from "./connect4";
+
+import { AP, a } from "../argumentparser";
 
 router.add("ping", [], async (cmd: string, info) => {
 	if (info.db ? await info.db.getFunEnabled() : true) {
@@ -67,6 +69,8 @@ router.add("fun", [Info.theirPerm.manageBot], async (cmd: string, info) => {
 	}
 	return info.error(messages.fun.command_not_found(info));
 });
+
+router.add("", [], connect4);
 
 // ------------------- MINESWEEPER -----------------------
 

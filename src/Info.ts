@@ -3,6 +3,7 @@ import MB, { MessageBuilder } from "./MessageBuilder";
 import Database from "./Database";
 import * as config from "../config.json";
 import { ilt } from "..";
+import { safe, raw } from "../messages";
 
 const result = {
 	error: "<:failure:508841130503438356> Error: ",
@@ -271,11 +272,11 @@ export default class Info {
 		// returns the message
 		const replyResult = await ilt(
 			this.message.channel.send(
-				`@${
+				safe`@${
 					this.message.member
 						? this.message.member.displayName
 						: this.message.author!.username
-				}, ${content}`,
+				}, ${raw(content)}`,
 				{
 					...options,
 					split: true
@@ -428,5 +429,31 @@ export default class Info {
 	}
 	async redirect(newcmd: string) {
 		throw new Error("NOT IMPLEMENTED YET"); // TODO for example .wr is just .speedrun leaderboard 1, so it could res.redirect("speedrun leaderboard 1 "+arguments)
+	}
+	handleReactions(
+		msg: Discord.Message,
+		cb: (
+			reaction: Discord.MessageReaction,
+			user: Discord.User
+		) => Promise<void>
+	) {
+		const reactionCollector = new Discord.ReactionCollector(
+			msg,
+			collection => {
+				return true;
+			},
+			{}
+		);
+		reactionCollector.on(
+			"collect",
+			(reaction, user) =>
+				user.bot || ilt(cb(reaction, user), "handleReactions")
+		);
+		return {
+			end: () => reactionCollector.stop(),
+			done: new Promise(resolve =>
+				reactionCollector.addListener("end", () => resolve())
+			)
+		};
 	}
 }

@@ -1,0 +1,344 @@
+import Router from "commandrouter";
+import * as moment from "moment";
+import * as Discord from "discord.js";
+
+import Info from "../../Info";
+
+const router = new Router<Info, any>();
+
+// const emojis = {
+// 	".": "<:w:648197112667832376>",
+// 	R: "<:r:648197112013783041>",
+// 	y: "<:y:648197111900405790>"
+// };
+const emojis = {
+	".": "<:w:648226589972365342>",
+	R: "<:r:648226318017626132>",
+	y: "<:y:648226318118420500>"
+};
+const playerIndexToColor: ("R" | "y")[] = ["R", "y"];
+
+const laneEmojis = ["1⃣", "2⃣", "3⃣", "4⃣", "5⃣", "6⃣", "7⃣"];
+
+import { messages, safe, raw } from "../../../messages";
+import { serverStartTime } from "../../..";
+
+import { AP, a } from "../argumentparser";
+
+export class Connect4Game {
+	lanes: { [key in typeof laneEmojis[number]]: ("." | "R" | "y")[] };
+	turnIndex: number;
+	onchange: () => void;
+	onend: () => void;
+	playerCount: number;
+	status:
+		| { status: "active" }
+		| { status: "ended"; reason: string }
+		| { status: "winner"; winner: number };
+	constructor(playerCount: number) {
+		this.lanes = {};
+		laneEmojis.forEach(
+			le => (this.lanes[le] = [".", ".", ".", ".", ".", "."])
+		);
+		this.turnIndex = 0;
+		this.onchange = () => {};
+		this.onend = () => {};
+		this.playerCount = playerCount;
+		this.status = { status: "active" };
+	}
+
+	end(reason: string) {
+		this.status = { status: "ended", reason };
+		this.onchange();
+		this.onend();
+	}
+	win(index: number) {
+		this.status = { status: "winner", winner: index };
+		this.onchange();
+		this.onend();
+	}
+
+	getText() {
+		const gameBoard: ("." | "R" | "y")[][] = [[], [], [], [], [], []];
+		laneEmojis.forEach((le, x) => {
+			const lane = this.lanes[le];
+			lane.forEach((i, y) => {
+				gameBoard[y][x] = i;
+			});
+		});
+		return gameBoard;
+	}
+
+	travel(
+		[fromX, fromY]: [number, number],
+		direction: (x: number, y: number) => [number, number],
+		condition: (tile: "." | "R" | "y") => boolean
+	) {
+		const tiles = this.getText();
+		let x = fromX;
+		let y = fromY;
+		let iterCnt = 0;
+		while (true) {
+			[x, y] = direction(x, y);
+			const tileRow = tiles[y];
+			if (!tileRow) break;
+			if (!condition(tileRow[x])) break;
+			iterCnt++;
+		}
+		return iterCnt;
+	}
+	checkConnect4(
+		[placedX, placedY]: [number, number],
+		upfn: (x: number, y: number) => [number, number],
+		downfn: (x: number, y: number) => [number, number],
+		color: "." | "R" | "y"
+	) {
+		const iterUp = this.travel(
+			[placedX, placedY],
+			upfn,
+			tile => tile === color
+		);
+		const iterDown = this.travel(
+			[placedX, placedY],
+			downfn,
+			tile => tile === color
+		);
+		if (iterUp + 1 + iterDown >= 4) {
+			// connected 4
+			return true;
+		}
+		return false;
+	}
+
+	dropTile(lane: string): boolean {
+		const lanev = this.lanes[lane];
+		let whereToDrop = lanev.findIndex(v => v !== ".") - 1;
+		if (whereToDrop === -2) {
+			whereToDrop = lanev.length - 1;
+		}
+		if (whereToDrop === -1) {
+			return false;
+		}
+		const color = playerIndexToColor[this.turnIndex];
+		lanev[whereToDrop] = color;
+		const placedX = laneEmojis.indexOf(lane);
+		const placedY = whereToDrop;
+
+		// check if anyone won
+		const tiles = this.getText();
+
+		// check all directions
+		if (
+			this.checkConnect4(
+				[placedX, placedY],
+				(x, y) => [x, y - 1],
+				(x, y) => [x, y + 1],
+				color
+			) ||
+			this.checkConnect4(
+				[placedX, placedY],
+				(x, y) => [x - 1, y],
+				(x, y) => [x + 1, y],
+				color
+			) ||
+			this.checkConnect4(
+				[placedX, placedY],
+				(x, y) => [x - 1, y - 1],
+				(x, y) => [x + 1, y + 1],
+				color
+			) ||
+			this.checkConnect4(
+				[placedX, placedY],
+				(x, y) => [x - 1, y + 1],
+				(x, y) => [x + 1, y - 1],
+				color
+			)
+		) {
+			this.win(this.turnIndex);
+			return true;
+		}
+
+		return true;
+	}
+
+	nextTurn() {
+		this.turnIndex++;
+		this.turnIndex %= this.playerCount;
+		this.onchange();
+	}
+}
+
+router.add("connect4", [], async (cmd: string, info) => {
+	if (info.db ? await info.db.getFunEnabled() : true) {
+	} else {
+		return await info.error(messages.fun.fun_disabled(info));
+	}
+
+	if (info.myChannelPerms) {
+		if (!info.myChannelPerms.has("USE_EXTERNAL_EMOJIS")) {
+			return await info.error(
+				"I need permission to `use external emojis` here to play connnect 4\n> https://interpunct.info/help/fun/connect4"
+			);
+		}
+		if (!info.myChannelPerms.has("ADD_REACTIONS")) {
+			return await info.error(
+				"I need permission to `add reactions` here to play connnect 4\n> https://interpunct.info/help/fun/connect4"
+			);
+		}
+		if (!info.myChannelPerms.has("MANAGE_MESSAGES")) {
+			return await info.error(
+				"I need permission to `manage messages` here to remove people's reactions in connnect 4\n> https://interpunct.info/help/fun/connect4"
+			);
+		}
+	}
+
+	const playerLimit = 2;
+
+	// ------------------------------------------------ wait for players to join
+
+	const startTime = new Date().getTime();
+
+	const playersInGame: string[] = [info.message.author.id];
+	{
+		const getJoinMessageText = () =>
+			`${info.message.author.toString()} has started a game of Connect 4.
+> (${`${playersInGame.length}`}/${playerLimit}) ${playersInGame
+				.map(pl => `<@${pl}>`)
+				.join(", ")}
+> React ➕ to join. (${`${60 -
+				Math.floor(
+					(new Date().getTime() - startTime) / 1000
+				)}`}s left)`;
+
+		const joinRequestMessage = await info.channel.send(
+			getJoinMessageText()
+		);
+
+		const updateMessage = () =>
+			joinRequestMessage.edit(getJoinMessageText());
+
+		const handleReactions = info.handleReactions(
+			joinRequestMessage,
+			async (reaction, user) => {
+				if (reaction.emoji.name !== "➕") {
+					await reaction.users.remove(user);
+				}
+				if (playersInGame.length < playerLimit) {
+					if (playersInGame.indexOf(user.id) === -1) {
+						playersInGame.push(user.id);
+						if (playersInGame.length === playerLimit) {
+							// start game
+							handleReactions.end();
+						}
+					}
+				}
+				await updateMessage();
+			}
+		);
+
+		await joinRequestMessage.react("➕");
+
+		const tempt = setTimeout(async () => {
+			await updateMessage();
+			handleReactions.end();
+		}, 60000);
+		await handleReactions.done;
+		clearTimeout(tempt);
+		await joinRequestMessage.delete();
+
+		if (playersInGame.length !== playerLimit) {
+			await info.error(`Not enough players to start game.`);
+			return;
+		}
+	}
+
+	// --------------------------------------------- start game
+
+	{
+		const game = new Connect4Game(playersInGame.length);
+
+		const reactionsReady = false;
+
+		const getGameBoardText = () =>
+			`${playersInGame
+				.map(
+					(pl, i) =>
+						emojis[playerIndexToColor[i]] +
+						safe` @${
+							info.message.guild
+								? info.message.guild.members.get(pl)!
+										.displayName
+								: info.message.client.users.get(pl)!.username
+						}`
+				)
+				.join(", ")} \n---\n> ${laneEmojis.join("")}\n${game
+				.getText()
+				.map(l => `> ${l.map(q => emojis[q]).join("")}`)
+				.join("\n")}\n---\n${
+				game.status.status === "active"
+					? `<@${playersInGame[game.turnIndex]}>'s turn`
+					: game.status.status === "ended"
+					? `Game over. ${game.status.reason}`
+					: `<@${playersInGame[game.status.winner]}> won!`
+			}`;
+		const gameBoardMessage = await info.channel.send("Setting up game...");
+		const updateGameBoard = async () =>
+			await gameBoardMessage.edit(getGameBoardText());
+
+		for (const emoji of laneEmojis) {
+			await gameBoardMessage.react(emoji);
+		}
+
+		const handleReactions = info.handleReactions(
+			gameBoardMessage,
+			async (reaction, user) => {
+				await reaction.users.remove(user);
+				updateNoEventsTimeout();
+				// if valid emoji
+				if (laneEmojis.indexOf(reaction.emoji.name) === -1) {
+					return; // invalid
+				}
+				// if your turn
+				if (playersInGame[game.turnIndex] === user.id) {
+					// drop tile
+					const color = playerIndexToColor[game.turnIndex];
+					const success = game.dropTile(reaction.emoji.name);
+					if (success) game.nextTurn();
+				}
+			}
+		);
+
+		const createNoEventsTimeout = () => [
+			setTimeout(async () => {
+				game.end("Out of time (max 60s per turn)");
+			}, 60000),
+			setTimeout(async () => {
+				await info.message.channel.send(
+					`<@${
+						playersInGame[game.turnIndex]
+					}>, it's your turn in connect 4. ${
+						gameBoardMessage.url
+					}\n> If you don't play within 30s, the game will end. `
+				);
+			}, 30000)
+		];
+		let noEventsTimeout = createNoEventsTimeout();
+
+		const updateNoEventsTimeout = () => {
+			noEventsTimeout.forEach(net => clearTimeout(net));
+			noEventsTimeout = createNoEventsTimeout();
+		};
+
+		await updateGameBoard();
+
+		game.onchange = () => updateGameBoard();
+		game.onend = () => handleReactions.end();
+
+		await handleReactions.done;
+		noEventsTimeout.forEach(net => clearTimeout(net));
+
+		await gameBoardMessage.reactions.removeAll();
+	}
+});
+
+export default router;
