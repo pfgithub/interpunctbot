@@ -6,16 +6,24 @@ import Info from "../../Info";
 
 const router = new Router<Info, any>();
 
-// const emojis = {
-// 	".": "<:w:648197112667832376>",
-// 	R: "<:r:648197112013783041>",
-// 	y: "<:y:648197111900405790>"
-// };
-const emojis = {
-	".": "<:w:648226589972365342>",
-	R: "<:r:648226318017626132>",
-	y: "<:y:648226318118420500>"
-};
+const themes = [
+	{
+		".": "<:w:648193417058320394>",
+		R: "<:r:648194063102902294>",
+		y: "<:y:648193417339207701>"
+	},
+	{
+		".": "<:w:648197112667832376>",
+		R: "<:r:648197112013783041>",
+		y: "<:y:648197111900405790>"
+	},
+	{
+		".": "<:w:648226589972365342>",
+		R: "<:r:648226318017626132>",
+		y: "<:y:648226318118420500>"
+	}
+];
+
 const playerIndexToColor: ("R" | "y")[] = ["R", "y"];
 
 const laneEmojis = ["1⃣", "2⃣", "3⃣", "4⃣", "5⃣", "6⃣", "7⃣"];
@@ -192,6 +200,11 @@ router.add("connect4", [], async (cmd: string, info) => {
 		}
 	}
 
+	const themeIndex = Math.floor(
+		Math.max(Math.min(+cmd || 3, themes.length), 1) - 1
+	);
+	const theme = themes[themeIndex];
+
 	const playerLimit = 2;
 
 	// ------------------------------------------------ wait for players to join
@@ -201,7 +214,9 @@ router.add("connect4", [], async (cmd: string, info) => {
 	const playersInGame: string[] = [info.message.author.id];
 	{
 		const getJoinMessageText = () =>
-			`${info.message.author.toString()} has started a game of Connect 4.
+			`${info.message.author.toString()} has started a game of Connect 4 ${
+				theme["."]
+			}${theme.R}${theme.y} .
 > (${`${playersInGame.length}`}/${playerLimit}) ${playersInGame
 				.map(pl => `<@${pl}>`)
 				.join(", ")}
@@ -263,7 +278,7 @@ router.add("connect4", [], async (cmd: string, info) => {
 			`${playersInGame
 				.map(
 					(pl, i) =>
-						emojis[playerIndexToColor[i]] +
+						theme[playerIndexToColor[i]] +
 						safe` @${
 							info.message.guild
 								? info.message.guild.members.get(pl)!
@@ -273,7 +288,7 @@ router.add("connect4", [], async (cmd: string, info) => {
 				)
 				.join(", ")} \n---\n> ${laneEmojis.join("")}\n${game
 				.getText()
-				.map(l => `> ${l.map(q => emojis[q]).join("")}`)
+				.map(l => `> ${l.map(q => theme[q]).join("")}`)
 				.join("\n")}\n---\n${
 				game.status.status === "active"
 					? `<@${playersInGame[game.turnIndex]}>'s turn`
