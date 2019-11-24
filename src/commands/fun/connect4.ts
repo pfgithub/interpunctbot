@@ -260,11 +260,12 @@ router.add("connect4", [], async (cmd: string, info) => {
 						}
 					}
 				}
-				await updateMessage();
 			}
 		);
 
 		await joinRequestMessage.react(joinEmoji);
+
+		const interval = setInterval(async () => await updateMessage(), 3000);
 
 		const tempt = setTimeout(async () => {
 			await updateMessage();
@@ -272,6 +273,7 @@ router.add("connect4", [], async (cmd: string, info) => {
 		}, 60000);
 		await handleReactions.done;
 		clearTimeout(tempt);
+		clearInterval(interval);
 		await joinRequestMessage.delete();
 
 		if (playersInGame.length !== playerLimit) {
