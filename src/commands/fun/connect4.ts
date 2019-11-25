@@ -67,11 +67,15 @@ export class Connect4Game {
 	}
 
 	end(reason: string) {
+		if(this.status.status !== "active"){return false;}
+		
 		this.status = { status: "ended", reason };
 		this.onchange();
 		this.onend();
 	}
 	win(index: number) {
+		if(this.status.status !== "active"){return false;}
+		
 		this.status = { status: "winner", winner: index };
 		this.onchange();
 		this.onend();
@@ -130,6 +134,8 @@ export class Connect4Game {
 	}
 
 	dropTile(lane: string): boolean {
+		if(this.status.status !== "active"){return false;}
+		
 		const lanev = this.lanes[lane];
 		let whereToDrop = lanev.findIndex(v => v !== ".") - 1;
 		if (whereToDrop === -2) {
@@ -180,6 +186,8 @@ export class Connect4Game {
 	}
 
 	nextTurn() {
+		if(this.status.status !== "active"){return false;}
+		
 		this.turnIndex++;
 		this.turnIndex %= this.playerCount;
 		this.onchange();
