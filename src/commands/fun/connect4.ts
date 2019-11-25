@@ -327,8 +327,6 @@ router.add("connect4", [], async (cmd: string, info) => {
 			async (reaction, user) => {
 				await reaction.users.remove(user);
 				updateNoEventsTimeout();
-				// if valid emoji
-				console.log(reaction.emoji);
 				if (laneEmojis.indexOf(reaction.emoji.id!) === -1) {
 					return; // invalid
 				}
