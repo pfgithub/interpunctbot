@@ -1,3 +1,8 @@
+// future concepts:
+// have the top bar highlight the number played last
+// so have it show yellow played here or something
+// (needs 7*3 emojis suddenly)
+
 import Router from "commandrouter";
 import * as moment from "moment";
 import * as Discord from "discord.js";
