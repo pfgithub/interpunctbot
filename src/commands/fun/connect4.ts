@@ -292,8 +292,6 @@ router.add("connect4", [], async (cmd: string, info) => {
 	{
 		const game = new Connect4Game(playersInGame.length);
 
-		const reactionsReady = false;
-
 		const getGameBoardText = () =>
 			`${playersInGame
 				.map(
