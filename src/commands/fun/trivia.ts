@@ -275,7 +275,12 @@ ${raw(
 		await updateResultMessage();
 
 		const doneTimer = setTimeout(() => rxn.end(), 20000);
-		const updateInterval = setInterval(() => updateResultMessage(), 3000);
+		const updateInterval = setInterval(() => {
+			updateResultMessage();
+			if (startTime + 30000 - new Date().getTime() < 0) {
+				clearInterval(updateInterval);
+			}
+		}, 3000);
 
 		await rxn.done;
 

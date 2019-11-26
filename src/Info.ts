@@ -444,16 +444,24 @@ export default class Info {
 			},
 			{}
 		);
-		reactionCollector.on(
-			"collect",
-			(reaction, user) =>
-				user.bot || ilt(cb(reaction, user), "handleReactions")
-		);
+		let errCb: (error: Error) => void = (error: Error) => {
+			throw error;
+		};
+		reactionCollector.on("collect", async (reaction, user) => {
+			if (user.bot) {
+				return;
+			}
+			const result = await ilt(cb(reaction, user), false);
+			if (result.error) {
+				errCb(result.error);
+			}
+		});
 		return {
 			end: () => reactionCollector.stop(),
-			done: new Promise(resolve =>
-				reactionCollector.addListener("end", () => resolve())
-			)
+			done: new Promise((resolve, reject) => {
+				errCb = reject;
+				reactionCollector.addListener("end", () => resolve());
+			})
 		};
 	}
 }
