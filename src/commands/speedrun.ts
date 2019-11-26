@@ -40,7 +40,7 @@ const adminrouter = new Router<Info, any>();
 
 const ctime = () => new Date().getTime();
 
-async function getURL(
+export async function getURL(
 	strings: TemplateStringsArray | string | string[],
 	...values: string[]
 ) {

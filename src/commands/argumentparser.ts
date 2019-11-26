@@ -435,7 +435,7 @@ export async function ArgumentParser<
 	if (cmd.trim()) {
 		// extra arguments
 		await info.error(
-			`This command only uses arguments, but you gave ${index} arguments` // !!!!!!! str->messages
+			`This command only takes ${schema.length} arguments, but you gave ${index} arguments` // !!!!!!! str->messages
 		);
 		return undefined;
 	}

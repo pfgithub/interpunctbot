@@ -4,8 +4,12 @@
 // (needs 7*3 emojis suddenly)
 
 import Router from "commandrouter";
+import { AP, a } from "../argumentparser";
 import * as moment from "moment";
 import * as Discord from "discord.js";
+
+import { messages, safe, raw } from "../../../messages";
+import { serverStartTime } from "../../..";
 
 import Info from "../../Info";
 
@@ -45,11 +49,6 @@ const topBar =
 	"<:number1:648301185115357205><:number2:648299358722195467><:number3:648301185127677972><:number4:648301184930545669><:number5:648301184955711488><:number6:648301496282120249><:number7:648301184679149570>";
 
 const joinEmoji = "455896379210989568";
-
-import { messages, safe, raw } from "../../../messages";
-import { serverStartTime } from "../../..";
-
-import { AP, a } from "../argumentparser";
 
 export class Connect4Game {
 	lanes: { [key in typeof laneEmojis[number]]: ("." | "R" | "y")[] };
@@ -195,6 +194,11 @@ export class Connect4Game {
 }
 
 router.add("connect4", [], async (cmd: string, info) => {
+    const apresult = await AP(
+        { info, cmd }
+    );
+	if (!apresult) return;
+	
 	if (info.db ? await info.db.getFunEnabled() : true) {
 	} else {
 		return await info.error(messages.fun.fun_disabled(info));
