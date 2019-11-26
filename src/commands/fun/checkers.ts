@@ -128,6 +128,22 @@ class Checkers {
 			return;
 		}
 		// select piece to move. update the board to have that piece emojis.[color].selected and show arrows around it. remove any leftover arrows. then switches selectionsavailable to piecedirection.
+
+		// p1: remove leftover arrows and selected peices
+		this.gameBoard.forEach((l, y) => {
+			l.forEach((v, x) => {
+				// maybe the gameboard should contain real things instead of emojis and have a toarray method create emojis or have the command make the emojis
+				if (
+					v === emojis.red.selected ||
+					v === emojis.black.selected ||
+					v === emojis.board.arrows.ul ||
+					v === emojis.board.arrows.ur ||
+					v === emojis.board.arrows.bl ||
+					v === emojis.board.arrows.br
+				) {
+				}
+			});
+		});
 	}
 	movePiece(direction: Direction) {
 		// move piece. may advance to the next turn

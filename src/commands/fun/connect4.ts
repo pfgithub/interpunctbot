@@ -246,8 +246,6 @@ router.add("connect4", [], async (cmd: string, info) => {
 	);
 	const theme = themes[themeIndex];
 
-	const playerLimit = 2;
-
 	// ------------------------------------------------ wait for players to join
 
 	const playersInGame = await getPlayers(
