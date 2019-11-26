@@ -30,7 +30,7 @@ Output: @you, {{Emoji|success}} Logs have been reset.
 
 ## Possible Errors
 
-Output: @you, {{Emoji|error}} {{Interpunct}} needs permission to {{Code|Attach Files}} to upload your log file here.
+Output: @you, {{Emoji|error}} {{Interpunct}} needs permission to {{Permission|Attach Files}} to upload your log file here.
 
 : {{Interpunct}} needs permission to attach files in order to upload your log file. Make sure {{Interpunct}} has permission to attach files. If {{Interpunct}} has server-wide permission and the error still occurs, check the channel settings to make sure there are no overrides blocking permission.
 

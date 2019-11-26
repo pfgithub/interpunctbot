@@ -13,11 +13,11 @@ Output: Trivia questions from {{Link|https://OpenTDB.com/}}{{Newline}}{{Bold|Cat
 
 ## Possible Errors
 
-Output: I need permission to {{Code|add reactions}} here to play trivia
+Output: I need permission to {{Permission|add reactions}} here to play trivia
 
 : {{Interpunct}} needs permission to add reactions in order to let people choose answers for trivia. Make sure {{Interpunct}} has permission to add reactions. If {{Interpunct}} has server-wide permission and the error still occurs, check the channel settings to make sure there are no overrides blocking adding reactions.
 
-Output: I need permission to {{Code|manage messages}} here to remove people's reactions in trivia
+Output: I need permission to {{Permission|manage messages}} here to remove people's reactions in trivia
 
 : {{Interpunct}} needs permission to manage messages in order to remove reactions when people select multiple answers. Make sure {{Interpunct}} has permission to manage messages. If {{Interpunct}} has server-wide permission and the error still occurs, check the channel settings to make sure there are no overrides blocking managing messages.
 

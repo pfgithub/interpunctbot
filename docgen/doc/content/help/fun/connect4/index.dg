@@ -16,15 +16,15 @@ Output: {{Image|https://i.imgur.com/otMD0zc.png}}
 
 ## Possible Errors
 
-Output: I need permission to {{Code|use external emojis}} here to play connnect 4
+Output: I need permission to {{Permission|use external emojis}} here to play connnect 4
 
 : {{Interpunct}} needs permission to use external emojis in order to display the game board for Connect 4. Make sure {{Interpunct}} has permission to use external emojis. If {{Interpunct}} has server-wide permission and the error still occurs, check the channel settings to make sure there are no overrides blocking external emojis.
 
-Output: I need permission to {{Code|add reactions}} here to play connnect 4
+Output: I need permission to {{Permission|add reactions}} here to play connnect 4
 
 : {{Interpunct}} needs permission to add reactions in order to let people play the connect 4. Make sure {{Interpunct}} has permission to add reactions. If {{Interpunct}} has server-wide permission and the error still occurs, check the channel settings to make sure there are no overrides blocking adding reactions.
 
-Output: I need permission to {{Code|manage messages}} here to remove people's reactions in connect 4
+Output: I need permission to {{Permission|manage messages}} here to remove people's reactions in connect 4
 
 : {{Interpunct}} needs permission to manage messages in order to remove reactions from the connect 4 game message. Make sure {{Interpunct}} has permission to manage messages. If {{Interpunct}} has server-wide permission and the error still occurs, check the channel settings to make sure there are no overrides blocking managing messages.
 
