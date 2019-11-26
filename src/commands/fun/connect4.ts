@@ -2,6 +2,11 @@
 // have the top bar highlight the number played last
 // so have it show yellow played here or something
 // (needs 7*3 emojis suddenly)
+// dropping animation (6 animated emojis for a thing falling through that spacel)
+//                    (6 more for it landing in that space)
+// show your color next to your name when it is your turn
+// score tracking. show (8-0) or the actual number of how many times one person
+//                 won against the other
 
 import Router from "commandrouter";
 import { AP, a } from "../argumentparser";
@@ -73,15 +78,19 @@ export class Connect4Game {
 	}
 
 	end(reason: string) {
-		if(this.status.status !== "active"){return false;}
-		
+		if (this.status.status !== "active") {
+			return false;
+		}
+
 		this.status = { status: "ended", reason };
 		this.onchange();
 		this.onend();
 	}
 	win(index: number) {
-		if(this.status.status !== "active"){return false;}
-		
+		if (this.status.status !== "active") {
+			return false;
+		}
+
 		this.status = { status: "winner", winner: index };
 		this.onchange();
 		this.onend();
@@ -140,8 +149,10 @@ export class Connect4Game {
 	}
 
 	dropTile(lane: string): boolean {
-		if(this.status.status !== "active"){return false;}
-		
+		if (this.status.status !== "active") {
+			return false;
+		}
+
 		const lanev = this.lanes[lane];
 		let whereToDrop = lanev.findIndex(v => v !== ".") - 1;
 		if (whereToDrop === -2) {
@@ -192,8 +203,10 @@ export class Connect4Game {
 	}
 
 	nextTurn() {
-		if(this.status.status !== "active"){return false;}
-		
+		if (this.status.status !== "active") {
+			return false;
+		}
+
 		this.turnIndex++;
 		this.turnIndex %= this.playerCount;
 		this.onchange();
@@ -201,11 +214,9 @@ export class Connect4Game {
 }
 
 router.add("connect4", [], async (cmd: string, info) => {
-    const apresult = await AP(
-        { info, cmd }
-    );
+	const apresult = await AP({ info, cmd });
 	if (!apresult) return;
-	
+
 	if (info.db ? await info.db.getFunEnabled() : true) {
 	} else {
 		return await info.error(messages.fun.fun_disabled(info));
