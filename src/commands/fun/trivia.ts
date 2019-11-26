@@ -87,7 +87,7 @@ router.add("trivia", [], async (cmd: string, info) => {
 			triviaQuestion.correct_answer,
 			...triviaQuestion.incorrect_answers
 		].sort();
-		const trueFalseEmojis = ["🇹", "🇫"];
+		const trueFalseEmojis = ["🇫", "🇹"];
 		const multipleChoiceEmojis = [
 			"🇦",
 			"🇧",
@@ -129,8 +129,8 @@ router.add("trivia", [], async (cmd: string, info) => {
 			emoji: emojiSet[i]
 		}));
 		const topPart = safe`Trivia questions from <https://opentdb.com/>
-**Category**: ${decodeHTML(triviaQuestion.difficulty)}
-**Difficulty**: ${triviaQuestion.difficulty}`;
+**Category**: ${decodeHTML(triviaQuestion.category)}
+**Difficulty**: ${decodeHTML(triviaQuestion.difficulty)}`;
 		const resultMessage = await info.channel.send(
 			`${topPart}
 > When the question appears, react with the correct answer before the time runs out.`
