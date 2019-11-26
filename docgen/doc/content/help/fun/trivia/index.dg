@@ -1,0 +1,24 @@
+## Trivia
+
+[[summary]]
+
+: {{Command|trivia}}
+: Play a round of trivia from {{Link|https://OpenTDB.com/}}. Supports as many players as want to play.
+: How to play: Once the game starts, react with the correct answer within 20s. If you get it right, you win.
+
+Command: trivia
+Output: Trivia questions from {{Link|https://OpenTDB.com/}}{{Newline}}{{Bold|Category}}: Geography{{Newline}}{{Bold|Difficulty}}: medium{{Newline}}{{Bold|Question}}: What is the capital of Senegal?{{Newline}}{{Bold|Answers}}:{{Newline}}{{Emoji|C}} - Conakry{{Newline}}{{Emoji|D}} - Dakar{{Newline}}{{Emoji|M}} - Monrovia{{Newline}}{{Emoji|N}} - Nouakchott{{Newline}}{{Bold|Correct Answer}}: {{Emoji|D}} - Dakar{{Newline}}{{Bold|Winners}}: {{Atmention|you}}{{Newline}}{{Image|https://i.imgur.com/HTLrlbj.png}}
+
+[[/summary]]
+
+## Possible Errors
+
+Output: I need permission to {{Code|add reactions}} here to play trivia
+
+: {{Interpunct}} needs permission to add reactions in order to let people choose answers for trivia. Make sure {{Interpunct}} has permission to add reactions. If {{Interpunct}} has server-wide permission and the error still occurs, check the channel settings to make sure there are no overrides blocking adding reactions.
+
+Output: I need permission to {{Code|manage messages}} here to remove people's reactions in trivia
+
+: {{Interpunct}} needs permission to manage messages in order to remove reactions when people select multiple answers. Make sure {{Interpunct}} has permission to manage messages. If {{Interpunct}} has server-wide permission and the error still occurs, check the channel settings to make sure there are no overrides blocking managing messages.
+
+: For more help or if an error isn't listed here, join the support server {{Link|https://interpunct.info/support}}

@@ -8,10 +8,15 @@
 Command: ping
 Output: @you, Pong!
 
+*link web=inline*: `connect4`
+
+*link web=inline*: `trivia`
+
 ## Minesweeper
 : {{Command|minesweeper}}
 : {{Command|minesweeper {{Optional|{{Enum|=medium|easy|medium|hard|veryhard|epic|ultra}}}} {{Optional|{{Enum|=emojis|numbers|emojis|customemojis}}}} {{Optional|{{Number|=13|WIDTH}}x{{Number|=15|HEIGHT}}}} {{Optional|{{Number|=15|difficulty}}%}}}}
 : Play a game of discord minesweeper with spoiler tags
+: How to play: Click on squares to reveal what's under them. The number on the square shows the number of bombs in the 8 tiles surrounding that square. A blank square means there are no bombs in the tiles surrounding that square. You win once all tiles are revealed except for bombs. You lose if you reveal an explosion.
 
 Command: minesweeper
 Output: {{Image|https://i.imgur.com/dIjkbuK.png}}

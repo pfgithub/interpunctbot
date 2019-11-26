@@ -123,6 +123,19 @@ router.add("trivia", [], async (cmd: string, info) => {
 	const apresult = await AP({ info, cmd });
 	if (!apresult) return;
 
+	if (info.myChannelPerms) {
+		if (!info.myChannelPerms.has("ADD_REACTIONS")) {
+			return await info.error(
+				"I need permission to `add reactions` here to play trivia\n> https://interpunct.info/help/fun/trivia"
+			);
+		}
+		if (!info.myChannelPerms.has("MANAGE_MESSAGES")) {
+			return await info.error(
+				"I need permission to `manage messages` here to remove people's reactions in trivia\n> https://interpunct.info/help/fun/trivia"
+			);
+		}
+	}
+
 	// fetch trivia question
 	let triviaQuestion: OpenTDB.Question;
 	{
@@ -231,8 +244,8 @@ router.add("trivia", [], async (cmd: string, info) => {
 			resultMessage.edit(
 				topPart +
 					safe`
-**Question:** ${decodeHTML(triviaQuestion.question)}
-**Answers:**
+**Question**: ${decodeHTML(triviaQuestion.question)}
+**Answers**:
 ${raw(
 	choiceDetails
 		.map(({ name, emoji }) => {
