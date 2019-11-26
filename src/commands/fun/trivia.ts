@@ -141,36 +141,40 @@ router.add("trivia", [], async (cmd: string, info) => {
 		await info.stopLoading();
 	}
 	{
-		const choices = [
-			triviaQuestion.correct_answer,
-			...triviaQuestion.incorrect_answers
-		].sort();
-
-		const startingEmoji = (s: string) => {
-			const char = s.match(/[A-Za-z]/);
-			if (!char) {
-				return letterToEmojiMap.z;
-			}
-			return (letterToEmojiMap as any)[char[0].toLowerCase()] as string;
-		};
-		let useCustom = true;
-		const emojiToAnswerMap: { [key: string]: string } = {};
 		let choiceDetails: {
 			name: string;
 			emoji: string;
 		}[] = [];
-		choices.forEach(choice => {
-			const se = startingEmoji(choice);
-			if (emojiToAnswerMap[se]) useCustom = false;
-			emojiToAnswerMap[se] = choice;
-			choiceDetails.push({ name: choice, emoji: se });
-		});
+		{
+			const choices = [
+				triviaQuestion.correct_answer,
+				...triviaQuestion.incorrect_answers
+			].sort();
 
-		if (!useCustom) {
-			choiceDetails = choices.map((choice, i) => ({
-				name: choice,
-				emoji: emojiOrderListMapArraySet[i]
-			}));
+			const startingEmoji = (s: string) => {
+				const char = s.match(/[A-Za-z]/);
+				if (!char) {
+					return letterToEmojiMap.z;
+				}
+				return (letterToEmojiMap as any)[
+					char[0].toLowerCase()
+				] as string;
+			};
+			let useCustom = true;
+			const emojiToAnswerMap: { [key: string]: string } = {};
+			choices.forEach(choice => {
+				const se = startingEmoji(choice);
+				if (emojiToAnswerMap[se]) useCustom = false;
+				emojiToAnswerMap[se] = choice;
+				choiceDetails.push({ name: choice, emoji: se });
+			});
+
+			if (!useCustom) {
+				choiceDetails = choices.map((choice, i) => ({
+					name: choice,
+					emoji: emojiOrderListMapArraySet[i]
+				}));
+			}
 		}
 		const topPart = safe`Trivia questions from <https://opentdb.com/>
 **Category**: ${decodeHTML(triviaQuestion.category)}
