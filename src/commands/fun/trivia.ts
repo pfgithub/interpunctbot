@@ -61,6 +61,64 @@ function decodeHTML(html: string) {
 	return he.decode(html);
 }
 
+const letterToEmojiMap = {
+	a: "🇦",
+	b: "🇧",
+	c: "🇨",
+	d: "🇩",
+	e: "🇪",
+	f: "🇫",
+	g: "🇬",
+	h: "🇭",
+	i: "🇮",
+	j: "🇯",
+	k: "🇰",
+	l: "🇱",
+	m: "🇲",
+	n: "🇳",
+	o: "🇴",
+	p: "🇵",
+	q: "🇶",
+	r: "🇷",
+	s: "🇸",
+	t: "🇹",
+	u: "🇺",
+	v: "🇻",
+	w: "🇼",
+	x: "🇽",
+	y: "🇾",
+	z: "🇿"
+};
+
+const emojiOrderListMapArraySet = [
+	"🇦",
+	"🇧",
+	"🇨",
+	"🇩",
+	"🇪",
+	"🇫",
+	"🇬",
+	"🇭",
+	"🇮",
+	"🇯",
+	"🇰",
+	"🇱",
+	"🇲",
+	"🇳",
+	"🇴",
+	"🇵",
+	"🇶",
+	"🇷",
+	"🇸",
+	"🇹",
+	"🇺",
+	"🇻",
+	"🇼",
+	"🇽",
+	"🇾",
+	"🇿"
+];
+
 router.add("trivia", [], async (cmd: string, info) => {
 	const apresult = await AP({ info, cmd });
 	if (!apresult) return;
@@ -87,47 +145,33 @@ router.add("trivia", [], async (cmd: string, info) => {
 			triviaQuestion.correct_answer,
 			...triviaQuestion.incorrect_answers
 		].sort();
-		const trueFalseEmojis = ["🇫", "🇹"];
-		const multipleChoiceEmojis = [
-			"🇦",
-			"🇧",
-			"🇨",
-			"🇩",
-			"🇪",
-			"🇫",
-			"🇬",
-			"🇭",
-			"🇮",
-			"🇯",
-			"🇰",
-			"🇱",
-			"🇲",
-			"🇳",
-			"🇴",
-			"🇵",
-			"🇶",
-			"🇷",
-			"🇸",
-			"🇹",
-			"🇺",
-			"🇻",
-			"🇼",
-			"🇽",
-			"🇾",
-			"🇿"
-		];
-		const emojiSet =
-			triviaQuestion.type === "boolean"
-				? trueFalseEmojis
-				: multipleChoiceEmojis;
 
-		const choiceDetails: {
+		const startingEmoji = (s: string) => {
+			const char = s.match(/[A-Za-z]/);
+			if (!char) {
+				return letterToEmojiMap.z;
+			}
+			return (letterToEmojiMap as any)[char[0].toLowerCase()] as string;
+		};
+		let useCustom = true;
+		const emojiToAnswerMap: { [key: string]: string } = {};
+		let choiceDetails: {
 			name: string;
 			emoji: string;
-		}[] = choices.map((choice, i) => ({
-			name: choice,
-			emoji: emojiSet[i]
-		}));
+		}[] = [];
+		choices.forEach(choice => {
+			const se = startingEmoji(choice);
+			if (emojiToAnswerMap[se]) useCustom = false;
+			emojiToAnswerMap[se] = choice;
+			choiceDetails.push({ name: choice, emoji: se });
+		});
+
+		if (!useCustom) {
+			choiceDetails = choices.map((choice, i) => ({
+				name: choice,
+				emoji: emojiOrderListMapArraySet[i]
+			}));
+		}
 		const topPart = safe`Trivia questions from <https://opentdb.com/>
 **Category**: ${decodeHTML(triviaQuestion.category)}
 **Difficulty**: ${decodeHTML(triviaQuestion.difficulty)}`;
@@ -198,9 +242,11 @@ ${raw(
 				(startTime + 20000 - new Date().getTime()) /
 				1000
 		  ).toFixed(0)}s`
-		: `**Correct Answer**: ${safe`${decodeHTML(
-				triviaQuestion.correct_answer
-		  )}`}
+		: `**Correct Answer**: ${
+				choiceDetails.find(
+					cd => cd.name === triviaQuestion.correct_answer
+				)!.emoji
+		  } - ${safe`${decodeHTML(triviaQuestion.correct_answer)}`}
 **Winners**: ${
 				state.winners.length === 0
 					? "*No one won*"
