@@ -68,24 +68,27 @@ router.add("trivia", [], async (cmd: string, info) => {
 	// fetch trivia question
 	let triviaQuestion: OpenTDB.Question;
 	{
-		let fetchProgressMessage = await info.channel.send(":loading:");
-		let triviaResponse: OpenTDB.Response = await getURL`https://opentdb.com/api.php?amount=1`; // TODO other things
+		// const fetchProgressMessage = await info.channel.send(":loading:");
+		await info.startLoading();
+		const triviaResponse: OpenTDB.Response = await getURL`https://opentdb.com/api.php?amount=1`; // TODO other things
 		if (triviaResponse.response_code !== 0) {
 			throw new Error(
-				"Nonzero response code on trivia. Response is: " +
-					JSON.stringify(triviaResponse)
+				`Nonzero response code on trivia. Response is: ${JSON.stringify(
+					triviaResponse
+				)}`
 			);
 		}
 		triviaQuestion = triviaResponse.results[0];
-		await fetchProgressMessage.delete();
+		// await fetchProgressMessage.delete();
+		await info.stopLoading();
 	}
 	{
-		let choices = [
+		const choices = [
 			triviaQuestion.correct_answer,
 			...triviaQuestion.incorrect_answers
 		].sort();
-		let trueFalseEmojis = ["🇹", "🇫"];
-		let multipleChoiceEmojis = [
+		const trueFalseEmojis = ["🇹", "🇫"];
+		const multipleChoiceEmojis = [
 			"🇦",
 			"🇧",
 			"🇨",
@@ -113,24 +116,27 @@ router.add("trivia", [], async (cmd: string, info) => {
 			"🇾",
 			"🇿"
 		];
-		let emojiSet =
+		const emojiSet =
 			triviaQuestion.type === "boolean"
 				? trueFalseEmojis
 				: multipleChoiceEmojis;
 
-		let choiceDetails: { name: string; emoji: string }[] = choices.map(
-			(choice, i) => ({ name: choice, emoji: emojiSet[i] })
-		);
-		let topPart = safe`Trivia
+		const choiceDetails: {
+			name: string;
+			emoji: string;
+		}[] = choices.map((choice, i) => ({
+			name: choice,
+			emoji: emojiSet[i]
+		}));
+		const topPart = safe`Trivia questions from <https://opentdb.com/>
 **Category**: ${decodeHTML(triviaQuestion.difficulty)}
 **Difficulty**: ${triviaQuestion.difficulty}`;
-		let resultMessage = await info.channel.send(
-			topPart +
-				`
+		const resultMessage = await info.channel.send(
+			`${topPart}
 > When the question appears, react with the correct answer before the time runs out.`
 		);
 
-		let playerAnswers: {
+		const playerAnswers: {
 			[id: string]: {
 				response: string;
 				reactionPile: Discord.MessageReaction;
@@ -138,35 +144,42 @@ router.add("trivia", [], async (cmd: string, info) => {
 			};
 		} = {};
 
-		let rxn = info.handleReactions(
+		let state = { state: "running" } as
+			| { state: "running" }
+			| { state: "over"; winners: string[] };
+
+		const rxn = info.handleReactions(
 			resultMessage,
 			async (reaction, user) => {
-				let choice = choiceDetails.find(
+				if (state.state !== "running") {
+					return;
+				}
+				const choice = choiceDetails.find(
 					c => c.emoji === reaction.emoji.name
 				);
 				if (!choice) {
 					await reaction.users.remove(user.id);
 					return;
 				}
-				let previousAnswer = playerAnswers[user.id];
-				if (previousAnswer) {
-					await previousAnswer.reactionPile.users.remove(user.id);
-				}
+				const previousAnswer = playerAnswers[user.id];
 				playerAnswers[user.id] = {
 					response: choice.name,
 					reactionPile: reaction,
 					time: new Date().getTime()
 				};
+				if (previousAnswer) {
+					await previousAnswer.reactionPile.users.remove(user.id);
+				}
 			}
 		);
 
-		for (let choice of choiceDetails) {
-			resultMessage.react(choice.emoji);
+		for (const choice of choiceDetails) {
+			await resultMessage.react(choice.emoji);
 		}
 
-		let startTime = new Date().getTime();
+		const startTime = new Date().getTime();
 
-		let updateResultMessage = () =>
+		const updateResultMessage = () =>
 			resultMessage.edit(
 				topPart +
 					safe`
@@ -179,20 +192,41 @@ ${raw(
 		})
 		.join("\n")
 )}
-**Time Left**: ${((startTime + 20000 - new Date().getTime()) / 1000).toFixed(
-						0
-					)}s`
+${raw(
+	state.state === "running"
+		? `**Time Left**: ${(
+				(startTime + 20000 - new Date().getTime()) /
+				1000
+		  ).toFixed(0)}s`
+		: `**Correct Answer**: ${safe`${decodeHTML(
+				triviaQuestion.correct_answer
+		  )}`}
+**Winners**: ${
+				state.winners.length === 0
+					? "*No one won*"
+					: state.winners.map(w => `<@${w}>`).join(", ")
+		  }`
+)}`
 			);
 
 		await updateResultMessage();
 
-		let doneTimer = setTimeout(() => rxn.end(), 20000);
-		let updateInterval = setInterval(() => updateResultMessage(), 3000);
+		const doneTimer = setTimeout(() => rxn.end(), 20000);
+		const updateInterval = setInterval(() => updateResultMessage(), 3000);
 
 		await rxn.done;
 
+		const winners: string[] = [];
+		Object.keys(playerAnswers).forEach(playerid => {
+			const playerAnswer = playerAnswers[playerid];
+			if (playerAnswer.response === triviaQuestion.correct_answer) {
+				winners.push(playerid);
+			}
+		});
 		clearTimeout(doneTimer);
 		clearInterval(updateInterval);
+		state = { state: "over", winners };
+		await updateResultMessage();
 	}
 });
 
