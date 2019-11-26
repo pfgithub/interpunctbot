@@ -6,7 +6,7 @@ import * as Discord from "discord.js";
 
 import Info from "../../Info";
 import { getURL } from "../speedrun";
-import { safe, raw } from "../../../messages";
+import { safe, raw, messages } from "../../../messages";
 import { DiscordAPIError } from "discord.js";
 
 const router = new Router<Info, any>();
@@ -122,6 +122,11 @@ const emojiOrderListMapArraySet = [
 router.add("trivia", [], async (cmd: string, info) => {
 	const apresult = await AP({ info, cmd });
 	if (!apresult) return;
+
+	if (info.db ? await info.db.getFunEnabled() : true) {
+	} else {
+		return await info.error(messages.fun.fun_disabled(info));
+	}
 
 	if (info.myChannelPerms) {
 		if (!info.myChannelPerms.has("ADD_REACTIONS")) {

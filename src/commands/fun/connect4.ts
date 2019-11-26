@@ -17,6 +17,7 @@ import { messages, safe, raw } from "../../../messages";
 import { serverStartTime } from "../../..";
 
 import Info from "../../Info";
+import { getPlayers } from "./checkers";
 
 const router = new Router<Info, any>();
 
@@ -249,64 +250,14 @@ router.add("connect4", [], async (cmd: string, info) => {
 
 	// ------------------------------------------------ wait for players to join
 
-	const startTime = new Date().getTime();
-
-	const playersInGame: string[] = [info.message.author.id];
-	{
-		const getJoinMessageText = () =>
-			`${info.message.author.toString()} has started a game of Connect 4 ${
-				theme["."]
-			}${theme.R}${theme.y} .
-> (${`${playersInGame.length}`}/${playerLimit}) ${playersInGame
-				.map(pl => `<@${pl}>`)
-				.join(", ")}
-> React <:j:${joinEmoji}> to join. (${`${60 -
-				Math.floor(
-					(new Date().getTime() - startTime) / 1000
-				)}`}s left)`;
-
-		const joinRequestMessage = await info.channel.send(
-			getJoinMessageText()
-		);
-
-		const updateMessage = () =>
-			joinRequestMessage.edit(getJoinMessageText());
-
-		const handleReactions = info.handleReactions(
-			joinRequestMessage,
-			async (reaction, user) => {
-				if (reaction.emoji.id !== joinEmoji) {
-					await reaction.users.remove(user);
-				}
-				if (playersInGame.length < playerLimit) {
-					if (playersInGame.indexOf(user.id) === -1) {
-						playersInGame.push(user.id);
-						if (playersInGame.length === playerLimit) {
-							// start game
-							handleReactions.end();
-						}
-					}
-				}
-			}
-		);
-
-		await joinRequestMessage.react(joinEmoji);
-
-		const interval = setInterval(async () => await updateMessage(), 3000);
-
-		const tempt = setTimeout(async () => {
-			await updateMessage();
-			handleReactions.end();
-		}, 60000);
-		await handleReactions.done;
-		clearTimeout(tempt);
-		clearInterval(interval);
-		await joinRequestMessage.delete();
-
-		if (playersInGame.length !== playerLimit) {
-			await info.error(`Not enough players to start game.`);
-			return;
-		}
+	const playersInGame = await getPlayers(
+		[info.message.author.id],
+		2,
+		"Connect 4",
+		info
+	);
+	if (!playersInGame) {
+		return;
 	}
 
 	// --------------------------------------------- start game
