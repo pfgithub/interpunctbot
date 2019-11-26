@@ -284,16 +284,19 @@ ${raw(
 
 		await rxn.done;
 
-		const winners: string[] = [];
+		const winners: { id: string; time: number }[] = [];
 		Object.keys(playerAnswers).forEach(playerid => {
 			const playerAnswer = playerAnswers[playerid];
 			if (playerAnswer.response === triviaQuestion.correct_answer) {
-				winners.push(playerid);
+				winners.push({ id: playerid, time: playerAnswer.time });
 			}
 		});
 		clearTimeout(doneTimer);
 		clearInterval(updateInterval);
-		state = { state: "over", winners };
+		state = {
+			state: "over",
+			winners: winners.sort((wa, wb) => wa.time - wb.time).map(q => q.id)
+		};
 		await updateResultMessage();
 	}
 });
