@@ -8,3 +8,4 @@ coverage
 yarn-error.log
 built
 dist
+.DS_Store
