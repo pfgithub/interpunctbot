@@ -577,6 +577,7 @@ router.add("checkers", [], async (cmd: string, info) => {
 	// winning game, 60s timeout
 	// after jumping should only be able to jump, not move normally
 	// should finish automatically if a jump has no possible spaces to jump to
+	// if a player can't move, skip their turn (tell them to press check to pass)
 });
 
 export default router;
