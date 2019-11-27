@@ -400,10 +400,12 @@ class Checkers {
 		] = undefined;
 		this.checkerPieces[move.y][move.x] = piece;
 		this.selectedPiece = { x: move.x, y: move.y };
+		let ignoreJump = false;
 		if (move.x === 0 || move.x === 7) {
+			if (!piece.alldirs) ignoreJump = true;
 			piece.alldirs = true;
 		}
-		if (move.jump) {
+		if (move.jump && !ignoreJump) {
 			this.checkerPieces[move.jump.y][move.jump.x] = undefined; // remove piece
 			this.clearMovementOverlay();
 			this.selectionsAvailable = "direction";
