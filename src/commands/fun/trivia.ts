@@ -254,7 +254,7 @@ router.add("trivia", [], async (cmd: string, info) => {
 ${raw(
 	choiceDetails
 		.map(({ name, emoji }) => {
-			return `${emoji} - ${safe`${decodeHTML(name)}`}`;
+			return `> ${emoji} - ${safe`${decodeHTML(name)}`}`;
 		})
 		.join("\n")
 )}
