@@ -309,6 +309,9 @@ class Checkers {
 		}
 		// if not, the piece may not exist.
 	}
+	// concept: getAvailableMoves
+	// then addArrows uses getAvailableMoves
+	// and so does movePiece
 	//eslint-disable-next-line complexity
 	addArrows(): number {
 		let validMoves = 0;
