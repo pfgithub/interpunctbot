@@ -310,9 +310,10 @@ class Checkers {
 		// if not, the piece may not exist.
 	}
 	//eslint-disable-next-line complexity
-	addArrows() {
+	addArrows(): number {
+		let validMoves = 0;
 		if (!this.selectedPiece) {
-			return;
+			return validMoves;
 		}
 		const pieceData = this.checkerPieces[this.selectedPiece.y][
 			this.selectedPiece.x
@@ -325,6 +326,7 @@ class Checkers {
 				if (this.selectionsAvailable === "direction" && !move.jump) {
 				} else {
 					this.movementOverlay[move.y][move.x] = "ul";
+					validMoves++;
 				}
 			}
 		}
@@ -335,6 +337,7 @@ class Checkers {
 				if (this.selectionsAvailable === "direction" && !move.jump) {
 				} else {
 					this.movementOverlay[move.y][move.x] = "dl";
+					validMoves++;
 				}
 			}
 		}
@@ -345,6 +348,7 @@ class Checkers {
 				if (this.selectionsAvailable === "direction" && !move.jump) {
 				} else {
 					this.movementOverlay[move.y][move.x] = "dr";
+					validMoves++;
 				}
 			}
 		}
@@ -355,9 +359,11 @@ class Checkers {
 				if (this.selectionsAvailable === "direction" && !move.jump) {
 				} else {
 					this.movementOverlay[move.y][move.x] = "ur";
+					validMoves++;
 				}
 			}
 		}
+		return validMoves;
 	}
 	movePiece(direction: Direction) {
 		if (
@@ -409,7 +415,10 @@ class Checkers {
 			this.checkerPieces[move.jump.y][move.jump.x] = undefined; // remove piece
 			this.clearMovementOverlay();
 			this.selectionsAvailable = "direction";
-			this.addArrows();
+			const addedArrowCount = this.addArrows();
+			if (addedArrowCount === 0) {
+				this.nextTurn();
+			}
 		} else {
 			this.nextTurn();
 		}
