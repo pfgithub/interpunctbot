@@ -10,6 +10,7 @@ import { serverStartTime } from "../../..";
 
 import connect4 from "./connect4";
 import trivia from "./trivia";
+import checkers from "./checkers";
 
 import { AP, a } from "../argumentparser";
 
@@ -73,6 +74,7 @@ router.add("fun", [Info.theirPerm.manageBot], async (cmd: string, info) => {
 
 router.add("", [], connect4);
 router.add("", [], trivia);
+router.add("", [], checkers);
 
 // ------------------- MINESWEEPER -----------------------
 
