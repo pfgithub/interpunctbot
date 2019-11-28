@@ -414,12 +414,12 @@ class Checkers {
 			if (!piece.alldirs) ignoreJump = true;
 			piece.alldirs = true;
 		}
-		if (move.jump && !ignoreJump) {
+		if (move.jump) {
 			this.checkerPieces[move.jump.y][move.jump.x] = undefined; // remove piece
 			this.clearMovementOverlay();
 			this.selectionsAvailable = "direction";
 			const addedArrowCount = this.addArrows();
-			if (addedArrowCount === 0) {
+			if (addedArrowCount === 0 || ignoreJump) {
 				this.nextTurn();
 			}
 		} else {
