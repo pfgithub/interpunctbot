@@ -91,7 +91,8 @@ const emojis = {
 		],
 		selected: "<:rs:649845890856517632>",
 		blank: "<:rt:649845888448987136>",
-		king: "<:rk:649845889065680926>"
+		king: "<:rk:649845889065680926>",
+		ghost: "<:rg:650110208441450506>"
 	},
 	black: {
 		pieces: [
@@ -110,7 +111,8 @@ const emojis = {
 		],
 		selected: "<:bs:649845888608370708>",
 		blank: "<:bt:649845888377815061>",
-		king: "<:bk:649845888780468244>"
+		king: "<:bk:649845888780468244>",
+		ghost: "<:bg:650110208349175814>"
 	},
 	board: {
 		white: "<:et:649845888709165066>",
@@ -177,6 +179,7 @@ class Checkers {
 	checkerPieces: (
 		| { color: "r" | "b"; number: number; alldirs: boolean }
 		| undefined)[][];
+	ghostOverlay!: ("rg" | "bg" | undefined)[][];
 	movementOverlay!: ("ul" | "ur" | "dl" | "dr" | undefined)[][];
 	currentPlayer: "r" | "b";
 	selectionsAvailable: "piece" | "piecedirection" | "direction";
