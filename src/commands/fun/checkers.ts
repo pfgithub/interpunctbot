@@ -372,15 +372,15 @@ class Checkers {
 		}
 	}
 	canMove(): boolean {
-		let canMove = true;
+		let availableMovesV = 0;
 		for (let i = 0; i < 12; i++) {
 			let piece = this.findPiece(i, this.currentPlayer);
 			if (piece) {
 				let availableMoves = this.getAvailableMoves(piece.x, piece.y);
-				if (availableMoves.length === 0) canMove = false;
+				availableMovesV += availableMoves.length;
 			}
 		}
-		return canMove;
+		return !!availableMovesV;
 	}
 	findPiece(number: number, color: "r" | "b") {
 		for (let y = 0; y < 8; y++) {
@@ -589,9 +589,9 @@ router.add("checkers", [], async (cmd: string, info) => {
 								: `<@${playersInGame[0]}>`
 					  }, your turn.${
 							game.statusMessage === "pressCheckToEndTurn"
-								? ` Press <:check:${emojis.interaction.done} to end your turn.`
+								? ` Press <:check:${emojis.interaction.done}> to end your turn.`
 								: game.statusMessage === "pressCheckToPassTurn"
-								? ` Press <:check:${emojis.interaction.done} to pass your turn.`
+								? ` Press <:check:${emojis.interaction.done}> to pass your turn.`
 								: ""
 					  }`
 					: "---"
@@ -626,6 +626,7 @@ router.add("checkers", [], async (cmd: string, info) => {
 		checkerPieceSelectionMessage,
 		async (reaction, user) => {
 			ilt(reaction.users.remove(user.id), "checkers remove reaction");
+			turnTimer.reset();
 			const expectedUser =
 				game.currentPlayer === "b"
 					? playersInGame[1]
@@ -633,7 +634,6 @@ router.add("checkers", [], async (cmd: string, info) => {
 			if (user.id !== expectedUser) {
 				return;
 			}
-			turnTimer.reset();
 			const pieceNum = emojis.interaction.pieces.indexOf(
 				reaction.emoji.id!
 			);
@@ -648,6 +648,7 @@ router.add("checkers", [], async (cmd: string, info) => {
 		directionSelectionMessage,
 		async (reaction, user) => {
 			ilt(reaction.users.remove(user.id), "checkers remove reaction");
+			turnTimer.reset();
 			const expectedUser =
 				game.currentPlayer === "b"
 					? playersInGame[1]
@@ -655,7 +656,6 @@ router.add("checkers", [], async (cmd: string, info) => {
 			if (user.id !== expectedUser) {
 				return;
 			}
-			turnTimer.reset();
 			const emid = reaction.emoji.id!;
 			if (emid === emojis.interaction.done) {
 				return game.completeTurn();
