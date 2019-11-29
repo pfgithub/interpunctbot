@@ -138,6 +138,16 @@ type CheckerTile =
 
 type Direction = [1, 1] | [1, -1] | [-1, -1] | [-1, 1];
 
+type MoveResult = {
+	x: number;
+	y: number;
+	jump?: {
+		x: number;
+		y: number;
+	};
+	direction: "ul" | "ur" | "dl" | "dr";
+};
+
 class Checkers {
 	checkerGrid: ("w" | "b")[][];
 	checkerPieces: (
@@ -244,19 +254,44 @@ class Checkers {
 	inBounds(x: number, y: number) {
 		return x >= 0 && x < 8 && y >= 0 && y < 8;
 	}
-	findMovePos(
-		x: number,
-		y: number,
-		dir: Direction
-	): { x: number; y: number; jump?: { x: number; y: number } } | undefined {
+	directionToDirectionString(
+		direction: Direction
+	): "ul" | "ur" | "dl" | "dr" {
+		if (direction[0] === -1) {
+			if (direction[1] === -1) return "ul";
+			return "dl";
+		}
+		if (direction[1] === -1) return "ur";
+		return "dr";
+	}
+	findMovePos(x: number, y: number, dir: Direction): MoveResult | undefined {
 		const moveCount = [...dir];
 		const [movedX, movedY] = [x + moveCount[0], y + moveCount[1]];
 		if (!this.inBounds(movedX, movedY)) {
 			return undefined;
 		}
+		const tileToMove = this.checkerPieces[y][x];
+		if (!tileToMove) {
+			return undefined;
+		}
+		if (
+			!(
+				(tileToMove.color === "b" && dir[0] === -1) ||
+				(tileToMove.color === "r" && dir[0] === 1) ||
+				tileToMove.alldirs
+			)
+		) {
+			// wrong direction
+			return undefined;
+		}
 		const tileInMovePos = this.checkerPieces[movedY][movedX];
 		if (!tileInMovePos) {
-			return { x: movedX, y: movedY };
+			if (this.selectionsAvailable === "direction") return undefined;
+			return {
+				x: movedX,
+				y: movedY,
+				direction: this.directionToDirectionString(dir)
+			};
 		}
 		if (tileInMovePos.color === this.currentPlayer) {
 			return undefined;
@@ -267,9 +302,24 @@ class Checkers {
 		}
 		const tileInJumpPos = this.checkerPieces[dmY][dmX];
 		if (!tileInJumpPos) {
-			return { x: dmX, y: dmY, jump: { x: movedX, y: movedY } };
+			return {
+				x: dmX,
+				y: dmY,
+				jump: { x: movedX, y: movedY },
+				direction: this.directionToDirectionString(dir)
+			};
 		}
 		return undefined;
+	}
+	getAvailableMoves(x: number, y: number): MoveResult[] {
+		let resultMoves: (MoveResult | undefined)[] = [];
+
+		resultMoves.push(this.findMovePos(x, y, [1, 1]));
+		resultMoves.push(this.findMovePos(x, y, [1, -1]));
+		resultMoves.push(this.findMovePos(x, y, [-1, -1]));
+		resultMoves.push(this.findMovePos(x, y, [-1, 1]));
+
+		return resultMoves.filter(rm => rm) as MoveResult[];
 	}
 	nextTurn() {
 		this.clearMovementOverlay();
@@ -317,59 +367,19 @@ class Checkers {
 	// and so does movePiece
 	//eslint-disable-next-line complexity
 	addArrows(): number {
-		let validMoves = 0;
 		if (!this.selectedPiece) {
-			return validMoves;
+			return 0;
 		}
 		const pieceData = this.checkerPieces[this.selectedPiece.y][
 			this.selectedPiece.x
 		]!;
-		// why do we do the same thing 4 times
-		if (pieceData.alldirs || pieceData.color === "b") {
-			const { x, y } = this.selectedPiece;
-			const move = this.findMovePos(x, y, [-1, -1]);
-			if (move) {
-				if (this.selectionsAvailable === "direction" && !move.jump) {
-				} else {
-					this.movementOverlay[move.y][move.x] = "ul";
-					validMoves++;
-				}
-			}
-		}
-		if (pieceData.alldirs || pieceData.color === "b") {
-			const { x, y } = this.selectedPiece;
-			const move = this.findMovePos(x, y, [-1, 1]);
-			if (move) {
-				if (this.selectionsAvailable === "direction" && !move.jump) {
-				} else {
-					this.movementOverlay[move.y][move.x] = "dl";
-					validMoves++;
-				}
-			}
-		}
-		if (pieceData.alldirs || pieceData.color === "r") {
-			const { x, y } = this.selectedPiece;
-			const move = this.findMovePos(x, y, [1, 1]);
-			if (move) {
-				if (this.selectionsAvailable === "direction" && !move.jump) {
-				} else {
-					this.movementOverlay[move.y][move.x] = "dr";
-					validMoves++;
-				}
-			}
-		}
-		if (pieceData.alldirs || pieceData.color === "r") {
-			const { x, y } = this.selectedPiece;
-			const move = this.findMovePos(x, y, [1, -1]);
-			if (move) {
-				if (this.selectionsAvailable === "direction" && !move.jump) {
-				} else {
-					this.movementOverlay[move.y][move.x] = "ur";
-					validMoves++;
-				}
-			}
-		}
-		return validMoves;
+
+		let moves = this.getAvailableMoves(this.selectedPiece.x, this.selectedPiece.y);
+
+		moves.forEach(move => {
+			this.movementOverlay[move.y][move.x] =move.direction;
+		})
+		return moves.length;
 	}
 	movePiece(direction: Direction) {
 		if (
