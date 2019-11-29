@@ -17,7 +17,7 @@ import { messages, safe, raw } from "../../../messages";
 import { serverStartTime } from "../../..";
 
 import Info from "../../Info";
-import { getPlayers } from "./checkers";
+import { getPlayers, createTimer } from "./checkers";
 
 const router = new Router<Info, any>();
 
@@ -297,7 +297,7 @@ router.add("connect4", [], async (cmd: string, info) => {
 			gameBoardMessage,
 			async (reaction, user) => {
 				await reaction.users.remove(user);
-				updateNoEventsTimeout();
+				gameTimer.reset();
 				if (laneEmojis.indexOf(reaction.emoji.id!) === -1) {
 					return; // invalid
 				}
@@ -310,26 +310,26 @@ router.add("connect4", [], async (cmd: string, info) => {
 			}
 		);
 
-		const createNoEventsTimeout = () => [
-			setTimeout(async () => {
-				game.end("Out of time (max 60s per turn)");
-			}, 60000),
-			setTimeout(async () => {
-				await info.message.channel.send(
-					`<@${
-						playersInGame[game.turnIndex]
-					}>, it's your turn in connect 4. ${
-						gameBoardMessage.url
-					}\n> If you don't play within 30s, the game will end. `
-				);
-			}, 30000)
-		];
-		let noEventsTimeout = createNoEventsTimeout();
-
-		const updateNoEventsTimeout = () => {
-			noEventsTimeout.forEach(net => clearTimeout(net));
-			noEventsTimeout = createNoEventsTimeout();
-		};
+		const gameTimer = createTimer(
+			[
+				60000,
+				async () => {
+					game.end("Out of time (max 60s per turn)");
+				}
+			],
+			[
+				30000,
+				async () => {
+					await info.message.channel.send(
+						`<@${
+							playersInGame[game.turnIndex]
+						}>, it's your turn in connect 4. ${
+							gameBoardMessage.url
+						}\n> If you don't play within 30s, the game will end. `
+					);
+				}
+			]
+		);
 
 		await updateGameBoard();
 
@@ -337,7 +337,7 @@ router.add("connect4", [], async (cmd: string, info) => {
 		game.onend = () => handleReactions.end();
 
 		await handleReactions.done;
-		noEventsTimeout.forEach(net => clearTimeout(net));
+		gameTimer.end();
 
 		await gameBoardMessage.reactions.removeAll();
 	}

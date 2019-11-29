@@ -12,6 +12,30 @@ import Info from "../../Info";
 
 const router = new Router<Info, any>();
 
+export function createTimer(
+	...timerSpecs: [number, () => Promise<void>][]
+): { reset: () => void; end: () => void } {
+	let timers: NodeJS.Timeout[] = [];
+	let endTimers = () => {
+		timers.forEach(timer => clearTimeout(timer));
+	};
+	let updateTimers = () => {
+		endTimers();
+		timerSpecs.forEach(([time, cb]) => {
+			timers.push(setTimeout(() => ilt(cb(), "timer"), time));
+		});
+	};
+	updateTimers();
+	return {
+		reset: () => {
+			updateTimers();
+		},
+		end: () => {
+			endTimers();
+		}
+	};
+}
+
 // 12x red pieces, 12x black pieces,
 // 1x selected red piece, selected black piece
 // full white square, full dark square,
@@ -159,6 +183,12 @@ class Checkers {
 	selectedPiece?: { x: number; y: number };
 	statusMessage: "" | "pressCheckToEndTurn" | "pressCheckToPassTurn" = "";
 	onupdate?: () => void;
+	onend?: () => void;
+	status:
+		| { status: "running" }
+		| { status: "winner"; reason: "won" | "timeout"; winner: "r" | "b" } = {
+		status: "running"
+	};
 	constructor() {
 		const r = (n: number) => ({
 			color: "r" as const,
@@ -194,6 +224,13 @@ class Checkers {
 		this.clearMovementOverlay();
 		this.currentPlayer = "r";
 		this.selectionsAvailable = "piece";
+	}
+	timeOut() {
+		this.status = {
+			status: "winner",
+			reason: "timeout",
+			winner: this.currentPlayer === "r" ? "b" : "r"
+		};
 	}
 	getGrid(): CheckerTile[][] {
 		const resArr: CheckerTile[][] = [];
@@ -561,6 +598,30 @@ router.add("checkers", [], async (cmd: string, info) => {
 			)
 		]);
 
+	const turnTimer = createTimer(
+		[
+			4 * 60 * 1000,
+			async () => {
+				// end game now
+				game.timeOut();
+			}
+		],
+		[
+			3.5 * 60 * 1000,
+			async () => {
+				await info.message.channel.send(
+					`${
+						game.currentPlayer === "b"
+							? `<@${playersInGame[1]}>`
+							: `<@${playersInGame[0]}>`
+					}, it's your turn in checkers. ${
+						checkerPieceSelectionMessage.url
+					}\n> If you don't play within 30s, the game will end and you will lose. `
+				);
+			}
+		]
+	);
+
 	const pcCol = info.handleReactions(
 		checkerPieceSelectionMessage,
 		async (reaction, user) => {
@@ -572,6 +633,7 @@ router.add("checkers", [], async (cmd: string, info) => {
 			if (user.id !== expectedUser) {
 				return;
 			}
+			turnTimer.reset();
 			const pieceNum = emojis.interaction.pieces.indexOf(
 				reaction.emoji.id!
 			);
@@ -593,6 +655,7 @@ router.add("checkers", [], async (cmd: string, info) => {
 			if (user.id !== expectedUser) {
 				return;
 			}
+			turnTimer.reset();
 			const emid = reaction.emoji.id!;
 			if (emid === emojis.interaction.done) {
 				return game.completeTurn();
@@ -618,16 +681,23 @@ router.add("checkers", [], async (cmd: string, info) => {
 	game.onupdate = () => {
 		ilt(update(), "checkers game update");
 	};
+	game.onend = () => {
+		turnTimer.end();
+
+		pcCol.end();
+		dcCol.end();
+	};
 
 	await update();
 
 	await Promise.all([pcCol.done, dcCol.done]);
 
+	info.message.channel.send("game is over. wip message.");
+
+	// game over
+
 	// REMAINING TODO:
-	// winning game, 60s timeout
-	// after jumping should only be able to jump, not move normally
-	// should finish automatically if a jump has no possible spaces to jump to
-	// if a player can't move, skip their turn (tell them to press check to pass)
+	// winning game, 4m timeout
 });
 
 export default router;
