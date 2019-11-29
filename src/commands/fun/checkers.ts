@@ -157,6 +157,7 @@ class Checkers {
 	currentPlayer: "r" | "b";
 	selectionsAvailable: "piece" | "piecedirection" | "direction";
 	selectedPiece?: { x: number; y: number };
+	statusMessage: "" | "pressCheckToEndTurn" | "pressCheckToPassTurn" = "";
 	onupdate?: () => void;
 	constructor() {
 		const r = (n: number) => ({
@@ -326,6 +327,38 @@ class Checkers {
 		this.selectedPiece = undefined;
 		this.currentPlayer = this.currentPlayer === "b" ? "r" : "b";
 		this.selectionsAvailable = "piece";
+		this.statusMessage = "";
+
+		// check if player has moves available
+		if (!this.canMove()) {
+			this.statusMessage = "pressCheckToPassTurn";
+		}
+	}
+	canMove(): boolean {
+		let canMove = true;
+		for (let i = 0; i < 12; i++) {
+			let piece = this.findPiece(i, this.currentPlayer);
+			if (piece) {
+				let availableMoves = this.getAvailableMoves(piece.x, piece.y);
+				if (availableMoves.length === 0) canMove = false;
+			}
+		}
+		return canMove;
+	}
+	findPiece(number: number, color: "r" | "b") {
+		for (let y = 0; y < 8; y++) {
+			for (let x = 0; x < 8; x++) {
+				const checkerHere = this.checkerPieces[y][x];
+				if (
+					checkerHere &&
+					checkerHere.color === color &&
+					checkerHere.number === number
+				) {
+					return { x, y, checkerHere };
+				}
+			}
+		}
+		return undefined;
 	}
 	selectPiece(number: number) {
 		if (
@@ -336,21 +369,7 @@ class Checkers {
 		}
 
 		this.clearMovementOverlay();
-		this.selectedPiece = undefined;
-
-		// find piece
-		for (let y = 0; y < 8; y++) {
-			for (let x = 0; x < 8; x++) {
-				const checkerHere = this.checkerPieces[y][x];
-				if (
-					checkerHere &&
-					checkerHere.color === this.currentPlayer &&
-					checkerHere.number === number
-				) {
-					this.selectedPiece = { y, x };
-				}
-			}
-		}
+		this.selectedPiece = this.findPiece(number, this.currentPlayer);
 
 		if (this.selectedPiece) {
 			// add arrows
@@ -374,11 +393,14 @@ class Checkers {
 			this.selectedPiece.x
 		]!;
 
-		let moves = this.getAvailableMoves(this.selectedPiece.x, this.selectedPiece.y);
+		let moves = this.getAvailableMoves(
+			this.selectedPiece.x,
+			this.selectedPiece.y
+		);
 
 		moves.forEach(move => {
-			this.movementOverlay[move.y][move.x] =move.direction;
-		})
+			this.movementOverlay[move.y][move.x] = move.direction;
+		});
 		return moves.length;
 	}
 	movePiece(direction: Direction) {
@@ -402,18 +424,6 @@ class Checkers {
 		if (!move) {
 			return; // no
 		}
-		if (piece1.alldirs) {
-		} else {
-			if (piece1.color === "r" && direction[0] === -1) {
-				return;
-			}
-			if (piece1.color === "b" && direction[0] === 1) {
-				return;
-			}
-		}
-		if (this.selectionsAvailable === "direction" && !move.jump) {
-			return;
-		}
 		const piece = this.checkerPieces[this.selectedPiece.y][
 			this.selectedPiece.x
 		]!;
@@ -422,17 +432,18 @@ class Checkers {
 		] = undefined;
 		this.checkerPieces[move.y][move.x] = piece;
 		this.selectedPiece = { x: move.x, y: move.y };
-		let ignoreJump = false;
+		let endTurn = false;
 		if (move.x === 0 || move.x === 7) {
-			if (!piece.alldirs) ignoreJump = true;
+			if (!piece.alldirs) endTurn = true;
 			piece.alldirs = true;
 		}
 		if (move.jump) {
 			this.checkerPieces[move.jump.y][move.jump.x] = undefined; // remove piece
 			this.clearMovementOverlay();
 			this.selectionsAvailable = "direction";
+			this.statusMessage = "pressCheckToEndTurn";
 			const addedArrowCount = this.addArrows();
-			if (addedArrowCount === 0 || ignoreJump) {
+			if (addedArrowCount === 0 || endTurn) {
 				this.nextTurn();
 			}
 		} else {
@@ -444,6 +455,12 @@ class Checkers {
 		if (this.selectionsAvailable === "direction") {
 			this.nextTurn();
 			this.emit();
+			return;
+		}
+		if (!this.canMove()) {
+			this.nextTurn();
+			this.emit();
+			return;
 		}
 	}
 	emit() {
@@ -533,7 +550,13 @@ router.add("checkers", [], async (cmd: string, info) => {
 							game.currentPlayer === "b"
 								? `<@${playersInGame[1]}>`
 								: `<@${playersInGame[0]}>`
-					  }, your turn.`
+					  }, your turn.${
+							game.statusMessage === "pressCheckToEndTurn"
+								? ` Press <:check:${emojis.interaction.done} to end your turn.`
+								: game.statusMessage === "pressCheckToPassTurn"
+								? ` Press <:check:${emojis.interaction.done} to pass your turn.`
+								: ""
+					  }`
 					: "---"
 			)
 		]);
