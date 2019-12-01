@@ -54,7 +54,7 @@ const goilevels: { [key: string]: LevelSpec } = {
 			[ge.left]: [
 				"*You pogo into the water and die. You are back at the beginning*"
 			],
-			[ge.up]: ["*You pogoed up and fell back down*"],
+			[ge.up]: ["*You pogo up and fall back down*"],
 			[ge.right]: [
 				"*You try to reach the first branch of the tree but fall back down*",
 				"*You make it up to the first branch of the tree, but fall down*",
