@@ -11,7 +11,7 @@ import { getPlayers, createTimer } from "./checkers";
 
 const router = new Router<Info, any>();
 
-let ge = {
+const ge = {
 	skyg: "<:SkyGreen:650520232355692544>",
 	sand: "<:Sand:650519965950279684>",
 	normalcharacter: "<:normalpot:407696469722791937>",
@@ -37,7 +37,7 @@ type LevelSpec = {
 	go: { [emoji: string]: GoDirectionSpec };
 };
 
-let goilevels: { [key: string]: LevelSpec } = {
+const goilevels: { [key: string]: LevelSpec } = {
 	tree: {
 		text: {
 			template: ["ssss", "sgpt", "wfff"],
@@ -156,42 +156,43 @@ router.add("goi", [], async (cmd: string, info) => {
 	if (info.myChannelPerms) {
 		if (!info.myChannelPerms.has("USE_EXTERNAL_EMOJIS")) {
 			return await info.error(
-				"I need permission to `use external emojis` here to play checkers\n> https://interpunct.info/help/fun/connect4"
+				"I need permission to `use external emojis` here to play goi\n> https://interpunct.info/help/fun/goi"
 			);
 		}
 		if (!info.myChannelPerms.has("ADD_REACTIONS")) {
 			return await info.error(
-				"I need permission to `add reactions` here to play checkers\n> https://interpunct.info/help/fun/connect4"
+				"I need permission to `add reactions` here to play goi\n> https://interpunct.info/help/fun/goi"
 			);
 		}
 		if (!info.myChannelPerms.has("MANAGE_MESSAGES")) {
 			return await info.error(
-				"I need permission to `manage messages` here to remove people's reactions in checkers\n> https://interpunct.info/help/fun/connect4"
+				"I need permission to `manage messages` here to remove people's reactions in goi\n> https://interpunct.info/help/fun/goi"
 			);
 		}
 	}
 
-	let gamemsg = await info.message.channel.send("Setting up game...");
+	const gamemsg = await info.message.channel.send("Setting up game...");
 
 	let level = "tree";
 	await gamemsg.react(ge.left);
 	await gamemsg.react(ge.up);
 	await gamemsg.react(ge.right);
 
-	let events: string[] = [];
+	const events: string[] = [];
 	let eventIndex = 1;
 
 	let isUpdating = false;
 	let postUpdate: ((q: boolean) => void)[] = [];
-	let updateMessage = async () => {
+	const updateMessage = async () => {
 		if (isUpdating) {
 			postUpdate.forEach(v => v(false));
 			postUpdate = [];
-			let v = await new Promise(r => postUpdate.push(r));
+			const v = await new Promise(r => postUpdate.push(r));
 			if (!v) {
 				return;
 			}
 		}
+		//eslint-disable-next-line require-atomic-updates
 		isUpdating = true;
 		await gamemsg.edit(`**Getting Over It with Bennett Foddy**
 ${
@@ -208,19 +209,20 @@ ${
 						.join("")
 				)
 				.join("\n")
-		: "404! Level `" + level + "` not found!"
-}${events.map((ev, i) => "\n" + ev).join("")}`);
+		: `404! Level \`${  level  }\` not found!`
+}${events.map((ev, i) => `\n${  ev}`).join("")}`);
+		//eslint-disable-next-line require-atomic-updates
 		isUpdating = false;
 		postUpdate.forEach(v => v(true));
 	};
-	let addEvent = (event: string) => {
-		events.push(eventIndex++ + " - " + event);
+	const addEvent = (event: string) => {
+		events.push(`${eventIndex++  } - ${  event}`);
 		if (events.length > 5) {
 			events.shift();
 		}
 	};
-	let doAction = (actions: GoDirectionSpec, depth = 0): void => {
-		let action = actions[Math.floor(Math.random() * actions.length)];
+	const doAction = (actions: GoDirectionSpec, depth = 0): void => {
+		const action = actions[Math.floor(Math.random() * actions.length)];
 		if (typeof action === "string") {
 			return addEvent(action);
 		}
@@ -230,19 +232,19 @@ ${
 		addEvent(action.message);
 		level = action.goto;
 	};
-	let timer = createTimer([
+	const timer = createTimer([
 		60000,
 		async () => {
 			rh.end();
 		}
 	]);
-	let rh = info.handleReactions(gamemsg, async (rxns, user) => {
+	const rh = info.handleReactions(gamemsg, async (rxns, user) => {
 		timer.reset();
 		if (user.id !== info.message.author.id) {
 			return;
 		}
 		ilt(rxns.users.remove(user.id), "remove reaction in goi");
-		let emov = rxns.emoji.name;
+		const emov = rxns.emoji.name;
 		if (!goilevels[level]) {
 			return;
 		}

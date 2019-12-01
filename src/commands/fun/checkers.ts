@@ -15,11 +15,11 @@ const router = new Router<Info, any>();
 export function createTimer(
 	...timerSpecs: [number, () => Promise<void>][]
 ): { reset: () => void; end: () => void } {
-	let timers: NodeJS.Timeout[] = [];
-	let endTimers = () => {
+	const timers: NodeJS.Timeout[] = [];
+	const endTimers = () => {
 		timers.forEach(timer => clearTimeout(timer));
 	};
-	let updateTimers = () => {
+	const updateTimers = () => {
 		endTimers();
 		timerSpecs.forEach(([time, cb]) => {
 			timers.push(setTimeout(() => ilt(cb(), "timer"), time));
@@ -178,7 +178,8 @@ class Checkers {
 	checkerGrid: ("w" | "b")[][];
 	checkerPieces: (
 		| { color: "r" | "b"; number: number; alldirs: boolean }
-		| undefined)[][];
+		| undefined
+	)[][];
 	ghostOverlay!: ("rg" | "bg" | undefined)[][];
 	movementOverlay!: ("ul" | "ur" | "dl" | "dr" | undefined)[][];
 	currentPlayer: "r" | "b";
@@ -353,7 +354,7 @@ class Checkers {
 		return undefined;
 	}
 	getAvailableMoves(x: number, y: number): MoveResult[] {
-		let resultMoves: (MoveResult | undefined)[] = [];
+		const resultMoves: (MoveResult | undefined)[] = [];
 
 		resultMoves.push(this.findMovePos(x, y, [1, 1]));
 		resultMoves.push(this.findMovePos(x, y, [1, -1]));
@@ -377,9 +378,9 @@ class Checkers {
 	canMove(): boolean {
 		let availableMovesV = 0;
 		for (let i = 0; i < 12; i++) {
-			let piece = this.findPiece(i, this.currentPlayer);
+			const piece = this.findPiece(i, this.currentPlayer);
 			if (piece) {
-				let availableMoves = this.getAvailableMoves(piece.x, piece.y);
+				const availableMoves = this.getAvailableMoves(piece.x, piece.y);
 				availableMovesV += availableMoves.length;
 			}
 		}
@@ -433,7 +434,7 @@ class Checkers {
 			this.selectedPiece.x
 		]!;
 
-		let moves = this.getAvailableMoves(
+		const moves = this.getAvailableMoves(
 			this.selectedPiece.x,
 			this.selectedPiece.y
 		);
