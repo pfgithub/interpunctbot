@@ -144,6 +144,16 @@ const goilevels: { [key: string]: LevelSpec } = {
 			],
 			[ge.right]: ["*You run into the wall*"]
 		}
+	},
+	paddle: {
+		text: {
+			template: ["", "ap", ""],
+			v: {
+				a: "This level is not implemented yet!",
+				p: "player"
+			}
+		},
+		go: {}
 	}
 };
 
