@@ -10,6 +10,7 @@ import { serverStartTime, ilt } from "../../..";
 
 import connect4 from "./connect4";
 import trivia from "./trivia";
+import goi from "./goi";
 import checkers, { createTimer } from "./checkers";
 
 import { AP, a } from "../argumentparser";
@@ -76,6 +77,7 @@ router.add("fun", [Info.theirPerm.manageBot], async (cmd: string, info) => {
 
 router.add("", [], connect4);
 router.add("", [], trivia);
+router.add("", [], goi);
 router.add("", [], checkers);
 
 // ------------------- MINESWEEPER -----------------------
@@ -90,52 +92,6 @@ router.add("", [], checkers);
 // well as batching together groups of mines so they aren't all over the place.
 
 // Or code golf it instead. Maybe the code will be more readable.
-
-router.add("goi", [], async (cmd: string, info) => {
-	if (info.db ? await info.db.getFunEnabled() : true) {
-	} else {
-		return info.error(messages.fun.fun_disabled(info));
-	}
-
-	let gamemsg = await info.message.channel.send("Setting up game...");
-	let events: string[] =[];
-	let eventIndex =1;
-	let [,left,up,right] = "|⬅️|⬆️|➡️|".split("|")
-	await gamemsg.react(left);
-	await gamemsg.react(up);
-	await gamemsg.react(right);
-	let updateMessage = async () => {
-		await gamemsg.edit(`Getting Over It with Bennett Foddy
-🟦🟦🟦 
-🌲<:normalpot:407696469722791937><:tree:413755772850143243>
-🟨🟨🟨${events.map((ev, i) => "\n" + ev).join("")}`);
-	}
-	let addEvent =(event: string) => {
-		events.push((eventIndex++) + " - " + event);
-		if(events.length > 5){
-			events.shift();
-		}
-	}
-	let timer = createTimer([60000, async () => {
-		rh.end();
-	}])
-	let rh = info.handleReactions(gamemsg, async (rxns, user) => {
-		ilt(rxns.users.remove(user.id), "remove reaction in goi");
-		timer.reset();
-		if(rxns.emoji.name === left){
-			addEvent("*You pogoed into the water and died. You are back at the beginning*");
-		}else if(rxns.emoji.name === up){
-			addEvent("*You pogoed up and fell back down*");
-		}else if(rxns.emoji.name === right){
-			addEvent("*You tried (and failed) to get over the tree. You fell back to where you started*");
-		}
-		await updateMessage();
-	});
-	await updateMessage();
-	await rh.done;
-	addEvent("Game over :(");
-	await updateMessage();
-})
 
 router.add("minesweeper", [], async (cmd: string, info) => {
 	if (info.db ? await info.db.getFunEnabled() : true) {
