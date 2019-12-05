@@ -38,6 +38,49 @@ but how do you differentiate between emoji name and role name?
 
 */
 
+/*
+
+concept command parser:
+
+command.add("command.help", command => {
+	const helpPath = command.args
+		.toLowerCase()
+		.replace(/[^A-Za-z0-9\.\s]/g, "_")
+		.split(/\s/);
+	const helpMessage = await ilt(fs.readFile(
+		path.join("../../docgen/dist/discord/help", ...helpPath)
+	));
+	if(helpMessage.error){
+		return await info.error("help.page.not.found",helpPath)
+	}
+});
+
+command.add("set", (command) => {
+	let guildData = new GuildDataStore(guild);
+	await guildData.fetch();
+	if(command.isEnter("prefix")){
+		let prefix = command.args.trim();
+		if(!prefix) return await info.error("prefix.invalid.or.not.provided");
+		await guildData.setPrefix(prefix);
+		return await info.success("prefix.set", prefix);
+	}
+	if(command.isEnter("logging")){
+		let parse = command.parse(a.boolean("")); // commmand knows that the path is `set logging` so it can point you to `help set logging` and `/help/set/logging`
+		if(!parse) return;
+		let [setTo] = parse;
+		await guildData.setLogging(setTo);
+		return await info.success("logging.set", setTo);
+	}
+	return await info.error("command.not.found", "/help/set")
+})
+
+
+*/
+
+// class ArgumentType {
+// 	parse(text: string): { text: string } | undefined {}
+// }
+
 export const a = {
 	emoji(validator?: EmojiArgType["validator"]): EmojiArgType {
 		return { type: "emoji", validator };
