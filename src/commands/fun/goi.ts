@@ -101,7 +101,7 @@ const goilevels: { [key: string]: LevelSpec } = {
 				},
 				{
 					message:
-						"*You fling yourself over the rock with great frce*",
+						"*You fling yourself over the rock with great force*",
 					goto: "paddle",
 					rerollChance: 0.75
 				}

@@ -14,6 +14,30 @@ export type NumberArgType = BaseArgType<"number", number>;
 export type WordsArgType = BaseArgType<"words...", string>;
 export type RoleArgType = BaseArgType<"role...", Discord.Role>;
 
+/*
+
+goal for taglist:
+
+difficulty=[easy, medium, hard]
+type=[multiple, question]
+category=[History, ...]
+size=/()x()/
+
+so you could use the command like
+ip!minesweeper easy 5x5
+or like
+ip!minesweeper difficulty=easy size=5x5
+
+goal for arguments in general:
+ip!emoji restrict :emoji: @role
+ip!emoji restrict :emoji: 1904821394
+ip!emoji restrict 5438725489 1904821394
+ip!emoji restrict emoji name role name
+
+but how do you differentiate between emoji name and role name?
+
+*/
+
 export const a = {
 	emoji(validator?: EmojiArgType["validator"]): EmojiArgType {
 		return { type: "emoji", validator };
