@@ -1,5 +1,8 @@
 // bad code alert
 
+// !!!!! ADDITIONAL RULE:
+// !!!!! IF YOU CAN JUMP YOU MUST
+
 import Router from "commandrouter";
 import { AP, a } from "../argumentparser";
 import * as moment from "moment";
