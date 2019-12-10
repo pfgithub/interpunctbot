@@ -2,6 +2,7 @@
 
 // !!!!! ADDITIONAL RULE:
 // !!!!! IF YOU CAN JUMP YOU MUST
+// !!!!! = THAT INCLUDES MULTI JUMPS
 
 import Router from "commandrouter";
 import { AP, a } from "../argumentparser";
