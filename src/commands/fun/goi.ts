@@ -30,7 +30,8 @@ const ge = {
 
 type GoDirectionSpec = (
 	| string
-	| { message: string; goto: string; rerollChance: number })[];
+	| { message: string; goto: string; rerollChance: number }
+)[];
 
 type LevelSpec = {
 	text: { template: string[]; v: { [key: string]: string } };
@@ -153,7 +154,23 @@ const goilevels: { [key: string]: LevelSpec } = {
 				p: "player"
 			}
 		},
-		go: {}
+		go: {
+			[ge.left]: [
+				{
+					message: "You fall back down to the basin",
+					rerollChance: 0,
+					goto: "basin"
+				},
+				{
+					message:
+						"You fling yourself off the paddle with great force",
+					rerollChance: 0.75,
+					goto: "rock"
+				}
+			],
+			[ge.up]: ["*you go up*"],
+			[ge.right]: ["*you go right*"]
+		}
 	}
 };
 
@@ -219,14 +236,14 @@ ${
 						.join("")
 				)
 				.join("\n")
-		: `404! Level \`${  level  }\` not found!`
-}${events.map((ev, i) => `\n${  ev}`).join("")}`);
+		: `404! Level \`${level}\` not found!`
+}${events.map((ev, i) => `\n${ev}`).join("")}`);
 		//eslint-disable-next-line require-atomic-updates
 		isUpdating = false;
 		postUpdate.forEach(v => v(true));
 	};
 	const addEvent = (event: string) => {
-		events.push(`${eventIndex++  } - ${  event}`);
+		events.push(`${eventIndex++} - ${event}`);
 		if (events.length > 5) {
 			events.shift();
 		}
