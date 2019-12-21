@@ -145,7 +145,7 @@ export async function ChannelArgumentParser(
 		await info.error(messages.failure.command_cannot_be_used_in_pms(info));
 		return { result: "exit" };
 	}
-	const match = cmd.match(/^[\S\s]*?([0-9]{14,})[^\s]*?\s*([\S\s]*)$/);
+	const match = cmd.match(/^[\S\s]*?([0-9]{14,})[^\s]*\s*([\S\s]*)$/);
 	if (!match) {
 		await info.error(
 			messages.arguments.channel_arg_not_provided(
@@ -501,6 +501,7 @@ export async function ArgumentParser<
 	}
 	if (cmd.trim()) {
 		// extra arguments
+		console.log("MISSING", cmd);
 		await info.error(
 			`This command only takes ${schema.length} arguments, but you gave ${index} arguments` // !!!!!!! str->messages
 		);

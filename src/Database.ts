@@ -12,7 +12,8 @@ type GuildData = { [key in keyof Fields]?: Fields[key] };
 const cache: { [key: string]: GuildData } = {};
 const shouldCache: { [ey: string]: boolean | undefined } = {
 	prefix: true,
-	logging: true
+	logging: true,
+	rankmojiChannel: true
 };
 
 function tryParse<T>(json: string | undefined, defaultValue: T): T {
@@ -42,6 +43,7 @@ type Fields = {
 	goodbye?: string;
 	// pmonfailure?: string;
 	funEnabled?: string;
+	rankmojiChannel: string;
 };
 
 type JSONFields = {
@@ -166,6 +168,12 @@ class Database {
 	}
 	async setPrefix(newPrefix: string) {
 		await this._set("prefix", newPrefix);
+	}
+	async getEmojiRankChannel(): Promise<string | undefined> {
+		return (await this._get(`rankmojiChannel`)) || "";
+	}
+	async setEmojiRankChannel(newChannel: string) {
+		await this._set("rankmojiChannel", newChannel);
 	}
 	async getLists(): Promise<ListsField> {
 		const quoteList = await this._get(`quotes`);

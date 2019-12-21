@@ -190,4 +190,70 @@ router.add(
 	}
 );
 
+router.add("emoji", [Info.theirPerm.manageBot], async (cmd, info, next) => {
+	// catchall. show emojirank commands:
+	return await info.error(
+		"`ip!help emoji` https://interpunct.info/help/emoji"
+	);
+});
+
+router.add(
+	"quickrank channel",
+	[Info.theirPerm.manageBot],
+	async (cmd, info, next) => {
+		const ap = await AP({ info, cmd }, a.channel());
+		if (!ap) {
+			return;
+		}
+		const [channel] = ap;
+		if (!info.db) {
+			return await info.error(
+				messages.failure.command_cannot_be_used_in_pms(info)
+			);
+		}
+		await info.db.setEmojiRankChannel(channel.id);
+		await info.success(`Set rank emoji channel to <#${channel.id}>
+**IF**［*hasRankmojiSetup*］: Try it out by reacting with [one of the set up emojis]
+**IF**［*doesNotHaveRankmojiSetup*］: Add some emojis to rank people: \`${info.prefix}emojirank add :emoji: @Role\``);
+	}
+);
+
+/*
+emoji role dependson
+quickrank emoji, role[]
+
+ip!quickrank add :sub-4: @Sub-4 @Sub-5 @Sub-10 @Sub-15 @Sub-20
+// update the ipscript on the server
+// on quickrank :emoji: (#channel, @user)
+// give @user @role
+// give @user @role
+// send #channel (message: "ranked.with", @role, @role)
+ip!ipscript // web interface for editing ipscript
+*/
+
+// router.add(
+// 	"quickrank add",
+// 	[Info.theirPerm.manageBot],
+// 	async (cmd, info, next) => {
+// 		const ap = await AP(
+// 			{ info, cmd },
+// 			// a.enum("for=everyone", "for=admins"),
+// 			a.emoji(),
+// 			...a.role()
+// 		);
+// 		if (!ap) return;
+// 		const [emoji, role] = ap;
+// 		// todo allow builtin emojis
+// 		// db.ipscript.events.find(event => event.type === "quickrank" && event.emoji === emoji)
+// 		// if(found), add
+// 	}
+// );
+//
+// router.add("quickrank", [Info.theirPerm.manageBot], async (cmd, info, next) => {
+// 	// catchall. show emojirank commands:
+// 	return await info.error(
+// 		"`ip!help emojirank` https://interpunct.info/help/quickrank"
+// 	);
+// });
+
 export default router;
