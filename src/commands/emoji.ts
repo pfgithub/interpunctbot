@@ -5,7 +5,7 @@ import * as Discord from "discord.js";
 import { AP, a } from "./argumentparser";
 import { messages } from "../../messages";
 
-const router = new Router<Info, any>();
+const router = new Router<Info, Promise<any>>();
 
 function roleNameMatch(rolename: string, message: string) {
 	const rn = rolename.trim().toLowerCase();

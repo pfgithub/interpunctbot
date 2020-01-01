@@ -2,7 +2,7 @@ import { Message, Guild, Channel, GuildChannel, TextChannel } from "discord.js";
 import Router from "commandrouter";
 import Info from "../Info";
 import { ilt } from "../..";
-const router = new Router<Info, any>();
+const router = new Router<Info, Promise<any>>();
 import { messages } from "../../messages";
 import { AP, a } from "./argumentparser";
 
@@ -256,6 +256,53 @@ router.add(
 				successChannels,
 				failureChannels
 			)
+		);
+	}
+);
+
+/*
+@CommandDocumentation /help/channels/slowmode
+
+## Slow Mode
+
+## {{Emoji|admins}} Enable Slowmode
+
+: {{Command|channel slowmode set {{Required|seconds}} {{Enum|seconds|minutes|hours|days}} {{Required|{{Channel|channel}}}}}}
+: {{Command|channel slowmode disable {{Required|{{Channel|channel}}}}
+: Set slowmode on {{Channel|channel}} to some number of seconds.
+Command: channel slowmode set 2 seconds #general
+Output: @you, {{Emoji|success}} Slowmode for {{Channel|channel}} set to 2 seconds.
+
+*/
+
+router.add(
+	"channel slowmode set",
+	[Info.theirPerm.manageChannels],
+	async (cmd, info) => {
+		const apresult = await AP(
+			{ info, cmd },
+			a.number(),
+			a.word() /*a.enum("seconds", "second")*/,
+			a.channel()
+		);
+		if (!apresult) return;
+		const [time, unit, channel] = apresult;
+
+		const guild = info.guild;
+		if (!guild) {
+			return await info.error(
+				messages.failure.command_cannot_be_used_in_pms(info)
+			);
+		}
+
+		if (!(channel instanceof TextChannel)) {
+			return await info.error(
+				"Slowmode can only be set on text channels."
+			);
+		}
+		await channel.setRateLimitPerUser(time);
+		return await info.success(
+			`Slowmode for ${channel.toString()} set to ${time} seconds.` // should use moment formatting
 		);
 	}
 );

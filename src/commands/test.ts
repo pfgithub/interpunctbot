@@ -4,7 +4,7 @@ import Info from "../Info";
 
 import { AP, a } from "./argumentparser";
 
-const router = new Router<Info, any>();
+const router = new Router<Info, Promise<any>>();
 
 router.add("test", [], async (cmd: string, info) => {
 	const pa = await AP({ info, cmd }, a.emoji(), ...a.role());

@@ -6,7 +6,7 @@ import Info from "../Info";
 import { messages } from "../../messages";
 import { ilt } from "../..";
 
-const router = new Router<Info, any>();
+const router = new Router<Info, Promise<any>>();
 
 router.add("download", [], async (cmd, info) => {
 	if (!info.db || !info.guild) {

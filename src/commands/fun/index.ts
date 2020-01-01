@@ -3,7 +3,7 @@ import * as moment from "moment";
 
 import Info from "../../Info";
 
-const router = new Router<Info, any>();
+const router = new Router<Info, Promise<any>>();
 
 import { messages } from "../../../messages";
 import { serverStartTime, ilt } from "../../..";

@@ -1,7 +1,7 @@
 import MB from "../MessageBuilder";
 import Router from "commandrouter";
 import Info from "../Info";
-const router = new Router<Info, any>();
+const router = new Router<Info, Promise<any>>();
 
 router.add([], async (cmd, info) => {
 	const prefix = info.db ? await info.db.getPrefix() : undefined;

@@ -14,7 +14,7 @@ import { serverStartTime, ilt } from "../../..";
 
 import Info from "../../Info";
 
-const router = new Router<Info, any>();
+const router = new Router<Info, Promise<any>>();
 
 export function createTimer(
 	...timerSpecs: [number, () => Promise<void>][]

@@ -341,7 +341,12 @@ ${emoji.roles
 > **Support Server**: <https://interpunct.info/support>
 > **About this Error**: <https://interpunct.info/command-must-use-pms>`,
 		generic_internal_error: (info: Info, errorCode: string) =>
-			`An internal error occured while running the command.
+			`An internal error occured while running this command.
+For help, ask on the support server with your error code \`${errorCode}\`
+> **Support Server**: <https://interpunct.info/support>
+> **Error Code**: \`${errorCode}\``,
+		missing_permissions_internal_error: (info: Info, errorCode: string) =>
+			`${info.atme} does not have some of the permissions it needs to run this command.
 For help, ask on the support server with your error code \`${errorCode}\`
 > **Support Server**: <https://interpunct.info/support>
 > **Error Code**: \`${errorCode}\``,

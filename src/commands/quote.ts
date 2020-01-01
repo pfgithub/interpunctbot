@@ -6,7 +6,7 @@ import Router from "commandrouter";
 import Info from "../Info";
 import { messages } from "../../messages";
 
-const router = new Router<Info, any>();
+const router = new Router<Info, Promise<any>>();
 
 function escapeMarkdown(text: string) {
 	const unescaped = text.replace(/\\(\*|_|`|~|\\)/g, "$1"); // unescape any "backslashed" character // why is this required?
@@ -120,7 +120,7 @@ ${quoteFull
 	.join("\n")}
 ${line + 1}/${allQuotes.length}`);
 }
-const settingsRouter = new Router<Info, any>();
+const settingsRouter = new Router<Info, Promise<any>>();
 router.add([], settingsRouter);
 
 settingsRouter.add(
@@ -255,7 +255,7 @@ router.add([], async (cmd, info, next) => {
 	const lists = await info.db.getLists(); // TODO info.db.lists
 	const listNames = Object.keys(lists);
 	// Here we create a new router and add all the lists to it
-	const listRouter = new Router<Info, any>();
+	const listRouter = new Router<Info, Promise<any>>();
 	listNames.forEach(listName =>
 		listRouter.add(listName, [], (c, i) =>
 			handleList(listName, lists[listName], c, i)

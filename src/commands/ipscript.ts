@@ -2,7 +2,7 @@ import * as Discord from "discord.js";
 import MB from "../MessageBuilder";
 import Router from "commandrouter";
 import Info from "../Info";
-const router = new Router<Info, any>();
+const router = new Router<Info, Promise<any>>();
 
 type UserJSON =
 	| { [key: string]: UserJSON }

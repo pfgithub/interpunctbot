@@ -1,7 +1,7 @@
 import Router from "commandrouter";
 import Info from "../Info";
 import * as moment from "moment";
-const router = new Router<Info, any>();
+const router = new Router<Info, Promise<any>>();
 
 import { messages } from "../../messages";
 

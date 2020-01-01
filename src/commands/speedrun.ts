@@ -34,9 +34,9 @@ import * as request from "async-request"; // this is a terrible library why am I
 
 import * as moment from "moment";
 
-const router = new Router<Info, any>();
+const router = new Router<Info, Promise<any>>();
 
-const adminrouter = new Router<Info, any>();
+const adminrouter = new Router<Info, Promise<any>>();
 
 const ctime = () => new Date().getTime();
 

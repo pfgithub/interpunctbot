@@ -19,7 +19,7 @@ import { serverStartTime } from "../../..";
 import Info from "../../Info";
 import { getPlayers, createTimer } from "./checkers";
 
-const router = new Router<Info, any>();
+const router = new Router<Info, Promise<any>>();
 
 const themes = [
 	{

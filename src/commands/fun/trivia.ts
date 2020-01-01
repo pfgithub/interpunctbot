@@ -9,7 +9,7 @@ import { getURL } from "../speedrun";
 import { safe, raw, messages } from "../../../messages";
 import { DiscordAPIError } from "discord.js";
 
-const router = new Router<Info, any>();
+const router = new Router<Info, Promise<any>>();
 
 declare namespace OpenTDB {
 	type Difficulty = "easy" | "medium" | "hard";

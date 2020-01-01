@@ -57,7 +57,7 @@ try {
 
 export let serverStartTime = 0;
 
-const router = new Router<Info, any>();
+const router = new Router<Info, Promise<any>>();
 
 const production = process.env.NODE_ENV === "production";
 
@@ -489,7 +489,7 @@ bot.on("message", async msg => {
 	}
 
 	// await newInfo.setup(knex)
-	const messageRouter = new Router<Info, any>();
+	const messageRouter = new Router<Info, Promise<any>>();
 	messageRouter.add(
 		newInfo.db ? await newInfo.db.getPrefix() : "",
 		[],
@@ -497,14 +497,29 @@ bot.on("message", async msg => {
 	); // prefixCommand
 	messageRouter.add(bot.user!.toString(), [], router); // @botCommand
 
-	try {
-		await messageRouter.handle(msg.content, newInfo); // await in case there is an async function that errors.
-	} catch (er) {
+	const handleResult = messageRouter.handle(msg.content, newInfo);
+	// if (!handleResult) {
+	// 	return await newInfo.error("Command not foundfjdaklsalknjdjkdls");
+	// }
+	if (!handleResult) return;
+
+	const commandHandleResult = await ilt(handleResult, "handling command");
+	if (commandHandleResult.error) {
+		const er = commandHandleResult.error;
 		const ewid = wrapErrorAddID(er);
 		logError(ewid);
-		await newInfo.error(
-			messages.failure.generic_internal_error(newInfo, ewid.errorCode)
-		);
+		if (er instanceof DiscordAPIError) {
+			await newInfo.error(
+				messages.failure.missing_permissions_internal_error(
+					newInfo,
+					ewid.errorCode
+				)
+			);
+		} else {
+			await newInfo.error(
+				messages.failure.generic_internal_error(newInfo, ewid.errorCode)
+			);
+		}
 	}
 });
 
