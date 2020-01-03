@@ -203,12 +203,12 @@ router.add("speedrun leaderboard", [], async (cmd, info) => {
 	const categoryName = categoryNameList.join(` `); // 10/10
 
 	if (!positionString || !isNormalInteger(positionString)) {
-		return info.error(messages.speedrun.position_required(info));
+		return await info.error(messages.speedrun.position_required(info));
 	}
 	const position = parseInt(positionString, 10); // position =+ position
 
 	if (!info.db) {
-		return info.error(messages.failure.command_cannot_be_used_in_pms(info));
+		return await info.error(messages.failure.command_cannot_be_used_in_pms(info));
 	}
 	const defaultGameCategory = await info.db.getSpeedrunDefault();
 	if (!defaultGameCategory) {

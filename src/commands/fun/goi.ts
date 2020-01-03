@@ -177,7 +177,7 @@ const goilevels: { [key: string]: LevelSpec } = {
 router.add("goi", [], async (cmd: string, info) => {
 	if (info.db ? await info.db.getFunEnabled() : true) {
 	} else {
-		return info.error(messages.fun.fun_disabled(info));
+		return await info.error(messages.fun.fun_disabled(info));
 	}
 
 	if (info.myChannelPerms) {

@@ -31,7 +31,7 @@ router.add(
 	[Info.theirPerm.manageBot],
 	async (cmd, info, next) => {
 		if (!info.db) {
-			return info.error(
+			return await info.error(
 				messages.failure.command_cannot_be_used_in_pms(info)
 			);
 		}
@@ -45,7 +45,7 @@ router.add(
 				)
 			);
 		}
-		return info.error(
+		return await info.error(
 			messages.settings.show_errors_usage(
 				info,
 				await info.db.getCommandErrors()
@@ -58,7 +58,7 @@ router.add(
 	[Info.theirPerm.manageBot],
 	async (cmd, info, next) => {
 		if (!info.db) {
-			return info.error(
+			return await info.error(
 				messages.failure.command_cannot_be_used_in_pms(info)
 			);
 		}
@@ -72,7 +72,7 @@ router.add(
 				)
 			);
 		}
-		return info.error(
+		return await info.error(
 			messages.settings.unknown_commands_usage(
 				info,
 				await info.db.getUnknownCommandMessages()

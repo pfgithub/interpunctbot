@@ -129,12 +129,12 @@ settingsRouter.add(
 	async (cmd, info, next) => {
 		await info.startLoading();
 		if (!info.db) {
-			return info.error(
+			return await info.error(
 				messages.failure.command_cannot_be_used_in_pms(info)
 			);
 		}
 		const lists = await info.db.getLists();
-		return info.result(messages.lists.list_lists(info, lists));
+		return await info.result(messages.lists.list_lists(info, lists));
 	}
 );
 
@@ -149,7 +149,7 @@ function parsePastebinURL(url: string = "") {
 
 async function addOrEditList(add: boolean, cmd: string, info: Info) {
 	if (!info.db) {
-		return info.error(messages.failure.command_cannot_be_used_in_pms(info));
+		return await info.error(messages.failure.command_cannot_be_used_in_pms(info));
 	}
 
 	// <name> <pastebin.com/id
@@ -161,7 +161,7 @@ async function addOrEditList(add: boolean, cmd: string, info: Info) {
 	const pastebinUrl = splitCmd.join(` `).trim();
 
 	if (!listName) {
-		return info.error(messages.lists.no_list_name_provided(info));
+		return await info.error(messages.lists.no_list_name_provided(info));
 	}
 
 	// Get the lists from the database
@@ -230,7 +230,7 @@ settingsRouter.add(
 		// there's not much purpose to a distinction between add and edit...
 		const listName = cmd;
 		if (!info.db) {
-			return info.error(
+			return await info.error(
 				messages.failure.command_cannot_be_used_in_pms(info)
 			);
 		}

@@ -129,7 +129,7 @@ router.add("spoiler", [], async (cmd, info) => {
 		"Deleting original message for spoiler"
 	);
 	// if(er) send message...
-	info.error(
+	await info.error(
 		messages.failure.command_removed(
 			info,
 			"spoiler",

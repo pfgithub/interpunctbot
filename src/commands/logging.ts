@@ -10,7 +10,7 @@ const router = new Router<Info, Promise<any>>();
 
 router.add("download", [], async (cmd, info) => {
 	if (!info.db || !info.guild) {
-		return info.error("This command cannot be used in PMs");
+		return await info.error("This command cannot be used in PMs");
 	}
 	//
 	if (!(await info.db.getLogEnabled())) {
@@ -47,7 +47,7 @@ async function deleteLogs(guildID: string) {
 
 router.add("reset", [], async (cmd, info) => {
 	if (!info.db || !info.guild) {
-		return info.error("This command cannot be used in PMs");
+		return await info.error("This command cannot be used in PMs");
 	}
 	if (!(await info.db.getLogEnabled())) {
 		return await info.error("Logging is not enabled on your server");
@@ -59,7 +59,7 @@ router.add("reset", [], async (cmd, info) => {
 
 router.add("disable", [], async (cmd, info) => {
 	if (!info.db || !info.guild) {
-		return info.error("This command cannot be used in PMs");
+		return await info.error("This command cannot be used in PMs");
 	}
 	await info.startLoading();
 	await deleteLogs(info.guild.id);
@@ -70,7 +70,7 @@ router.add("disable", [], async (cmd, info) => {
 router.add("enable", [], async (cmd, info) => {
 	// $$ENABLELOG$$
 	if (!info.db || !info.guild) {
-		return info.error("This command cannot be used in PMs");
+		return await info.error("This command cannot be used in PMs");
 	}
 	await info.startLoading();
 	await info.db.setLogEnabled(true);

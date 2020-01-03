@@ -89,10 +89,10 @@ router.add("fun", [Info.theirPerm.manageBot], async (cmd: string, info) => {
 	}
 	if (cmd === "enable") {
 		await info.db.setFunEnabled(true);
-		return info.success(messages.fun.fun_has_been_enabled(info));
+		return await info.success(messages.fun.fun_has_been_enabled(info));
 	} else if (cmd === "disable") {
 		await info.db.setFunEnabled(false);
-		return info.success(messages.fun.fun_has_been_disabled(info));
+		return await info.success(messages.fun.fun_has_been_disabled(info));
 	}
 	return await info.error(messages.fun.command_not_found(info));
 });

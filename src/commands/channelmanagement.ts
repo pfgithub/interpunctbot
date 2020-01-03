@@ -37,7 +37,7 @@ router.add(
 	],
 	async (cmd, info) => {
 		if (!info.guild || !info.db) {
-			return info.error(
+			return await info.error(
 				messages.failure.command_cannot_be_used_in_pms(info)
 			);
 		}
@@ -65,12 +65,12 @@ router.add(
 	],
 	async (cmd, info) => {
 		if (!info.guild || !info.db) {
-			return info.error(
+			return await info.error(
 				messages.failure.command_cannot_be_used_in_pms(info)
 			);
 		}
 		info.db.setAutospaceChannels(false);
-		return info.success(messages.settings.autospace_disabled(info));
+		return await info.success(messages.settings.autospace_disabled(info));
 	}
 );
 
@@ -79,7 +79,7 @@ router.add(
 	[Info.theirPerm.manageMessages, Info.ourPerm.manageMessages],
 	async (cmd, info) => {
 		if (!info.guild || !info.db) {
-			return info.error(
+			return await info.error(
 				messages.failure.command_cannot_be_used_in_pms(info)
 			);
 		}
@@ -202,7 +202,7 @@ router.add(
 
 		const guild = info.guild;
 		if (!guild) {
-			return info.error(
+			return await info.error(
 				messages.failure.command_cannot_be_used_in_pms(info)
 			);
 		}
@@ -214,7 +214,7 @@ router.add(
 		);
 
 		if (channelsNeedUpdating.length <= 0) {
-			return info.error(
+			return await info.error(
 				messages.channels.spacing.no_channels_to_space(info)
 			);
 		}
@@ -236,7 +236,7 @@ router.add(
 		}
 
 		if (failureChannels.length === 0) {
-			return info.success(
+			return await info.success(
 				`${messages.channels.spacing.succeeded_spacing(
 					info,
 					successChannels
@@ -248,11 +248,11 @@ router.add(
 			);
 		}
 		if (successChannels.length === 0) {
-			return info.error(
+			return await info.error(
 				messages.channels.spacing.failed_spacing(info, failureChannels)
 			);
 		}
-		return info.error(
+		return await info.error(
 			messages.channels.spacing.partially_succeeded_spacing(
 				info,
 				successChannels,
@@ -367,7 +367,9 @@ router.add("send:", [Info.theirPerm.manageChannels], async (cmd, info) => {
 	const channelsToSendTo = info.message.mentions.channels.array();
 
 	if (channelsToSendTo.length === 0) {
-		return info.error(messages.channels.send_many.no_channels_tagged(info));
+		return await info.error(
+			messages.channels.send_many.no_channels_tagged(info)
+		);
 	}
 
 	const failures: Channel[] = [];
@@ -385,16 +387,16 @@ router.add("send:", [Info.theirPerm.manageChannels], async (cmd, info) => {
 	}
 
 	if (failures.length === 0) {
-		return info.success(
+		return await info.success(
 			messages.channels.send_many.succeeded_sending(info, successes)
 		);
 	}
 	if (successes.length === 0) {
-		return info.error(
+		return await info.error(
 			messages.channels.send_many.failed_sending(info, failures)
 		);
 	}
-	return info.error(
+	return await info.error(
 		messages.channels.send_many.partially_succeeded_sending(
 			info,
 			successes,
