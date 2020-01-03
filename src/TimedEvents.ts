@@ -35,7 +35,8 @@ export class TimedEvents {
 	eventHandlers: EventHandlers;
 	currentTime = 0;
 	client: Discord.Client;
-	ongoingEvents = 0;
+	currentEvents: Map<number, boolean> = new Map();
+	starting: boolean = false;
 
 	constructor(client: Discord.Client) {
 		this.eventHandlers = {};
@@ -50,7 +51,7 @@ export class TimedEvents {
 		this.eventHandlers[eventType] = handler;
 	}
 	async initialize() {
-		await this.startNext(100);
+		await this.startNext();
 	}
 	async queue(event: EventData, time: number) {
 		// add to db
@@ -71,18 +72,18 @@ export class TimedEvents {
 		if (ev.time <= this.currentTime) {
 			this.startEventTimeout(ev.event, ev.time, ev.id);
 		}
-		if (this.ongoingEvents < 100) {
-			this.startNext(100 - this.ongoingEvents);
-		}
+		this.startNext();
 	}
 	startEventTimeout(event: EventData, time: number, id: number) {
+		if (this.currentEvents.has(id)) return;
+		this.currentEvents.set(id, true);
 		if (time <= this.currentTime) this.currentTime = time;
 		let now = new Date().getTime();
 		let deltaTime = time - now;
 		if (deltaTime < 0) deltaTime = 0; // events that should've triggered during a server restart
 		setTimeout(async () => {
-			this.ongoingEvents--;
-			this.startNext(1);
+			this.currentEvents.delete(id);
+			this.startNext();
 			let handler = this.eventHandlers[event.type];
 			if (!handler) {
 				return logError(
@@ -95,9 +96,12 @@ export class TimedEvents {
 				"calling delayed event handler"
 			);
 			if (handlerResult.error || handlerResult.result === "handled") {
+				// await knex<SqlEvent>("timed_events")
+				// 	.where("id", "=", id)
+				// 	.update("completed", true);
 				await knex<SqlEvent>("timed_events")
 					.where("id", "=", id)
-					.update("completed", true);
+					.delete();
 			}
 			if (handlerResult.error) {
 				return logError(
@@ -110,17 +114,23 @@ export class TimedEvents {
 			}
 		}, deltaTime);
 	}
-	async startNext(count: number) {
+	async startNext() {
+		let ongoingEvents = this.currentEvents.size;
+		if (100 - ongoingEvents > 0 && !this.starting) {
+		} else {
+			return;
+		}
+		this.starting = true;
 		let events = await knex<SqlEvent>("timed_events")
 			.where("time", ">", this.currentTime)
 			.andWhere("completed", "=", false)
 			.orderBy("time")
-			.limit(count);
+			.limit(100 - ongoingEvents);
 		if (events[events.length - 1]) {
 			this.currentTime = events[events.length - 1].time;
 		}
+		this.starting = false;
 		for (let event of events) {
-			this.ongoingEvents++;
 			let eventData = JSON.parse(event.event) as EventData;
 			this.startEventTimeout(eventData, event.time, event.id);
 		}
