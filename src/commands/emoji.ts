@@ -120,9 +120,9 @@ router.add(
 	"emoji restrict",
 	[Info.theirPerm.manageEmoji, Info.ourPerm.manageEmoji],
 	async (cmd, info, next) => {
-		const apresult = await AP({ info, cmd }, a.emoji(), ...a.role());
-		if (!apresult) return;
-		const [emoji, role] = apresult;
+		const ap = await AP({ info, cmd }, a.emoji(), ...a.role());
+		if (!ap) return;
+		const [emoji, role] = ap.result;
 
 		const newRoles = emoji.roles.array();
 		newRoles.push(role);
@@ -182,9 +182,9 @@ router.add(
 	"emoji inspect",
 	[Info.theirPerm.manageEmoji],
 	async (cmd, info, next) => {
-		const apresult = await AP({ info, cmd }, a.emoji());
-		if (!apresult) return;
-		const [emoji] = apresult;
+		const ap = await AP({ info, cmd }, a.emoji());
+		if (!ap) return;
+		const [emoji] = ap.result;
 
 		await info.result(messages.emoji.inspect(info, emoji));
 	}
@@ -205,7 +205,7 @@ router.add(
 		if (!ap) {
 			return;
 		}
-		const [channel] = ap;
+		const [channel] = ap.result;
 		if (!info.db) {
 			return await info.error(
 				messages.failure.command_cannot_be_used_in_pms(info)

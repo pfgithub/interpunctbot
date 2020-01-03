@@ -485,9 +485,17 @@ function RoleArgumentType(): ArgumentType<Discord.Role> {
 export async function ArgumentParser<
 	ArgTypes extends Readonly<ArgumentType<any>[]>
 >(
-	{ info, cmd, help }: { info: Info; cmd: string; help?: string },
+	{
+		info,
+		cmd,
+		help,
+		partial
+	}: { info: Info; cmd: string; help?: string; partial?: boolean },
 	...schema: ArgTypes
-): Promise<ArgTypeArrayToReturnType<ArgTypes> | undefined> {
+): Promise<
+	| { result: ArgTypeArrayToReturnType<ArgTypes>; remaining: string }
+	| undefined
+> {
 	const resarr: ArgTypeToReturnType<any>[] = [];
 	let index = 0;
 	for (const value of schema) {
@@ -506,7 +514,7 @@ export async function ArgumentParser<
 		cmd = parseResult.cmd;
 		index++;
 	}
-	if (cmd.trim()) {
+	if (cmd.trim() && !partial) {
 		// extra arguments
 		console.log("MISSING", cmd);
 		await info.error(
@@ -514,7 +522,10 @@ export async function ArgumentParser<
 		);
 		return undefined;
 	}
-	return (resarr as unknown) as ArgTypeArrayToReturnType<ArgTypes>;
+	return {
+		result: (resarr as unknown) as ArgTypeArrayToReturnType<ArgTypes>,
+		remaining: cmd.trim()
+	};
 }
 
 export const AP = ArgumentParser;

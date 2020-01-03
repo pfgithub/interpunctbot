@@ -84,14 +84,14 @@ router.add(
 			);
 		}
 
-		const apresult = await AP(
+		const ap = await AP(
 			{ info, cmd },
 			a.number()
 			// what if we want an optional channel? oh no
 			// now the argument parser gets messy
 		);
-		if (!apresult) return;
-		const [messageLimit] = apresult;
+		if (!ap) return;
+		const [messageLimit] = ap.result;
 		if (
 			messageLimit < 1 ||
 			messageLimit > 100 ||
@@ -281,9 +281,9 @@ router.add(
 	"channel slowmode set",
 	[Info.theirPerm.manageChannels],
 	async (cmd, info) => {
-		const apresult = await AP({ info, cmd }, a.duration(), a.channel());
-		if (!apresult) return;
-		const [time, channel] = apresult;
+		const ap = await AP({ info, cmd }, a.duration(), a.channel());
+		if (!ap) return;
+		const [time, channel] = ap.result;
 
 		const guild = info.guild;
 		if (!guild) {
