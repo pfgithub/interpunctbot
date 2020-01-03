@@ -20,7 +20,7 @@ import { runInNewContext } from "vm";
 router.add("ping", [], async (cmd: string, info) => {
 	if (info.db ? await info.db.getFunEnabled() : true) {
 	} else {
-		return info.error(messages.fun.fun_disabled(info));
+		return await info.error(messages.fun.fun_disabled(info));
 	}
 
 	if (Math.random() > 0.9) {
@@ -32,7 +32,7 @@ router.add("ping", [], async (cmd: string, info) => {
 router.add("pong", [], async (cmd: string, info) => {
 	if (info.db ? await info.db.getFunEnabled() : true) {
 	} else {
-		return info.error(messages.fun.fun_disabled(info));
+		return await info.error(messages.fun.fun_disabled(info));
 	}
 
 	if (Math.random() > 0.9) {
@@ -44,7 +44,7 @@ router.add("pong", [], async (cmd: string, info) => {
 router.add("stats", [], async (cmd: string, info) => {
 	if (info.db ? await info.db.getFunEnabled() : true) {
 	} else {
-		return info.error(messages.fun.fun_disabled(info));
+		return await info.error(messages.fun.fun_disabled(info));
 	}
 	return await info.result(
 		`**Statistics**:
@@ -61,9 +61,31 @@ router.add("stats", [], async (cmd: string, info) => {
 	);
 });
 
+router.add("remindme", [], async (cmd, info) => {
+	if (info.db ? await info.db.getFunEnabled() : true) {
+	} else {
+		return await info.error(messages.fun.fun_disabled(info));
+	}
+	let ap = await AP({ cmd, info }, a.number(), ...a.words());
+	if (!ap) return;
+	let [delay, message] = ap;
+
+	info.timedEvents.queue(
+		{
+			type: "pmuser",
+			message: `Reminder: ${message}`,
+			user: info.message.author.id
+		},
+		new Date().getTime() + delay
+	);
+	await info.success("Reminder set");
+});
+
 router.add("fun", [Info.theirPerm.manageBot], async (cmd: string, info) => {
 	if (!info.db) {
-		return info.error(messages.failure.command_cannot_be_used_in_pms(info));
+		return await info.error(
+			messages.failure.command_cannot_be_used_in_pms(info)
+		);
 	}
 	if (cmd === "enable") {
 		await info.db.setFunEnabled(true);
@@ -72,7 +94,7 @@ router.add("fun", [Info.theirPerm.manageBot], async (cmd: string, info) => {
 		await info.db.setFunEnabled(false);
 		return info.success(messages.fun.fun_has_been_disabled(info));
 	}
-	return info.error(messages.fun.command_not_found(info));
+	return await info.error(messages.fun.command_not_found(info));
 });
 
 router.add("", [], connect4);
@@ -96,7 +118,7 @@ router.add("", [], checkers);
 router.add("minesweeper", [], async (cmd: string, info) => {
 	if (info.db ? await info.db.getFunEnabled() : true) {
 	} else {
-		return info.error(messages.fun.fun_disabled(info));
+		return await info.error(messages.fun.fun_disabled(info));
 	}
 	const words = cmd.split(" ");
 	let difficulty: keyof typeof dv | undefined;

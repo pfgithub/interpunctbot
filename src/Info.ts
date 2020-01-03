@@ -4,6 +4,7 @@ import Database from "./Database";
 import * as config from "../config.json";
 import { ilt } from "..";
 import { safe, raw } from "../messages";
+import { TimedEvents } from "./TimedEvents";
 
 const result = {
 	error: "<:failure:508841130503438356> Error: ",
@@ -159,13 +160,16 @@ export default class Info {
 	db?: Database;
 	member?: Discord.GuildMember | null;
 	prefix: string;
+	timedEvents: TimedEvents;
 	constructor(
 		message: Discord.Message,
+		timedEvents: TimedEvents,
 		other?: {
 			startTime: number;
 			infoPerSecond: number;
 		}
 	) {
+		this.timedEvents = timedEvents;
 		this.loading = false;
 		this.channel = message.channel;
 		this.guild = message.guild;

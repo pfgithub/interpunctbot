@@ -1,4 +1,4 @@
-import bot from "./bot";
+import client, { timedEvents } from "./bot";
 import * as config from "./config.json";
 import * as path from "path";
 import knex from "./src/db"; // TODO add something so if you delete a message with a command it deletes the result messages or a reaction on the result msg or idk
@@ -297,8 +297,8 @@ function tryParse(json: any) {
 const infoPerSecond: number[] = [];
 
 function updateActivity() {
-	const count = bot.guilds.size;
-	bot.user && bot.user.setActivity(`ip!help on ${count} servers`);
+	const count = client.guilds.size;
+	client.user && client.user.setActivity(`ip!help on ${count} servers`);
 	// if(process.env.NODE_ENV !== "production") return; // only production should post
 	// let options = {
 	// 	url: `https://bots.discord.pw/api/bots/${config.bdpid}/stats`,
@@ -312,7 +312,7 @@ function updateActivity() {
 	// request.post(options, (er, res) => {});
 }
 
-bot.on("ready", async () => {
+client.on("ready", async () => {
 	global.console.log("Ready");
 	serverStartTime = new Date().getTime();
 	updateActivity();
@@ -327,7 +327,7 @@ function streplace(str: string, eplace: { [key: string]: string }) {
 	return str;
 }
 
-bot.on("guildMemberAdd", async member => {
+client.on("guildMemberAdd", async member => {
 	if (member.partial) {
 		// partial is not supported
 		console.log("!!! PARTIAL MEMBER WAS AQUIRED IN A MEMBER ADD EVENT");
@@ -385,7 +385,7 @@ bot.on("guildMemberAdd", async member => {
 	}
 });
 
-bot.on("guildMemberRemove", async member => {
+client.on("guildMemberRemove", async member => {
 	if (member.partial) {
 		// partial is not supported
 		console.log("!!! PARTIAL MEMBER WAS AQUIRED IN A MEMBER REMOVE EVENT");
@@ -424,10 +424,10 @@ async function spaceChannelIfNecessary(channel: GuildChannel) {
 	}
 }
 
-bot.on("channelCreate", async (newC: GuildChannel) =>
+client.on("channelCreate", async (newC: GuildChannel) =>
 	spaceChannelIfNecessary(newC)
 );
-bot.on("channelUpdate", async (_oldC: GuildChannel, newC: GuildChannel) =>
+client.on("channelUpdate", async (_oldC: GuildChannel, newC: GuildChannel) =>
 	spaceChannelIfNecessary(newC)
 );
 
@@ -451,7 +451,7 @@ async function guildLog(id: string, log: string) {
 	);
 }
 
-bot.on("message", async msg => {
+client.on("message", async msg => {
 	if (msg.partial) {
 		// partial is not supported
 		console.log("!!! PARTIAL MESSAGE WAS AQUIRED IN A MESSAGE EVENT");
@@ -462,7 +462,7 @@ bot.on("message", async msg => {
 			new Error("MESSAGE DOES NOT HAVE AUTHOR. This should never happen.")
 		);
 	}
-	if (msg.author.id === bot.user!.id) {
+	if (msg.author.id === client.user!.id) {
 		devlog(`i> ${msg.content}`);
 	}
 	if (msg.author.bot && msg.author.id !== config.allowMessagesFrom) {
@@ -470,7 +470,7 @@ bot.on("message", async msg => {
 	}
 	logMsg({ prefix: "I", msg: msg });
 
-	const newInfo = new Info(msg, {
+	const newInfo = new Info(msg, timedEvents!, {
 		startTime: new Date().getTime(),
 		infoPerSecond: -1
 	});
@@ -495,7 +495,7 @@ bot.on("message", async msg => {
 		[],
 		router
 	); // prefixCommand
-	messageRouter.add(bot.user!.toString(), [], router); // @botCommand
+	messageRouter.add(client.user!.toString(), [], router); // @botCommand
 
 	const handleResult = messageRouter.handle(msg.content, newInfo);
 	// if (!handleResult) {
@@ -523,7 +523,7 @@ bot.on("message", async msg => {
 	}
 });
 
-bot.on("messageUpdate", async (from, msg) => {
+client.on("messageUpdate", async (from, msg) => {
 	if (from.partial || msg.partial) {
 		console.log("!! MESSAGE UPDATE HAD A PARTIAL MESSAGE");
 		return;
@@ -670,11 +670,11 @@ bot.on("messageUpdate", async (from, msg) => {
 
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-bot.on("guildCreate", guild => {
+client.on("guildCreate", guild => {
 	global.console.log(`_ Joined guild ${guild.name} (${guild.nameAcronym})`);
 });
 
-bot.on("guildDelete", async guild => {
+client.on("guildDelete", async guild => {
 	// forget about the guild at some point in time
 	global.console.log(`_ Left guild ${guild.name} (${guild.nameAcronym})`);
 	// TODO delete info in db after leaving a guild
@@ -701,7 +701,7 @@ ${additionalDetails.stack}
 \`\`\``
 			: ""
 	}
-	
+
 Hey ${atEveryone ? "@everyone" : "the void of discord"}, there was an error
 
 **Recent Commands:**
@@ -728,7 +728,9 @@ export async function sendMessageToErrorReportingChannel(message: string) {
 	console.log(message);
 	try {
 		const rept = config.errorReporting.split(`/`);
-		const channel: TextChannel = bot.channels.get(rept[1])! as TextChannel;
+		const channel: TextChannel = client.channels.get(
+			rept[1]
+		)! as TextChannel;
 		await channel.send(message);
 	} catch (e) {
 		console.log("Failed to report. Exiting.");

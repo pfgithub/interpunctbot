@@ -1,6 +1,5 @@
 import * as knexfile from "../knexfile.json";
+import * as Knex from "knex";
 
-const knex = require("knex")(
-	(knexfile as any)[process.env.NODE_ENV || "development"]
-);
+const knex = Knex((knexfile as any)[process.env.NODE_ENV || "development"]);
 export default knex;

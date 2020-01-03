@@ -15,6 +15,11 @@ export type WordsArgType = BaseArgType<"words...", string>;
 export type RoleArgType = BaseArgType<"role...", Discord.Role>;
 
 /*
+duration: 10s, 25m, 50min, 60h10min, 2d
+10 seconds, 20 hours, 3 minutes, ...
+*/
+
+/*
 
 goal for taglist:
 

@@ -1,5 +1,9 @@
 /*
 
+!!!! note that when the bot requires sharding, the bot will not be able to dm people and edit the
+message in the server at the same time. when a game starts, the start  event needs to
+get sent to shard 0 and shard 0 will handle the game.
+
 game crazy 8s
 
 ---
@@ -11,7 +15,7 @@ let draw = game.pile("draw")
 let discard = game.pile("discard")
 
 players.each(
-	
+
 )
 
 
@@ -47,7 +51,7 @@ define draw.take
 each player in players:
 	card = draw.take
 	add card -> %player.hand
-	
+
 player turn = first player
 
 define get.playable
