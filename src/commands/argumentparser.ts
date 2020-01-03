@@ -107,6 +107,9 @@ export const a = {
 	duration() {
 		return DurationArgumentType();
 	},
+	enum<T extends string>(...words: T[]) {
+		return EnumArgumentType(words);
+	},
 	words() {
 		return [WordsArgumentType()] as const;
 	},
@@ -274,6 +277,26 @@ function WordArgumentType(): ArgumentType<string> {
 		}
 		const [, result, newCmd] = word;
 		return { result: "continue", value: result, cmd: newCmd };
+	};
+}
+
+function EnumArgumentType<T extends string>(options: T[]): ArgumentType<T> {
+	return async (info, arg, cmd, index, commandhelp, argpurpose) => {
+		if (!cmd.trim()) {
+			await info.error("value not provided");
+			return { result: "exit" };
+		}
+		const word = cmd.match(/^([\S]+)\s*([\S\s]*)/m);
+		if (!word) {
+			await info.error("value not provided");
+			return { result: "exit" };
+		}
+		const [, result, newCmd] = word;
+		if (options.indexOf(result as T) < -1) {
+			await info.error("must be one of:" + options.join(","));
+			return { result: "exit" };
+		}
+		return { result: "continue", value: result as T, cmd: newCmd };
 	};
 }
 

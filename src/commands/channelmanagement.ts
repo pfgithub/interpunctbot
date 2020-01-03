@@ -311,6 +311,53 @@ router.add(
 	}
 );
 
+/*
+@DocAdd /help/autodelete
+
+```
+usage: ip!autodelete add {{Duration}}
+example: ip!autodelete add 10s user {{Atmention|@Mee6}}
+desc: automatically delete messages from Mee6 after 10 seconds
+example: ip!autodelete add 1 hour channel #vent
+desc: automatically delete messages in the #vent channel after 1 hour
+example: ip!autodelete add 15 seconds prefix ip!
+desc: automatically delete messages starting with ip! after 15 seconds
+```
+
+*/
+// autodelete list
+// autodelete remove [id]
+router.add(
+	"autodelete add",
+	[Info.theirPerm.manageChannels],
+	async (cmd, info) => {
+		if (!info.db) {
+			return await info.error(
+				messages.failure.command_cannot_be_used_in_pms(info)
+			);
+		}
+		let ap = await AP(
+			{ info, cmd, partial: true },
+			a.duration(),
+			a.enum("prefix", "user", "channel")
+		);
+		if (!ap) return;
+		let [duration, mode] = ap.result;
+
+		cmd = ap.remaining;
+		if (mode === "prefix") {
+			let prefix = cmd;
+		} else if (mode === "user") {
+			let ap = await AP({ info, cmd }, a.user());
+		} else if (mode === "channel") {
+			let ap = await AP({ info, cmd }, a.channel());
+		}
+	}
+);
+router.add("autodelete", [Info.theirPerm.manageChannels], async (cmd, info) => {
+	// return await info.usage("autodelete")
+});
+
 router.add("send:", [Info.theirPerm.manageChannels], async (cmd, info) => {
 	await info.startLoading();
 	const message = stripMentions(info.message.content).replace(
