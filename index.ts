@@ -99,7 +99,7 @@ export type ErrorWithID = Error & { errorCode: string };
 
 export function wrapErrorAddID(error: Error): ErrorWithID {
 	(error as ErrorWithID).errorCode = Math.floor(
-		Math.random() * 100000000000000000
+		Math.random() * 1000000000000000
 	).toString(36);
 	return error as ErrorWithID;
 }
