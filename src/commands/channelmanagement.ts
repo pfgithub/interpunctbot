@@ -5,6 +5,7 @@ import { ilt } from "../..";
 const router = new Router<Info, Promise<any>>();
 import { messages } from "../../messages";
 import { AP, a } from "./argumentparser";
+import { durationFormat } from "../durationFormat";
 
 const stripMentions = (msg: string) => {
 	return msg
@@ -85,20 +86,21 @@ router.add(
 
 		const apresult = await AP(
 			{ info, cmd },
-			a.number(async num => {
-				if (num < 1 || num > 100 || !Number.isInteger(num)) {
-					await info.error(
-						messages.channels.purge.message_limit(info, num)
-					);
-					return false;
-				}
-				return true;
-			})
+			a.number()
 			// what if we want an optional channel? oh no
 			// now the argument parser gets messy
 		);
 		if (!apresult) return;
 		const [messageLimit] = apresult;
+		if (
+			messageLimit < 1 ||
+			messageLimit > 100 ||
+			!Number.isInteger(messageLimit)
+		) {
+			return await info.error(
+				messages.channels.purge.message_limit(info, messageLimit)
+			);
+		}
 
 		const channel = info.message.channel as TextChannel;
 		const messagesToDelete = await channel.messages.fetch({
@@ -279,14 +281,9 @@ router.add(
 	"channel slowmode set",
 	[Info.theirPerm.manageChannels],
 	async (cmd, info) => {
-		const apresult = await AP(
-			{ info, cmd },
-			a.number(),
-			a.word() /*a.enum("seconds", "second")*/,
-			a.channel()
-		);
+		const apresult = await AP({ info, cmd }, a.duration(), a.channel());
 		if (!apresult) return;
-		const [time, unit, channel] = apresult;
+		const [time, channel] = apresult;
 
 		const guild = info.guild;
 		if (!guild) {
@@ -300,9 +297,16 @@ router.add(
 				"Slowmode can only be set on text channels."
 			);
 		}
-		await channel.setRateLimitPerUser(time);
+		let finalTime = Math.ceil(time / 1000);
+		let finalTimeMS = finalTime * 1000;
+		await channel.setRateLimitPerUser(
+			finalTime,
+			"set by " + info.message.author.toString()
+		);
 		return await info.success(
-			`Slowmode for ${channel.toString()} set to ${time} seconds.` // should use moment formatting
+			`Slowmode for ${channel.toString()} set to ${durationFormat(
+				finalTime
+			)}.` // should use moment formatting
 		);
 	}
 );

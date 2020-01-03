@@ -12,11 +12,14 @@ export let timedEvents: TimedEvents | undefined = undefined;
 client.on("ready", () => {
 	timedEvents = new TimedEvents(client);
 	timedEvents.setHandler("pmuser", async event => {
+		if (client.shard && client.shard.ids.indexOf(0) === -1) {
+			return "notmine"; // might be right
+		}
 		let message = event.message;
 		let userID = event.user;
-		let user = client.users.get(userID);
+		let user = await client.users.fetch(userID);
 		if (!user) {
-			return "notmine"; // what if the user no longer exists, this will clutter the event queue
+			return "handled"; // user could not be found.
 		}
 		await user.send(message); // if this throws, the event will still succeed
 		return "handled";

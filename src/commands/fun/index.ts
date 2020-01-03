@@ -66,7 +66,7 @@ router.add("remindme", [], async (cmd, info) => {
 	} else {
 		return await info.error(messages.fun.fun_disabled(info));
 	}
-	let ap = await AP({ cmd, info }, a.number(), ...a.words());
+	let ap = await AP({ cmd, info }, a.duration(), ...a.words());
 	if (!ap) return;
 	let [delay, message] = ap;
 
