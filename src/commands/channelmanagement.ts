@@ -330,7 +330,7 @@ desc: automatically delete messages starting with ip! after 15 seconds
 // autodelete remove [id]
 router.add(
 	"autodelete list",
-	[Info.theirPerm.manageChannels],
+	[Info.theirPerm.manageChannels, Info.ourPerm.manageMessages],
 	async (cmd, info) => {
 		if (!info.db) {
 			return await info.error(
