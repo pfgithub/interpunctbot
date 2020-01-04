@@ -4,6 +4,7 @@ import * as Discord from "discord.js";
 
 type EventTypes = {
 	pmuser: { message: string; user: string };
+	delete: { guild: string; channel: string; message: string };
 };
 
 export type EventOfType<Type extends keyof EventTypes> = EventTypes[Type] & {
@@ -92,7 +93,7 @@ export class TimedEvents {
 				);
 			}
 			let handlerResult = await ilt(
-				handler(event),
+				handler(event as any),
 				"calling delayed event handler"
 			);
 			if (handlerResult.error || handlerResult.result === "handled") {

@@ -465,17 +465,51 @@ client.on("message", async msg => {
 	if (msg.author.id === client.user!.id) {
 		devlog(`i> ${msg.content}`);
 	}
+
+	const info = new Info(msg, timedEvents!, {
+		startTime: new Date().getTime(),
+		infoPerSecond: -1
+	});
+
+	if (info.db) {
+		let autodelete = await info.db.getAutodelete();
+
+		for (let rule of autodelete.rules) {
+			let deleteMsg = false;
+			if (rule.type === "channel" && msg.channel.id === rule.channel) {
+				deleteMsg = true;
+			} else if (rule.type === "user" && msg.author.id === rule.user) {
+				deleteMsg = true;
+			} else if (
+				rule.type === "prefix" &&
+				msg.content.startsWith(rule.prefix)
+			) {
+				deleteMsg = true;
+			} else if (
+				rule.type === "role" &&
+				msg.member!.roles.has(rule.role)
+			) {
+				deleteMsg = true;
+			}
+			if (deleteMsg)
+				await info.timedEvents.queue(
+					{
+						type: "delete",
+						guild: info.guild!.id,
+						channel: info.message.channel.id,
+						message: info.message.id
+					},
+					new Date().getTime() + rule.duration
+				);
+		}
+	}
+
 	if (msg.author.bot && msg.author.id !== config.allowMessagesFrom) {
 		return;
 	}
 	logMsg({ prefix: "I", msg: msg });
 
-	const newInfo = new Info(msg, timedEvents!, {
-		startTime: new Date().getTime(),
-		infoPerSecond: -1
-	});
-
-	if (newInfo.db && (await newInfo.db.getLogEnabled())) {
+	if (info.db && (await info.db.getLogEnabled())) {
 		try {
 			guildLog(
 				msg.guild!.id, // db ? guild! : guild?
@@ -490,14 +524,10 @@ client.on("message", async msg => {
 
 	// await newInfo.setup(knex)
 	const messageRouter = new Router<Info, Promise<any>>();
-	messageRouter.add(
-		newInfo.db ? await newInfo.db.getPrefix() : "",
-		[],
-		router
-	); // prefixCommand
+	messageRouter.add(info.db ? await info.db.getPrefix() : "", [], router); // prefixCommand
 	messageRouter.add(client.user!.toString(), [], router); // @botCommand
 
-	const handleResult = messageRouter.handle(msg.content, newInfo);
+	const handleResult = messageRouter.handle(msg.content, info);
 	// if (!handleResult) {
 	// 	return await newInfo.error("Command not foundfjdaklsalknjdjkdls");
 	// }
@@ -509,15 +539,15 @@ client.on("message", async msg => {
 		const ewid = wrapErrorAddID(er);
 		logError(ewid);
 		if (er instanceof DiscordAPIError) {
-			await newInfo.error(
+			await info.error(
 				messages.failure.missing_permissions_internal_error(
-					newInfo,
+					info,
 					ewid.errorCode
 				)
 			);
 		} else {
-			await newInfo.error(
-				messages.failure.generic_internal_error(newInfo, ewid.errorCode)
+			await info.error(
+				messages.failure.generic_internal_error(info, ewid.errorCode)
 			);
 		}
 	}

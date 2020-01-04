@@ -24,6 +24,19 @@ client.on("ready", () => {
 		await user.send(message); // if this throws, the event will still succeed
 		return "handled";
 	});
+	timedEvents.setHandler("delete", async event => {
+		let guild = await client.guilds.get(event.guild);
+		if (!guild) {
+			return "notmine"; // !!! OR the guild has kicked the bot. this will create ghost events
+		}
+		let channel = await guild.channels.get(event.channel);
+		if (!channel) return "handled";
+		if (!(channel instanceof Discord.TextChannel)) return "handled";
+		let message = await channel.messages.fetch(event.message);
+		if (!message) return "handled";
+		await message.delete();
+		return "handled";
+	});
 });
 
 export default client;

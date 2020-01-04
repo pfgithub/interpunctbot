@@ -9,11 +9,38 @@ import { logError } from "..";
 
 type GuildData = { [key in keyof Fields]?: Fields[key] };
 
-const cache: { [key: string]: GuildData } = {};
+type AutodeleteInfo = {
+	prefix: { prefix: string };
+	user: { user: string };
+	channel: { channel: string };
+	role: { role: string };
+};
+export type AutodeleteRule = {
+	[key in keyof AutodeleteInfo]: AutodeleteInfo[key] & {
+		type: key;
+		id: number;
+		duration: number;
+	};
+}[keyof AutodeleteInfo];
+export type AutodeleteRuleNoID = {
+	[key in keyof AutodeleteInfo]: AutodeleteInfo[key] & {
+		type: key;
+		id?: undefined;
+		duration: number;
+	};
+}[keyof AutodeleteInfo];
+
+export type AutodeleteField = {
+	rules: AutodeleteRule[];
+	nextID: number;
+};
+
+const cache: Map<string, GuildData> = new Map();
 const shouldCache: { [ey: string]: boolean | undefined } = {
 	prefix: true,
 	logging: true,
-	rankmojiChannel: true
+	rankmojiChannel: true,
+	autodelete: true
 };
 
 function tryParse<T>(json: string | undefined, defaultValue: T): T {
@@ -44,11 +71,14 @@ type Fields = {
 	// pmonfailure?: string;
 	funEnabled?: string;
 	rankmojiChannel: string;
+	autodelete?: string;
+	autodelete_limit?: number;
 };
 
 type JSONFields = {
 	searchablePastebins: ListsField;
 	nameScreening: NameScreeningField;
+	autodelete: AutodeleteField;
 };
 type BooleanFields = {
 	logging: boolean;
@@ -72,8 +102,8 @@ class Database {
 	constructor(guildId: string) {
 		this.guild = guildId;
 		this._data = undefined;
-		if (!cache[this.guild]) {
-			cache[this.guild] = {};
+		if (!cache.has(this.guild)) {
+			cache.set(this.guild, {});
 		}
 	}
 	async getOrLoadData(): Promise<Fields> {
@@ -109,15 +139,18 @@ class Database {
 	}
 	async _get<Name extends keyof Fields>(name: Name): Promise<Fields[Name]> {
 		// returns a string
-		if (shouldCache[name]) {
-			if (Object.hasOwnProperty.call(cache[this.guild], name)) {
-				return cache[this.guild][name]!;
-			}
+		// if (shouldCache[name]) {
+		if (
+			cache.has(this.guild) &&
+			cache.get(this.guild)![name] !== undefined
+		) {
+			return cache.get(this.guild)![name]! as Fields[Name];
 		}
+		// }
 		const data = await this.getOrLoadData();
 		if (shouldCache[name]) {
 			//eslint-disable-next-line require-atomic-updates
-			cache[this.guild][name] = data[name]; // if two of these happen at once, the cache could get written to twice at a time. that is (probably) fine
+			cache.get(this.guild)![name] = data[name]; // if two of these happen at once, the cache could get written to twice at a time. that is (probably) fine
 		}
 		return data[name];
 	}
@@ -127,7 +160,7 @@ class Database {
 			.where({ id: this.guild })
 			.update({ [name]: value });
 		if (shouldCache[name]) {
-			cache[this.guild][name] = value;
+			cache.get(this.guild)![name] = value;
 		}
 		if (this._data) {
 			// it doesn't really matter if we update data or not because we will probably be forgotten about immediately after this, but whatever makes it so you can .setPrefix() then .getPrefix() and print the new result
@@ -144,7 +177,7 @@ class Database {
 		name: Name,
 		newValue: JSONFields[Name]
 	) {
-		this._set(name, JSON.stringify(newValue));
+		await this._set(name, JSON.stringify(newValue));
 	}
 	async _getBool<Name extends keyof BooleanFields>(
 		name: Name,
@@ -160,7 +193,7 @@ class Database {
 		name: Name,
 		newValue: BooleanFields[Name]
 	) {
-		this._set(name, newValue.toString());
+		await this._set(name, newValue.toString());
 	}
 
 	async getPrefix(): Promise<string> {
@@ -191,6 +224,27 @@ class Database {
 	}
 	async setAutoban(newAutoban: NameScreeningField) {
 		return await this._setJson("nameScreening", newAutoban);
+	}
+	async getAutodeleteLimit(): Promise<number> {
+		return (await this._get("autodelete_limit")) || 10;
+	}
+	async setAutodeleteLimit(newLimit: number) {
+		return await this._set("autodelete_limit", newLimit);
+	}
+	async getAutodelete() {
+		return await this._getJson("autodelete", { rules: [], nextID: 1 });
+	}
+	async addAutodelete(rule: AutodeleteRuleNoID | AutodeleteRule) {
+		let autodelete = await this.getAutodelete();
+		if (!rule.id) rule.id = autodelete.nextID++;
+		autodelete.rules.push(rule as AutodeleteRule);
+		await this._setJson("autodelete", autodelete);
+		return rule.id;
+	}
+	async removeAutodelete(id: number) {
+		let autodelete = await this.getAutodelete();
+		autodelete.rules = autodelete.rules.filter(rule => rule.id !== id);
+		return await this._setJson("autodelete", autodelete);
 	}
 	// BOOL, these could probably be condensed
 	async getLogEnabled(): Promise<boolean> {

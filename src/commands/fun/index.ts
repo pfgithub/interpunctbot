@@ -68,7 +68,7 @@ router.add("remindme", [], async (cmd, info) => {
 	}
 	let ap = await AP({ cmd, info }, a.duration(), ...a.words());
 	if (!ap) return;
-	let [delay, message] = ap;
+	let [delay, message] = ap.result;
 
 	info.timedEvents.queue(
 		{

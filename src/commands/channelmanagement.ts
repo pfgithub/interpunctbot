@@ -6,6 +6,7 @@ const router = new Router<Info, Promise<any>>();
 import { messages } from "../../messages";
 import { AP, a } from "./argumentparser";
 import { durationFormat } from "../durationFormat";
+import { AutodeleteRuleNoID } from "../Database";
 
 const stripMentions = (msg: string) => {
 	return msg
@@ -328,6 +329,50 @@ desc: automatically delete messages starting with ip! after 15 seconds
 // autodelete list
 // autodelete remove [id]
 router.add(
+	"autodelete list",
+	[Info.theirPerm.manageChannels],
+	async (cmd, info) => {
+		if (!info.db) {
+			return await info.error(
+				messages.failure.command_cannot_be_used_in_pms(info)
+			);
+		}
+		let ap = await AP({ info, cmd, partial: true });
+		if (!ap) return;
+		let autodelete = await info.db.getAutodelete();
+		return await info.result(
+			"Autodelete Rules:\n" +
+				autodelete.rules
+					.map(
+						rule =>
+							"`" +
+							info.prefix +
+							"autodelete remove " +
+							rule.id +
+							"` - " +
+							JSON.stringify(rule)
+					)
+					.join("\n")
+		);
+	}
+);
+router.add(
+	"autodelete remove",
+	[Info.theirPerm.manageChannels],
+	async (cmd, info) => {
+		if (!info.db) {
+			return await info.error(
+				messages.failure.command_cannot_be_used_in_pms(info)
+			);
+		}
+		let ap = await AP({ info, cmd, partial: true }, a.number());
+		if (!ap) return;
+		let [id] = ap.result;
+		await info.db.removeAutodelete(id);
+		return await info.success("Autodelete rule removed");
+	}
+);
+router.add(
 	"autodelete add",
 	[Info.theirPerm.manageChannels],
 	async (cmd, info) => {
@@ -339,23 +384,55 @@ router.add(
 		let ap = await AP(
 			{ info, cmd, partial: true },
 			a.duration(),
-			a.enum("prefix", "user", "channel")
+			a.enum("prefix", "user", "channel", "role")
 		);
 		if (!ap) return;
 		let [duration, mode] = ap.result;
 
 		cmd = ap.remaining;
+		let autodeleteInfo: AutodeleteRuleNoID;
 		if (mode === "prefix") {
 			let prefix = cmd;
+			autodeleteInfo = { type: "prefix", prefix, duration };
 		} else if (mode === "user") {
 			let ap = await AP({ info, cmd }, a.user());
+			if (!ap) return;
+			let [user] = ap.result;
+			autodeleteInfo = { type: "user", user: user.id, duration };
 		} else if (mode === "channel") {
 			let ap = await AP({ info, cmd }, a.channel());
+			if (!ap) return;
+			let [channel] = ap.result;
+			autodeleteInfo = { type: "channel", channel: channel.id, duration };
+		} else if (mode === "role") {
+			let ap = await AP({ info, cmd }, ...a.role());
+			if (!ap) return;
+			let [role] = ap.result;
+			autodeleteInfo = { type: "role", role: role.id, duration };
+		} else {
+			throw new Error("this should never happen");
 		}
+
+		let autodeleteLimit = await info.db.getAutodeleteLimit();
+		if ((await info.db.getAutodelete()).rules.length >= autodeleteLimit)
+			return await info.error(
+				"This server has reached its autodelete limit (" +
+					autodeleteLimit +
+					").\n> To increase this limit, ask on the support server\n> <https://interpunct.info/support>"
+			); // !!!
+		let autodeleteID = await info.db.addAutodelete(autodeleteInfo);
+		return await info.success(
+			"These types of messages will be automatically deleted after " +
+				durationFormat(duration) +
+				".\n> To remove this rule, `ip!autodelete remove " +
+				autodeleteID +
+				"`" // !!!
+		);
 	}
 );
 router.add("autodelete", [Info.theirPerm.manageChannels], async (cmd, info) => {
 	// return await info.usage("autodelete")
+	return await info.error("usage"); // !!!
 });
 
 router.add("send:", [Info.theirPerm.manageChannels], async (cmd, info) => {

@@ -98,6 +98,9 @@ export const a = {
 	channel() {
 		return ChannelArgumentType();
 	},
+	user() {
+		return UserArgumentType();
+	},
 	word() {
 		return WordArgumentType();
 	},
@@ -181,6 +184,37 @@ function ChannelArgumentType(): ArgumentType<Discord.GuildChannel> {
 					commandhelp
 				)
 			);
+			return { result: "exit" };
+		}
+		return {
+			result: "continue",
+			value: channel,
+			cmd: remainingCmd
+		};
+	};
+}
+
+function UserArgumentType(): ArgumentType<Discord.User> {
+	return async (info, arg, cmd, index, commandhelp, argpurpose) => {
+		if (!cmd.trim()) {
+			await info.error("user arg not provided");
+			return { result: "exit" };
+		}
+		if (!info.guild) {
+			await info.error(
+				messages.failure.command_cannot_be_used_in_pms(info)
+			);
+			return { result: "exit" };
+		}
+		const match = cmd.match(/^[\S\s]*?([0-9]{14,})[^\s]*\s*([\S\s]*)$/);
+		if (!match) {
+			await info.error("user arg not provided");
+			return { result: "exit" };
+		}
+		const [, userID, remainingCmd] = match;
+		const channel = info.message.client.users.get(userID);
+		if (!channel) {
+			await info.error("user not found");
 			return { result: "exit" };
 		}
 		return {
@@ -292,11 +326,14 @@ function EnumArgumentType<T extends string>(options: T[]): ArgumentType<T> {
 			return { result: "exit" };
 		}
 		const [, result, newCmd] = word;
-		if (options.indexOf(result as T) < -1) {
+		let optionText = options.find(
+			option => result.toLowerCase() === option.toLowerCase()
+		);
+		if (!optionText) {
 			await info.error("must be one of:" + options.join(","));
 			return { result: "exit" };
 		}
-		return { result: "continue", value: result as T, cmd: newCmd };
+		return { result: "continue", value: optionText, cmd: newCmd };
 	};
 }
 
