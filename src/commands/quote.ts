@@ -149,7 +149,9 @@ function parsePastebinURL(url: string = "") {
 
 async function addOrEditList(add: boolean, cmd: string, info: Info) {
 	if (!info.db) {
-		return await info.error(messages.failure.command_cannot_be_used_in_pms(info));
+		return await info.error(
+			messages.failure.command_cannot_be_used_in_pms(info)
+		);
 	}
 
 	// <name> <pastebin.com/id

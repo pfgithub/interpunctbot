@@ -208,7 +208,9 @@ router.add("speedrun leaderboard", [], async (cmd, info) => {
 	const position = parseInt(positionString, 10); // position =+ position
 
 	if (!info.db) {
-		return await info.error(messages.failure.command_cannot_be_used_in_pms(info));
+		return await info.error(
+			messages.failure.command_cannot_be_used_in_pms(info)
+		);
 	}
 	const defaultGameCategory = await info.db.getSpeedrunDefault();
 	if (!defaultGameCategory) {
