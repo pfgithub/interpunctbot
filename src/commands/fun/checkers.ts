@@ -756,7 +756,7 @@ export async function getPlayers(
 
 		await joinRequestMessage.react(emojis.interaction.join);
 
-		const interval = setInterval(async () => await updateMessage(), 3000);
+		const interval = setInterval(async () => ilt(updateMessage(), "updating join message"), 3000);
 
 		const tempt = setTimeout(async () => {
 			await updateMessage();
