@@ -10,7 +10,8 @@ import {
 	Message,
 	TextChannel,
 	MessageReaction,
-	User
+	User,
+    GuildMember
 } from "discord.js";
 import handleQuote from "./src/commands/quote";
 import MB from "./src/MessageBuilder";
@@ -331,7 +332,8 @@ client.on("guildMemberAdd", async member => {
 	if (member.partial) {
 		// partial is not supported
 		console.log("!!! PARTIAL MEMBER WAS AQUIRED IN A MEMBER ADD EVENT");
-		return;
+		await member.fetch();
+		if(!tsAssert<GuildMember>(member)) return;
 	}
 	const db = new Database(member.guild.id);
 	const nameParts = (await db.getAutoban()).filter(
@@ -385,11 +387,16 @@ client.on("guildMemberAdd", async member => {
 	}
 });
 
+function tsAssert<V>(a: any): a is V{
+	return true;
+}
+
 client.on("guildMemberRemove", async member => {
 	if (member.partial) {
 		// partial is not supported
 		console.log("!!! PARTIAL MEMBER WAS AQUIRED IN A MEMBER REMOVE EVENT");
-		return;
+		await member.fetch();
+		if(!tsAssert<GuildMember>(member)) return;
 	}
 	const db = new Database(member.guild.id); // it seems bad creating these objects just to forget them immediately
 	const goodbyeMessage = await db.getGoodbyeMessage();
@@ -472,9 +479,9 @@ client.on("message", async msg => {
 	});
 
 	if (info.db) {
-		let autodelete = await info.db.getAutodelete();
+		const autodelete = await info.db.getAutodelete();
 
-		for (let rule of autodelete.rules) {
+		for (const rule of autodelete.rules) {
 			let deleteMsg = false;
 			if (rule.type === "channel" && msg.channel.id === rule.channel) {
 				deleteMsg = true;
@@ -492,7 +499,7 @@ client.on("message", async msg => {
 				deleteMsg = true;
 			}
 			if (deleteMsg)
-				await info.timedEvents.queue(
+				{await info.timedEvents.queue(
 					{
 						type: "delete",
 						guild: info.guild!.id,
@@ -500,7 +507,7 @@ client.on("message", async msg => {
 						message: info.message.id
 					},
 					new Date().getTime() + rule.duration
-				);
+				);}
 		}
 	}
 
