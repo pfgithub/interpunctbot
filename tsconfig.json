@@ -1,19 +1,16 @@
 {
 	"compilerOptions": {
-        "baseUrl": ".",
-        "paths": { "*": ["types/*"] },
+		"baseUrl": ".",
+		"paths": { "*": ["types/*"] },
 		"outDir": "./built",
 		"target": "es2017",
 		"module": "commonjs",
-        "noImplicitAny": true,
+		"noImplicitAny": true,
 		"lib": ["es2017"],
 		"resolveJsonModule": true,
 		"declaration": true,
 		"strict": true
 	},
-	"include": [
-		"src/**/*",
-		"index.ts"
-	],
+	"include": ["src/**/*", "index.ts"],
 	"esModuleInterlop": true
 }
