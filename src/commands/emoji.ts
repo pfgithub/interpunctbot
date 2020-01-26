@@ -1,9 +1,8 @@
 import Router from "commandrouter";
-import Info from "../Info";
-import * as moment from "moment";
 import * as Discord from "discord.js";
-import { AP, a } from "./argumentparser";
 import { messages } from "../../messages";
+import Info from "../Info";
+import { a, AP } from "./argumentparser";
 
 const router = new Router<Info, Promise<any>>();
 
@@ -16,12 +15,12 @@ function roleNameMatch(rolename: string, message: string) {
 async function getEmojiAndRole(
 	cmd: string,
 	info: Info,
-	{ allowJustEmoji }: { allowJustEmoji: false }
+	{ allowJustEmoji }: { allowJustEmoji: false },
 ): Promise<{ emoji: Discord.GuildEmoji; role: Discord.Role } | undefined>;
 async function getEmojiAndRole(
 	cmd: string,
 	info: Info,
-	{ allowJustEmoji }: { allowJustEmoji: true }
+	{ allowJustEmoji }: { allowJustEmoji: true },
 ): Promise<
 	| { emoji: Discord.GuildEmoji; role: Discord.Role }
 	| { emoji: Discord.GuildEmoji; role: undefined }
@@ -30,7 +29,7 @@ async function getEmojiAndRole(
 async function getEmojiAndRole(
 	cmd: string,
 	info: Info,
-	{ allowJustEmoji }: { allowJustEmoji: boolean }
+	{ allowJustEmoji }: { allowJustEmoji: boolean },
 ): Promise<
 	| { emoji: Discord.GuildEmoji; role: Discord.Role }
 	| { emoji: Discord.GuildEmoji; role: undefined }
@@ -44,18 +43,19 @@ async function getEmojiAndRole(
 		await info.error(messages.emoji.restrict_usage(info));
 		return;
 	}
-	const [, emojiID, rolename] = cmd.match(
-		/^[\S\s]*?([0-9]{16,})[^ ]*? (.+)$/
+	const [, emojiID, rolename] = /^[\S\s]*?([0-9]{16,})[^ ]*? (.+)$/.exec(
+		cmd,
 	) || ["", "", ""];
 
 	if (!emojiID || !rolename) {
 		if (allowJustEmoji) {
+			//eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
 			const [, emojiID] = cmd
 				.trim()
 				.match(/^[\S\s]*?([0-9]{16,})[^ ]*$/) || ["", ""];
 			if (!emojiID) {
 				await info.error(
-					messages.emoji.could_not_find_emoji(info, emojiID)
+					messages.emoji.could_not_find_emoji(info, emojiID),
 				);
 				return;
 			}
@@ -63,7 +63,7 @@ async function getEmojiAndRole(
 			const emoji = info.guild.emojis.get(emojiID);
 			if (!emoji) {
 				await info.error(
-					messages.emoji.could_not_find_emoji(info, emojiID)
+					messages.emoji.could_not_find_emoji(info, emojiID),
 				);
 				return;
 			}
@@ -80,9 +80,10 @@ async function getEmojiAndRole(
 		return;
 	}
 
+	//eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
 	const roleID = (rolename.trim().match(/^[\S\s]*?([0-9]{16,})[\S\s]*$/) || [
 		"",
-		""
+		"",
 	])[1];
 	let role: Discord.Role;
 	if (roleID) {
@@ -101,8 +102,8 @@ async function getEmojiAndRole(
 				messages.emoji.multiple_roles_found(
 					info,
 					rolename,
-					matchingRoles
-				)
+					matchingRoles,
+				),
 			);
 			return;
 		}
@@ -128,12 +129,12 @@ router.add(
 		newRoles.push(role);
 		await emoji.edit(
 			{ roles: newRoles },
-			`@${info.message.member!.displayName}`
+			`@${info.message.member!.displayName}`,
 		);
 		await info.success(
-			messages.emoji.added_restriction(info, emoji, role, newRoles)
+			messages.emoji.added_restriction(info, emoji, role, newRoles),
 		);
-	}
+	},
 );
 
 router.add(
@@ -142,12 +143,12 @@ router.add(
 	async (cmd, info, next) => {
 		if (!info.guild) {
 			return await info.error(
-				messages.failure.command_cannot_be_used_in_pms(info)
+				messages.failure.command_cannot_be_used_in_pms(info),
 			);
 		}
 
 		const emojiAndRole = await getEmojiAndRole(cmd, info, {
-			allowJustEmoji: true
+			allowJustEmoji: true,
 		});
 		if (!emojiAndRole) {
 			return;
@@ -161,21 +162,21 @@ router.add(
 		if (!role) {
 			await emoji.edit(
 				{ roles: [] },
-				`@${info.message.member!.displayName}`
+				`@${info.message.member!.displayName}`,
 			);
 			return await info.success(
-				messages.emoji.removed_all_restrictions(info, emoji)
+				messages.emoji.removed_all_restrictions(info, emoji),
 			);
 		}
 		newRoles = newRoles.filter(roles => roles.id !== role.id);
 		await emoji.edit(
 			{ roles: newRoles },
-			`@${info.message.member!.displayName}`
+			`@${info.message.member!.displayName}`,
 		);
 		await info.success(
-			messages.emoji.removed_restriction(info, emoji, role, newRoles)
+			messages.emoji.removed_restriction(info, emoji, role, newRoles),
 		);
-	}
+	},
 );
 
 router.add(
@@ -187,13 +188,13 @@ router.add(
 		const [emoji] = ap.result;
 
 		await info.result(messages.emoji.inspect(info, emoji));
-	}
+	},
 );
 
 router.add("emoji", [Info.theirPerm.manageBot], async (cmd, info, next) => {
 	// catchall. show emojirank commands:
 	return await info.error(
-		"`ip!help emoji` https://interpunct.info/help/emoji"
+		"`ip!help emoji` https://interpunct.info/help/emoji",
 	);
 });
 
@@ -208,14 +209,14 @@ router.add(
 		const [channel] = ap.result;
 		if (!info.db) {
 			return await info.error(
-				messages.failure.command_cannot_be_used_in_pms(info)
+				messages.failure.command_cannot_be_used_in_pms(info),
 			);
 		}
 		await info.db.setEmojiRankChannel(channel.id);
 		await info.success(`Set rank emoji channel to <#${channel.id}>
 **IF**［*hasRankmojiSetup*］: Try it out by reacting with [one of the set up emojis]
 **IF**［*doesNotHaveRankmojiSetup*］: Add some emojis to rank people: \`${info.prefix}emojirank add :emoji: @Role\``);
-	}
+	},
 );
 
 /*

@@ -82,7 +82,7 @@ export class MessageBuilder {
 
 	addField(
 		fn: (title: TextBuilder, description: TextBuilder) => void,
-		inline = false
+		inline = false,
 	) {
 		// param fn: (title, description) => {} returns nothing
 		const title = new TextBuilder();
@@ -91,7 +91,7 @@ export class MessageBuilder {
 		this._fields.push({
 			title: title,
 			description: description,
-			inline: inline
+			inline: inline,
 		});
 	}
 
@@ -124,7 +124,7 @@ export class MessageBuilder {
 
 		if (this.thumb) {
 			embed.thumbnail = {
-				url: this.thumb
+				url: this.thumb,
 			};
 		}
 
@@ -142,7 +142,7 @@ export class MessageBuilder {
 				embed.addField(
 					field.title.build(),
 					field.description.build(),
-					field.inline
+					field.inline,
 				);
 			}
 			if (field.inline) {

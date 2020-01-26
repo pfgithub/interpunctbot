@@ -1,21 +1,7 @@
 import client, { timedEvents } from "./bot";
-import * as config from "./config.json";
-import * as path from "path";
-import knex from "./src/db"; // TODO add something so if you delete a message with a command it deletes the result messages or a reaction on the result msg or idk
-import {
-	MessageAttachment,
-	MessageEmbed,
-	DiscordAPIError,
-	GuildChannel,
-	Message,
-	TextChannel,
-	MessageReaction,
-	User,
-    GuildMember
-} from "discord.js";
-import handleQuote from "./src/commands/quote";
-import MB from "./src/MessageBuilder";
-import * as request from "request";
+import config from "./config.json";
+import path from "path"; // TODO add something so if you delete a message with a command it deletes the result messages or a reaction on the result msg or idk
+import * as Discord from "discord.js";
 import Router from "commandrouter";
 import Info from "./src/Info";
 import { messages } from "./messages";
@@ -23,20 +9,16 @@ import { messages } from "./messages";
 import fun from "./src/commands/fun";
 import speedrun from "./src/commands/speedrun";
 import logging from "./src/commands/logging";
-import channelsRouter, {
-	findChannelsRequireSpacing,
-	doesChannelRequireSpacing,
-	spaceChannel
-} from "./src/commands/channelmanagement";
+import channelsRouter from "./src/commands/channelmanagement";
 import aboutRouter from "./src/commands/about";
 import settingsRouter from "./src/commands/settings";
 import quoteRouter from "./src/commands/quote";
 import emojiRouter from "./src/commands/emoji";
 import testRouter from "./src/commands/test";
 
-import * as moment from "moment";
-import "moment-duration-format"; // for typescript
-require("moment-duration-format")(moment);
+import moment from "moment";
+import mdf from "moment-duration-format"; // for typescript
+mdf(moment as any);
 
 declare global {
 	namespace NodeJS {
@@ -46,8 +28,6 @@ declare global {
 	}
 }
 global.__basedir = __dirname;
-
-import { EventEmitter } from "events"; // TODO add a thing for warning people like $warn [person] and have it be like 1 warning fine 2 warnings tempmute 3 warnings...and customizeable
 
 import { promises as fs, mkdirSync } from "fs";
 import Database from "./src/Database";
@@ -70,44 +50,23 @@ function devlog(...msg: any) {
 	}
 }
 
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!usage.add("settings", require("./src/commands/settings"));
 router.add([], fun);
 router.add([], channelsRouter);
 router.add([], speedrun);
 router.add("log", [Info.theirPerm.manageBot], logging);
 
-// usage.add(
-// 	"purge",
-// 	new Usage({
-// 		description: "Deletes the last n messages from a channel",
-// 		usage: ["msgs to delete"],
-// 		requirements: [o.perm("MANAGE_MESSAGES"), o.myPerm("MANAGE_MESSAGES")],
-// 		callback: async (data, n) => {
-// 			await data.msg.reply("This command is not recommened for use.");
-// 			const number = +n;
-// 			if (isNaN(number)) {
-// 				return await data.msg.reply("Invalid numbers");
-// 			}
-// 			const msgs = await data.msg.channel.fetchMessages({
-// 				limit: number
-// 			});
-// 			msgs.array().forEach(msg => msg.delete());
-// 		}
-// 	})
-// ); !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 export type ErrorWithID = Error & { errorCode: string };
 
 export function wrapErrorAddID(error: Error): ErrorWithID {
 	(error as ErrorWithID).errorCode = Math.floor(
-		Math.random() * 1000000000000000
+		Math.random() * 1000000000000000,
 	).toString(36);
 	return error as ErrorWithID;
 }
 
 export async function ilt<T>(
 	v: Promise<T> /*, reason: string (added to error message)*/,
-	reason: string | false
+	reason: string | false,
 ): Promise<
 	{ error: ErrorWithID; result: undefined } | { error: undefined; result: T }
 > {
@@ -117,26 +76,33 @@ export async function ilt<T>(
 	} catch (error) {
 		const ewid = wrapErrorAddID(error);
 		if (typeof reason === "string") {
-			reportILTFailure(ewid, new Error(reason));
+			ignorePromise(reportILTFailure(ewid, new Error(reason)));
 		}
 		return { error: ewid, result: undefined };
 	}
 	return { result, error: undefined };
 }
 
+//eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
+export function ignorePromise(_p: Promise<unknown>) {}
+
+export function perr(
+	v: Promise<unknown> /*, reason: string (added to error message)*/,
+	reason: string | false,
+): void {
+	ignorePromise(ilt(v, reason));
+}
+
 router.add("spoiler", [], async (cmd, info) => {
-	const deletedMessage = await ilt(
-		info.message.delete(),
-		"Deleting original message for spoiler"
-	);
+	perr(info.message.delete(), "Deleting original message for spoiler");
 	// if(er) send message...
 	await info.error(
 		messages.failure.command_removed(
 			info,
 			"spoiler",
 			"3.0",
-			"Discord has added official spoiler support by surrounding your message in `||vertical lines||`."
-		)
+			"Discord has added official spoiler support by surrounding your message in `||vertical lines||`.",
+		),
 	);
 });
 
@@ -147,11 +113,11 @@ depricate("spaceChannels", "channels spacing", "2.0"); // 1.0 -> 2.0
 reroute("invite", "about", "2.0");
 
 router.add("about", [], aboutRouter);
-router.add("help", [], async (cmd, info, next) => {
-	// await info.result(
-	// 	messages.help(info, info.db ? await info.db.getLists() : {})
-	// );
-});
+// router.add("help", [], async (cmd, info, next) => {
+// 	await info.result(
+// 		messages.help(info, info.db ? await info.db.getLists() : {}),
+// 	);
+// });
 
 reroute("downloadLog", "log download", "2.0");
 reroute("resetLog", "log reset", "2.0");
@@ -159,7 +125,7 @@ reroute("listRoles", "settings listRoles", "2.0");
 remove(
 	"settings listroles",
 	"Discord now has a builtin way for you to get the ID of roles by right clicking a role in the Roles section of settings. Also, most interpunct commands will now accept a role name instead of ID.",
-	"3.0"
+	"3.0",
 );
 
 router.add("crash", [Info.theirPerm.owner], () => {
@@ -171,29 +137,29 @@ router.add([], emojiRouter);
 router.add([], testRouter);
 router.add([], quoteRouter);
 
-function depricate(oldcmd: string, newcmd: string, version: string = "3.0") {
+function depricate(oldcmd: string, newcmd: string, version = "3.0") {
 	router.add(oldcmd, [], async (cmd, info) => {
 		return await info.error(
 			`\`${oldcmd}\` has been renamed to \`${newcmd}\` as part of Interpunct Bot ${version}. See \`help\` for more information. Join the support server in \`about\` if you have any issues.`,
-			undefined
+			undefined,
 		);
 	});
 }
 
-function reroute(oldcmd: string, newcmd: string, version: string = "3.0") {
+function reroute(oldcmd: string, newcmd: string, version = "3.0") {
 	router.add(oldcmd, [], async (cmd, info) => {
 		await info.warn(
 			`\`${oldcmd}\` has been renamed to \`${newcmd}\` as part of Interpunct Bot ${version}. See \`help\` for more information. Join the support server in \`about\` if you have any issues.`,
-			undefined
+			undefined,
 		);
 		router.handle(newcmd, info);
 	});
 }
 
-function remove(oldcmd: string, reason: string, version: string = "3.0") {
+function remove(oldcmd: string, reason: string, version = "3.0") {
 	router.add(oldcmd, [], async (cmd, info) => {
 		return await info.error(
-			messages.failure.command_removed(info, oldcmd, version, reason)
+			messages.failure.command_removed(info, oldcmd, version, reason),
 		);
 	});
 }
@@ -202,30 +168,30 @@ depricate("settings prefix", "set prefix [new prefix]");
 depricate("settings lists", "lists [add/edit/remove]");
 depricate(
 	"settings discmoji",
-	"IMPLEMENT BEFORE RELEASE;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;" // > Warning: It is recommended to use rankmoji instead.
+	"IMPLEMENT BEFORE RELEASE;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;", // > Warning: It is recommended to use rankmoji instead.
 );
 depricate("settings rankmoji", "emoji");
 remove(
 	"settings permreplacements",
-	"Permreplacements were never tested and probably didn't work."
+	"Permreplacements were never tested and probably didn't work.",
 );
 depricate("settings speedrun", "speedrun <add/remove/default>");
 depricate(
 	"settings nameScreening",
-	"IMPLEMENT BEFORE RELEASE;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;"
+	"IMPLEMENT BEFORE RELEASE;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;",
 );
 depricate("settings logging", "log <enable/disable>");
 depricate(
 	"settings events",
-	"IMPLEMENT BEFORE RELEASE;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;"
+	"IMPLEMENT BEFORE RELEASE;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;",
 );
 depricate(
 	"settings unknownCommandMessages",
-	"set show unknown command [always/admins/never]"
+	"set show unknown command [always/admins/never]",
 );
 depricate(
 	"settings commandFailureMessages",
-	"set show errors [always/admins/never]"
+	"set show errors [always/admins/never]",
 );
 depricate("settings autospaceChannels", "space channels automatically");
 depricate("settings listRoles", "https://interpunct.info/role-id");
@@ -279,23 +245,10 @@ router.add([], async (cmd, info) => {
 	) {
 		return await info.errorAlways(
 			messages.failure.command_not_found(info, cmd),
-			undefined
+			undefined,
 		);
 	} // else do nothing
 });
-
-const serverInfo = {};
-
-function tryParse(json: any) {
-	try {
-		return typeof json === "string" ? JSON.parse(json) : json;
-	} catch (e) {
-		//console.log(`Could not parse  ^^${JSON.stringify(json)}`);
-		return [];
-	}
-}
-
-const infoPerSecond: number[] = [];
 
 function updateActivity() {
 	const count = client.guilds.size;
@@ -313,7 +266,7 @@ function updateActivity() {
 	// request.post(options, (er, res) => {});
 }
 
-client.on("ready", async () => {
+client.on("ready", () => {
 	global.console.log("Ready");
 	serverStartTime = new Date().getTime();
 	updateActivity();
@@ -328,25 +281,26 @@ function streplace(str: string, eplace: { [key: string]: string }) {
 	return str;
 }
 
-client.on("guildMemberAdd", async member => {
+async function guildMemberAdd(
+	member: Discord.GuildMember | Discord.PartialGuildMember,
+) {
 	if (member.partial) {
 		// partial is not supported
 		console.log("!!! PARTIAL MEMBER WAS AQUIRED IN A MEMBER ADD EVENT");
 		await member.fetch();
-		if(!tsAssert<GuildMember>(member)) return;
+		if (!tsAssert<Discord.GuildMember>(member)) return;
 	}
 	const db = new Database(member.guild.id);
-	const nameParts = (await db.getAutoban()).filter(
-		screen =>
-			member.displayName.toLowerCase().indexOf(screen.toLowerCase()) > -1
+	const nameParts = (await db.getAutoban()).filter(screen =>
+		member.displayName.toLowerCase().includes(screen.toLowerCase()),
 	);
 	if (nameParts.length > 0) {
 		// if any part of name contiains screen
 		if (member.bannable) {
-			member.ban({
+			await member.ban({
 				reason: `Name contains dissallowed words: ${nameParts.join(
-					`, `
-				)}`
+					`, `,
+				)}`,
 			});
 			// if (info.logging) {
 			// 	try {
@@ -361,92 +315,103 @@ client.on("guildMemberAdd", async member => {
 			// 	}
 			// } !!!!!!!!!!!!!!!!!!!!!!!!!!!!! this should be logged on bot.on(ban)
 		} else {
-			db.addError(
+			await db.addError(
 				`Unable to ban user named ${member.displayName}, possibly because interpunct bot does not have permission to ban members.`,
-				"name screening"
+				"name screening",
 			);
 		}
 	}
 	const welcomeMessage = await db.getWelcomeMessage();
 	if (welcomeMessage) {
-		setTimeout(() => {
-			if (member.guild.systemChannel) {
-				member.guild.systemChannel.send(
-					streplace(welcomeMessage, {
-						"@s": member.toString(),
-						"%s": member.displayName
-					})
-				);
-			} else {
-				db.addError(
-					`Unable to send welcome message because this server does not have a System Channel set. Set one in the server settings for this server.`,
-					"welcome message"
-				);
-			}
-		}, 1000);
-	}
-});
-
-function tsAssert<V>(a: any): a is V{
-	return true;
-}
-
-client.on("guildMemberRemove", async member => {
-	if (member.partial) {
-		// partial is not supported
-		console.log("!!! PARTIAL MEMBER WAS AQUIRED IN A MEMBER REMOVE EVENT");
-		await member.fetch();
-		if(!tsAssert<GuildMember>(member)) return;
-	}
-	const db = new Database(member.guild.id); // it seems bad creating these objects just to forget them immediately
-	const goodbyeMessage = await db.getGoodbyeMessage();
-	if (goodbyeMessage) {
 		if (member.guild.systemChannel) {
-			member.guild.systemChannel.send(
-				streplace(goodbyeMessage, {
+			await member.guild.systemChannel.send(
+				streplace(welcomeMessage, {
 					"@s": member.toString(),
-					"%s": member.displayName
-				})
+					"%s": member.displayName,
+				}),
 			);
 		} else {
-			db.addError(
+			await db.addError(
 				`Unable to send welcome message because this server does not have a System Channel set. Set one in the server settings for this server.`,
-				"welcome message"
-			);
-		}
-	}
-});
-
-async function spaceChannelIfNecessary(channel: GuildChannel) {
-	if (!channel.guild) return; // ???
-	const db = new Database(channel.guild.id);
-	if (await db.getAutospaceChannels()) {
-		if (doesChannelRequireSpacing(channel, "-")) {
-			await spaceChannel(
-				channel,
-				"-",
-				`automatically spaced. \`${await db.getPrefix()}space channels disable\` to stop`
+				"welcome message",
 			);
 		}
 	}
 }
 
-client.on("channelCreate", async (newC: GuildChannel) =>
-	spaceChannelIfNecessary(newC)
-);
-client.on("channelUpdate", async (_oldC: GuildChannel, newC: GuildChannel) =>
-	spaceChannelIfNecessary(newC)
-);
+client.on("guildMemberAdd", member => {
+	perr(guildMemberAdd(member), "member joined");
+});
 
-function logMsg({ msg, prefix }: { msg: Message; prefix: string }) {
+function tsAssert<V>(a: any): a is V {
+	return !!a || true;
+}
+
+client.on("guildMemberRemove", member => {
+	perr(
+		(async () => {
+			if (member.partial) {
+				// partial is not supported
+				console.log(
+					"!!! PARTIAL MEMBER WAS AQUIRED IN A MEMBER REMOVE EVENT",
+				);
+				await member.fetch();
+				if (!tsAssert<Discord.GuildMember>(member)) return;
+			}
+			const db = new Database(member.guild.id); // it seems bad creating these objects just to forget them immediately
+			const goodbyeMessage = await db.getGoodbyeMessage();
+			if (goodbyeMessage) {
+				if (member.guild.systemChannel) {
+					await member.guild.systemChannel.send(
+						streplace(goodbyeMessage, {
+							"@s": member.toString(),
+							"%s": member.displayName,
+						}),
+					);
+				} else {
+					await db.addError(
+						`Unable to send welcome message because this server does not have a System Channel set. Set one in the server settings for this server.`,
+						"welcome message",
+					);
+				}
+			}
+		})(),
+		"member left.",
+	);
+});
+
+// async function spaceChannelIfNecessary(channel: Discord.GuildChannel) {
+// 	if (!channel.guild) return; // ???
+// 	const db = new Database(channel.guild.id);
+// 	if (await db.getAutospaceChannels()) {
+// 		if (doesChannelRequireSpacing(channel, "-")) {
+// 			await spaceChannel(
+// 				channel,
+// 				"-",
+// 				`automatically spaced. \`${await db.getPrefix()}space channels disable\` to stop`,
+// 			);
+// 		}
+// 	}
+// }
+//
+// client.on("channelCreate", (newC: Discord.GuildChannel) =>
+// 	perr(spaceChannelIfNecessary(newC), "space channel on create"),
+// );
+// client.on(
+// 	"channelUpdate",
+// 	(_oldC: Discord.GuildChannel, newC: Discord.GuildChannel) =>
+// 		perr(spaceChannelIfNecessary(newC), "space channel on update"),
+// );
+
+function logMsg({ msg, prefix }: { msg: Discord.Message; prefix: string }) {
 	if (msg.guild) {
 		devlog(
 			`${prefix}< [${msg.guild.nameAcronym}] <#${
-				(<TextChannel>msg.channel).name
-			}> \`${msg.author!.tag}\`: ${msg.content}`
+				(msg.channel as Discord.TextChannel).name
+			}> \`${msg.author.tag}\`: ${msg.content}`,
 		);
 	} else {
-		devlog(`${prefix}< pm: ${msg.author!.tag}: ${msg.content}`);
+		devlog(`${prefix}< pm: ${msg.author.tag}: ${msg.content}`);
 	}
 }
 
@@ -454,19 +419,22 @@ async function guildLog(id: string, log: string) {
 	await fs.appendFile(
 		path.join(__dirname, `logs/${id}.log`),
 		`${log}\n`,
-		"utf8"
+		"utf8",
 	);
 }
 
-client.on("message", async msg => {
+async function onMessage(msg: Discord.Message | Discord.PartialMessage) {
 	if (msg.partial) {
 		// partial is not supported
 		console.log("!!! PARTIAL MESSAGE WAS AQUIRED IN A MESSAGE EVENT");
-		return;
+		await msg.fetch();
+		if (!tsAssert<Discord.Message>(msg)) return;
 	}
 	if (!msg.author) {
 		return logError(
-			new Error("MESSAGE DOES NOT HAVE AUTHOR. This should never happen.")
+			new Error(
+				"MESSAGE DOES NOT HAVE AUTHOR. This should never happen.",
+			),
 		);
 	}
 	if (msg.author.id === client.user!.id) {
@@ -475,7 +443,7 @@ client.on("message", async msg => {
 
 	const info = new Info(msg, timedEvents!, {
 		startTime: new Date().getTime(),
-		infoPerSecond: -1
+		infoPerSecond: -1,
 	});
 
 	if (info.db) {
@@ -498,16 +466,17 @@ client.on("message", async msg => {
 			) {
 				deleteMsg = true;
 			}
-			if (deleteMsg)
-				{await info.timedEvents.queue(
+			if (deleteMsg) {
+				await info.timedEvents.queue(
 					{
 						type: "delete",
 						guild: info.guild!.id,
 						channel: info.message.channel.id,
-						message: info.message.id
+						message: info.message.id,
 					},
-					new Date().getTime() + rule.duration
-				);}
+					new Date().getTime() + rule.duration,
+				);
+			}
 		}
 	}
 
@@ -518,11 +487,11 @@ client.on("message", async msg => {
 
 	if (info.db && (await info.db.getLogEnabled())) {
 		try {
-			guildLog(
+			await guildLog(
 				msg.guild!.id, // db ? guild! : guild?
 				`[${moment().format("YYYY-MM-DD HH:mm:ss Z")}] <#${
-					(<TextChannel>msg.channel).name
-				}> \`${msg.author.tag}\`: ${msg.content}`
+					(msg.channel as Discord.TextChannel).name
+				}> \`${msg.author.tag}\`: ${msg.content}`,
 			);
 		} catch (e) {
 			logError(e);
@@ -545,22 +514,29 @@ client.on("message", async msg => {
 		const er = commandHandleResult.error;
 		const ewid = wrapErrorAddID(er);
 		logError(ewid);
-		if (er instanceof DiscordAPIError) {
+		if (er instanceof Discord.DiscordAPIError) {
 			await info.error(
 				messages.failure.missing_permissions_internal_error(
 					info,
-					ewid.errorCode
-				)
+					ewid.errorCode,
+				),
 			);
 		} else {
 			await info.error(
-				messages.failure.generic_internal_error(info, ewid.errorCode)
+				messages.failure.generic_internal_error(info, ewid.errorCode),
 			);
 		}
 	}
+}
+
+client.on("message", msg => {
+	perr(onMessage(msg), "on message");
 });
 
-client.on("messageUpdate", async (from, msg) => {
+async function onMessageUpdate(
+	from: Discord.Message | Discord.PartialMessage,
+	msg: Discord.Message | Discord.PartialMessage,
+) {
 	if (from.partial || msg.partial) {
 		console.log("!! MESSAGE UPDATE HAD A PARTIAL MESSAGE");
 		return;
@@ -574,23 +550,27 @@ client.on("messageUpdate", async (from, msg) => {
 		const db = new Database(msg.guild.id);
 		if (await db.getLogEnabled()) {
 			try {
-				guildLog(
+				await guildLog(
 					msg.guild.id,
 					`[${moment().format("YYYY-MM-DD HH:mm:ss Z")}] <#${
-						(<GuildChannel>from.channel).name
-					}> \`${from.author!.tag}\` Edited Message: ${from.content}`
+						(from.channel as Discord.GuildChannel).name
+					}> \`${from.author.tag}\` Edited Message: ${from.content}`,
 				);
-				guildLog(
+				await guildLog(
 					msg.guild.id,
 					`[${moment().format("YYYY-MM-DD HH:mm:ss Z")}] <#${
-						(<GuildChannel>msg.channel).name
-					}> \`${msg.author!.tag}\` To: ${msg.content}`
+						(msg.channel as Discord.GuildChannel).name
+					}> \`${msg.author.tag}\` To: ${msg.content}`,
 				);
 			} catch (e) {
 				logError(e);
 			}
 		}
 	}
+}
+
+client.on("messageUpdate", (from, msg) => {
+	perr(onMessageUpdate(from, msg), "message update");
 });
 
 // function getEmojiKey(emoji) {
@@ -711,7 +691,7 @@ client.on("guildCreate", guild => {
 	global.console.log(`_ Joined guild ${guild.name} (${guild.nameAcronym})`);
 });
 
-client.on("guildDelete", async guild => {
+client.on("guildDelete", guild => {
 	// forget about the guild at some point in time
 	global.console.log(`_ Left guild ${guild.name} (${guild.nameAcronym})`);
 	// TODO delete info in db after leaving a guild
@@ -721,23 +701,25 @@ export async function reportILTFailure(message: ErrorWithID, reason: Error) {
 	logError(message, false, reason);
 }
 
-export async function logError(
+export function logError(
 	message: Error,
-	atEveryone: boolean = true,
-	additionalDetails?: Error
+	atEveryone = true,
+	additionalDetails?: Error,
 ) {
-	const finalMsg = `ERROR CODE: \`${
-		(message as ErrorWithID).errorCode
-	}\`!!. ${
-		additionalDetails
-			? `Details: ${additionalDetails}
+	ignorePromise(
+		(async () => {
+			const finalMsg = `ERROR CODE: \`${
+				(message as ErrorWithID).errorCode
+			}\`!!. ${
+				additionalDetails
+					? `Details: ${additionalDetails}
 
 **Stacktrace**:
 \`\`\`
 ${additionalDetails.stack}
 \`\`\``
-			: ""
-	}
+					: ""
+			}
 
 Hey ${atEveryone ? "@everyone" : "the void of discord"}, there was an error
 
@@ -751,23 +733,28 @@ ${mostRecentCommands
 ${message.stack}
 \`\`\`
 `;
-	await sendMessageToErrorReportingChannel(finalMsg);
+			await sendMessageToErrorReportingChannel(finalMsg);
+		})(),
+	);
 }
 
 process.on("unhandledRejection", (reason: any, p) => {
-	console.log(p);
-	console.log(reason);
-	reason.errorCode = "Unhandled Rejection; No Error Code";
-	logError(reason); // no error code
+	console.log("UNHANDLED REJECTON.", reason, p);
+	// process.exit(1);
+	// console.log(p);
+	// console.log(reason);
+	// reason.errorCode = "Unhandled Rejection; No Error Code";
+	// ignorePromise(logError(reason)); // no error code
 });
 
 export async function sendMessageToErrorReportingChannel(message: string) {
+	// !!!! SHARDING: this does not work with sharding
 	console.log(message);
 	try {
 		const rept = config.errorReporting.split(`/`);
-		const channel: TextChannel = client.channels.get(
-			rept[1]
-		)! as TextChannel;
+		const channel: Discord.TextChannel = client.channels.get(
+			rept[1],
+		)! as Discord.TextChannel;
 		await channel.send(message);
 	} catch (e) {
 		console.log("Failed to report. Exiting.");

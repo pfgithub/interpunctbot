@@ -1,5 +1,5 @@
 import { promises as fs } from "fs";
-import * as path from "path";
+import path from "path";
 
 import { parseDGMD } from "./dgmd";
 
@@ -22,7 +22,7 @@ export function templateGenerator<InType>(helper: (str: InType) => string) {
 			.map(el =>
 				typeof (el as { __raw: string }).__raw === "string"
 					? (el as { __raw: string }).__raw
-					: helper(el as InType)
+					: helper(el as InType),
 			)
 			.join("");
 	};
@@ -55,13 +55,13 @@ async function recursiveReaddir(start: string): Promise<string[]> {
 			if (fileStats.isDirectory()) {
 				finalFiles.push(
 					...(await recursiveReaddir(path.join(start, f))).map(r =>
-						path.join(f, r)
-					)
+						path.join(f, r),
+					),
 				);
 			} else {
 				finalFiles.push(f);
 			}
-		})
+		}),
 	);
 	return finalFiles;
 }
@@ -81,7 +81,7 @@ const htmlmethods: { [key: string]: (v: string) => string } = {
 	Emoji: v => {
 		const [emojiname, emojiid] = global_context.emojiCont[v] || [
 			":err_no_emoji:",
-			"err_no_emoji"
+			"err_no_emoji",
 		];
 		return rhtml`<img class="emoji" src="https://cdn.discordapp.com/emojis/${emojiid}.png" title="${emojiname}" aria-label="${emojiname}" alt="${emojiname}" draggable="false" />`;
 	},
@@ -93,7 +93,7 @@ const htmlmethods: { [key: string]: (v: string) => string } = {
 		rhtml`<span class="optional"><span class="optionallabel">Optional</span> ${v}</span>`,
 	Enum: v => rhtml`<span class="enum">${v}</span>`,
 	Number: v => rhtml`<span class="number">${v}</span>`,
-	Argtag: v => rhtml`<span class="optionallabel">${v}</span>`
+	Argtag: v => rhtml`<span class="optionallabel">${v}</span>`,
 };
 
 const discordmethods: { [key: string]: (v: string) => string } = {
@@ -112,7 +112,7 @@ const discordmethods: { [key: string]: (v: string) => string } = {
 	Emoji: v => {
 		const [emojiname, emojiid, surround] = global_context.emojiCont[v] || [
 			":err_no_emoji:",
-			"err_no_emoji"
+			"err_no_emoji",
 		];
 		if (surround) {
 			return `\`<${emojiname}${emojiid}>\``;
@@ -124,7 +124,7 @@ const discordmethods: { [key: string]: (v: string) => string } = {
 	Atmention: v => `@${v}`,
 	Optional: v => `[Optional ${v}]`,
 	Enum: v => v,
-	Number: v => `[Number ${v}]`
+	Number: v => `[Number ${v}]`,
 };
 
 const htmlprocess = (str: string) =>
@@ -139,7 +139,7 @@ const htmlprocess = (str: string) =>
 			return html`
 				<span class="callerr">${name}|${v}</span>
 			`;
-		}
+		},
 	}).res;
 
 const discordprocess = (str: string) =>
@@ -154,13 +154,13 @@ const discordprocess = (str: string) =>
 			return html`
 				\`{{${name}|${v}</span>}}\`
 			`;
-		}
+		},
 	}).res;
 
 async function processText(
 	path: string[],
 	text: string,
-	context: Context
+	context: Context,
 ): Promise<{ html: string; discord: string }> {
 	const htmlResult: string[] = [];
 	const discordResult: string[] = [];
@@ -174,7 +174,7 @@ async function processText(
 			htmlResult.push(
 				phtml`
 					<h2>${v}</h2>
-				`
+				`,
 			);
 			discordResult.push(`**${discordprocess(v)}**`);
 			continue;
@@ -184,7 +184,7 @@ async function processText(
 			htmlResult.push(
 				phtml`
 					<p>${v}</p>
-				`
+				`,
 			);
 			discordResult.push(discordprocess(v));
 			continue;
@@ -194,7 +194,7 @@ async function processText(
 			htmlResult.push(
 				phtml`
 					<p>${v}</p>
-				`
+				`,
 			);
 			discordResult.push(discordprocess(v));
 			continue;
@@ -211,7 +211,7 @@ async function processText(
 						<div class="author you">you</div>
 						<div class="msgcontent">ip!${v}</div>
 					</div>
-				`
+				`,
 			);
 			// discordResult.push(`\`{{Computed|prefix}}${discordprocess(v)}\``);
 			continue;
@@ -231,7 +231,7 @@ async function processText(
 						</div>
 						<div class="msgcontent">${v}</div>
 					</div>
-				`
+				`,
 			);
 			// discordResult.push(`→ ${discordprocess(v)}`);
 			continue;
@@ -248,7 +248,7 @@ async function processText(
 							>${respath[respath.length - 1]}</a
 						>
 					</p>
-				`
+				`,
 			);
 			discordResult.push(`\`ip!${respath.join(" ")}\``);
 			continue;
@@ -266,7 +266,7 @@ async function processText(
 							>${respath[respath.length - 1]}</a
 						>
 					</p>
-				`
+				`,
 			);
 			discordResult.push(`\`ip!${respath.join(" ")}\``);
 			continue;
@@ -288,7 +288,7 @@ async function processText(
 			htmlResult.push(
 				phtml`
 					<span class="divider">${v}</span>
-				`
+				`,
 			);
 			discordResult.push(line);
 			continue;
@@ -298,7 +298,7 @@ async function processText(
 		htmlResult.push(
 			phtml`
 				<p>unrecognized:::${line}</p>
-			`
+			`,
 		);
 		continue;
 	}
@@ -355,7 +355,7 @@ function channel(name: string, url: string, active: boolean) {
 
 function sidebar(
 	thisurl: string,
-	json: [string, string, string | undefined][]
+	json: [string, string, string | undefined][],
 ) {
 	const items: string[] = [];
 	json.forEach(([type, link, name]) => {
@@ -409,11 +409,11 @@ async function copyFolder(dir: string, to: string) {
 	const filesToCopy = await recursiveReaddir(dir);
 	for (const fileToCopy of filesToCopy) {
 		await fs.mkdir(path.join(to, dirname(fileToCopy)), {
-			recursive: true
+			recursive: true,
 		});
 		await fs.copyFile(
 			path.join(dir, fileToCopy),
-			path.join(to, fileToCopy)
+			path.join(to, fileToCopy),
 		);
 	}
 }
@@ -425,32 +425,32 @@ async function copyFolder(dir: string, to: string) {
 	} catch (e) {}
 	await copyFolder(
 		path.join(__dirname, "../doc/public"),
-		path.join(__dirname, "../dist")
+		path.join(__dirname, "../dist"),
 	);
 	await copyFolder(
 		path.join(__dirname, "../doc/public2"),
-		path.join(__dirname, "../dist")
+		path.join(__dirname, "../dist"),
 	);
 	const discorddist = path.join(__dirname, "../dist/discord");
 	const webdist = path.join(__dirname, "../dist/web");
 	const filesToProcess = (await recursiveReaddir(start)).filter(f =>
-		f.endsWith(".dg")
+		f.endsWith(".dg"),
 	);
 	const htmlTemplate = await fs.readFile(
 		path.join(__dirname, "../doc/template.html"),
-		"utf-8"
+		"utf-8",
 	);
 
 	const sidebarItems: string[] = [];
 	const sidebarJSON = await fs.readFile(
 		path.join(__dirname, "../doc/sidebar.json"),
-		"utf-8"
+		"utf-8",
 	);
 	const sidebarCont = JSON.parse(sidebarJSON);
 
 	const emojiJSON = await fs.readFile(
 		path.join(__dirname, "../doc/emoji.json"),
-		"utf-8"
+		"utf-8",
 	);
 	const emojiCont = JSON.parse(emojiJSON);
 
@@ -466,11 +466,11 @@ async function copyFolder(dir: string, to: string) {
 			const { html, discord } = await processText(
 				dirname(f).split("/"),
 				fileCont,
-				{ emojiCont }
+				{ emojiCont },
 			);
 			const discordfile = path.join(
 				discorddist,
-				f.replace(/\.dg$/, ".md")
+				f.replace(/\.dg$/, ".md"),
 			);
 			const sidebart = sidebar(`/${dirname(f)}`, sidebarCont);
 			const webfile = path.join(webdist, f.replace(/\.dg$/, ".html"));
@@ -482,11 +482,11 @@ async function copyFolder(dir: string, to: string) {
 				htmlTemplate
 					.replace("{{html|content}}", html)
 					.replace("{{html|sidebar}}", sidebart),
-				"utf-8"
+				"utf-8",
 			);
 			completed++;
 			logProgress();
-		})
+		}),
 	);
 	console.log();
 })();

@@ -1,13 +1,11 @@
 import Router from "commandrouter";
-import * as moment from "moment";
-import { AP, a } from "../argumentparser";
-import * as he from "he";
 import * as Discord from "discord.js";
-
+import he from "he";
+import { perr } from "../../..";
+import { messages, raw, safe } from "../../../messages";
 import Info from "../../Info";
+import { AP } from "../argumentparser";
 import { getURL } from "../speedrun";
-import { safe, raw, messages } from "../../../messages";
-import { DiscordAPIError } from "discord.js";
 
 const router = new Router<Info, Promise<any>>();
 
@@ -87,7 +85,7 @@ const letterToEmojiMap = {
 	w: "🇼",
 	x: "🇽",
 	y: "🇾",
-	z: "🇿"
+	z: "🇿",
 };
 
 const emojiOrderListMapArraySet = [
@@ -116,7 +114,7 @@ const emojiOrderListMapArraySet = [
 	"🇼",
 	"🇽",
 	"🇾",
-	"🇿"
+	"🇿",
 ];
 
 router.add("trivia", [], async (cmd: string, info) => {
@@ -131,12 +129,12 @@ router.add("trivia", [], async (cmd: string, info) => {
 	if (info.myChannelPerms) {
 		if (!info.myChannelPerms.has("ADD_REACTIONS")) {
 			return await info.error(
-				"I need permission to `add reactions` here to play trivia\n> https://interpunct.info/help/fun/trivia"
+				"I need permission to `add reactions` here to play trivia\n> https://interpunct.info/help/fun/trivia",
 			);
 		}
 		if (!info.myChannelPerms.has("MANAGE_MESSAGES")) {
 			return await info.error(
-				"I need permission to `manage messages` here to remove people's reactions in trivia\n> https://interpunct.info/help/fun/trivia"
+				"I need permission to `manage messages` here to remove people's reactions in trivia\n> https://interpunct.info/help/fun/trivia",
 			);
 		}
 	}
@@ -150,8 +148,8 @@ router.add("trivia", [], async (cmd: string, info) => {
 		if (triviaResponse.response_code !== 0) {
 			throw new Error(
 				`Nonzero response code on trivia. Response is: ${JSON.stringify(
-					triviaResponse
-				)}`
+					triviaResponse,
+				)}`,
 			);
 		}
 		triviaQuestion = triviaResponse.results[0];
@@ -166,11 +164,11 @@ router.add("trivia", [], async (cmd: string, info) => {
 		{
 			const choices = [
 				triviaQuestion.correct_answer,
-				...triviaQuestion.incorrect_answers
+				...triviaQuestion.incorrect_answers,
 			].sort();
 
 			const startingEmoji = (s: string) => {
-				const char = s.match(/[A-Za-z]/);
+				const char = /[A-Za-z]/.exec(s);
 				if (!char) {
 					return letterToEmojiMap.z;
 				}
@@ -190,7 +188,7 @@ router.add("trivia", [], async (cmd: string, info) => {
 			if (!useCustom) {
 				choiceDetails = choices.map((choice, i) => ({
 					name: choice,
-					emoji: emojiOrderListMapArraySet[i]
+					emoji: emojiOrderListMapArraySet[i],
 				}));
 			}
 		}
@@ -199,7 +197,7 @@ router.add("trivia", [], async (cmd: string, info) => {
 **Difficulty**: ${decodeHTML(triviaQuestion.difficulty)}`;
 		const resultMessage = await info.channel.send(
 			`${topPart}
-> When the question appears, react with the correct answer before the time runs out.`
+> When the question appears, react with the correct answer before the time runs out.`,
 		);
 
 		const playerAnswers: {
@@ -221,7 +219,7 @@ router.add("trivia", [], async (cmd: string, info) => {
 					return;
 				}
 				const choice = choiceDetails.find(
-					c => c.emoji === reaction.emoji.name
+					c => c.emoji === reaction.emoji.name,
 				);
 				if (!choice) {
 					await reaction.users.remove(user.id);
@@ -231,12 +229,12 @@ router.add("trivia", [], async (cmd: string, info) => {
 				playerAnswers[user.id] = {
 					response: choice.name,
 					reactionPile: reaction,
-					time: new Date().getTime()
+					time: new Date().getTime(),
 				};
 				if (previousAnswer) {
 					await previousAnswer.reactionPile.users.remove(user.id);
 				}
-			}
+			},
 		);
 
 		for (const choice of choiceDetails) {
@@ -256,7 +254,7 @@ ${raw(
 		.map(({ name, emoji }) => {
 			return `> ${emoji} - ${safe`${decodeHTML(name)}`}`;
 		})
-		.join("\n")
+		.join("\n"),
 )}
 ${raw(
 	state.state === "running"
@@ -266,22 +264,22 @@ ${raw(
 		  ).toFixed(0)}s`
 		: `**Correct Answer**: ${
 				choiceDetails.find(
-					cd => cd.name === triviaQuestion.correct_answer
+					cd => cd.name === triviaQuestion.correct_answer,
 				)!.emoji
 		  } - ${safe`${decodeHTML(triviaQuestion.correct_answer)}`}
 **Winners**: ${
 				state.winners.length === 0
 					? "*No one won*"
 					: state.winners.map(w => `<@${w}>`).join(", ")
-		  }`
-)}`
+		  }`,
+)}`,
 			);
 
 		await updateResultMessage();
 
 		const doneTimer = setTimeout(() => rxn.end(), 20000);
 		const updateInterval = setInterval(() => {
-			updateResultMessage();
+			perr(updateResultMessage(), "trivia timer update");
 			if (startTime + 30000 - new Date().getTime() < 0) {
 				clearInterval(updateInterval);
 			}
@@ -300,7 +298,7 @@ ${raw(
 		clearInterval(updateInterval);
 		state = {
 			state: "over",
-			winners: winners.sort((wa, wb) => wa.time - wb.time).map(q => q.id)
+			winners: winners.sort((wa, wb) => wa.time - wb.time).map(q => q.id),
 		};
 		await updateResultMessage();
 	}

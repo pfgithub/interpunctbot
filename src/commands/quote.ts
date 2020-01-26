@@ -1,5 +1,5 @@
 //@ts-ignore
-import * as PastebinAPI from "pastebin-js";
+import PastebinAPI from "pastebin-js";
 const pastebin = new PastebinAPI();
 import { MessageEmbed } from "discord.js";
 import Router from "commandrouter";
@@ -22,13 +22,13 @@ async function handleList(
 	listName: string,
 	listPastebin: string,
 	cmd: string,
-	info: Info
+	info: Info,
 ) {
 	// get the list pastebin id;
 	const pastebinId = listPastebin;
 	if (!pastebinId) {
 		return await info.error(
-			messages.lists.list_exists_but_not_really(info, listName)
+			messages.lists.list_exists_but_not_really(info, listName),
 		);
 	}
 
@@ -46,7 +46,7 @@ async function handleList(
 	}
 	if (
 		searchString.length > 0 &&
-		searchString[searchString.length - 1].match(/^\d+$/)
+		/^\d+$/.exec(searchString[searchString.length - 1])
 	) {
 		forceLine = parseInt(searchString.pop()!, 10);
 	}
@@ -65,19 +65,19 @@ async function handleList(
 		.split(`\r`)
 		.join(``)
 		.split(individual ? `\n` : /\n{2,}/)
-		.filter(q => q.match(/[A-Za-z]/));
+		.filter(q => /[A-Za-z]/.exec(q));
 
 	// if there is a set search string, filter the quotes to only ones containing that search string
 	if (searchString) {
 		allQuotes = allQuotes.filter(q =>
-			searchString.every(z => normalizeSearchTerm(q).indexOf(z) > -1)
+			searchString.every(z => normalizeSearchTerm(q).includes(z)),
 		);
 	}
 
 	// If there are no quotes, fake the list to actually saying No Quotes Found
 	if (allQuotes.length < 1) {
 		allQuotes = [
-			messages.lists.nothing_found_for_search(info, searchString)
+			messages.lists.nothing_found_for_search(info, searchString),
 		];
 	}
 
@@ -123,23 +123,45 @@ ${line + 1}/${allQuotes.length}`);
 const settingsRouter = new Router<Info, Promise<any>>();
 router.add([], settingsRouter);
 
-settingsRouter.add(
-	"lists list",
-	[Info.theirPerm.manageBot],
-	async (cmd, info, next) => {
-		await info.startLoading();
-		if (!info.db) {
-			return await info.error(
-				messages.failure.command_cannot_be_used_in_pms(info)
-			);
-		}
-		const lists = await info.db.getLists();
-		return await info.result(messages.lists.list_lists(info, lists));
-	}
-);
+/*
 
-function parsePastebinURL(url: string = "") {
-	const match = url.match(/^.*([A-Za-z0-9]{8})/);
+TODO
+
+@DocAdd /help/lists/list
+
+GOAL: Store command permissions, usage, and output in the same place
+
+@Command {{Command|lists list}}
+@Permissions manageBot
+@Description
+Lists all lists and their pastebin links for this server.
+@/Description
+@Example
+Command: lists list
+Output: {{Translate|lists.list_lists|{"A": ""}|}}
+@/Example
+@Example
+Command: lists list
+Output: {{Translate|lists.list_lists|{"A"}|}}
+@/Example
+
+*/
+async function listslist(cmd: string, info: Info) {
+	// if (cmd) return await info.docs("help lists list", "usage");
+	await info.startLoading();
+	if (!info.db) {
+		return await info.error(
+			messages.failure.command_cannot_be_used_in_pms(info),
+		);
+	}
+	const lists = await info.db.getLists();
+	return await info.result(messages.lists.list_lists(info, lists));
+}
+settingsRouter.add("lists list", [Info.theirPerm.manageBot], listslist);
+settingsRouter.add("list lists", [Info.theirPerm.manageBot], listslist);
+
+function parsePastebinURL(url = "") {
+	const match = /^.*([A-Za-z0-9]{8})/.exec(url);
 	if (!match) {
 		return undefined;
 	}
@@ -150,7 +172,7 @@ function parsePastebinURL(url: string = "") {
 async function addOrEditList(add: boolean, cmd: string, info: Info) {
 	if (!info.db) {
 		return await info.error(
-			messages.failure.command_cannot_be_used_in_pms(info)
+			messages.failure.command_cannot_be_used_in_pms(info),
 		);
 	}
 
@@ -174,11 +196,11 @@ async function addOrEditList(add: boolean, cmd: string, info: Info) {
 		// if !a !== b... !!a === b and a == b are the same and probably easier to read
 		if (add) {
 			return await info.error(
-				messages.lists.list_already_exists(info, listName, pastebinUrl)
+				messages.lists.list_already_exists(info, listName, pastebinUrl),
 			);
 		}
 		return await info.error(
-			messages.lists.list_does_not_exist(info, listName, pastebinUrl)
+			messages.lists.list_does_not_exist(info, listName, pastebinUrl),
 		);
 	}
 
@@ -188,7 +210,7 @@ async function addOrEditList(add: boolean, cmd: string, info: Info) {
 	// If no pastebin URL could be found, inform the user that they need one
 	if (!pastebinID) {
 		return await info.error(
-			messages.lists.invalid_pastebin_url(info, listName)
+			messages.lists.invalid_pastebin_url(info, listName),
 		);
 	}
 
@@ -199,11 +221,11 @@ async function addOrEditList(add: boolean, cmd: string, info: Info) {
 	// Return the right success message depending on if the list is being added or edited
 	if (add) {
 		return await info.success(
-			messages.lists.add_successful(info, listName, pastebinID)
+			messages.lists.add_successful(info, listName, pastebinID),
 		);
 	}
 	return await info.success(
-		messages.lists.edit_succesful(info, listName, pastebinID)
+		messages.lists.edit_succesful(info, listName, pastebinID),
 	);
 }
 
@@ -213,7 +235,7 @@ settingsRouter.add(
 	async (cmd, info) => {
 		// if lists.length > 3 say "your list limit has been reached, join the support server in `about` and ask to increase it"
 		return await addOrEditList(true, cmd, info);
-	}
+	},
 );
 
 settingsRouter.add(
@@ -222,7 +244,7 @@ settingsRouter.add(
 	async (cmd, info) => {
 		// there's not much purpose to a distinction between add and edit...
 		return await addOrEditList(false, cmd, info);
-	}
+	},
 );
 
 settingsRouter.add(
@@ -233,21 +255,21 @@ settingsRouter.add(
 		const listName = cmd;
 		if (!info.db) {
 			return await info.error(
-				messages.failure.command_cannot_be_used_in_pms(info)
+				messages.failure.command_cannot_be_used_in_pms(info),
 			);
 		}
 		const lists = await info.db.getLists();
 		if (!lists[listName]) {
 			return await info.error(
-				messages.lists.remove_list_that_does_not_exist(info, listName)
+				messages.lists.remove_list_that_does_not_exist(info, listName),
 			);
 		}
 		delete lists[listName];
 		await info.db.setLists(lists);
 		return await info.success(
-			messages.lists.remove_list_succesful(info, listName)
+			messages.lists.remove_list_succesful(info, listName),
 		);
-	}
+	},
 );
 
 router.add([], async (cmd, info, next) => {
@@ -260,8 +282,8 @@ router.add([], async (cmd, info, next) => {
 	const listRouter = new Router<Info, Promise<any>>();
 	listNames.forEach(listName =>
 		listRouter.add(listName, [], (c, i) =>
-			handleList(listName, lists[listName], c, i)
-		)
+			handleList(listName, lists[listName], c, i),
+		),
 	);
 	// Then we handle our request by instead giving the job to the new router. If no list is found, next will be called on the superrouter.
 	return listRouter.handle(cmd, info, next);

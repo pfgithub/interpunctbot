@@ -1,9 +1,9 @@
 import * as Discord from "discord.js";
 import { readFileSync, promises as fs } from "fs";
-import * as childProcess from "child_process";
-import * as path from "path";
+import childProcess from "child_process";
+import path from "path";
 const config = JSON.parse(
-	readFileSync(path.join(__dirname, "config.json"), "utf-8")
+	readFileSync(path.join(__dirname, "config.json"), "utf-8"),
 );
 
 type TesterCallback = (t: TestHelper) => Promise<void>;
@@ -47,7 +47,7 @@ async function arrayToObject<
 	CBValue
 >(
 	names: Names,
-	cb: (name: Names[number]) => Promise<{ key: CBKeys; value: CBValue }>
+	cb: (name: Names[number]) => Promise<{ key: CBKeys; value: CBValue }>,
 ): Promise<{ [key in CBKeys]: CBValue }> {
 	const resobj: { [key in CBKeys]?: CBValue } = {};
 	for (const name of names) {
@@ -103,7 +103,7 @@ export class TestHelper {
 		adminClient: Discord.Client,
 		adminGuild: Discord.Guild,
 		botInteractionClient: Discord.Client,
-		botInteractionGuild: Discord.Guild
+		botInteractionGuild: Discord.Guild,
 	) {
 		this.adminClient = adminClient;
 		this.adminGuild = adminGuild;
@@ -130,7 +130,7 @@ export class TestHelper {
 					this.watchEvents = false;
 				} else {
 					console.log(
-						`Tried to report ${this.mostRecentEvents.length} events but there was no events callback. These events will be reported later.`
+						`Tried to report ${this.mostRecentEvents.length} events but there was no events callback. These events will be reported later.`,
 					);
 				}
 			}, this.watchTime);
@@ -144,13 +144,13 @@ export class TestHelper {
 					`DM TO=${
 						(message.channel as Discord.DMChannel).recipient
 							.username
-					}: ${message.author!.username}: ${message.cleanContent}`
+					}: ${message.author!.username}: ${message.cleanContent}`,
 				);
 			} else {
 				this.mostRecentEvents.push(
 					`MSG #${(message.channel as Discord.TextChannel).name}: ${
 						message.member!.displayName
-					}: ${message.cleanContent}`
+					}: ${message.cleanContent}`,
 				);
 			}
 			if (message.embeds.length > 0) {
@@ -159,7 +159,7 @@ export class TestHelper {
 			if (message.attachments.array().length > 0) {
 				this.mostRecentEvents.push([
 					"attachments:",
-					message.attachments.array().map(a => a.toJSON())
+					message.attachments.array().map(a => a.toJSON()),
 				]);
 			}
 			resetTimeout();
@@ -171,7 +171,7 @@ export class TestHelper {
 			this.mostRecentEvents.push(
 				`CHANNEL #${(fromChannel as Discord.TextChannel).name} -> #${
 					(toChannel as Discord.TextChannel).name
-				}`
+				}`,
 			);
 			resetTimeout();
 		});
@@ -189,7 +189,7 @@ export class TestHelper {
 		this.watchEvents = true;
 	}
 
-	async createChannels<ChannelNames extends (ChannelNameType)[]>(
+	async createChannels<ChannelNames extends ChannelNameType[]>(
 		...channelNames: Readonly<ChannelNames>
 	): Promise<
 		{
@@ -207,10 +207,10 @@ export class TestHelper {
 					key: channelToCreate.name,
 					value: await this.adminGuild.channels.create(
 						channelToCreate.name,
-						{ type: channelToCreate.type }
-					)
+						{ type: channelToCreate.type },
+					),
 				};
-			}
+			},
 		)) as unknown) as {
 			[key in ChannelName<ChannelNames[number]>]: ChannelType<key>;
 		};
@@ -250,8 +250,8 @@ export class TestHelper {
 			"yarn",
 			["knex", "migrate:latest"],
 			{
-				cwd: path.join(__dirname, "..")
-			}
+				cwd: path.join(__dirname, ".."),
+			},
 		);
 		spawnedProcesses.push(createDB);
 		const datahandler = (data: Buffer) => {
@@ -259,7 +259,7 @@ export class TestHelper {
 				`------- KNEX: ${data
 					.toString()
 					.split("\n")
-					.join("\\n")}`
+					.join("\\n")}`,
 			);
 		};
 		createDB.stdout!.on("data", datahandler);
@@ -267,11 +267,11 @@ export class TestHelper {
 		await new Promise<void>((r, re) => createDB.on("exit", () => r()));
 		console.log("--- Resetting logs");
 		const logs = await fs.readdir(
-			path.join(__dirname, "..", "built", "logs")
+			path.join(__dirname, "..", "built", "logs"),
 		);
 		for (const logfile of logs) {
 			await fs.unlink(
-				path.join(__dirname, "..", "built", "logs", logfile)
+				path.join(__dirname, "..", "built", "logs", logfile),
 			);
 		}
 		// done
@@ -285,19 +285,19 @@ export class TestHelper {
 		const botMember =
 			bot === "testbot" ? this.adminInteractionBot : this.adminIPBot;
 		console.log(
-			`----- Adding Permissions ${permissions.join(",")} to ${bot}`
+			`----- Adding Permissions ${permissions.join(",")} to ${bot}`,
 		);
 		for (const permission of permissions) {
 			console.log(
-				`------------- Adding role ${permission} to ${botMember.displayName}`
+				`------------- Adding role ${permission} to ${botMember.displayName}`,
 			);
 			const role = this.adminGuild.roles.find(r => r.name === permission);
 			if (!role) {
 				console.log(
-					`------------- The role named ${permission} does not exist in the testing server`
+					`------------- The role named ${permission} does not exist in the testing server`,
 				);
 				throw new Error(
-					`The role named ${permission} does not exist in the testing server`
+					`The role named ${permission} does not exist in the testing server`,
 				);
 			}
 			await botMember.roles.add(role);
@@ -311,19 +311,19 @@ export class TestHelper {
 		const botMember =
 			bot === "testbot" ? this.adminInteractionBot : this.adminIPBot;
 		console.log(
-			`----- Adding Permissions ${permissions.join(",")} to ${bot}`
+			`----- Adding Permissions ${permissions.join(",")} to ${bot}`,
 		);
 		for (const permission of permissions) {
 			console.log(
-				`------------- Adding role ${permission} to ${botMember.displayName}`
+				`------------- Adding role ${permission} to ${botMember.displayName}`,
 			);
 			const role = this.adminGuild.roles.find(r => r.name === permission);
 			if (!role) {
 				console.log(
-					`------------- The role named ${permission} does not exist in the testing server`
+					`------------- The role named ${permission} does not exist in the testing server`,
 				);
 				throw new Error(
-					`The role named ${permission} does not exist in the testing server`
+					`The role named ${permission} does not exist in the testing server`,
 				);
 			}
 			await botMember.roles.remove(role);
@@ -335,14 +335,14 @@ export class TestHelper {
 			bot,
 			"READ_MESSAGE_HISTORY",
 			"READ_TEXT_CHANNELS_SEE_VOICE_CHANNELS",
-			"SEND_MESSAGES"
+			"SEND_MESSAGES",
 		);
 	}
 
 	startBot(): Promise<void> {
 		console.log("--- Starting bot...");
 		this.botProcess = childProcess.spawn("yarn", ["nyc", "node", "built"], {
-			cwd: path.join(__dirname, "..")
+			cwd: path.join(__dirname, ".."),
 		});
 		const botProcess = this.botProcess;
 		spawnedProcesses.push(botProcess);
@@ -352,7 +352,7 @@ export class TestHelper {
 					`------- BOT: ${data
 						.toString()
 						.split("\n")
-						.join("\\n")}`
+						.join("\\n")}`,
 				);
 				if (data.toString() === "Ready\n") {
 					console.log("--- Bot said Ready");
@@ -364,7 +364,7 @@ export class TestHelper {
 					`------- BOT ERR!: ${data
 						.toString()
 						.split("\n")
-						.join("\\n")}`
+						.join("\\n")}`,
 				);
 			});
 		});
@@ -380,7 +380,7 @@ export class TestHelper {
 (async () => {
 	console.log("-- Compiling Code");
 	const compileCode = childProcess.spawn("yarn", ["tsc"], {
-		cwd: path.join(__dirname, "..")
+		cwd: path.join(__dirname, ".."),
 	});
 	spawnedProcesses.push(compileCode);
 	const datahandler = (data: Buffer) => {
@@ -388,7 +388,7 @@ export class TestHelper {
 			`------- Compiler: ${data
 				.toString()
 				.split("\n")
-				.join("\\n")}`
+				.join("\\n")}`,
 		);
 	};
 	compileCode.stdout!.on("data", datahandler);
@@ -404,20 +404,20 @@ export class TestHelper {
 	const onReady = async () => {
 		const adminGuild = adminClient.guilds.get(config.server)!;
 		const botInteractionGuild = botInteractionClient.guilds.get(
-			config.server
+			config.server,
 		)!;
 		const testHelper = new TestHelper(
 			adminClient,
 			adminGuild,
 			botInteractionClient,
-			botInteractionGuild
+			botInteractionGuild,
 		);
 		let i = 0;
 		for (const tester of testQueue) {
 			console.log(
 				`------ Testing ${tester.reason} (${i + 1} / ${
 					testQueue.length
-				})`
+				})`,
 			);
 			let success = true;
 			const startTime = new Date().getTime();
@@ -431,7 +431,7 @@ export class TestHelper {
 			const endTime = new Date().getTime();
 			const ms = endTime - startTime;
 			console.log(
-				`------ Test ${success ? "PASSED" : "FAILED"} in ${ms}ms`
+				`------ Test ${success ? "PASSED" : "FAILED"} in ${ms}ms`,
 			);
 			i++;
 			testHelper.stopBot();

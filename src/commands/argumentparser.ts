@@ -88,7 +88,7 @@ type ArgumentType<T> = (
 	cmd: string,
 	index: number,
 	commandhelp: string,
-	argpurpose: string
+	argpurpose: string,
 ) => ArgumentParserResult<T>;
 
 export const a = {
@@ -118,7 +118,7 @@ export const a = {
 	},
 	role() {
 		return [RoleArgumentType()] as const;
-	}
+	},
 };
 
 export type ArgTypeToReturnType<T> = T extends BaseArgType<any, infer Q>
@@ -149,18 +149,18 @@ function ChannelArgumentType(): ArgumentType<Discord.GuildChannel> {
 					cmd,
 					index,
 					commandhelp,
-					argpurpose
-				)
+					argpurpose,
+				),
 			);
 			return { result: "exit" };
 		}
 		if (!info.guild) {
 			await info.error(
-				messages.failure.command_cannot_be_used_in_pms(info)
+				messages.failure.command_cannot_be_used_in_pms(info),
 			);
 			return { result: "exit" };
 		}
-		const match = cmd.match(/^[\S\s]*?([0-9]{14,})[^\s]*\s*([\S\s]*)$/);
+		const match = /^[\S\s]*?([0-9]{14,})[^\s]*\s*([\S\s]*)$/.exec(cmd);
 		if (!match) {
 			await info.error(
 				messages.arguments.channel_arg_not_provided(
@@ -168,8 +168,8 @@ function ChannelArgumentType(): ArgumentType<Discord.GuildChannel> {
 					cmd,
 					index,
 					commandhelp,
-					argpurpose
-				)
+					argpurpose,
+				),
 			);
 			return { result: "exit" };
 		}
@@ -181,15 +181,15 @@ function ChannelArgumentType(): ArgumentType<Discord.GuildChannel> {
 					info,
 					channelID,
 					index,
-					commandhelp
-				)
+					commandhelp,
+				),
 			);
 			return { result: "exit" };
 		}
 		return {
 			result: "continue",
 			value: channel,
-			cmd: remainingCmd
+			cmd: remainingCmd,
 		};
 	};
 }
@@ -202,11 +202,11 @@ function UserArgumentType(): ArgumentType<Discord.User> {
 		}
 		if (!info.guild) {
 			await info.error(
-				messages.failure.command_cannot_be_used_in_pms(info)
+				messages.failure.command_cannot_be_used_in_pms(info),
 			);
 			return { result: "exit" };
 		}
-		const match = cmd.match(/^[\S\s]*?([0-9]{14,})[^\s]*\s*([\S\s]*)$/);
+		const match = /^[\S\s]*?([0-9]{14,})[^\s]*\s*([\S\s]*)$/.exec(cmd);
 		if (!match) {
 			await info.error("user arg not provided");
 			return { result: "exit" };
@@ -220,7 +220,7 @@ function UserArgumentType(): ArgumentType<Discord.User> {
 		return {
 			result: "continue",
 			value: channel,
-			cmd: remainingCmd
+			cmd: remainingCmd,
 		};
 	};
 }
@@ -234,19 +234,19 @@ function EmojiArgumentType(): ArgumentType<Discord.GuildEmoji> {
 					cmd,
 					index,
 					commandhelp,
-					argpurpose
-				)
+					argpurpose,
+				),
 			);
 			return { result: "exit" };
 		}
 		if (!info.guild) {
 			await info.error(
-				messages.failure.command_cannot_be_used_in_pms(info)
+				messages.failure.command_cannot_be_used_in_pms(info),
 			);
 			return { result: "exit" };
 		}
-		const match = cmd.match(
-			/^[\S\s]*?([0-9]{14,})[^\s]*?(?:\s+|$)([\S\s]*)$/
+		const match = /^[\S\s]*?([0-9]{14,})[^\s]*?(?:\s+|$)([\S\s]*)$/.exec(
+			cmd,
 		);
 		if (!match) {
 			await info.error(
@@ -255,8 +255,8 @@ function EmojiArgumentType(): ArgumentType<Discord.GuildEmoji> {
 					cmd,
 					index,
 					commandhelp,
-					argpurpose
-				)
+					argpurpose,
+				),
 			);
 			return { result: "exit" };
 		}
@@ -269,15 +269,15 @@ function EmojiArgumentType(): ArgumentType<Discord.GuildEmoji> {
 					emojiID,
 					index,
 					commandhelp,
-					argpurpose
-				)
+					argpurpose,
+				),
 			);
 			return { result: "exit" };
 		}
 		return {
 			result: "continue",
 			value: emoji,
-			cmd: remainingCmd
+			cmd: remainingCmd,
 		};
 	};
 }
@@ -291,12 +291,12 @@ function WordArgumentType(): ArgumentType<string> {
 					cmd,
 					index,
 					commandhelp,
-					argpurpose
-				)
+					argpurpose,
+				),
 			);
 			return { result: "exit" };
 		}
-		const word = cmd.match(/^([\S]+)\s*([\S\s]*)/m);
+		const word = /^([\S]+)\s*([\S\s]*)/m.exec(cmd);
 		if (!word) {
 			await info.error(
 				messages.arguments.word_arg_not_provided(
@@ -304,8 +304,8 @@ function WordArgumentType(): ArgumentType<string> {
 					cmd,
 					index,
 					commandhelp,
-					argpurpose
-				)
+					argpurpose,
+				),
 			);
 			return { result: "exit" };
 		}
@@ -320,14 +320,14 @@ function EnumArgumentType<T extends string>(options: T[]): ArgumentType<T> {
 			await info.error("value not provided");
 			return { result: "exit" };
 		}
-		const word = cmd.match(/^([\S]+)\s*([\S\s]*)/m);
+		const word = /^([\S]+)\s*([\S\s]*)/m.exec(cmd);
 		if (!word) {
 			await info.error("value not provided");
 			return { result: "exit" };
 		}
 		const [, result, newCmd] = word;
-		let optionText = options.find(
-			option => result.toLowerCase() === option.toLowerCase()
+		const optionText = options.find(
+			option => result.toLowerCase() === option.toLowerCase(),
 		);
 		if (!optionText) {
 			await info.error("must be one of:" + options.join(","));
@@ -346,12 +346,12 @@ function NumberArgumentType(): ArgumentType<number> {
 					cmd,
 					index,
 					commandhelp,
-					argpurpose
-				)
+					argpurpose,
+				),
 			);
 			return { result: "exit" };
 		}
-		const wordval = cmd.match(/^([\S]+)\s*([\S\s]*)/m);
+		const wordval = /^([\S]+)\s*([\S\s]*)/m.exec(cmd);
 		if (!wordval) {
 			await info.error(
 				messages.arguments.num_arg_not_provided(
@@ -359,8 +359,8 @@ function NumberArgumentType(): ArgumentType<number> {
 					cmd,
 					index,
 					commandhelp,
-					argpurpose
-				)
+					argpurpose,
+				),
 			);
 			return { result: "exit" };
 		}
@@ -372,8 +372,8 @@ function NumberArgumentType(): ArgumentType<number> {
 					cmd,
 					index,
 					commandhelp,
-					argpurpose
-				)
+					argpurpose,
+				),
 			);
 		}
 		return { result: "continue", value: +num, cmd: newCmd };
@@ -389,18 +389,18 @@ function DurationArgumentType(): ArgumentType<number> {
 					cmd,
 					index,
 					commandhelp,
-					argpurpose
-				)
+					argpurpose,
+				),
 			);
 			return { result: "exit" };
 		}
-		const wordval = cmd.match(/^([\S]+)\s*([\S\s]*)/m);
+		const wordval = /^([\S]+)\s*([\S\s]*)/m.exec(cmd);
 		if (!wordval) {
 			await info.error("duration not provided");
 			return { result: "exit" };
 		}
 		const [, num, newCmd] = wordval;
-		let result = +num;
+		const result = +num;
 		if (Number.isNaN(result)) {
 			await info.error("duration invalid");
 			return { result: "exit" };
@@ -420,8 +420,8 @@ function WordsArgumentType(): ArgumentType<string> {
 					cmd,
 					index,
 					commandhelp,
-					argpurpose
-				)
+					argpurpose,
+				),
 			);
 			return { result: "exit" };
 		}
@@ -438,14 +438,14 @@ function RoleArgumentType(): ArgumentType<Discord.Role> {
 					cmd,
 					index,
 					commandhelp,
-					argpurpose
-				)
+					argpurpose,
+				),
 			);
 			return { result: "exit" };
 		}
 		if (!info.guild) {
 			await info.error(
-				messages.failure.command_cannot_be_used_in_pms(info)
+				messages.failure.command_cannot_be_used_in_pms(info),
 			);
 			return { result: "exit" };
 		}
@@ -457,11 +457,12 @@ function RoleArgumentType(): ArgumentType<Discord.Role> {
 					cmd,
 					index,
 					commandhelp,
-					argpurpose
-				)
+					argpurpose,
+				),
 			);
 			return { result: "exit" };
 		}
+		//eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
 		const roleID = (rolename
 			.trim()
 			.match(/^[\S\s]*?([0-9]{16,})[\S\s]*$/) || ["", ""])[1];
@@ -474,8 +475,8 @@ function RoleArgumentType(): ArgumentType<Discord.Role> {
 						info,
 						roleID,
 						index,
-						commandhelp
-					)
+						commandhelp,
+					),
 				);
 				return { result: "exit" };
 			}
@@ -490,8 +491,8 @@ function RoleArgumentType(): ArgumentType<Discord.Role> {
 						info,
 						rolename,
 						matchingRoles,
-						commandhelp
-					)
+						commandhelp,
+					),
 				);
 				return { result: "exit" };
 			}
@@ -501,8 +502,8 @@ function RoleArgumentType(): ArgumentType<Discord.Role> {
 						info,
 						rolename,
 						index,
-						commandhelp
-					)
+						commandhelp,
+					),
 				);
 				return { result: "exit" };
 			}
@@ -514,7 +515,7 @@ function RoleArgumentType(): ArgumentType<Discord.Role> {
 		return {
 			result: "continue",
 			value: role,
-			cmd: ""
+			cmd: "",
 		};
 	};
 }
@@ -526,7 +527,7 @@ export async function ArgumentParser<
 		info,
 		cmd,
 		help,
-		partial
+		partial,
 	}: { info: Info; cmd: string; help?: string; partial?: boolean },
 	...schema: ArgTypes
 ): Promise<
@@ -542,7 +543,7 @@ export async function ArgumentParser<
 			cmd,
 			index,
 			help || "",
-			"" // not implemented yet :(
+			"", // not implemented yet :(
 		);
 		if (parseResult.result === "exit") {
 			return undefined;
@@ -555,13 +556,13 @@ export async function ArgumentParser<
 		// extra arguments
 		console.log("MISSING", cmd);
 		await info.error(
-			`Usage: ${help || "not provided"}` // !!!!!!! str->messages
+			`Usage: ${help || "not provided"}`, // !!!!!!! str->messages
 		);
 		return undefined;
 	}
 	return {
 		result: (resarr as unknown) as ArgTypeArrayToReturnType<ArgTypes>,
-		remaining: cmd.trim()
+		remaining: cmd.trim(),
 	};
 }
 

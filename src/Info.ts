@@ -1,8 +1,8 @@
 import * as Discord from "discord.js";
-import MB, { MessageBuilder } from "./MessageBuilder";
+import { MessageBuilder } from "./MessageBuilder";
 import Database from "./Database";
-import * as config from "../config.json";
-import { ilt } from "..";
+import config from "../config.json";
+import { ilt, perr } from "..";
 import { safe, raw } from "../messages";
 import { TimedEvents } from "./TimedEvents";
 
@@ -10,7 +10,7 @@ const result = {
 	error: "<:failure:508841130503438356> Error: ",
 	result: "",
 	info: "<:info:508842207089000468> Info: ",
-	success: "<:success:508840840416854026> Success: " // Discord uses a gray ✔️ emoji for some reason. It could be backslashed but some other platforms do too
+	success: "<:success:508840840416854026> Success: ", // Discord uses a gray ✔️ emoji for some reason. It could be backslashed but some other platforms do too
 };
 
 export const theirPerm = {
@@ -21,11 +21,13 @@ export const theirPerm = {
 		if (info.authorPerms.manageBot) {
 			return true;
 		}
-		return (
+		perr(
 			info.error(
-				"You need permisison to `Manage Server` to use this command"
-			) && false
+				"You need permisison to `Manage Server` to use this command",
+			),
+			"manage bot theirperm error",
 		);
+		return false;
 	},
 	manageChannels: (info: Info) => {
 		if (!theirPerm.pm(false)(info)) {
@@ -34,11 +36,13 @@ export const theirPerm = {
 		if (info.authorPerms.manageChannel) {
 			return true;
 		}
-		return (
+		perr(
 			info.error(
-				"You need permisison to `Manage Channels` to use this command"
-			) && false
+				"You need permisison to `Manage Channels` to use this command",
+			),
+			"manage channels theirperm error",
 		);
+		return false;
 	},
 	manageEmoji: (info: Info) => {
 		if (!theirPerm.pm(false)(info)) {
@@ -47,11 +51,13 @@ export const theirPerm = {
 		if (info.authorPerms.manageEmoji) {
 			return true;
 		}
-		return (
+		perr(
 			info.error(
-				"You need permisison to `Manage Emojis` to use this command"
-			) && false
+				"You need permisison to `Manage Emojis` to use this command",
+			),
+			"manage emoji theirperm error",
 		);
+		return false;
 	},
 	manageMessages: (info: Info) => {
 		if (!theirPerm.pm(false)(info)) {
@@ -60,44 +66,39 @@ export const theirPerm = {
 		if (info.authorPerms.manageMessages) {
 			return true;
 		}
-		return (
+		perr(
 			info.error(
-				"You need permisison to `Manage Messages` to use this command"
-			) && false
+				"You need permisison to `Manage Messages` to use this command",
+			),
+			"manage messages theirperm error",
 		);
+		return false;
 	},
 	pm: (expected: boolean) => (info: Info) => {
 		if (info.pm === expected) {
 			return true;
 		}
-		return info.error("This command cannot be used in a PM") && false;
+		perr(
+			info.error("This command cannot be used in a PM"),
+			"pm theirperm error",
+		);
+		return false;
 	}, // I want an r.load() that calls startloading and awaits for it
 	owner: (info: Info) => {
-		if (info.message.author!.id === config.owner) {
+		if (info.message.author.id === config.owner) {
 			return true;
 		}
-		return (
+		perr(
 			info.error(
-				"This command can only be used by the hoster of interpunct bot (@pfg#4865)"
-			) && false
+				"This command can only be used by the hoster of interpunct bot (@pfg#4865)",
+			),
+			"owner theirperm error",
 		);
-	}
+		return false;
+	},
 };
 
 export const ourPerm = {
-	manageBot: (info: Info) => {
-		if (!theirPerm.pm(false)(info)) {
-			return false;
-		}
-		if (info.authorPerms.manageBot) {
-			return true;
-		}
-		return (
-			info.error(
-				`${info.atme} needs permisison to \`Manage Server\` to use this command.`
-			) && false
-		);
-	},
 	manageChannels: (info: Info) => {
 		if (!theirPerm.pm(false)(info)) {
 			return false;
@@ -105,11 +106,13 @@ export const ourPerm = {
 		if (info.myPerms.manageChannel) {
 			return true;
 		}
-		return (
+		perr(
 			info.error(
-				`${info.atme} needs permisison to \`Manage Channels\` to use this command.`
-			) && false
+				`${info.atme} needs permisison to \`Manage Channels\` to use this command.`,
+			),
+			"manage channels ourperm error",
 		);
+		return false;
 	},
 	manageEmoji: (info: Info) => {
 		if (!theirPerm.pm(false)(info)) {
@@ -118,11 +121,13 @@ export const ourPerm = {
 		if (info.myPerms.manageEmoji) {
 			return true;
 		}
-		return (
+		perr(
 			info.error(
-				`${info.atme} needs permisison to \`Manage Emojis\` to use this command.`
-			) && false
+				`${info.atme} needs permisison to \`Manage Emojis\` to use this command.`,
+			),
+			"manage emoji ourperm error",
 		);
+		return false;
 	},
 	manageMessages: (info: Info) => {
 		if (!theirPerm.pm(false)(info)) {
@@ -131,12 +136,14 @@ export const ourPerm = {
 		if (info.myPerms.manageMessages) {
 			return true;
 		}
-		return (
+		perr(
 			info.error(
-				`${info.atme} needs permisison to \`Manage Messages\` to use this command.`
-			) && false
+				`${info.atme} needs permisison to \`Manage Messages\` to use this command.`,
+			),
+			"manage messages ourperm error",
 		);
-	}
+		return false;
+	},
 };
 
 export type MessageOptionsParameter =
@@ -167,7 +174,7 @@ export default class Info {
 		other?: {
 			startTime: number;
 			infoPerSecond: number;
-		}
+		},
 	) {
 		this.timedEvents = timedEvents;
 		this.loading = false;
@@ -180,7 +187,13 @@ export default class Info {
 		// start fetching prefix
 		this.prefix = "@inter·punct ";
 		if (this.db) {
-			this.db.getPrefix().then(prefix => (this.prefix = prefix));
+			ilt(this.db.getPrefix(), "get db prefix")
+				.then(res => {
+					if (!res.error) {
+						this.prefix = res.result;
+					}
+				})
+				.catch(_ => _ as never);
 		} else {
 			this.prefix = "";
 		}
@@ -228,7 +241,7 @@ export default class Info {
 				: true,
 			manageMessages: this.authorGuildPerms // maybe we should only allow send: to send to channels author has manage messages perms for
 				? this.authorGuildPerms.has("MANAGE_MESSAGES")
-				: true
+				: true,
 		};
 	}
 	get myPerms() {
@@ -244,14 +257,14 @@ export default class Info {
 				: true,
 			manageMessages: this.myChannelPerms
 				? this.myChannelPerms.has("MANAGE_MESSAGES")
-				: true
+				: true,
 		};
 	}
 	get pm() {
 		return !this.guild;
 	}
 	async startLoading() {
-		this.channel.startTyping();
+		await this.channel.startTyping();
 	}
 	async stopLoading() {
 		this.channel.stopTyping();
@@ -263,11 +276,6 @@ export default class Info {
 		// In the future maybe adjust richembeds maybe probably not
 		return [`${type} ${values[0]}`, values[1]];
 	}
-	async _informMissingPermissions(
-		perm: Discord.PermissionString,
-		message: string,
-		channel = this.channel
-	) {}
 	async _tryReply(
 		...values: MessageParametersType
 	): Promise<Discord.Message[] | undefined> {
@@ -279,48 +287,18 @@ export default class Info {
 				safe`@${
 					this.message.member
 						? this.message.member.displayName
-						: this.message.author!.username
+						: this.message.author.username
 				}, ${raw(content)}`,
 				{
 					...options,
-					split: true
-				}
+					split: true,
+				},
 			),
-			false
+			false,
 		);
 		if (replyResult.result) {
 			return (replyResult.result as unknown) as Discord.Message[];
 		}
-		// if (!(this.db ? this.db.getPMOnFailure() : false)) {
-		// 	// server does not have pmonfailure enabled. do nothing.
-		// 	return undefined;
-		// }
-		// if (this.authorPerms.manageChannel) {
-		// 	// this._informMissingPermissions(SEND_MESSAGES, "reply to your message", this.message.author)
-		// 	// If the author has permission to manage the channel permissions, tell them the bot doesn't have permission to respond.
-		// 	/*	const errorMessage =*/ await this.message.author!.send(
-		// 		// how can a message not have an author
-		// 		...this._formatMessageWithResultType(
-		// 			result.error,
-		// 			`I do not have permission to reply to your message in #${
-		// 				this.channel instanceof Discord.TextChannel
-		// 					? this.channel.name
-		// 					: "this should never happen"
-		// 			}`
-		// 		)
-		// 	);
-		// 	// errorMessage.delete({ timeout: 10 * 1000 });
-		// }
-		// // Send the actual result
-		// if (this.db && (await this.db.getPMOnFailure())) {
-		// 	return <Discord.Message[]>(<unknown>await this.message.author!.send(
-		// 		content,
-		// 		{
-		// 			...options,
-		// 			split: true
-		// 		}
-		// 	));
-		// }
 	}
 	async reply(
 		resultType: string,
@@ -336,7 +314,7 @@ export default class Info {
 		}
 
 		// Stop any loading if it is happening, we're replying now we're done loading
-		this.stopLoading(); // not awaited for because it doesn't matter
+		await this.stopLoading(); // not awaited for because it doesn't matter
 
 		let message: MessageParametersType;
 
@@ -371,7 +349,7 @@ export default class Info {
 	async errorAlways(...msg: MessageParametersType) {
 		const reactResult = await ilt(
 			this.message.react("508841130503438356"),
-			false
+			false,
 		);
 		if (reactResult.error) {
 			await ilt(this.message.react("❌"), false); // may fail, not a problem
@@ -391,7 +369,7 @@ export default class Info {
 	async warn(...msg: MessageParametersType) {
 		const reactResult = await ilt(
 			this.message.react("508842207089000468"),
-			false
+			false,
 		);
 		if (reactResult.error) {
 			await ilt(this.message.react("⚠"), false); // may fail
@@ -411,7 +389,7 @@ export default class Info {
 	async success(...msg: MessageParametersType) {
 		const reactResult = await ilt(
 			this.message.react("508840840416854026"),
-			false
+			false,
 		);
 		if (reactResult.error) {
 			await ilt(this.message.react("✅"), false); // may fail
@@ -432,40 +410,39 @@ export default class Info {
 		return await this.reply(result.result, ...msg);
 	}
 	async redirect(newcmd: string) {
-		throw new Error("NOT IMPLEMENTED YET"); // TODO for example .wr is just .speedrun leaderboard 1, so it could res.redirect("speedrun leaderboard 1 "+arguments)
+		throw new Error("NOT IMPLEMENTED YET " + newcmd); // TODO for example .wr is just .speedrun leaderboard 1, so it could res.redirect("speedrun leaderboard 1 "+arguments)
 	}
 	handleReactions(
 		msg: Discord.Message,
 		cb: (
 			reaction: Discord.MessageReaction,
-			user: Discord.User
-		) => Promise<void>
+			user: Discord.User,
+		) => Promise<void>,
 	) {
 		const reactionCollector = new Discord.ReactionCollector(
 			msg,
-			collection => {
+			() => {
 				return true;
 			},
-			{}
+			{},
 		);
 		let errCb: (error: Error) => void = (error: Error) => {
 			throw error;
 		};
-		reactionCollector.on("collect", async (reaction, user) => {
+		reactionCollector.on("collect", (reaction, user) => {
 			if (user.bot) {
 				return;
 			}
-			const result = await ilt(cb(reaction, user), false);
-			if (result.error) {
-				errCb(result.error);
-			}
+			ilt(cb(reaction, user), false)
+				.then(v => (v.error ? errCb(v.error) : 0))
+				.catch(_ => _ as never);
 		});
 		return {
 			end: () => reactionCollector.stop(),
 			done: new Promise((resolve, reject) => {
 				errCb = reject;
 				reactionCollector.addListener("end", () => resolve());
-			})
+			}),
 		};
 	}
 }

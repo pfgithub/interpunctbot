@@ -1,7 +1,7 @@
 import { promises as fs } from "fs";
-import * as path from "path";
+import path from "path";
 import * as Discord from "discord.js";
-import * as readline from "readline";
+import readline from "readline";
 import { test, TestHelper, PermissionRoleName } from ".";
 
 const actions: {
@@ -9,7 +9,7 @@ const actions: {
 		| ((
 				t: TestHelper,
 				args: string,
-				rewriteSelf: (newValue: string) => Promise<void>
+				rewriteSelf: (newValue: string) => Promise<void>,
 		  ) => Promise<void>)
 		| undefined;
 } = {
@@ -18,7 +18,7 @@ const actions: {
 			Object.keys(actions)
 				.sort()
 				.map(a => `- ${a}`)
-				.join("\n")
+				.join("\n"),
 		);
 	},
 	async reset(t, args, rewrite) {
@@ -36,7 +36,7 @@ const actions: {
 			channelType !== "category"
 		) {
 			throw new Error(
-				`Only text, voice, and category channels are available`
+				`Only text, voice, and category channels are available`,
 			);
 		}
 		await t.createChannels({ type: channelType, name: channelName });
@@ -52,7 +52,7 @@ const actions: {
 		const channelName = originalName.substr(1);
 		const newChannelName = newName.substr(1);
 		const channel = t.botInteractionGuild.channels.find(
-			c => c.name === channelName
+			c => c.name === channelName,
 		);
 		if (!channel) {
 			throw new Error(`Channel ${channelName} not in guild`);
@@ -65,7 +65,7 @@ const actions: {
 	async permission(t, args, rewrite) {
 		await t.permissions(
 			"ipbot",
-			...(args.split(" ") as PermissionRoleName[])
+			...(args.split(" ") as PermissionRoleName[]),
 		);
 	},
 	async watchTime(t, args, rewrite) {
@@ -77,13 +77,13 @@ const actions: {
 	async myPerm(t, args, rewrite) {
 		await t.permissions(
 			"testbot",
-			...(args.split(" ") as PermissionRoleName[])
+			...(args.split(" ") as PermissionRoleName[]),
 		);
 	},
 	async removeMyPerm(t, args, rewrite) {
 		await t.removePermissions(
 			"testbot",
-			...(args.split(" ") as PermissionRoleName[])
+			...(args.split(" ") as PermissionRoleName[]),
 		);
 	},
 	async startBot(t, args, rewrite) {
@@ -105,7 +105,7 @@ const actions: {
 		}
 		channelName = channelName.substr(1);
 		const channel = t.botInteractionGuild.channels.find(
-			c => c.name === channelName
+			c => c.name === channelName,
 		); // note that multiple channels with the same name is not testable
 		if (!channel) {
 			throw new Error(`Could not find channel with name #${channelName}`);
@@ -122,10 +122,10 @@ const actions: {
 			`test\n${JSON.stringify(events, null, "\t")
 				.split("\n")
 				.map(l => `!! ${l}`)
-				.join("\n")}`
+				.join("\n")}`,
 		);
 		// ^^ make sure to remove the !! below this line somehow
-	}
+	},
 };
 
 (async () => {
@@ -164,7 +164,7 @@ const actions: {
 						return readline.createInterface({
 							input: process.stdin,
 							output: process.stdout,
-							prompt: "test> "
+							prompt: "test> ",
 						});
 				  })();
 
@@ -218,7 +218,7 @@ const actions: {
 			const action = actions[actionName];
 			if (!action) {
 				console.log(
-					`${lineNumber}: Action named ${actionName} does not exist.`
+					`${lineNumber}: Action named ${actionName} does not exist.`,
 				);
 				if (exitOnFailure) {
 					process.exit(1);

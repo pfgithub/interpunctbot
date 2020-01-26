@@ -1,7 +1,7 @@
 import Router from "commandrouter";
 import { MessageAttachment } from "discord.js";
 import { promises as fs } from "fs";
-import * as path from "path";
+import path from "path";
 import Info from "../Info";
 import { messages } from "../../messages";
 import { ilt } from "../..";
@@ -25,17 +25,17 @@ router.add("download", [], async (cmd, info) => {
 			"Log files:",
 			new MessageAttachment(
 				`./logs/${info.guild.id}.log`,
-				`${info.guild.name}.log`
-			)
+				`${info.guild.name}.log`,
+			),
 		),
-		"downloading log"
+		"downloading log",
 	);
 	if (logDownloadMessageResult.error) {
 		return await info.error(
 			messages.logging.upload_probably_failed(
 				info,
-				logDownloadMessageResult.error.errorCode
-			)
+				logDownloadMessageResult.error.errorCode,
+			),
 		);
 	}
 	await info.result(messages.logging.log_sent(info));
@@ -79,7 +79,7 @@ router.add("enable", [], async (cmd, info) => {
 
 router.add("", [], async (cmd, info) => {
 	await info.result(
-		"Logging commands: ```log download - download the log\nlog reset - reset the log\nlog disable/enable - enable/disable logging```"
+		"Logging commands: ```log download - download the log\nlog reset - reset the log\nlog disable/enable - enable/disable logging```",
 	);
 });
 

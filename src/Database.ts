@@ -40,7 +40,7 @@ const shouldCache: { [ey: string]: boolean | undefined } = {
 	prefix: true,
 	logging: true,
 	rankmojiChannel: true,
-	autodelete: true
+	autodelete: true,
 };
 
 function tryParse<T>(json: string | undefined, defaultValue: T): T {
@@ -88,7 +88,7 @@ type BooleanFields = {
 
 type ListsField = { [key: string]: string };
 type NameScreeningField = string[];
-type SpeedrunField = { gameID: string; categoryID: string };
+// type SpeedrunField = { gameID: string; categoryID: string };
 
 const lock: { [key: string]: (() => void)[] } = {};
 
@@ -123,11 +123,11 @@ class Database {
 			try {
 				data = await knex("guilds").insert({
 					id: this.guild,
-					prefix: "ip!"
+					prefix: "ip!",
 				});
 			} catch (er) {
 				throw new Error(
-					`no db entry was found for guild id ${this.guild}, but a new one could not be created because ${er}, the data was ${data}`
+					`no db entry was found for guild id ${this.guild}, but a new one could not be created because ${er}, the data was ${data}`,
 				);
 			}
 			const values = lock[this.guild];
@@ -169,19 +169,19 @@ class Database {
 	}
 	async _getJson<Name extends keyof JSONFields>(
 		name: Name,
-		defaultValue: JSONFields[Name]
+		defaultValue: JSONFields[Name],
 	): Promise<JSONFields[Name]> {
 		return tryParse(await this._get(name), defaultValue);
 	}
 	async _setJson<Name extends keyof JSONFields>(
 		name: Name,
-		newValue: JSONFields[Name]
+		newValue: JSONFields[Name],
 	) {
 		await this._set(name, JSON.stringify(newValue));
 	}
 	async _getBool<Name extends keyof BooleanFields>(
 		name: Name,
-		defaultValue: BooleanFields[Name]
+		defaultValue: BooleanFields[Name],
 	): Promise<BooleanFields[Name]> {
 		let val = await this._get(name);
 		if (!val) {
@@ -191,7 +191,7 @@ class Database {
 	}
 	async _setBool<Name extends keyof BooleanFields>(
 		name: Name,
-		newValue: BooleanFields[Name]
+		newValue: BooleanFields[Name],
 	) {
 		await this._set(name, newValue.toString());
 	}
@@ -235,14 +235,14 @@ class Database {
 		return await this._getJson("autodelete", { rules: [], nextID: 1 });
 	}
 	async addAutodelete(rule: AutodeleteRuleNoID | AutodeleteRule) {
-		let autodelete = await this.getAutodelete();
+		const autodelete = await this.getAutodelete();
 		if (!rule.id) rule.id = autodelete.nextID++;
 		autodelete.rules.push(rule as AutodeleteRule);
 		await this._setJson("autodelete", autodelete);
 		return rule.id;
 	}
 	async removeAutodelete(id: number) {
-		let autodelete = await this.getAutodelete();
+		const autodelete = await this.getAutodelete();
 		autodelete.rules = autodelete.rules.filter(rule => rule.id !== id);
 		return await this._setJson("autodelete", autodelete);
 	}
@@ -368,6 +368,8 @@ class Database {
 	}
 	async addError(error: string, settingCause: string) {
 		// log for the ip!error log
+		void error;
+		void settingCause;
 	}
 }
 

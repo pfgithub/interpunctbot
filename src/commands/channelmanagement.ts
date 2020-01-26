@@ -1,12 +1,12 @@
-import { Message, Guild, Channel, GuildChannel, TextChannel } from "discord.js";
 import Router from "commandrouter";
-import Info from "../Info";
-import { ilt } from "../..";
-const router = new Router<Info, Promise<any>>();
+import { Channel, Guild, GuildChannel, TextChannel } from "discord.js";
+import { ilt, perr } from "../..";
 import { messages } from "../../messages";
-import { AP, a } from "./argumentparser";
-import { durationFormat } from "../durationFormat";
 import { AutodeleteRuleNoID } from "../Database";
+import { durationFormat } from "../durationFormat";
+import Info from "../Info";
+import { a, AP } from "./argumentparser";
+const router = new Router<Info, Promise<any>>();
 
 const stripMentions = (msg: string) => {
 	return msg
@@ -15,35 +15,21 @@ const stripMentions = (msg: string) => {
 		.replace(/<#!?[0-9]+>/g, "");
 };
 
-async function spaceChannels({
-	guild,
-	from,
-	to,
-	msg,
-	info
-}: {
-	guild: Guild;
-	from: string;
-	to: string;
-	msg: Message;
-	info: Info;
-}) {}
-
 router.add(
 	"space channels automatically",
 	[
 		Info.theirPerm.manageChannels,
 		Info.theirPerm.manageBot,
-		Info.ourPerm.manageChannels
+		Info.ourPerm.manageChannels,
 	],
 	async (cmd, info) => {
 		if (!info.guild || !info.db) {
 			return await info.error(
-				messages.failure.command_cannot_be_used_in_pms(info)
+				messages.failure.command_cannot_be_used_in_pms(info),
 			);
 		}
 		await info.db.setAutospaceChannels(true);
-		/*async*/ info.success(messages.settings.autospace_enabled(info));
+		await info.success(messages.settings.autospace_enabled(info));
 
 		// space now
 		const channelsToSpaceNow = findChannelsRequireSpacing(info.guild, "-");
@@ -51,10 +37,10 @@ router.add(
 			await spaceChannel(
 				channel,
 				"-",
-				`started autospacing by @${info.message.member!.displayName}`
+				`started autospacing by @${info.message.member!.displayName}`,
 			);
 		}
-	}
+	},
 );
 
 router.add(
@@ -62,17 +48,17 @@ router.add(
 	[
 		Info.theirPerm.manageChannels,
 		Info.theirPerm.manageBot,
-		Info.ourPerm.manageChannels
+		Info.ourPerm.manageChannels,
 	],
 	async (cmd, info) => {
 		if (!info.guild || !info.db) {
 			return await info.error(
-				messages.failure.command_cannot_be_used_in_pms(info)
+				messages.failure.command_cannot_be_used_in_pms(info),
 			);
 		}
-		info.db.setAutospaceChannels(false);
+		await info.db.setAutospaceChannels(false);
 		return await info.success(messages.settings.autospace_disabled(info));
-	}
+	},
 );
 
 router.add(
@@ -81,13 +67,13 @@ router.add(
 	async (cmd, info) => {
 		if (!info.guild || !info.db) {
 			return await info.error(
-				messages.failure.command_cannot_be_used_in_pms(info)
+				messages.failure.command_cannot_be_used_in_pms(info),
 			);
 		}
 
 		const ap = await AP(
 			{ info, cmd },
-			a.number()
+			a.number(),
 			// what if we want an optional channel? oh no
 			// now the argument parser gets messy
 		);
@@ -99,13 +85,13 @@ router.add(
 			!Number.isInteger(messageLimit)
 		) {
 			return await info.error(
-				messages.channels.purge.message_limit(info, messageLimit)
+				messages.channels.purge.message_limit(info, messageLimit),
 			);
 		}
 
 		const channel = info.message.channel as TextChannel;
 		const messagesToDelete = await channel.messages.fetch({
-			limit: messageLimit
+			limit: messageLimit,
 		});
 		// const confirmationResult = await info.confirm("are you sure?");
 		// if (!confirmationResult) {
@@ -114,49 +100,53 @@ router.add(
 		// if(!await info.confirm("are you sure?")){ return; }
 		// this can be done with an emoji reaction system like goirankbot has
 		const progressMessage = await info.channel.send(
-			messages.channels.purge.in_progress(info, messagesToDelete.size)
+			messages.channels.purge.in_progress(info, messagesToDelete.size),
 		);
 		const now = new Date().getTime();
 		const toBulkDelete = messagesToDelete.filter(
-			m => m.createdAt.getTime() > now - 13 * 24 * 60 * 60 * 1000 // 13 just in case. discord limit is 14
+			m => m.createdAt.getTime() > now - 13 * 24 * 60 * 60 * 1000, // 13 just in case. discord limit is 14
 		);
 		const toSlowDelete = messagesToDelete.filter(
-			m => m.createdAt.getTime() <= now - 13 * 24 * 60 * 60 * 1000
+			m => m.createdAt.getTime() <= now - 13 * 24 * 60 * 60 * 1000,
 		);
 		await channel.bulkDelete(toBulkDelete);
 		let deletedCount = toBulkDelete.size;
+		const stres = async () => {
+			const progressPerdeci = Math.floor(
+				(deletedCount / toSlowDelete.size) * 10,
+			);
+			await ilt(
+				progressMessage.edit(
+					`Deleting messages... [\`${"X".repeat(progressPerdeci) +
+						" ".repeat(
+							10 - progressPerdeci,
+						)}\`] (${deletedCount} / ${messagesToDelete.size})`,
+				),
+				"purge messages progress bar",
+			);
+			updateProgressInterval = startUpdateThing();
+		};
 		const startUpdateThing = () =>
-			setTimeout(async () => {
-				const progressPerdeci = Math.floor(
-					(deletedCount / toSlowDelete.size) * 10
-				);
-				await ilt(
-					progressMessage.edit(
-						`Deleting messages... [\`${"X".repeat(progressPerdeci) +
-							" ".repeat(
-								10 - progressPerdeci
-							)}\`] (${deletedCount} / ${messagesToDelete.size})`
-					),
-					"purge messages progress bar"
-				);
-				updateProgressInterval = startUpdateThing();
-			}, 1000);
+			setTimeout(
+				() => perr(stres(), "updating message delete progress message"),
+				3000,
+			);
 		let updateProgressInterval = startUpdateThing();
-		for (const [key, message] of toSlowDelete) {
+		for (const [, message] of toSlowDelete) {
 			await message.delete();
 			deletedCount++;
 		}
 		clearInterval(updateProgressInterval);
 		await info.success(
-			messages.channels.purge.success(info, messagesToDelete.size)
+			messages.channels.purge.success(info, messagesToDelete.size),
 		);
 		await progressMessage.delete();
-	}
+	},
 );
 
 export function findChannelsRequireSpacing(
 	guild: Guild,
-	characterToReplace: string
+	characterToReplace: string,
 ) {
 	return guild.channels
 		.array()
@@ -165,10 +155,10 @@ export function findChannelsRequireSpacing(
 
 export function doesChannelRequireSpacing(
 	chan: GuildChannel,
-	characterToReplace: string
+	characterToReplace: string,
 ) {
 	return (
-		chan.name.indexOf(characterToReplace) > -1 &&
+		chan.name.includes(characterToReplace) &&
 		chan.type !== "voice" &&
 		chan.type !== "category"
 	);
@@ -177,20 +167,20 @@ export function doesChannelRequireSpacing(
 export async function spaceChannel(
 	channel: GuildChannel,
 	characterToReplace: string,
-	reason: string
+	reason: string,
 ) {
 	if (!doesChannelRequireSpacing(channel, characterToReplace)) {
 		return {
 			error: new Error("Channel does not need spacing"),
-			result: undefined
+			result: undefined,
 		};
 	}
 	return await ilt(
 		channel.setName(
 			channel.name.split(characterToReplace).join("\u2005"),
-			reason
+			reason,
 		),
-		"renaming channel for spacechannels"
+		"renaming channel for spacechannels",
 	);
 }
 
@@ -204,19 +194,19 @@ router.add(
 		const guild = info.guild;
 		if (!guild) {
 			return await info.error(
-				messages.failure.command_cannot_be_used_in_pms(info)
+				messages.failure.command_cannot_be_used_in_pms(info),
 			);
 		}
-		const characterToReplace = (cmd.match(/^[\s\S]*`(.+?)`/) ||
+		const characterToReplace = (/^[\s\S]*`(.+?)`/.exec(cmd) ||
 			([, "-"] as const))[1];
 		const channelsNeedUpdating = findChannelsRequireSpacing(
 			guild,
-			characterToReplace
+			characterToReplace,
 		);
 
 		if (channelsNeedUpdating.length <= 0) {
 			return await info.error(
-				messages.channels.spacing.no_channels_to_space(info)
+				messages.channels.spacing.no_channels_to_space(info),
 			);
 		}
 
@@ -227,7 +217,7 @@ router.add(
 			const setNameResult = await spaceChannel(
 				channel,
 				characterToReplace,
-				`@${info.message.member!.displayName}`
+				`@${info.message.member!.displayName}`,
 			);
 			if (setNameResult.error) {
 				failureChannels.push(channel);
@@ -240,27 +230,27 @@ router.add(
 			return await info.success(
 				`${messages.channels.spacing.succeeded_spacing(
 					info,
-					successChannels
+					successChannels,
 				)}\n${
 					(await info.db!.getAutospaceChannels())
 						? messages.channels.spacing.autospace_info_on(info)
 						: messages.channels.spacing.autospace_info_off(info)
-				}`
+				}`,
 			);
 		}
 		if (successChannels.length === 0) {
 			return await info.error(
-				messages.channels.spacing.failed_spacing(info, failureChannels)
+				messages.channels.spacing.failed_spacing(info, failureChannels),
 			);
 		}
 		return await info.error(
 			messages.channels.spacing.partially_succeeded_spacing(
 				info,
 				successChannels,
-				failureChannels
-			)
+				failureChannels,
+			),
 		);
-	}
+	},
 );
 
 /*
@@ -289,27 +279,27 @@ router.add(
 		const guild = info.guild;
 		if (!guild) {
 			return await info.error(
-				messages.failure.command_cannot_be_used_in_pms(info)
+				messages.failure.command_cannot_be_used_in_pms(info),
 			);
 		}
 
 		if (!(channel instanceof TextChannel)) {
 			return await info.error(
-				"Slowmode can only be set on text channels."
+				"Slowmode can only be set on text channels.",
 			);
 		}
-		let finalTime = Math.ceil(time / 1000);
-		let finalTimeMS = finalTime * 1000;
+		const finalTime = Math.ceil(time / 1000);
+		const finalTimeMS = finalTime * 1000;
 		await channel.setRateLimitPerUser(
 			finalTime,
-			"set by " + info.message.author.toString()
+			"set by " + info.message.author.toString(),
 		);
 		return await info.success(
 			`Slowmode for ${channel.toString()} set to ${durationFormat(
-				finalTime
-			)}.` // should use moment formatting
+				finalTimeMS,
+			)}.`, // should use moment formatting
 		);
-	}
+	},
 );
 
 /*
@@ -334,12 +324,12 @@ router.add(
 	async (cmd, info) => {
 		if (!info.db) {
 			return await info.error(
-				messages.failure.command_cannot_be_used_in_pms(info)
+				messages.failure.command_cannot_be_used_in_pms(info),
 			);
 		}
-		let ap = await AP({ info, cmd, partial: true });
+		const ap = await AP({ info, cmd, partial: true });
 		if (!ap) return;
-		let autodelete = await info.db.getAutodelete();
+		const autodelete = await info.db.getAutodelete();
 		return await info.result(
 			"Autodelete Rules:\n" +
 				autodelete.rules
@@ -350,11 +340,11 @@ router.add(
 							"autodelete remove " +
 							rule.id +
 							"` - " +
-							JSON.stringify(rule)
+							JSON.stringify(rule),
 					)
-					.join("\n")
+					.join("\n"),
 		);
-	}
+	},
 );
 router.add(
 	"autodelete remove",
@@ -362,15 +352,15 @@ router.add(
 	async (cmd, info) => {
 		if (!info.db) {
 			return await info.error(
-				messages.failure.command_cannot_be_used_in_pms(info)
+				messages.failure.command_cannot_be_used_in_pms(info),
 			);
 		}
-		let ap = await AP({ info, cmd, partial: true }, a.number());
+		const ap = await AP({ info, cmd, partial: true }, a.number());
 		if (!ap) return;
-		let [id] = ap.result;
+		const [id] = ap.result;
 		await info.db.removeAutodelete(id);
 		return await info.success("Autodelete rule removed");
-	}
+	},
 );
 router.add(
 	"autodelete add",
@@ -378,57 +368,57 @@ router.add(
 	async (cmd, info) => {
 		if (!info.db) {
 			return await info.error(
-				messages.failure.command_cannot_be_used_in_pms(info)
+				messages.failure.command_cannot_be_used_in_pms(info),
 			);
 		}
-		let ap = await AP(
+		const ap = await AP(
 			{ info, cmd, partial: true },
 			a.duration(),
-			a.enum("prefix", "user", "channel", "role")
+			a.enum("prefix", "user", "channel", "role"),
 		);
 		if (!ap) return;
-		let [duration, mode] = ap.result;
+		const [duration, mode] = ap.result;
 
 		cmd = ap.remaining;
 		let autodeleteInfo: AutodeleteRuleNoID;
 		if (mode === "prefix") {
-			let prefix = cmd;
+			const prefix = cmd;
 			autodeleteInfo = { type: "prefix", prefix, duration };
 		} else if (mode === "user") {
-			let ap = await AP({ info, cmd }, a.user());
+			const ap = await AP({ info, cmd }, a.user());
 			if (!ap) return;
-			let [user] = ap.result;
+			const [user] = ap.result;
 			autodeleteInfo = { type: "user", user: user.id, duration };
 		} else if (mode === "channel") {
-			let ap = await AP({ info, cmd }, a.channel());
+			const ap = await AP({ info, cmd }, a.channel());
 			if (!ap) return;
-			let [channel] = ap.result;
+			const [channel] = ap.result;
 			autodeleteInfo = { type: "channel", channel: channel.id, duration };
 		} else if (mode === "role") {
-			let ap = await AP({ info, cmd }, ...a.role());
+			const ap = await AP({ info, cmd }, ...a.role());
 			if (!ap) return;
-			let [role] = ap.result;
+			const [role] = ap.result;
 			autodeleteInfo = { type: "role", role: role.id, duration };
 		} else {
 			throw new Error("this should never happen");
 		}
 
-		let autodeleteLimit = await info.db.getAutodeleteLimit();
+		const autodeleteLimit = await info.db.getAutodeleteLimit();
 		if ((await info.db.getAutodelete()).rules.length >= autodeleteLimit)
 			return await info.error(
 				"This server has reached its autodelete limit (" +
 					autodeleteLimit +
-					").\n> To increase this limit, ask on the support server\n> <https://interpunct.info/support>"
+					").\n> To increase this limit, ask on the support server\n> <https://interpunct.info/support>",
 			); // !!!
-		let autodeleteID = await info.db.addAutodelete(autodeleteInfo);
+		const autodeleteID = await info.db.addAutodelete(autodeleteInfo);
 		return await info.success(
 			"These types of messages will be automatically deleted after " +
 				durationFormat(duration) +
 				".\n> To remove this rule, `ip!autodelete remove " +
 				autodeleteID +
-				"`" // !!!
+				"`", // !!!
 		);
-	}
+	},
 );
 router.add("autodelete", [Info.theirPerm.manageChannels], async (cmd, info) => {
 	// return await info.usage("autodelete")
@@ -439,13 +429,13 @@ router.add("send:", [Info.theirPerm.manageChannels], async (cmd, info) => {
 	await info.startLoading();
 	const message = stripMentions(info.message.content).replace(
 		/^[\s\S]*?send: ?/i,
-		""
+		"",
 	); // TODO find a better way to do this
 	const channelsToSendTo = info.message.mentions.channels.array();
 
 	if (channelsToSendTo.length === 0) {
 		return await info.error(
-			messages.channels.send_many.no_channels_tagged(info)
+			messages.channels.send_many.no_channels_tagged(info),
 		);
 	}
 
@@ -454,7 +444,7 @@ router.add("send:", [Info.theirPerm.manageChannels], async (cmd, info) => {
 	for (const channel of channelsToSendTo) {
 		const sent = await ilt(
 			channel.send(message),
-			"sending message for sendmany"
+			"sending message for sendmany",
 		);
 		if (sent.error) {
 			failures.push(channel);
@@ -465,20 +455,20 @@ router.add("send:", [Info.theirPerm.manageChannels], async (cmd, info) => {
 
 	if (failures.length === 0) {
 		return await info.success(
-			messages.channels.send_many.succeeded_sending(info, successes)
+			messages.channels.send_many.succeeded_sending(info, successes),
 		);
 	}
 	if (successes.length === 0) {
 		return await info.error(
-			messages.channels.send_many.failed_sending(info, failures)
+			messages.channels.send_many.failed_sending(info, failures),
 		);
 	}
 	return await info.error(
 		messages.channels.send_many.partially_succeeded_sending(
 			info,
 			successes,
-			failures
-		)
+			failures,
+		),
 	);
 });
 

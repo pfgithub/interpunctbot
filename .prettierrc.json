@@ -4,15 +4,6 @@
 	"useTabs": true,
 	"semi": true,
 	"singleQuote": false,
-	"trailingComma": "none",
-	"bracketSpacing": true,
-	"jsxBracketSameLine": false,
-	"arrowParens": "avoid",
-	"proseWrap": "always",
-	"overrides": [
-		{
-			"files": ".prettierrc",
-			"options": { "parser": "json" }
-		}
-	]
+	"trailingComma": "all",
+	"proseWrap": "always"
 }

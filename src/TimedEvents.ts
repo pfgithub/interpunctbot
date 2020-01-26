@@ -1,5 +1,5 @@
 import knex from "./db";
-import { logError, ilt } from "..";
+import { logError, ilt, perr } from "..";
 import * as Discord from "discord.js";
 
 type EventTypes = {
@@ -17,7 +17,7 @@ export type EventData = {
 
 export type EventHandlers = {
 	[key in keyof EventTypes]?: (
-		eventData: EventOfType<key>
+		eventData: EventOfType<key>,
 	) => Promise<"handled" | "notmine">;
 };
 
@@ -37,17 +37,17 @@ export class TimedEvents {
 	currentTime = 0;
 	client: Discord.Client;
 	currentEvents: Map<number, boolean> = new Map();
-	starting: boolean = false;
+	starting = false;
 
 	constructor(client: Discord.Client) {
 		this.eventHandlers = {};
-		this.initialize();
+		perr(this.initialize(), "Initializing timedEvents");
 		this.client = client;
 	}
 
 	setHandler<EventType extends keyof EventTypes>(
 		eventType: EventType,
-		handler: EventHandlers[EventType]
+		handler: EventHandlers[EventType],
 	) {
 		this.eventHandlers[eventType] = handler;
 	}
@@ -56,16 +56,16 @@ export class TimedEvents {
 	}
 	async queue(event: EventData, time: number) {
 		// add to db
-		let insertedResult = await knex<SqlEvent>("timed_events").insert({
+		const insertedResult = await knex<SqlEvent>("timed_events").insert({
 			time,
 			event: JSON.stringify(event),
-			completed: false
+			completed: false,
 		});
-		let id = insertedResult[0];
+		const id = insertedResult[0];
 		if (this.client.shard)
-			this.client.shard.send({
+			await this.client.shard.send({
 				action: "queueEvent",
-				event: { event, time, id }
+				event: { event, time, id },
 			});
 		this._queueNoAdd({ event, time, id });
 	}
@@ -73,28 +73,28 @@ export class TimedEvents {
 		if (ev.time <= this.currentTime) {
 			this.startEventTimeout(ev.event, ev.time, ev.id);
 		}
-		this.startNext();
+		perr(this.startNext(), "Waiting for next event");
 	}
 	startEventTimeout(event: EventData, time: number, id: number) {
 		if (this.currentEvents.has(id)) return;
 		this.currentEvents.set(id, true);
 		if (time <= this.currentTime) this.currentTime = time;
-		let now = new Date().getTime();
+		const now = new Date().getTime();
 		let deltaTime = time - now;
 		if (deltaTime < 0) deltaTime = 0; // events that should've triggered during a server restart
-		setTimeout(async () => {
+		const handle = async () => {
 			this.currentEvents.delete(id);
-			this.startNext();
-			let handler = this.eventHandlers[event.type];
+			perr(this.startNext(), "Waiting for next event");
+			const handler = this.eventHandlers[event.type];
 			if (!handler) {
 				return logError(
 					new Error("Event had an invalid handler: " + handler),
-					true
+					true,
 				);
 			}
-			let handlerResult = await ilt(
+			const handlerResult = await ilt(
 				handler(event as any),
-				"calling delayed event handler"
+				"calling delayed event handler",
 			);
 			if (handlerResult.error || handlerResult.result === "handled") {
 				// await knex<SqlEvent>("timed_events")
@@ -109,20 +109,21 @@ export class TimedEvents {
 					handlerResult.error,
 					false,
 					new Error(
-						"Handler threw error. The event **has** been marked as handled."
-					)
+						"Handler threw error. The event **has** been marked as handled.",
+					),
 				);
 			}
-		}, deltaTime);
+		};
+		setTimeout(() => perr(handle(), "Handling event"), deltaTime);
 	}
 	async startNext() {
-		let ongoingEvents = this.currentEvents.size;
+		const ongoingEvents = this.currentEvents.size;
 		if (100 - ongoingEvents > 0 && !this.starting) {
 		} else {
 			return;
 		}
 		this.starting = true;
-		let events = await knex<SqlEvent>("timed_events")
+		const events = await knex<SqlEvent>("timed_events")
 			.where("time", ">", this.currentTime)
 			.andWhere("completed", "=", false)
 			.orderBy("time")
@@ -131,8 +132,8 @@ export class TimedEvents {
 			this.currentTime = events[events.length - 1].time;
 		}
 		this.starting = false;
-		for (let event of events) {
-			let eventData = JSON.parse(event.event) as EventData;
+		for (const event of events) {
+			const eventData = JSON.parse(event.event) as EventData;
 			this.startEventTimeout(eventData, event.time, event.id);
 		}
 	}

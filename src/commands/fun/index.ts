@@ -1,21 +1,15 @@
 import Router from "commandrouter";
-import * as moment from "moment";
-
+import moment from "moment";
+import { serverStartTime } from "../../..";
+import { messages } from "../../../messages";
 import Info from "../../Info";
+import { a, AP } from "../argumentparser";
+import checkers from "./checkers";
+import connect4 from "./connect4";
+import goi from "./goi";
+import trivia from "./trivia";
 
 const router = new Router<Info, Promise<any>>();
-
-import { messages } from "../../../messages";
-import { serverStartTime, ilt } from "../../..";
-
-import connect4 from "./connect4";
-import trivia from "./trivia";
-import goi from "./goi";
-import checkers, { createTimer } from "./checkers";
-
-import { AP, a } from "../argumentparser";
-import { RichPresenceAssets } from "discord.js";
-import { runInNewContext } from "vm";
 
 router.add("ping", [], async (cmd: string, info) => {
 	if (info.db ? await info.db.getFunEnabled() : true) {
@@ -52,12 +46,12 @@ router.add("stats", [], async (cmd: string, info) => {
 > **Uptime**: ${moment
 			.duration(new Date().getTime() - serverStartTime)
 			.format(
-				"y [years] M [months] w [weeks] d [days,] h[h]:mm[m]:s.SSS[s]"
+				"y [years] M [months] w [weeks] d [days,] h[h]:mm[m]:s.SSS[s]",
 			)}
 > Took ${new Date().getTime() - info.other!.startTime}ms, handling ${
 			info.other!.infoPerSecond
 		} db requests per second`,
-		undefined
+		undefined,
 	);
 });
 
@@ -66,17 +60,17 @@ router.add("remindme", [], async (cmd, info) => {
 	} else {
 		return await info.error(messages.fun.fun_disabled(info));
 	}
-	let ap = await AP({ cmd, info }, a.duration(), ...a.words());
+	const ap = await AP({ cmd, info }, a.duration(), ...a.words());
 	if (!ap) return;
-	let [delay, message] = ap.result;
+	const [delay, message] = ap.result;
 
-	info.timedEvents.queue(
+	await info.timedEvents.queue(
 		{
 			type: "pmuser",
 			message: `Reminder: ${message}`,
-			user: info.message.author.id
+			user: info.message.author.id,
 		},
-		new Date().getTime() + delay
+		new Date().getTime() + delay,
 	);
 	await info.success("Reminder set");
 });
@@ -84,7 +78,7 @@ router.add("remindme", [], async (cmd, info) => {
 router.add("fun", [Info.theirPerm.manageBot], async (cmd: string, info) => {
 	if (!info.db) {
 		return await info.error(
-			messages.failure.command_cannot_be_used_in_pms(info)
+			messages.failure.command_cannot_be_used_in_pms(info),
 		);
 	}
 	if (cmd === "enable") {
@@ -122,17 +116,17 @@ router.add("minesweeper", [], async (cmd: string, info) => {
 	}
 	const words = cmd.split(" ");
 	let difficulty: keyof typeof dv | undefined;
-	let customvalue: number = 0;
+	let customvalue = 0;
 	let mode: string | undefined;
 	let width: number | undefined;
 	let height: number | undefined;
-	let flag: boolean = false;
+	let flag = false;
 	const remainingWords = words.filter(word => {
-		if (difficulties.indexOf(word as any) > -1) {
+		if (difficulties.includes(word as any)) {
 			difficulty = word as any;
 			return false;
 		}
-		if (modesl.indexOf(word as any) > -1) {
+		if (modesl.includes(word as any)) {
 			mode = word as any;
 			return false;
 		}
@@ -140,13 +134,13 @@ router.add("minesweeper", [], async (cmd: string, info) => {
 			flag = true;
 			return false;
 		}
-		const sizeMatch = word.match(/^([0-9]+)x([0-9]+)$/);
+		const sizeMatch = /^([0-9]+)x([0-9]+)$/.exec(word);
 		if (sizeMatch) {
 			width = Math.min(+sizeMatch[1], 25);
 			height = Math.min(+sizeMatch[2], 25);
 			return false;
 		}
-		const percentMatch = word.match(/^([0-9]+)%$/);
+		const percentMatch = /^([0-9]+)%$/.exec(word);
 		if (percentMatch) {
 			difficulty = "custom";
 			customvalue = Math.min(Math.max(+percentMatch[1], 0), 100) / 100;
@@ -160,7 +154,7 @@ router.add("minesweeper", [], async (cmd: string, info) => {
 	height = height || 15;
 	if (remainingWords.join(" ").trim().length > 0) {
 		return await info.error(
-			messages.fun.minesweeper_usage(info, difficulties, modesl)
+			messages.fun.minesweeper_usage(info, difficulties, modesl),
 		);
 	}
 
@@ -170,7 +164,7 @@ router.add("minesweeper", [], async (cmd: string, info) => {
 		width,
 		height,
 		flag,
-		customvalue
+		customvalue,
 	});
 
 	// if (info.myChannelPerms ? info.myChannelPerms.has("EMBED_LINKS") : true) {
@@ -180,8 +174,8 @@ router.add("minesweeper", [], async (cmd: string, info) => {
 	const splitQuotedBoard = generatedBoard.split("\n").map(l => `> ${l}`);
 	splitQuotedBoard.push(
 		`**${width}**x**${height}** | theme: **${mode}** | difficulty: **${difficulty}** (${Math.round(
-			(dv[difficulty] === -1 ? customvalue : dv[difficulty]) * 100
-		)}%) | top left is always safe ${flag ? "flag" : ""}`
+			(dv[difficulty] === -1 ? customvalue : dv[difficulty]) * 100,
+		)}%) | top left is always safe ${flag ? "flag" : ""}`,
 	);
 	splitQuotedBoard.forEach(line => {
 		const newLine = `${linesUnder2000[linesUnder2000.length - 1] ||
@@ -205,7 +199,7 @@ const dv = {
 	veryhard: 0.25,
 	epic: 0.3,
 	ultra: 0.45,
-	custom: -1
+	custom: -1,
 };
 const difficulties: (keyof typeof dv)[] = [
 	"easy",
@@ -213,7 +207,7 @@ const difficulties: (keyof typeof dv)[] = [
 	"hard",
 	"veryhard",
 	"epic",
-	"ultra"
+	"ultra",
 ];
 
 const modesl = ["numbers", "customemojis", "emojis"];
@@ -229,7 +223,7 @@ const modes: {
 		string,
 		string,
 		string,
-		string
+		string,
 	];
 } = {
 	numbers: [
@@ -242,7 +236,7 @@ const modes: {
 		" `6` ",
 		" `7` ",
 		" `8` ",
-		" `X` "
+		" `X` ",
 	],
 	customemojis: [
 		"<:0:579074398296866823>",
@@ -254,7 +248,7 @@ const modes: {
 		"<:6:579074398418501667>",
 		"<:7:579074398284414992>",
 		"<:8_:579074398343004162>",
-		"<:b_:579074398699651072>"
+		"<:b_:579074398699651072>",
 	],
 	emojis: [
 		"⬜",
@@ -266,8 +260,8 @@ const modes: {
 		":six:",
 		":seven:",
 		":eight:",
-		"💥"
-	]
+		"💥",
+	],
 };
 
 const badMinesweeperGenerator = ({
@@ -276,7 +270,7 @@ const badMinesweeperGenerator = ({
 	width,
 	height,
 	flag,
-	customvalue
+	customvalue,
 }: {
 	difficulty: keyof typeof dv;
 	mode: keyof typeof modes;
@@ -325,7 +319,7 @@ const badMinesweeperGenerator = ({
 					.map(e => vals[Math.min(e, 9)])
 					.join(`${flag ? "||||;" : ""}||||`)}${
 					flag ? "||||;" : ""
-				}||`
+				}||`,
 		)
 		.join(`\n`)
 		.replace(/^\|\|(.+?)\|\|/, "$1");

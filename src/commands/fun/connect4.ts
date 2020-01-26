@@ -9,15 +9,10 @@
 //                 won against the other
 
 import Router from "commandrouter";
-import { AP, a } from "../argumentparser";
-import * as moment from "moment";
-import * as Discord from "discord.js";
-
-import { messages, safe, raw } from "../../../messages";
-import { serverStartTime } from "../../..";
-
+import { messages, safe } from "../../../messages";
 import Info from "../../Info";
-import { getPlayers, createTimer } from "./checkers";
+import { AP } from "../argumentparser";
+import { createTimer, getPlayers } from "./checkers";
 
 const router = new Router<Info, Promise<any>>();
 
@@ -25,18 +20,18 @@ const themes = [
 	{
 		".": "<:w:648193417058320394>",
 		R: "<:r:648194063102902294>",
-		y: "<:y:648193417339207701>"
+		y: "<:y:648193417339207701>",
 	},
 	{
 		".": "<:w:648197112667832376>",
 		R: "<:r:648197112013783041>",
-		y: "<:y:648197111900405790>"
+		y: "<:y:648197111900405790>",
 	},
 	{
 		".": "<:w:648296516406083595>",
 		R: "<:r:648226318017626132>",
-		y: "<:y:648226318118420500>"
-	}
+		y: "<:y:648226318118420500>",
+	},
 ];
 
 const playerIndexToColor: ("R" | "y")[] = ["R", "y"];
@@ -48,13 +43,11 @@ const laneEmojis = [
 	"648291429839273994",
 	"648291429856051201",
 	"648291429554192419",
-	"648291429977948160"
+	"648291429977948160",
 ];
 
 const topBar =
 	"<:number1:648301185115357205><:number2:648299358722195467><:number3:648301185127677972><:number4:648301184930545669><:number5:648301184955711488><:number6:648301496282120249><:number7:648301184679149570>";
-
-const joinEmoji = "455896379210989568";
 
 export class Connect4Game {
 	lanes: { [key in typeof laneEmojis[number]]: ("." | "R" | "y")[] };
@@ -69,7 +62,7 @@ export class Connect4Game {
 	constructor(playerCount: number) {
 		this.lanes = {};
 		laneEmojis.forEach(
-			le => (this.lanes[le] = [".", ".", ".", ".", ".", "."])
+			le => (this.lanes[le] = [".", ".", ".", ".", ".", "."]),
 		);
 		this.turnIndex = 0;
 		this.onchange = () => {};
@@ -111,7 +104,7 @@ export class Connect4Game {
 	travel(
 		[fromX, fromY]: [number, number],
 		direction: (x: number, y: number) => [number, number],
-		condition: (tile: "." | "R" | "y") => boolean
+		condition: (tile: "." | "R" | "y") => boolean,
 	) {
 		const tiles = this.getText();
 		let x = fromX;
@@ -130,17 +123,17 @@ export class Connect4Game {
 		[placedX, placedY]: [number, number],
 		upfn: (x: number, y: number) => [number, number],
 		downfn: (x: number, y: number) => [number, number],
-		color: "." | "R" | "y"
+		color: "." | "R" | "y",
 	) {
 		const iterUp = this.travel(
 			[placedX, placedY],
 			upfn,
-			tile => tile === color
+			tile => tile === color,
 		);
 		const iterDown = this.travel(
 			[placedX, placedY],
 			downfn,
-			tile => tile === color
+			tile => tile === color,
 		);
 		if (iterUp + 1 + iterDown >= 4) {
 			// connected 4
@@ -175,25 +168,25 @@ export class Connect4Game {
 				[placedX, placedY],
 				(x, y) => [x, y - 1],
 				(x, y) => [x, y + 1],
-				color
+				color,
 			) ||
 			this.checkConnect4(
 				[placedX, placedY],
 				(x, y) => [x - 1, y],
 				(x, y) => [x + 1, y],
-				color
+				color,
 			) ||
 			this.checkConnect4(
 				[placedX, placedY],
 				(x, y) => [x - 1, y - 1],
 				(x, y) => [x + 1, y + 1],
-				color
+				color,
 			) ||
 			this.checkConnect4(
 				[placedX, placedY],
 				(x, y) => [x - 1, y + 1],
 				(x, y) => [x + 1, y - 1],
-				color
+				color,
 			)
 		) {
 			this.win(this.turnIndex);
@@ -226,23 +219,23 @@ router.add("connect4", [], async (cmd: string, info) => {
 	if (info.myChannelPerms) {
 		if (!info.myChannelPerms.has("USE_EXTERNAL_EMOJIS")) {
 			return await info.error(
-				"I need permission to `use external emojis` here to play connnect 4\n> https://interpunct.info/help/fun/connect4"
+				"I need permission to `use external emojis` here to play connnect 4\n> https://interpunct.info/help/fun/connect4",
 			);
 		}
 		if (!info.myChannelPerms.has("ADD_REACTIONS")) {
 			return await info.error(
-				"I need permission to `add reactions` here to play connnect 4\n> https://interpunct.info/help/fun/connect4"
+				"I need permission to `add reactions` here to play connnect 4\n> https://interpunct.info/help/fun/connect4",
 			);
 		}
 		if (!info.myChannelPerms.has("MANAGE_MESSAGES")) {
 			return await info.error(
-				"I need permission to `manage messages` here to remove people's reactions in connnect 4\n> https://interpunct.info/help/fun/connect4"
+				"I need permission to `manage messages` here to remove people's reactions in connnect 4\n> https://interpunct.info/help/fun/connect4",
 			);
 		}
 	}
 
 	const themeIndex = Math.floor(
-		Math.max(Math.min(+cmd || 3, themes.length), 1) - 1
+		Math.max(Math.min(+cmd || 3, themes.length), 1) - 1,
 	);
 	const theme = themes[themeIndex];
 
@@ -252,7 +245,7 @@ router.add("connect4", [], async (cmd: string, info) => {
 		[info.message.author.id],
 		2,
 		"Connect 4",
-		info
+		info,
 	);
 	if (!playersInGame) {
 		return;
@@ -273,7 +266,7 @@ router.add("connect4", [], async (cmd: string, info) => {
 								? info.message.guild.members.get(pl)!
 										.displayName
 								: info.message.client.users.get(pl)!.username
-						}`
+						}`,
 				)
 				.join(", ")} \n---\n> ${topBar}\n${game
 				.getText()
@@ -298,7 +291,7 @@ router.add("connect4", [], async (cmd: string, info) => {
 			async (reaction, user) => {
 				await reaction.users.remove(user);
 				gameTimer.reset();
-				if (laneEmojis.indexOf(reaction.emoji.id!) === -1) {
+				if (!laneEmojis.includes(reaction.emoji.id!)) {
 					return; // invalid
 				}
 				// if your turn
@@ -307,7 +300,7 @@ router.add("connect4", [], async (cmd: string, info) => {
 					const success = game.dropTile(reaction.emoji.id!);
 					if (success) game.nextTurn();
 				}
-			}
+			},
 		);
 
 		const gameTimer = createTimer(
@@ -315,7 +308,7 @@ router.add("connect4", [], async (cmd: string, info) => {
 				60000,
 				async () => {
 					game.end("Out of time (max 60s per turn)");
-				}
+				},
 			],
 			[
 				30000,
@@ -325,10 +318,10 @@ router.add("connect4", [], async (cmd: string, info) => {
 							playersInGame[game.turnIndex]
 						}>, it's your turn in connect 4. ${
 							gameBoardMessage.url
-						}\n> If you don't play within 30s, the game will end. `
+						}\n> If you don't play within 30s, the game will end. `,
 					);
-				}
-			]
+				},
+			],
 		);
 
 		await updateGameBoard();

@@ -1,9 +1,9 @@
 /*
 
-speedrun really needs to move to a new bot, this implementation is really bad
+this implementation is really bad
 second worst part of the bot to index.js
 
-TODO FOR FUTURE UPDATE/NEW BOT:
+TODO FOR FUTURE UPDATE:
 
 speedrun add speedrun.com/game
 speedrun remove speedrun.com/game
@@ -22,17 +22,16 @@ speedrun ruels <category>
 */
 
 //@ts-ignore
-import * as SpeedrunAPI from "speedrunapi";
+import SpeedrunAPI from "speedrunapi";
 const sr = new SpeedrunAPI();
-import { MessageEmbed } from "discord.js";
 import MB, { TextBuilder } from "../MessageBuilder";
 import Router from "commandrouter";
 import Info from "../Info";
 import { messages } from "../../messages";
 //@ts-ignore
-import * as request from "async-request"; // this is a terrible library why am I using it
+import request from "async-request"; // this is a terrible library why am I using it // TODO switch to node-fetch
 
-import * as moment from "moment";
+import moment from "moment";
 
 const router = new Router<Info, Promise<any>>();
 
@@ -72,7 +71,7 @@ async function getGamesFrom({ abbreviation }: { abbreviation: string }) {
 	const gameData = await getURL`https://www.speedrun.com/api/v1/games?abbreviation=${abbreviation}&embed=categories`;
 	//let gameData = await sr.games().param({abbreviation: abbreviation}).embed(["categories"]).exec(); // works but geturl is almost better
 	console.log(
-		`Getting games for abbreviation took ${ctime() - startTime}ms.`
+		`Getting games for abbreviation took ${ctime() - startTime}ms.`,
 	);
 	return gameData;
 }
@@ -88,7 +87,7 @@ async function getCategoriesFromGameID(id: string) {
 
 function parseAbbreviation({ from: speedrunpage = "" }) {
 	// I've been doing too much swift
-	const match = speedrunpage.match(/[A-Za-z0-9_]+$/); // match the last a-za-z0-9+ of the page. if this doesn't work for all pages, submit a bug report
+	const match = /[A-Za-z0-9_]+$/.exec(speedrunpage); // match the last a-za-z0-9+ of the page. if this doesn't work for all pages, submit a bug report
 	return match ? match[0] : undefined;
 }
 
@@ -106,7 +105,7 @@ router.add("wr", [], async (cmd, info) => {
 
 	if (!info.db) {
 		return await info.error(
-			messages.failure.command_cannot_be_used_in_pms(info)
+			messages.failure.command_cannot_be_used_in_pms(info),
 		);
 	}
 
@@ -115,21 +114,22 @@ router.add("wr", [], async (cmd, info) => {
 		return await info.error(messages.speedrun.requires_setup(info));
 	}
 	let { gameID, categoryID } = defaultGameCategory;
+	gameID = gameID;
 
 	if (categoryName) {
 		// wouuldn't it be cool if loading could be updated to say "Getting Category..."
 		const categories = await getCategoriesFromGameID(gameID);
 
 		const categoryFilter = categories.items.filter((cat: any) =>
-			compareCatName(cat.name, categoryName)
+			compareCatName(cat.name, categoryName),
 		);
 		if (categoryFilter.length <= 0) {
 			return await info.error(
 				messages.speedrun.invalid_category_name(
 					info,
 					categoryName,
-					categories.items.map((cat: any) => cat.name)
-				)
+					categories.items.map((cat: any) => cat.name),
+				),
 			);
 		} // TODO return as a mb fields[categoryname,url,name,url...]
 		categoryID = categoryFilter[0].id;
@@ -143,7 +143,7 @@ router.add("wr", [], async (cmd, info) => {
 		.exec();
 	const actualGameData = gameData.items.game.data;
 	const runs = gameData.items.runs.filter(
-		(run: any) => run.place.toString() === place.toString()
+		(run: any) => run.place.toString() === place.toString(),
 	); // TODO run.place === place and have place just get the person in nth place
 	const getPlayer = (player: any) =>
 		gameData.items.players.data.filter((pl: any) => pl.id === player)[0];
@@ -163,11 +163,11 @@ router.add("wr", [], async (cmd, info) => {
 		`https://www.speedrun.com/images/flags/${runPlayer.location &&
 			runPlayer.location.country &&
 			runPlayer.location.country.code}.png`,
-		runPlayer.weblink
+		runPlayer.weblink,
 	);
 	const duration = moment.duration(run.times.primary_t, "seconds");
 	mb.description.tag`[${duration.format(
-		"y [years] M [months] w [weeks] d [days,] h[h]:mm[m]:s.SSS[s]"
+		"y [years] M [months] w [weeks] d [days,] h[h]:mm[m]:s.SSS[s]",
 	)}](`;
 	mb.description.putRaw(run.weblink);
 	mb.description.tag`)
@@ -209,7 +209,7 @@ router.add("speedrun leaderboard", [], async (cmd, info) => {
 
 	if (!info.db) {
 		return await info.error(
-			messages.failure.command_cannot_be_used_in_pms(info)
+			messages.failure.command_cannot_be_used_in_pms(info),
 		);
 	}
 	const defaultGameCategory = await info.db.getSpeedrunDefault();
@@ -217,6 +217,7 @@ router.add("speedrun leaderboard", [], async (cmd, info) => {
 		return await info.error(messages.speedrun.requires_setup(info));
 	}
 	let { gameID, categoryID } = defaultGameCategory;
+	gameID = gameID;
 
 	await info.startLoading();
 
@@ -224,15 +225,15 @@ router.add("speedrun leaderboard", [], async (cmd, info) => {
 		const categories = await getCategoriesFromGameID(gameID);
 
 		const categoryFilter = categories.items.filter((cat: any) =>
-			compareCatName(cat.name, categoryName)
+			compareCatName(cat.name, categoryName),
 		);
 		if (categoryFilter.length <= 0) {
 			return await info.error(
 				messages.speedrun.invalid_category_name(
 					info,
 					categoryName,
-					categories.items.map((cat: any) => cat.name)
-				)
+					categories.items.map((cat: any) => cat.name),
+				),
 			);
 		} // TODO return as a mb fields[categoryname,url,name,url...]
 		categoryID = categoryFilter[0].id;
@@ -246,14 +247,14 @@ router.add("speedrun leaderboard", [], async (cmd, info) => {
 		.exec();
 	const actualGameData = gameData.items.game.data;
 	const runs = gameData.items.runs.filter(
-		(run: any) => run.place.toString() === place.toString()
+		(run: any) => run.place.toString() === place.toString(),
 	); // TODO run.place === place and have place just get the person in nth place // why isn't this .find()
 	const getPlayer = (player: any) =>
 		gameData.items.players.data.filter((pl: any) => pl.id === player)[0];
 	const run_ = runs[0];
 	if (!run_) {
 		return await info.error(
-			messages.speedrun.no_run_for_position(info, position)
+			messages.speedrun.no_run_for_position(info, position),
 		);
 	}
 	const run = run_.run;
@@ -268,11 +269,11 @@ router.add("speedrun leaderboard", [], async (cmd, info) => {
 		`https://www.speedrun.com/images/flags/${runPlayer.location &&
 			runPlayer.location.country &&
 			runPlayer.location.country.code}.png`,
-		runPlayer.weblink
+		runPlayer.weblink,
 	);
 	const duration = moment.duration(run.times.primary_t, "seconds");
 	mb.description.tag`[${duration.format(
-		"y [years] M [months] w [weeks] d [days,] h[h]:mm[m]:s.SSS[s]"
+		"y [years] M [months] w [weeks] d [days,] h[h]:mm[m]:s.SSS[s]",
 	)}](`;
 	mb.description.putRaw(run.weblink);
 	mb.description.tag`)
@@ -304,7 +305,7 @@ router.add("speedrun rules", [], async (cmd, info) => {
 	if (!info.db) {
 		return await info.error(
 			"Speedrun commands cannot be used in PMs.",
-			undefined
+			undefined,
 		);
 	}
 
@@ -312,17 +313,18 @@ router.add("speedrun rules", [], async (cmd, info) => {
 	if (!defaultGameCategory) {
 		return await info.error(
 			"Speedrun commands have not been configured for this server. Configure them with `speedrun set`",
-			undefined
+			undefined,
 		);
 	}
 	let { gameID, categoryID } = defaultGameCategory;
+	gameID = gameID;
 
 	if (categoryName) {
 		// wouuldn't it be cool if loading could be updated to say "Getting Category..."
 		const categories = await getCategoriesFromGameID(gameID);
 
 		const categoryFilter = categories.items.filter((cat: any) =>
-			compareCatName(cat.name, categoryName)
+			compareCatName(cat.name, categoryName),
 		);
 		if (categoryFilter.length <= 0) {
 			return await info.error(
@@ -330,13 +332,11 @@ router.add("speedrun rules", [], async (cmd, info) => {
 					.tag`The category \`${categoryName}\` is not in the game.
 		Valid categories: ${categories.items.map((cat: any) => cat.name)
 			.join`, `}`.build(),
-				undefined
+				undefined,
 			);
 		} // TODO return as a mb fields[categoryname,url,name,url...]
 		categoryID = categoryFilter[0].id;
 	}
-
-	const place = 1;
 
 	const gameData = await sr
 		.leaderboards(gameID, categoryID)
@@ -382,7 +382,7 @@ adminrouter.add(
 		if (!info.db) {
 			return await info.error(
 				"Cannot use speedrun commands in private pm messages",
-				undefined
+				undefined,
 			);
 		}
 
@@ -391,7 +391,7 @@ adminrouter.add(
 		if (!abbreviation || !categoryName) {
 			return await info.error(
 				`Usage: \`speedrun set https://speedrun.com/mygame My Category\``,
-				undefined
+				undefined,
 			);
 		}
 		await info.startLoading();
@@ -404,14 +404,14 @@ adminrouter.add(
 		const gameID = game.id;
 		const categories = game.categories.data;
 		const category = categories.find((category: any) =>
-			compareCatName(category.name, categoryName)
+			compareCatName(category.name, categoryName),
 		);
 		if (!category) {
 			return await info.error(
 				new TextBuilder()
 					.tag`The category \`${categoryName}\` is not in the game.
 	Valid categories: ${categories.map((cat: any) => cat.name).join`, `}`.build(),
-				undefined
+				undefined,
 			);
 		}
 
@@ -424,9 +424,9 @@ adminrouter.add(
 				.tag`Default speedrun page updated to ${abbreviation}: ${categoryName} (ids: ${gameID}, ${
 				category.id
 			}). Took ${`${ctime() - startTime}`} ms.`.build(),
-			undefined
+			undefined,
 		);
-	}
+	},
 ); // set <abbreviaton> <category> // sets the default category
 
 export default router;

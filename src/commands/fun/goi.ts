@@ -1,13 +1,8 @@
 import Router from "commandrouter";
-import { AP, a } from "../argumentparser";
-import * as moment from "moment";
-import * as Discord from "discord.js";
-
-import { messages, safe, raw } from "../../../messages";
-import { serverStartTime, ilt } from "../../..";
-
+import { perr } from "../../..";
+import { messages } from "../../../messages";
 import Info from "../../Info";
-import { getPlayers, createTimer } from "./checkers";
+import { createTimer } from "./checkers";
 
 const router = new Router<Info, Promise<any>>();
 
@@ -25,7 +20,7 @@ const ge = {
 	rock: "<:Rock:650518888601354250>",
 	vwall: "<:VWall:650522702612004898>",
 	paddle: "<:Paddle:650523021609795616>",
-	prock: "<:PRock:650523309125009429>"
+	prock: "<:PRock:650523309125009429>",
 };
 
 type GoDirectionSpec = (
@@ -48,12 +43,12 @@ const goilevels: { [key: string]: LevelSpec } = {
 				p: "player",
 				t: ge.tree,
 				w: ge.ocean,
-				f: ge.sand
-			}
+				f: ge.sand,
+			},
 		},
 		go: {
 			[ge.left]: [
-				"*You pogo into the water and die. You are back at the beginning*"
+				"*You pogo into the water and die. You are back at the beginning*",
 			],
 			[ge.up]: ["*You pogo up and fall back down*"],
 			[ge.right]: [
@@ -62,16 +57,16 @@ const goilevels: { [key: string]: LevelSpec } = {
 				{
 					message: "*You pull yourself up over the tree*",
 					goto: "rock",
-					rerollChance: 0.25
+					rerollChance: 0.25,
 				},
 				{
 					message:
 						"*You fling yourself over the tree with great force*",
 					goto: "basin",
-					rerollChance: 0.75
-				}
-			]
-		}
+					rerollChance: 0.9,
+				},
+			],
+		},
 	},
 	rock: {
 		text: {
@@ -81,16 +76,16 @@ const goilevels: { [key: string]: LevelSpec } = {
 				"|": ge.tree,
 				p: "player",
 				"#": ge.rock,
-				f: ge.sand
-			}
+				f: ge.sand,
+			},
 		},
 		go: {
 			[ge.left]: [
 				{
 					message: "*You make your way back over the tree.*",
 					goto: "tree",
-					rerollChance: 0
-				}
+					rerollChance: 0,
+				},
 			],
 			[ge.up]: ["*You pogo up and fall back down*"],
 			[ge.right]: [
@@ -98,16 +93,16 @@ const goilevels: { [key: string]: LevelSpec } = {
 					message:
 						"*You climb over the rock and fall into the basin*",
 					goto: "basin",
-					rerollChance: 0
+					rerollChance: 0,
 				},
 				{
 					message:
 						"*You fling yourself over the rock with great force*",
 					goto: "paddle",
-					rerollChance: 0.75
-				}
-			]
-		}
+					rerollChance: 0.75,
+				},
+			],
+		},
 	},
 	basin: {
 		text: {
@@ -120,8 +115,8 @@ const goilevels: { [key: string]: LevelSpec } = {
 				f: ge.sand,
 				"-": ge.paddle,
 				"<": ge.prock,
-				w: ge.vwall
-			}
+				w: ge.vwall,
+			},
 		},
 		go: {
 			[ge.left]: [
@@ -130,8 +125,8 @@ const goilevels: { [key: string]: LevelSpec } = {
 				{
 					message: "You climb your way back out of the basin",
 					goto: "rock",
-					rerollChance: 0.99
-				}
+					rerollChance: 0.99,
+				},
 			],
 			[ge.up]: [
 				"*You pogo up but miss the rock and paddle*",
@@ -140,38 +135,38 @@ const goilevels: { [key: string]: LevelSpec } = {
 					message:
 						"*You pogo and grab the rock and use it to fling yourself onto the paddle*",
 					goto: "paddle",
-					rerollChance: 0.75
-				}
+					rerollChance: 0.75,
+				},
 			],
-			[ge.right]: ["*You run into the wall*"]
-		}
+			[ge.right]: ["*You run into the wall*"],
+		},
 	},
 	paddle: {
 		text: {
 			template: ["", "ap", ""],
 			v: {
 				a: "This level is not implemented yet!",
-				p: "player"
-			}
+				p: "player",
+			},
 		},
 		go: {
 			[ge.left]: [
 				{
 					message: "You fall back down to the basin",
 					rerollChance: 0,
-					goto: "basin"
+					goto: "basin",
 				},
 				{
 					message:
 						"You fling yourself off the paddle with great force",
 					rerollChance: 0.75,
-					goto: "rock"
-				}
+					goto: "rock",
+				},
 			],
 			[ge.up]: ["*you go up*"],
-			[ge.right]: ["*you go right*"]
-		}
-	}
+			[ge.right]: ["*you go right*"],
+		},
+	},
 };
 
 router.add("goi", [], async (cmd: string, info) => {
@@ -183,17 +178,17 @@ router.add("goi", [], async (cmd: string, info) => {
 	if (info.myChannelPerms) {
 		if (!info.myChannelPerms.has("USE_EXTERNAL_EMOJIS")) {
 			return await info.error(
-				"I need permission to `use external emojis` here to play goi\n> https://interpunct.info/help/fun/goi"
+				"I need permission to `use external emojis` here to play goi\n> https://interpunct.info/help/fun/goi",
 			);
 		}
 		if (!info.myChannelPerms.has("ADD_REACTIONS")) {
 			return await info.error(
-				"I need permission to `add reactions` here to play goi\n> https://interpunct.info/help/fun/goi"
+				"I need permission to `add reactions` here to play goi\n> https://interpunct.info/help/fun/goi",
 			);
 		}
 		if (!info.myChannelPerms.has("MANAGE_MESSAGES")) {
 			return await info.error(
-				"I need permission to `manage messages` here to remove people's reactions in goi\n> https://interpunct.info/help/fun/goi"
+				"I need permission to `manage messages` here to remove people's reactions in goi\n> https://interpunct.info/help/fun/goi",
 			);
 		}
 	}
@@ -231,13 +226,13 @@ ${
 						.map(q =>
 							goilevels[level].text.v[q] === "player"
 								? ge.normalcharacter
-								: goilevels[level].text.v[q]
+								: goilevels[level].text.v[q],
 						)
-						.join("")
+						.join(""),
 				)
 				.join("\n")
 		: `404! Level \`${level}\` not found!`
-}${events.map((ev, i) => `\n${ev}`).join("")}`);
+}${events.map(ev => `\n${ev}`).join("")}`);
 		//eslint-disable-next-line require-atomic-updates
 		isUpdating = false;
 		postUpdate.forEach(v => v(true));
@@ -263,14 +258,14 @@ ${
 		60000,
 		async () => {
 			rh.end();
-		}
+		},
 	]);
 	const rh = info.handleReactions(gamemsg, async (rxns, user) => {
 		timer.reset();
 		if (user.id !== info.message.author.id) {
 			return;
 		}
-		ilt(rxns.users.remove(user.id), "remove reaction in goi");
+		perr(rxns.users.remove(user.id), "remove reaction in goi");
 		const emov = rxns.emoji.name;
 		if (!goilevels[level]) {
 			return;

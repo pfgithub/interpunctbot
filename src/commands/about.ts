@@ -39,10 +39,10 @@ router.add([], async (cmd, info) => {
 		});
 	mb.setAuthor(
 		"pfg#4865",
-		"https://cdn.discordapp.com/avatars/341076015663153153/d4d033b5a2df0c42328659202e09438e.png?size=128"
+		"https://cdn.discordapp.com/avatars/341076015663153153/d4d033b5a2df0c42328659202e09438e.png?size=128",
 	);
 
-	info.result(...mb.build());
+	await info.result(...mb.build());
 });
 
 export default router;

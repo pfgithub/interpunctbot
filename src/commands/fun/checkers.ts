@@ -5,14 +5,10 @@
 // !!!!! = THAT INCLUDES MULTI JUMPS
 
 import Router from "commandrouter";
-import { AP, a } from "../argumentparser";
-import * as moment from "moment";
-import * as Discord from "discord.js";
-
-import { messages, safe, raw } from "../../../messages";
-import { serverStartTime, ilt } from "../../..";
-
+import { perr } from "../../..";
+import { messages } from "../../../messages";
 import Info from "../../Info";
+import { AP } from "../argumentparser";
 
 const router = new Router<Info, Promise<any>>();
 
@@ -26,7 +22,7 @@ export function createTimer(
 	const updateTimers = () => {
 		endTimers();
 		timerSpecs.forEach(([time, cb]) => {
-			timers.push(setTimeout(() => ilt(cb(), "timer"), time));
+			timers.push(setTimeout(() => perr(cb(), "timer"), time));
 		});
 	};
 	updateTimers();
@@ -36,7 +32,7 @@ export function createTimer(
 		},
 		end: () => {
 			endTimers();
-		}
+		},
 	};
 }
 
@@ -91,12 +87,12 @@ const emojis = {
 			"<:r9:649845888751239168>",
 			"<:rA:649845888998440960>",
 			"<:rB:649845888558170113>",
-			"<:rC:649845888885325824>"
+			"<:rC:649845888885325824>",
 		],
 		selected: "<:rs:649845890856517632>",
 		blank: "<:rt:649845888448987136>",
 		king: "<:rk:649845889065680926>",
-		ghost: "<:rg:650110208441450506>"
+		ghost: "<:rg:650110208441450506>",
 	},
 	black: {
 		pieces: [
@@ -111,12 +107,12 @@ const emojis = {
 			"<:b9:649845888113704980>",
 			"<:bA:649845887408930817>",
 			"<:bB:649845887807389707>",
-			"<:bC:649845887903727616>"
+			"<:bC:649845887903727616>",
 		],
 		selected: "<:bs:649845888608370708>",
 		blank: "<:bt:649845888377815061>",
 		king: "<:bk:649845888780468244>",
-		ghost: "<:bg:650110208349175814>"
+		ghost: "<:bg:650110208349175814>",
 	},
 	board: {
 		white: "<:et:649845888709165066>",
@@ -125,8 +121,8 @@ const emojis = {
 			ul: "<:ul:649845888675479552>",
 			ur: "<:ur:649845888746913805>",
 			bl: "<:dl:649845888486866944>",
-			br: "<:dr:649845890718105630>"
-		}
+			br: "<:dr:649845890718105630>",
+		},
 	},
 	interaction: {
 		pieces: [
@@ -141,17 +137,17 @@ const emojis = {
 			"649845889011154944",
 			"649845887182438421",
 			"649845887765577738",
-			"649845887509725194"
+			"649845887509725194",
 		],
 		arrows: {
 			ul: "649845888675479552",
 			ur: "649845888746913805",
 			bl: "649845888486866944",
-			br: "649845890718105630"
+			br: "649845890718105630",
 		},
 		done: "546938940389589002",
-		join: "455896379210989568"
-	}
+		join: "455896379210989568",
+	},
 };
 
 type CheckerTile =
@@ -195,18 +191,18 @@ class Checkers {
 	status:
 		| { status: "running" }
 		| { status: "winner"; reason: "won" | "timeout"; winner: "r" | "b" } = {
-		status: "running"
+		status: "running",
 	};
 	constructor() {
 		const r = (n: number) => ({
 			color: "r" as const,
 			number: n,
-			alldirs: false
+			alldirs: false,
 		});
 		const b = (n: number) => ({
 			color: "b" as const,
 			number: n,
-			alldirs: false
+			alldirs: false,
 		});
 		const u___ = undefined;
 		this.checkerGrid = [
@@ -217,7 +213,7 @@ class Checkers {
 			["w", "b", "w", "b", "w", "b", "w", "b"],
 			["b", "w", "b", "w", "b", "w", "b", "w"],
 			["w", "b", "w", "b", "w", "b", "w", "b"],
-			["b", "w", "b", "w", "b", "w", "b", "w"]
+			["b", "w", "b", "w", "b", "w", "b", "w"],
 		];
 		this.checkerPieces = [
 			[u___, r(0), u___, u___, u___, b(0), u___, b(1)],
@@ -227,7 +223,7 @@ class Checkers {
 			[u___, r(6), u___, u___, u___, b(6), u___, b(7)],
 			[r(7), u___, r(8), u___, u___, u___, b(8), u___],
 			[u___, r(9), u___, u___, u___, b(9), u___, b(10)],
-			[r(10), u___, r(11), u___, u___, u___, b(11), u___]
+			[r(10), u___, r(11), u___, u___, u___, b(11), u___],
 		];
 		this.clearMovementOverlay();
 		this.currentPlayer = "r";
@@ -237,7 +233,7 @@ class Checkers {
 		this.status = {
 			status: "winner",
 			reason: "timeout",
-			winner: this.currentPlayer === "r" ? "b" : "r"
+			winner: this.currentPlayer === "r" ? "b" : "r",
 		};
 	}
 	getGrid(): CheckerTile[][] {
@@ -254,7 +250,7 @@ class Checkers {
 							? emojis.board.arrows.ur
 							: movementOverlay === "dl"
 							? emojis.board.arrows.bl
-							: emojis.board.arrows.br
+							: emojis.board.arrows.br,
 					);
 					continue;
 				}
@@ -271,13 +267,13 @@ class Checkers {
 								: set.pieces[checkerPiece.number]
 							: checkerPiece.alldirs
 							? set.king
-							: set.blank
+							: set.blank,
 					);
 					continue;
 				}
 				const gridColor = this.checkerGrid[y][x];
 				resRow.push(
-					gridColor === "w" ? emojis.board.white : emojis.board.black
+					gridColor === "w" ? emojis.board.white : emojis.board.black,
 				);
 			}
 			resArr.push(resRow);
@@ -294,14 +290,14 @@ class Checkers {
 			[u, u, u, u, u, u, u, u],
 			[u, u, u, u, u, u, u, u],
 			[u, u, u, u, u, u, u, u],
-			[u, u, u, u, u, u, u, u]
+			[u, u, u, u, u, u, u, u],
 		];
 	}
 	inBounds(x: number, y: number) {
 		return x >= 0 && x < 8 && y >= 0 && y < 8;
 	}
 	directionToDirectionString(
-		direction: Direction
+		direction: Direction,
 	): "ul" | "ur" | "dl" | "dr" {
 		if (direction[0] === -1) {
 			if (direction[1] === -1) return "ul";
@@ -336,7 +332,7 @@ class Checkers {
 			return {
 				x: movedX,
 				y: movedY,
-				direction: this.directionToDirectionString(dir)
+				direction: this.directionToDirectionString(dir),
 			};
 		}
 		if (tileInMovePos.color === this.currentPlayer) {
@@ -352,7 +348,7 @@ class Checkers {
 				x: dmX,
 				y: dmY,
 				jump: { x: movedX, y: movedY },
-				direction: this.directionToDirectionString(dir)
+				direction: this.directionToDirectionString(dir),
 			};
 		}
 		return undefined;
@@ -440,7 +436,7 @@ class Checkers {
 
 		const moves = this.getAvailableMoves(
 			this.selectedPiece.x,
-			this.selectedPiece.y
+			this.selectedPiece.y,
 		);
 
 		moves.forEach(move => {
@@ -464,7 +460,7 @@ class Checkers {
 		const move = this.findMovePos(
 			this.selectedPiece.x,
 			this.selectedPiece.y,
-			direction
+			direction,
 		);
 		if (!move) {
 			return; // no
@@ -525,17 +521,17 @@ router.add("checkers", [], async (cmd: string, info) => {
 	if (info.myChannelPerms) {
 		if (!info.myChannelPerms.has("USE_EXTERNAL_EMOJIS")) {
 			return await info.error(
-				"I need permission to `use external emojis` here to play checkers\n> https://interpunct.info/help/fun/connect4"
+				"I need permission to `use external emojis` here to play checkers\n> https://interpunct.info/help/fun/connect4",
 			);
 		}
 		if (!info.myChannelPerms.has("ADD_REACTIONS")) {
 			return await info.error(
-				"I need permission to `add reactions` here to play checkers\n> https://interpunct.info/help/fun/connect4"
+				"I need permission to `add reactions` here to play checkers\n> https://interpunct.info/help/fun/connect4",
 			);
 		}
 		if (!info.myChannelPerms.has("MANAGE_MESSAGES")) {
 			return await info.error(
-				"I need permission to `manage messages` here to remove people's reactions in checkers\n> https://interpunct.info/help/fun/connect4"
+				"I need permission to `manage messages` here to remove people's reactions in checkers\n> https://interpunct.info/help/fun/connect4",
 			);
 		}
 	}
@@ -544,7 +540,7 @@ router.add("checkers", [], async (cmd: string, info) => {
 		[info.message.author.id],
 		2,
 		"Checkers",
-		info
+		info,
 	);
 	if (!playersInGame) {
 		return;
@@ -553,13 +549,13 @@ router.add("checkers", [], async (cmd: string, info) => {
 	// set up game messages
 	// set up checker piece selection
 	await info.channel.send(
-		`=== Checkers === ${emojis.red.blank} <@${playersInGame[0]}>, ${emojis.black.blank} <@${playersInGame[1]}>`
+		`=== Checkers === ${emojis.red.blank} <@${playersInGame[0]}>, ${emojis.black.blank} <@${playersInGame[1]}>`,
 	);
 	const checkerPieceSelectionMessage = await info.channel.send(
-		`Setting up game board...`
+		`Setting up game board...`,
 	);
 	const directionSelectionMessage = await info.channel.send(
-		`Setting up game directions...`
+		`Setting up game directions...`,
 	);
 
 	for (const cpse of emojis.interaction.pieces) {
@@ -586,7 +582,7 @@ router.add("checkers", [], async (cmd: string, info) => {
 							? `<@${playersInGame[1]}>`
 							: `<@${playersInGame[0]}>`
 						: "---"
-				}, your turn.`
+				}, your turn.`,
 			),
 			directionSelectionMessage.edit(
 				game.selectionsAvailable === "piecedirection" ||
@@ -602,8 +598,8 @@ router.add("checkers", [], async (cmd: string, info) => {
 								? ` Press <:check:${emojis.interaction.done}> to pass your turn.`
 								: ""
 					  }`
-					: "---"
-			)
+					: "---",
+			),
 		]);
 
 	const turnTimer = createTimer(
@@ -612,7 +608,7 @@ router.add("checkers", [], async (cmd: string, info) => {
 			async () => {
 				// end game now
 				game.timeOut();
-			}
+			},
 		],
 		[
 			3.5 * 60 * 1000,
@@ -624,16 +620,16 @@ router.add("checkers", [], async (cmd: string, info) => {
 							: `<@${playersInGame[0]}>`
 					}, it's your turn in checkers. ${
 						checkerPieceSelectionMessage.url
-					}\n> If you don't play within 30s, the game will end and you will lose. `
+					}\n> If you don't play within 30s, the game will end and you will lose. `,
 				);
-			}
-		]
+			},
+		],
 	);
 
 	const pcCol = info.handleReactions(
 		checkerPieceSelectionMessage,
 		async (reaction, user) => {
-			ilt(reaction.users.remove(user.id), "checkers remove reaction");
+			perr(reaction.users.remove(user.id), "checkers remove reaction");
 			turnTimer.reset();
 			const expectedUser =
 				game.currentPlayer === "b"
@@ -643,19 +639,19 @@ router.add("checkers", [], async (cmd: string, info) => {
 				return;
 			}
 			const pieceNum = emojis.interaction.pieces.indexOf(
-				reaction.emoji.id!
+				reaction.emoji.id!,
 			);
 			if (pieceNum === -1) {
 				return;
 			}
 			game.selectPiece(pieceNum);
-		}
+		},
 	);
 
 	const dcCol = info.handleReactions(
 		directionSelectionMessage,
 		async (reaction, user) => {
-			ilt(reaction.users.remove(user.id), "checkers remove reaction");
+			perr(reaction.users.remove(user.id), "checkers remove reaction");
 			turnTimer.reset();
 			const expectedUser =
 				game.currentPlayer === "b"
@@ -683,11 +679,11 @@ router.add("checkers", [], async (cmd: string, info) => {
 				return;
 			}
 			game.movePiece(direction);
-		}
+		},
 	);
 
 	game.onupdate = () => {
-		ilt(update(), "checkers game update");
+		perr(update(), "checkers game update");
 	};
 	game.onend = () => {
 		turnTimer.end();
@@ -700,7 +696,7 @@ router.add("checkers", [], async (cmd: string, info) => {
 
 	await Promise.all([pcCol.done, dcCol.done]);
 
-	info.message.channel.send("game is over. wip message.");
+	await info.message.channel.send("game is over. wip message.");
 
 	// game over
 
@@ -714,7 +710,7 @@ export async function getPlayers(
 	initial: string[],
 	playerLimit: number,
 	gameName: string,
-	/*requireApprobalBeforeStart*/ info: Info
+	/*requireApprobalBeforeStart*/ info: Info,
 ) {
 	const playersInGame: string[] = initial;
 	{
@@ -726,11 +722,11 @@ export async function getPlayers(
 				.join(", ")}
 > React <:j:${emojis.interaction.join}> to join. (${`${60 -
 				Math.floor(
-					(new Date().getTime() - startTime) / 1000
+					(new Date().getTime() - startTime) / 1000,
 				)}`}s left)`;
 
 		const joinRequestMessage = await info.channel.send(
-			getJoinMessageText()
+			getJoinMessageText(),
 		);
 
 		const updateMessage = () =>
@@ -743,7 +739,7 @@ export async function getPlayers(
 					await reaction.users.remove(user);
 				}
 				if (playersInGame.length < playerLimit) {
-					if (playersInGame.indexOf(user.id) === -1) {
+					if (!playersInGame.includes(user.id)) {
 						playersInGame.push(user.id);
 						if (playersInGame.length === playerLimit) {
 							// start game
@@ -751,15 +747,18 @@ export async function getPlayers(
 						}
 					}
 				}
-			}
+			},
 		);
 
 		await joinRequestMessage.react(emojis.interaction.join);
 
-		const interval = setInterval(async () => ilt(updateMessage(), "updating join message"), 3000);
+		const interval = setInterval(
+			() => perr(updateMessage(), "updating join message"),
+			3000,
+		);
 
-		const tempt = setTimeout(async () => {
-			await updateMessage();
+		const tempt = setTimeout(() => {
+			perr(updateMessage(), "updating join message 2");
 			handleReactions.end();
 		}, 60000);
 		await handleReactions.done;

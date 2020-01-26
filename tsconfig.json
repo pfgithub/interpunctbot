@@ -9,8 +9,8 @@
 		"lib": ["es2017"],
 		"resolveJsonModule": true,
 		"declaration": true,
-		"strict": true
+		"strict": true,
+		"esModuleInterop": true
 	},
-	"include": ["src/**/*", "index.ts"],
-	"esModuleInterlop": true
+	"include": ["src/**/*", "index.ts"]
 }
