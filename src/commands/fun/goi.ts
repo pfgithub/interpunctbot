@@ -2,7 +2,7 @@ import yaml from "js-yaml";
 import fs from "fs";
 import path from "path";
 import Router from "commandrouter";
-import { perr } from "../../..";
+import { perr, ilt } from "../../..";
 import { messages } from "../../../messages";
 import Info from "../../Info";
 import { createTimer } from "./checkers";
@@ -150,6 +150,7 @@ ${
 	await rh.done;
 	addEvent("Game over :(");
 	await updateMessage();
+	await ilt(gamemsg.reactions.removeAll(), "goi reactions removeall"); // potential perms error
 });
 
 export default router;

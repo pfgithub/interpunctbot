@@ -15,6 +15,13 @@ emojis:
     paddle: "<:Paddle:650523021609795616>"
     prock: "<:PRock:650523309125009429>"
 start: tree
+map: |
+    {sky  }{sky  }{sky  }{sky   }{sky   }{sky }{sky }{sky }{sky}
+    {sky  }{sky}{sky}{bgtree}{sky}{tree}{sky }{rock}{sky}
+    {ocean}{ocean}{ocean}{sand}{sand}{sand}{sand}{sand}{sky}{sky}{paddle}{vwall}
+    {     }{     }{     }{     }{     }{     }{  }{sand}{sky}{sky}{prock}{vwall}
+    {     }{     }{     }{     }{     }{     }{  }{sand}{sky}{sky}{sky}{vwall}
+    {   }{     }{     }{     }{     }{     }{  }{sand}{sand}{sand}{sand}{vwall}
 levels:
     tree:
         text: |
