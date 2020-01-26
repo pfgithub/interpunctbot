@@ -1,0 +1,96 @@
+---
+emojis:
+    sky: "<:skyreen:650520232355692544>"
+    sand: "<:Sand:650519965950279684>"
+    normalcharacter: "<:normalpot:407696469722791937>"
+    goldpot: "<:goldpot:407697013493334036>"
+    bgtree: "\U0001F332"
+    tree: "<:tree:413755772850143243>"
+    ocean: "<:Water:650520886897803264>"
+    left: "⬅️"
+    up: "⬆️"
+    right: "➡️"
+    rock: "<:Rock:650518888601354250>"
+    vwall: "<:VWall:650522702612004898>"
+    paddle: "<:Paddle:650523021609795616>"
+    prock: "<:PRock:650523309125009429>"
+start: tree
+levels:
+    tree:
+        text: |
+            {sky  }{sky   }{sky   }{sky }
+            {sky  }{bgtree}{player}{tree}
+            {ocean}{sand  }{sand  }{sand}
+        left:
+            - msg:
+                  "*You pogo into the water and die. You are back at the
+                  beginning*"
+        up:
+            - msg: "*You pogo up and fall back down*"
+        right:
+            - msg:
+                  "*You try to reach the first branch of the tree but fall back
+                  down*"
+            - msg:
+                  "*You make it up to the first branch of the tree, but fall
+                  down*"
+            - msg: "*You pull yourself up over the tree*"
+              goto: rock
+              reroll: 25%
+            - msg: "*You fling yourself over the tree with great force*"
+              goto: basin
+              reroll: 90%
+    rock:
+        text: |
+            {sky }{sky   }{sky }{sky}
+            {tree}{player}{rock}{sky}
+            {sand}{sand  }{sand}{sky}
+        left:
+            - msg: "*You make your way back over the tree.*"
+              goto: tree
+              reroll: 0%
+        up:
+            - "*You pogo up and fall back down*"
+        right:
+            - msg: "*You climb over the rock and fall into the basin*"
+              goto: basin
+              reroll: 0%
+            - msg: "*You fling yourself over the rock with great force*"
+              goto: paddle
+              reroll: 75%
+    basin:
+        text: |
+            {rock}{sky}{sky}{paddle}{vwall}
+            {sand}{sky}{sky}{prock}{vwall}
+            {sand}{sky}{player}{sky}{vwall}
+            {sand}{sand}{sand}{sand}{vwall}
+        left:
+            - "*You try to climb back out of the basin, but fail*"
+            - "*You make it half way up the left side, but fall off*"
+            - msg: You climb your way back out of the basin
+              goto: rock
+              reroll: 99%
+        up:
+            - "*You pogo up but miss the rock and paddle*"
+            - "*You pogo up and grab the rock, but fall off*"
+            - msg:
+                  "*You pogo and grab the rock and use it to fling yourself onto
+                  the paddle*"
+              goto: paddle
+              reroll: 75%
+        right:
+            - "*You run into the wall*"
+    paddle:
+        text: |
+            {player}This level is not implemented yet!{player}
+        left:
+            - msg: You fall back down to the basin
+              reroll: 0%
+              goto: basin
+            - msg: You fling yourself off the paddle with great force
+              reroll: 90%
+              goto: rock
+        up:
+            - "*you go up*"
+        right:
+            - "*you go right*"
