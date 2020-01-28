@@ -264,7 +264,7 @@ export default class Info {
 		return !this.guild;
 	}
 	async startLoading() {
-		await this.channel.startTyping();
+		perr(this.channel.startTyping(), "started typing"); // never finishes?
 	}
 	async stopLoading() {
 		this.channel.stopTyping();
@@ -405,6 +405,20 @@ export default class Info {
 		}
 		// res && res.forEach(r => r.delete({ timeout: 20 * 1000 }));
 		return res;
+	}
+	async help(path: string, mode: "usage" | "error") {
+		if (mode === "usage") {
+			return await this.error(
+				"Usage: <https://interpunct.info" + path + ">",
+			);
+		}
+		if (mode === "error") {
+			// have the full suppotr page contain a support server link but there's no reason for this to have it
+			return await this.error(
+				path + "\n> More Info: <https://interpunct.info" + path,
+			);
+		}
+		throw new Error("bad help :{ !! }:");
 	}
 	async result(...msg: MessageParametersType) {
 		return await this.reply(result.result, ...msg);
