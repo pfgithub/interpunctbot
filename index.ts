@@ -128,7 +128,7 @@ remove(
 	"3.0",
 );
 
-router.add("crash", [Info.theirPerm.owner], () => {
+router.add("crash", [], () => {
 	throw new Error("crash command used");
 });
 
