@@ -30,7 +30,7 @@ client.on("ready", () => {
 	timedEvents.setHandler("delete", async event => {
 		const guild = client.guilds.get(event.guild);
 		if (!guild) {
-			return "notmine"; // !!! OR the guild has kicked the bot. this will create ghost events
+			return "notmine"; // !!! OR the guild has kicked the bot. this will create ghost events that everyone has notmine.
 		}
 		const channel = guild.channels.get(event.channel);
 		if (!channel) return "handled";
@@ -38,6 +38,17 @@ client.on("ready", () => {
 		const message = await channel.messages.fetch(event.message);
 		if (!message) return "handled";
 		await message.delete();
+		return "handled";
+	});
+	timedEvents.setHandler("send", async event => {
+		const guild = client.guilds.get(event.guild);
+		if (!guild) {
+			return "notmine"; // !!! OR the guild has kicked the bot. this will create ghost events that everyone has notmine.
+		}
+		const channel = guild.channels.get(event.channel);
+		if (!channel) return "handled";
+		if (!(channel instanceof Discord.TextChannel)) return "handled";
+		await channel.send(event.message);
 		return "handled";
 	});
 });

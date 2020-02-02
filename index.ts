@@ -468,12 +468,26 @@ async function onMessage(msg: Discord.Message | Discord.PartialMessage) {
 			}
 			if (deleteMsg) {
 				await info.timedEvents.queue(
-					{
-						type: "delete",
-						guild: info.guild!.id,
-						channel: info.message.channel.id,
-						message: info.message.id,
-					},
+					[
+						{
+							type: "delete",
+							guild: info.guild!.id,
+							channel: info.message.channel.id,
+							message: info.message.id,
+						},
+						...(rule.duration < 5000
+							? [
+									{
+										type: "pmuser",
+										user: msg.author.id,
+										message:
+											"Your message in <#" +
+											info.message.channel.id +
+											"> was removed.",
+									} as const,
+							  ]
+							: []),
+					],
 					new Date().getTime() + rule.duration,
 				);
 			}

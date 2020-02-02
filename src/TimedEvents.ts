@@ -5,6 +5,7 @@ import * as Discord from "discord.js";
 type EventTypes = {
 	pmuser: { message: string; user: string };
 	delete: { guild: string; channel: string; message: string };
+	send: { guild: string; channel: string; message: string };
 };
 
 export type EventOfType<Type extends keyof EventTypes> = EventTypes[Type] & {
@@ -54,7 +55,7 @@ export class TimedEvents {
 	async initialize() {
 		await this.startNext();
 	}
-	async queue(event: EventData, time: number) {
+	async queue(event: EventData | EventData[], time: number) {
 		// add to db
 		const insertedResult = await knex<SqlEvent>("timed_events").insert({
 			time,
@@ -67,15 +68,19 @@ export class TimedEvents {
 				action: "queueEvent",
 				event: { event, time, id },
 			});
-		this._queueNoAdd({ event, time, id });
+		this._queueNoAdd({
+			event: Array.isArray(event) ? event : [event],
+			time,
+			id,
+		});
 	}
-	_queueNoAdd(ev: { event: EventData; time: number; id: number }) {
+	_queueNoAdd(ev: { event: EventData[]; time: number; id: number }) {
 		if (ev.time <= this.currentTime) {
 			this.startEventTimeout(ev.event, ev.time, ev.id);
 		}
 		perr(this.startNext(), "Waiting for next event");
 	}
-	startEventTimeout(event: EventData, time: number, id: number) {
+	startEventTimeout(events: EventData[], time: number, id: number) {
 		if (this.currentEvents.has(id)) return;
 		this.currentEvents.set(id, true);
 		if (time <= this.currentTime) this.currentTime = time;
@@ -85,33 +90,35 @@ export class TimedEvents {
 		const handle = async () => {
 			this.currentEvents.delete(id);
 			perr(this.startNext(), "Waiting for next event");
-			const handler = this.eventHandlers[event.type];
-			if (!handler) {
-				return logError(
-					new Error("Event had an invalid handler: " + handler),
-					true,
+			for (const event of events) {
+				const handler = this.eventHandlers[event.type];
+				if (!handler) {
+					return logError(
+						new Error("Event had an invalid handler: " + handler),
+						true,
+					);
+				}
+				const handlerResult = await ilt(
+					handler(event as any),
+					"calling delayed event handler",
 				);
-			}
-			const handlerResult = await ilt(
-				handler(event as any),
-				"calling delayed event handler",
-			);
-			if (handlerResult.error || handlerResult.result === "handled") {
-				// await knex<SqlEvent>("timed_events")
-				// 	.where("id", "=", id)
-				// 	.update("completed", true);
-				await knex<SqlEvent>("timed_events")
-					.where("id", "=", id)
-					.delete();
-			}
-			if (handlerResult.error) {
-				return logError(
-					handlerResult.error,
-					false,
-					new Error(
-						"Handler threw error. The event **has** been marked as handled.",
-					),
-				);
+				if (handlerResult.error || handlerResult.result === "handled") {
+					// await knex<SqlEvent>("timed_events")
+					// 	.where("id", "=", id)
+					// 	.update("completed", true);
+					await knex<SqlEvent>("timed_events")
+						.where("id", "=", id)
+						.delete();
+				}
+				if (handlerResult.error) {
+					return logError(
+						handlerResult.error,
+						false,
+						new Error(
+							"Handler threw error. The event **has** been marked as handled.",
+						),
+					);
+				}
 			}
 		};
 		setTimeout(() => perr(handle(), "Handling event"), deltaTime);
@@ -133,7 +140,7 @@ export class TimedEvents {
 		}
 		this.starting = false;
 		for (const event of events) {
-			const eventData = JSON.parse(event.event) as EventData;
+			const eventData = JSON.parse(event.event) as EventData[];
 			this.startEventTimeout(eventData, event.time, event.id);
 		}
 	}
