@@ -181,7 +181,7 @@ router.add("minesweeper", [], async (cmd: string, info) => {
 	splitQuotedBoard.push(
 		`**${width}**x**${height}** | theme: **${mode}** | difficulty: **${difficulty}** (${Math.round(
 			(dv[difficulty] === -1 ? customvalue : dv[difficulty]) * 100,
-		)}%) | ${flag ? "flag" : ""} ${group ? "group" : ""}`,
+		)}%) | ${flag ? "flag " : ""}${group ? "group" : ""}`,
 	);
 	splitQuotedBoard.forEach(line => {
 		const newLine = `${linesUnder2000[linesUnder2000.length - 1] ||
@@ -350,10 +350,15 @@ const badMinesweeperGenerator = ({
 			el
 				.map((e, x) => {
 					const hide = revealed[y][x] ? "" : "||";
+					const glimit = e === 0 ? 1 : 0;
+					const groupNext =
+						arr[y][x + 1] < glimit ? (x < w - 1 ? "" : "||") : "||";
+					const groupPrev =
+						arr[y][x - 1] < glimit ? (x > 0 ? "" : "||") : "||";
 					return (
-						hide +
+						(group ? groupPrev : hide) +
 						vals[Math.min(e, 9)] +
-						hide +
+						(group ? groupNext : hide) +
 						(flag ? "||;||" : "")
 					);
 				})
