@@ -356,9 +356,9 @@ const badMinesweeperGenerator = ({
 					const groupPrev =
 						arr[y][x - 1] < glimit ? (x > 0 ? "" : "||") : "||";
 					return (
-						(group ? groupPrev : hide) +
+						(group ? groupPrev && hide : hide) +
 						vals[Math.min(e, 9)] +
-						(group ? groupNext : hide) +
+						(group ? groupNext && hide : hide) +
 						(flag ? "||;||" : "")
 					);
 				})
