@@ -121,6 +121,7 @@ router.add("minesweeper", [], async (cmd: string, info) => {
 	let width: number | undefined;
 	let height: number | undefined;
 	let flag = false;
+	let group = false;
 	const remainingWords = words.filter(word => {
 		if (difficulties.includes(word as any)) {
 			difficulty = word as any;
@@ -132,6 +133,10 @@ router.add("minesweeper", [], async (cmd: string, info) => {
 		}
 		if (word === "flag") {
 			flag = true;
+			return false;
+		}
+		if (word === "group") {
+			group = true;
 			return false;
 		}
 		const sizeMatch = /^([0-9]+)x([0-9]+)$/.exec(word);
@@ -165,6 +170,7 @@ router.add("minesweeper", [], async (cmd: string, info) => {
 		height,
 		flag,
 		customvalue,
+		group,
 	});
 
 	// if (info.myChannelPerms ? info.myChannelPerms.has("EMBED_LINKS") : true) {
@@ -175,7 +181,7 @@ router.add("minesweeper", [], async (cmd: string, info) => {
 	splitQuotedBoard.push(
 		`**${width}**x**${height}** | theme: **${mode}** | difficulty: **${difficulty}** (${Math.round(
 			(dv[difficulty] === -1 ? customvalue : dv[difficulty]) * 100,
-		)}%) | top left is always safe ${flag ? "flag" : ""}`,
+		)}%) | ${flag ? "flag" : ""} ${group ? "group" : ""}`,
 	);
 	splitQuotedBoard.forEach(line => {
 		const newLine = `${linesUnder2000[linesUnder2000.length - 1] ||
@@ -271,6 +277,7 @@ const badMinesweeperGenerator = ({
 	height,
 	flag,
 	customvalue,
+	group,
 }: {
 	difficulty: keyof typeof dv;
 	mode: keyof typeof modes;
@@ -278,6 +285,7 @@ const badMinesweeperGenerator = ({
 	height: number;
 	flag: boolean;
 	customvalue: number;
+	group: false;
 }) => {
 	const v = modes[mode];
 	const vals = v;
@@ -288,10 +296,13 @@ const badMinesweeperGenerator = ({
 	const h = height;
 	const b = dv[difficulty] === -1 ? customvalue : dv[difficulty];
 	const arr: number[][] = [];
+	const revealed: boolean[][] = [];
 	for (let y = 0; y < h; y++) {
 		arr[y] = [];
+		revealed[y] = [];
 		for (let x = 0; x < w; x++) {
 			arr[y][x] = Math.random() > b ? 0 : 9;
+			revealed[y][x] = false;
 		}
 	}
 	arr[0][0] = 0;
@@ -312,17 +323,43 @@ const badMinesweeperGenerator = ({
 			}
 		}
 	}
+	// pre reveal some times
+	{
+		const floodfillNext: [number, number][] = [[0, 0]];
+		while (floodfillNext.length) {
+			let [y, x] = floodfillNext.shift()!;
+			y = Math.max(Math.min(y, h - 1), 0);
+			x = Math.max(Math.min(x, w - 1), 0);
+			if (!revealed[y][x]) {
+				revealed[y][x] = true;
+				if (arr[y][x] === 0) {
+					floodfillNext.push([y + 1, x - 1]);
+					floodfillNext.push([y + 1, x]);
+					floodfillNext.push([y + 1, x + 1]);
+					floodfillNext.push([y, x - 1]);
+					floodfillNext.push([y, x + 1]);
+					floodfillNext.push([y - 1, x - 1]);
+					floodfillNext.push([y - 1, x]);
+					floodfillNext.push([y - 1, x + 1]);
+				}
+			}
+		}
+	}
 	return arr
-		.map(
-			el =>
-				`||${el
-					.map(e => vals[Math.min(e, 9)])
-					.join(`${flag ? "||||;" : ""}||||`)}${
-					flag ? "||||;" : ""
-				}||`,
+		.map((el, y) =>
+			el
+				.map((e, x) => {
+					const hide = revealed[y][x] ? "" : "||";
+					return (
+						hide +
+						vals[Math.min(e, 9)] +
+						hide +
+						(flag ? "||;||" : "")
+					);
+				})
+				.join(""),
 		)
-		.join(`\n`)
-		.replace(/^\|\|(.+?)\|\|/, "$1");
+		.join("\n");
 };
 
 export default router;
