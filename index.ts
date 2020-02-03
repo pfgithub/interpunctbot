@@ -475,7 +475,7 @@ async function onMessage(msg: Discord.Message | Discord.PartialMessage) {
 							channel: info.message.channel.id,
 							message: info.message.id,
 						},
-						...(rule.duration < 5000
+						...(rule.duration < 3000
 							? [
 									{
 										type: "pmuser",
