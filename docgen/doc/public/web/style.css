@@ -170,6 +170,7 @@ code {
 }
 .contentpadding {
 	padding: 25px;
+	padding-top: 10px;
 }
 
 .sidebar,
@@ -522,4 +523,51 @@ sup {
 	border-bottom-left-radius: 4px;
 	border-top-left-radius: 4px;
 	margin-right: 2px;
+}
+
+.topbar {
+	background: var(--background-primary);
+	filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.8));
+	position: sticky;
+	top: 0;
+	height: 48px;
+	display: grid;
+	grid-template-rows: 1fr max-content 1fr;
+	padding-left: 16px;
+	padding-right: 16px;
+}
+
+.channelbar {
+	grid-row: 2;
+
+	font-weight: 500;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	font-size: 14px;
+	line-height: 18px;
+	color: var(--header-secondary);
+
+	display: grid;
+	grid-auto-flow: column;
+	grid-auto-columns: max-content;
+}
+
+.vdivider {
+	width: 1px;
+	height: 24px;
+	margin: 0 8px;
+	background: var(--background-modifier-accent);
+}
+
+.channelname {
+	padding-left: 8px;
+	padding-right: 8px;
+	font-weight: 600;
+	color: white;
+}
+
+.channelbuttons {
+	padding-left: 8px;
+	padding-right: 8px;
 }

@@ -13,6 +13,10 @@
 *text*: {{Link|https://interpunct.info|{{Emoji|website}} Website}}
 *text*: {{Link|https://interpunct.info/support|{{Emoji|discord}} Support Server}}
 
+**Support Server**: {{SupportServer|homepage}}
+
+*text*: // todo make that link to /support/homepage and automatically create channels and invites to the support server
+
 ## Help
 
 *embedlink*: /help
