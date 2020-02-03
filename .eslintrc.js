@@ -18,9 +18,12 @@ module.exports = {
 	],
 
 	rules: {
+		// enabled
 		"prefer-const": 1, // maybe don't auto fix though
-		"@typescript-eslint/no-floating-promises": 2,
-		"@typescript-eslint/no-unnecessary-type-assertion": 1,
+		"@typescript-eslint/no-floating-promises": 2, // this should be a default in typescript, how are people expected to have the node process crash for unhandled promises when it's so hard to actually know
+		"@typescript-eslint/restrict-template-expressions": 1, // I have [object Object] in template string so often
+
+		// disabled
 		"@typescript-eslint/require-await": 0, // sometimes it's necessary to have a function return a promise even though it doesn't await itself
 		"@typescript-eslint/explicit-function-return-type": 0, // I don't personally like this, idk.
 		"@typescript-eslint/no-namespace": 0, // declare global

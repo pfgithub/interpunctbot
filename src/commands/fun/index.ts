@@ -6,6 +6,7 @@ import Info from "../../Info";
 import { a, AP } from "../argumentparser";
 import checkers from "./checkers";
 import connect4 from "./connect4";
+import gamelibgames from "./gamelibgames";
 import goi from "./goi";
 import trivia from "./trivia";
 
@@ -92,6 +93,7 @@ router.add("fun", [Info.theirPerm.manageBot], async (cmd: string, info) => {
 });
 
 router.add("", [], connect4);
+router.add("", [], gamelibgames);
 router.add("", [], trivia);
 router.add("", [], goi);
 router.add("", [], checkers);
