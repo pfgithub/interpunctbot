@@ -170,6 +170,19 @@ export const newGame = <State>(conf: GameConfig<State>) => async (
 		const stateCopy = copyState(state);
 		state = action.apply(stateCopy);
 		availableActions = undefined;
+		////////////// here's an idea                       \\\\\\\\\\\\\\
+		///////////// update available actions now           \\\\\\\\\\\\\
+		//////////// huh                                      \\\\\\\\\\\\
+		/////////// what if this is checkers and it needs to   \\\\\\\\\\\
+		////////// know how many moves there are?               \\\\\\\\\\
+		///////// that should be done by the availableactions    \\\\\\\\\
+		//////// handler, not here. too bad.                      \\\\\\\\
+		/////// it's already finding all of them so its easy       \\\\\\\
+		////// what if availableActions was passed to the renderer? \\\\\\
+		///// that way                                               \\\\\
+		//// what if availableActions could modify state?             \\\\
+		/// then it would have to run after every state update         \\\
+		// that seems reasonable                                        \\
 		rerender();
 	}
 

@@ -90,6 +90,12 @@ export const connect4 = newGame<Connect4>({
 				});
 			}
 		}
+		if (resmoves.length === 0) {
+			///// set lose
+			//// how?
+			/// lose needs to be set in state and this doesn't modify state
+			// also this doesn't get called until after lose should be run
+		}
 		return resmoves;
 	},
 	renderSetup() {
