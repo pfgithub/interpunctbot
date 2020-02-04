@@ -182,7 +182,9 @@ export const newGame = <State>(conf: GameConfig<State>) => async (
 		///// that way                                               \\\\\
 		//// what if availableActions could modify state?             \\\\
 		/// then it would have to run after every state update         \\\
-		// that seems reasonable                                        \\
+		//\ that seems reasonable                                      /\\
+		///\ the idea is that checkers doesn't need to know that      /\\\
+		////\ state is just the action the previous player took      /\\\\
 		rerender();
 	}
 
