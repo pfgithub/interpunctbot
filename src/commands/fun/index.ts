@@ -1,10 +1,10 @@
 import Router from "commandrouter";
 import moment from "moment";
-import { serverStartTime } from "../../..";
+import { serverStartTime, perr } from "../../..";
 import { messages, safe } from "../../../messages";
 import Info from "../../Info";
 import { a, AP } from "../argumentparser";
-import checkers from "./checkers";
+import checkers, { createTimer } from "./checkers";
 import connect4 from "./connect4";
 import gamelibgames from "./gamelibgames";
 import goi from "./goi";
@@ -51,6 +51,39 @@ router.add("vote", [], async (cmd: string, info) => {
 		msg.react("674675568993894412"),
 		msg.react("674675569404674059"),
 	]);
+
+	let endhandler: () => void = () => {
+		throw new Error("end not handled");
+	};
+	const countdown = createTimer([
+		60 * 1000,
+		async () => {
+			endhandler();
+		},
+	]);
+	const msgUpdateInterval = setInterval(() => {
+		perr(
+			(async () => {
+				const upvotes = msg.reactions.get("674675568993894412")?.count;
+				const downvotes = msg.reactions.get("674675569404674059")
+					?.count;
+				await msg.edit(
+					"VOTE: " +
+						safe`${cmd}` +
+						" (Votes: " +
+						((upvotes || 0) - (downvotes || 0)) +
+						")",
+				);
+			})(),
+			"vote command",
+		);
+	}, 3000);
+
+	const rxnh = info.handleReactions(msg, async (rxn, usr) =>
+		countdown.reset(),
+	);
+	await new Promise((resolve, reject) => (endhandler = resolve));
+	rxnh.end();
 });
 
 router.add("stats", [], async (cmd: string, info) => {
