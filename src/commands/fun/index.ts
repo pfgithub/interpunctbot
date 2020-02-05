@@ -1,7 +1,7 @@
 import Router from "commandrouter";
 import moment from "moment";
 import { serverStartTime } from "../../..";
-import { messages } from "../../../messages";
+import { messages, safe } from "../../../messages";
 import Info from "../../Info";
 import { a, AP } from "../argumentparser";
 import checkers from "./checkers";
@@ -34,6 +34,23 @@ router.add("pong", [], async (cmd: string, info) => {
 		return await info.result("\\*misses\\*");
 	}
 	return await info.result("Ping!");
+});
+
+/*
+@Docs
+Usage: ip!vote {{Text|your message}}
+Example: ip!vote should I add a vote command to inter·punct bot?
+Result: VOTE: should I add a vote command to inter·punct bot?{{Newline}}{{Reaction|Upvote}}{{Reaction|Downvote}}
+*/
+router.add("vote", [], async (cmd: string, info) => {
+	if (!cmd) {
+		return await info.help("vote", "usage");
+	}
+	const msg = await info.channel.send("VOTE: " + safe`${cmd}`);
+	await Promise.all([
+		msg.react("674675568993894412"),
+		msg.react("674675569404674059"),
+	]);
 });
 
 router.add("stats", [], async (cmd: string, info) => {
