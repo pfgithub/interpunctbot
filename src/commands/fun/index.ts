@@ -61,22 +61,21 @@ router.add("vote", [], async (cmd: string, info) => {
 			endhandler();
 		},
 	]);
+
+	async function editMessage(over?: boolean) {
+		const upvotes = msg.reactions.get("674675568993894412")?.count;
+		const downvotes = msg.reactions.get("674675569404674059")?.count;
+		const content =
+			"VOTE: " +
+			safe`${cmd}` +
+			" (Votes: " +
+			((upvotes || 0) - (downvotes || 0)) +
+			(over ? ", Voting ended." : "") +
+			")";
+		if (msg.content !== content) await msg.edit(content);
+	}
 	const msgUpdateInterval = setInterval(() => {
-		perr(
-			(async () => {
-				const upvotes = msg.reactions.get("674675568993894412")?.count;
-				const downvotes = msg.reactions.get("674675569404674059")
-					?.count;
-				const content =
-					"VOTE: " +
-					safe`${cmd}` +
-					" (Votes: " +
-					((upvotes || 0) - (downvotes || 0)) +
-					")";
-				if (msg.content !== content) await msg.edit(content);
-			})(),
-			"vote command",
-		);
+		perr(editMessage(), "vote command");
 	}, 3000);
 
 	const rxnh = info.handleReactions(
@@ -86,7 +85,9 @@ router.add("vote", [], async (cmd: string, info) => {
 		// if upvote && user downvoted, remove downvote
 	);
 	await new Promise((resolve, reject) => (endhandler = resolve));
+	clearInterval(msgUpdateInterval);
 	rxnh.end();
+	await editMessage(true);
 });
 
 router.add("stats", [], async (cmd: string, info) => {
