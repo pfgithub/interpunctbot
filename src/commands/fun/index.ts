@@ -67,13 +67,13 @@ router.add("vote", [], async (cmd: string, info) => {
 				const upvotes = msg.reactions.get("674675568993894412")?.count;
 				const downvotes = msg.reactions.get("674675569404674059")
 					?.count;
-				await msg.edit(
+				const content =
 					"VOTE: " +
-						safe`${cmd}` +
-						" (Votes: " +
-						((upvotes || 0) - (downvotes || 0)) +
-						")",
-				);
+					safe`${cmd}` +
+					" (Votes: " +
+					((upvotes || 0) - (downvotes || 0)) +
+					")";
+				if (msg.content !== content) await msg.edit(content);
 			})(),
 			"vote command",
 		);
