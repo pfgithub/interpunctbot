@@ -108,7 +108,7 @@ async function handleList(
 			quoteEmbed.setTitle("Quote");
 		}
 		quoteEmbed.setFooter(`${line + 1}/${allQuotes.length}`);
-		quoteEmbed.setColor(`RANDOM`);
+		quoteEmbed.setColor(3092790);
 
 		// Return the result
 		return await info.result("", { embed: quoteEmbed });

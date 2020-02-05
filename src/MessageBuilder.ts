@@ -108,7 +108,7 @@ export class MessageBuilder {
 		const embed = new MessageEmbed();
 		let msg = "";
 
-		embed.setColor("random");
+		embed.setColor(3092790);
 
 		if (this.author) {
 			embed.author = this.author;
