@@ -79,8 +79,11 @@ router.add("vote", [], async (cmd: string, info) => {
 		);
 	}, 3000);
 
-	const rxnh = info.handleReactions(msg, async (rxn, usr) =>
-		countdown.reset(),
+	const rxnh = info.handleReactions(
+		msg,
+		async (rxn, usr) => countdown.reset(),
+		// if downvote && user upvoted, remove upvote
+		// if upvote && user downvoted, remove downvote
 	);
 	await new Promise((resolve, reject) => (endhandler = resolve));
 	rxnh.end();
