@@ -44,7 +44,7 @@ Result: VOTE: should I add a vote command to inter·punct bot?{{Newline}}{{React
 */
 router.add("vote", [], async (cmd: string, info) => {
 	if (!cmd) {
-		return await info.help("vote", "usage");
+		return await info.help("/help/fun/vote", "usage");
 	}
 	const msg = await info.channel.send("VOTE: " + safe`${cmd}`);
 	await Promise.all([
