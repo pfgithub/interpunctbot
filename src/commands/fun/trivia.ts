@@ -60,6 +60,16 @@ function decodeHTML(html: string) {
 }
 
 const letterToEmojiMap = {
+	"0": "0️⃣",
+	"1": "1️⃣",
+	"2": "2️⃣",
+	"3": "3️⃣",
+	"4": "4️⃣",
+	"5": "5️⃣",
+	"6": "6️⃣",
+	"7": "7️⃣",
+	"8": "8️⃣",
+	"9": "9️⃣",
 	a: "🇦",
 	b: "🇧",
 	c: "🇨",
@@ -115,6 +125,16 @@ const emojiOrderListMapArraySet = [
 	"🇽",
 	"🇾",
 	"🇿",
+	"0️⃣",
+	"1️⃣",
+	"2️⃣",
+	"3️⃣",
+	"4️⃣",
+	"5️⃣",
+	"6️⃣",
+	"7️⃣",
+	"8️⃣",
+	"9️⃣",
 ];
 
 router.add("trivia", [], async (cmd: string, info) => {
@@ -168,7 +188,7 @@ router.add("trivia", [], async (cmd: string, info) => {
 			].sort();
 
 			const startingEmoji = (s: string) => {
-				const char = /[A-Za-z]/.exec(s);
+				const char = /[A-Za-z0-9]/.exec(s);
 				if (!char) {
 					return letterToEmojiMap.z;
 				}
