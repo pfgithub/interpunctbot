@@ -59,7 +59,7 @@ function decodeHTML(html: string) {
 	return he.decode(html);
 }
 
-const letterToEmojiMap = {
+const letterToEmojiMap: { [key: string]: string | undefined } = {
 	"0": "0️⃣",
 	"1": "1️⃣",
 	"2": "2️⃣",
@@ -97,8 +97,9 @@ const letterToEmojiMap = {
 	y: "🇾",
 	z: "🇿",
 };
+const unknownCharacterEmoji = "*️⃣";
 
-const emojiOrderListMapArraySet = [
+const defaultEmojiOrder = [
 	"🇦",
 	"🇧",
 	"🇨",
@@ -115,31 +116,11 @@ const emojiOrderListMapArraySet = [
 	"🇳",
 	"🇴",
 	"🇵",
-	"🇶",
-	"🇷",
-	"🇸",
-	"🇹",
-	"🇺",
-	"🇻",
-	"🇼",
-	"🇽",
-	"🇾",
-	"🇿",
-	"0️⃣",
-	"1️⃣",
-	"2️⃣",
-	"3️⃣",
-	"4️⃣",
-	"5️⃣",
-	"6️⃣",
-	"7️⃣",
-	"8️⃣",
-	"9️⃣",
 ];
 
 router.add("trivia", [], async (cmd: string, info) => {
-	const apresult = await AP({ info, cmd });
-	if (!apresult) return;
+	const ap = await AP({ info, cmd });
+	if (!ap) return;
 
 	if (info.db ? await info.db.getFunEnabled() : true) {
 	} else {
@@ -177,52 +158,53 @@ router.add("trivia", [], async (cmd: string, info) => {
 		await info.stopLoading();
 	}
 	{
-		let choiceDetails: {
+		let triviaChoices: {
 			name: string;
 			emoji: string;
 		}[] = [];
 		{
-			const choices = [
+			const choiceNames = [
 				triviaQuestion.correct_answer,
 				...triviaQuestion.incorrect_answers,
 			].sort();
 
-			const startingEmoji = (s: string) => {
-				const char = /[A-Za-z0-9]/.exec(s);
-				if (!char) {
-					return letterToEmojiMap.z;
-				}
-				return (letterToEmojiMap as any)[
-					char[0].toLowerCase()
-				] as string;
+			const getFirstCharacterEmoji = (choiceName: string) => {
+				return (
+					letterToEmojiMap[choiceName.charAt(0).toLowerCase()] ||
+					unknownCharacterEmoji
+				);
 			};
-			let useCustom = true;
+			let useFirstCharacterEmoji = true;
 			const emojiToAnswerMap: { [key: string]: string } = {};
-			choices.forEach(choice => {
-				const se = startingEmoji(choice);
-				if (emojiToAnswerMap[se]) useCustom = false;
-				emojiToAnswerMap[se] = choice;
-				choiceDetails.push({ name: choice, emoji: se });
+			choiceNames.forEach(choice => {
+				const firstCharacterEmoji = getFirstCharacterEmoji(choice);
+				if (emojiToAnswerMap[firstCharacterEmoji])
+					useFirstCharacterEmoji = false;
+				emojiToAnswerMap[firstCharacterEmoji] = choice;
+				triviaChoices.push({
+					name: choice,
+					emoji: firstCharacterEmoji,
+				});
 			});
 
-			if (!useCustom) {
-				choiceDetails = choices.map((choice, i) => ({
+			if (!useFirstCharacterEmoji) {
+				triviaChoices = choiceNames.map((choice, i) => ({
 					name: choice,
-					emoji: emojiOrderListMapArraySet[i],
+					emoji: defaultEmojiOrder[i],
 				}));
 			}
 		}
-		const topPart = safe`Trivia questions from <https://opentdb.com/>
+		const triviaMessageHeader = safe`Trivia questions from <https://opentdb.com/>
 **Category**: ${decodeHTML(triviaQuestion.category)}
 **Difficulty**: ${decodeHTML(triviaQuestion.difficulty)}`;
-		const resultMessage = await info.channel.send(
-			`${topPart}
+		const gameMessage = await info.channel.send(
+			`${triviaMessageHeader}
 > When the question appears, react with the correct answer before the time runs out.`,
 		);
 
-		const playerAnswers: {
+		const playerResponses: {
 			[id: string]: {
-				response: string;
+				choiceName: string;
 				reactionPile: Discord.MessageReaction;
 				time: number;
 			};
@@ -232,45 +214,45 @@ router.add("trivia", [], async (cmd: string, info) => {
 			| { state: "running" }
 			| { state: "over"; winners: string[] };
 
-		const rxn = info.handleReactions(
-			resultMessage,
+		const reactionWatcher = info.handleReactions(
+			gameMessage,
 			async (reaction, user) => {
 				if (state.state !== "running") {
 					return;
 				}
-				const choice = choiceDetails.find(
-					c => c.emoji === reaction.emoji.name,
+				const choice = triviaChoices.find(
+					choice => choice.emoji === reaction.emoji.name,
 				);
 				if (!choice) {
 					await reaction.users.remove(user.id);
 					return;
 				}
-				const previousAnswer = playerAnswers[user.id];
-				playerAnswers[user.id] = {
-					response: choice.name,
+				const previousChoice = playerResponses[user.id];
+				playerResponses[user.id] = {
+					choiceName: choice.name,
 					reactionPile: reaction,
 					time: new Date().getTime(),
 				};
-				if (previousAnswer) {
-					await previousAnswer.reactionPile.users.remove(user.id);
+				if (previousChoice) {
+					await previousChoice.reactionPile.users.remove(user.id);
 				}
 			},
 		);
 
-		for (const choice of choiceDetails) {
-			await resultMessage.react(choice.emoji);
+		for (const choice of triviaChoices) {
+			await gameMessage.react(choice.emoji);
 		}
 
 		const startTime = new Date().getTime();
 
 		const updateResultMessage = () =>
-			resultMessage.edit(
-				topPart +
+			gameMessage.edit(
+				triviaMessageHeader +
 					safe`
 **Question**: ${decodeHTML(triviaQuestion.question)}
 **Answers**:
 ${raw(
-	choiceDetails
+	triviaChoices
 		.map(({ name, emoji }) => {
 			return `> ${emoji} - ${safe`${decodeHTML(name)}`}`;
 		})
@@ -283,7 +265,7 @@ ${raw(
 				1000
 		  ).toFixed(0)}s`
 		: `**Correct Answer**: ${
-				choiceDetails.find(
+				triviaChoices.find(
 					cd => cd.name === triviaQuestion.correct_answer,
 				)!.emoji
 		  } - ${safe`${decodeHTML(triviaQuestion.correct_answer)}`}
@@ -297,25 +279,31 @@ ${raw(
 
 		await updateResultMessage();
 
-		const doneTimer = setTimeout(() => rxn.end(), 20000);
-		const updateInterval = setInterval(() => {
+		const selectionEndTimer = setTimeout(
+			() => reactionWatcher.end(),
+			20000,
+		);
+		const messageUpdateInterval = setInterval(() => {
 			perr(updateResultMessage(), "trivia timer update");
 			if (startTime + 30000 - new Date().getTime() < 0) {
-				clearInterval(updateInterval);
+				clearInterval(messageUpdateInterval);
 			}
 		}, 3000);
 
-		await rxn.done;
+		await reactionWatcher.done;
 
 		const winners: { id: string; time: number }[] = [];
-		Object.keys(playerAnswers).forEach(playerid => {
-			const playerAnswer = playerAnswers[playerid];
-			if (playerAnswer.response === triviaQuestion.correct_answer) {
-				winners.push({ id: playerid, time: playerAnswer.time });
-			}
-		});
-		clearTimeout(doneTimer);
-		clearInterval(updateInterval);
+		Object.entries(playerResponses).forEach(
+			([playerID, playerResponse]) => {
+				if (
+					playerResponse.choiceName === triviaQuestion.correct_answer
+				) {
+					winners.push({ id: playerID, time: playerResponse.time });
+				}
+			},
+		);
+		clearTimeout(selectionEndTimer);
+		clearInterval(messageUpdateInterval);
 		state = {
 			state: "over",
 			winners: winners.sort((wa, wb) => wa.time - wb.time).map(q => q.id),
