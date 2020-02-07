@@ -57,7 +57,12 @@ Find the VDB manual and other documentation resources online at:
 
 For help, type "help".
 Type "apropos word" to search for commands related to "word".
-(vdb) |
+(vdb) ${
+		cmd
+			? safe`${cmd}\nUndefined command: "${cmd}". Try "help".
+(vdb) |`
+			: "|"
+	}
 \`\`\``);
 });
 
