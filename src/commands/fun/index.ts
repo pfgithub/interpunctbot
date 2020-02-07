@@ -36,6 +36,31 @@ router.add("pong", [], async (cmd: string, info) => {
 	return await info.result("Ping!");
 });
 
+router.add("vdb", [], async (cmd: string, info) => {
+	if (info.db ? await info.db.getFunEnabled() : true) {
+	} else {
+		return await info.error(messages.fun.fun_disabled(info));
+	}
+	await info.message.channel.send(`\`\`\`
+VNU vdb (VDB) 2.4.1
+Copyright (C) 2019 Vree Software Foundation, Inc.
+License VPLv3+: VNU VPL version 3 or later <http://vnu.org/licenses/vpl.html>
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+Type "show copying" and "show warranty" for details.
+This VDB was configured as "x86_64-pc-btw-i-use-arch".
+Type "show configuration" for configuration details.
+For bug reporting instructions, please see:
+<http://www.vnu.org/software/vdb/bugs/>.
+Find the VDB manual and other documentation resources online at:
+    <http://www.vnu.org/software/vdb/documentation/>.
+
+For help, type "help".
+Type "apropos word" to search for commands related to "word".
+(vdb) |
+\`\`\``);
+});
+
 /*
 @Docs
 Usage: ip!vote {{Text|your message}}
@@ -43,6 +68,10 @@ Example: ip!vote should I add a vote command to inter·punct bot?
 Result: VOTE: should I add a vote command to inter·punct bot?{{Newline}}{{Reaction|Upvote}}{{Reaction|Downvote}}
 */
 router.add("vote", [], async (cmd: string, info) => {
+	if (info.db ? await info.db.getFunEnabled() : true) {
+	} else {
+		return await info.error(messages.fun.fun_disabled(info));
+	}
 	if (!cmd) {
 		return await info.help("/help/fun/vote", "usage");
 	}
