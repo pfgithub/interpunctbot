@@ -36,6 +36,22 @@ router.add("pong", [], async (cmd: string, info) => {
 	return await info.result("Ping!");
 });
 
+router.add("color", [], async (cmd: string, info) => {
+	if (info.db ? await info.db.getFunEnabled() : true) {
+	} else {
+		return await info.error(messages.fun.fun_disabled(info));
+	}
+	if (!cmd) {
+		return await info.help("/help/fun/color", "usage");
+	}
+	const hexcode = cmd.replace("#", "");
+	await info.result(
+		safe`Color #${hexcode}: https://dummyimage.com/300x300/${encodeURIComponent(
+			"#" + hexcode,
+		)}/fff&text=${encodeURIComponent("#" + hexcode)}`,
+	);
+});
+
 router.add("vdb", [], async (cmd: string, info) => {
 	if (info.db ? await info.db.getFunEnabled() : true) {
 	} else {
