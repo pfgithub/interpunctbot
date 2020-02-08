@@ -66,6 +66,20 @@ Type "apropos word" to search for commands related to "word".
 \`\`\``);
 });
 
+router.add("vote2", [], async (cmd: string, info) => {
+	if (info.db ? await info.db.getFunEnabled() : true) {
+	} else {
+		return await info.error(messages.fun.fun_disabled(info));
+	}
+	if (!cmd) {
+		return await info.help("/help/fun/vote2", "usage");
+	}
+	await Promise.all([
+		info.message.react("674675568993894412"),
+		info.message.react("674675569404674059"),
+	]);
+});
+
 /*
 @Docs
 Usage: ip!vote {{Text|your message}}
