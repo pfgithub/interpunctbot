@@ -52,6 +52,19 @@ router.add("color", [], async (cmd: string, info) => {
 	);
 });
 
+router.add("play", [], async (cmd: string, info) => {
+	if (info.db ? await info.db.getFunEnabled() : true) {
+	} else {
+		return await info.error(messages.fun.fun_disabled(info));
+	}
+	if (!cmd) {
+		return await info.help("/help/fun/play", "usage");
+	}
+	await info.message.channel.send(safe`Now playing: ${cmd}
+󠀀󠀀󠀀0:01━━━━━━●─────── 0:02
+󠀀󠀀󠀀⇆ㅤㅤㅤ◁ㅤㅤ❚❚ㅤㅤ▷ㅤㅤㅤ↻`);
+});
+
 router.add("vdb", [], async (cmd: string, info) => {
 	if (info.db ? await info.db.getFunEnabled() : true) {
 	} else {
