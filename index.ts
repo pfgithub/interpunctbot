@@ -14,7 +14,8 @@ import aboutRouter from "./src/commands/about";
 import settingsRouter from "./src/commands/settings";
 import quoteRouter from "./src/commands/quote";
 import emojiRouter from "./src/commands/emoji";
-import testRouter from "./src/commands/test";
+import "./src/commands/test";
+import * as nr from "./src/NewRouter";
 
 import moment from "moment";
 import mdf from "moment-duration-format"; // for typescript
@@ -134,7 +135,6 @@ router.add("crash", [], () => {
 
 router.add([], settingsRouter);
 router.add([], emojiRouter);
-router.add([], testRouter);
 router.add([], quoteRouter);
 
 function depricate(oldcmd: string, newcmd: string, version = "3.0") {
@@ -514,8 +514,21 @@ async function onMessage(msg: Discord.Message | Discord.PartialMessage) {
 
 	// await newInfo.setup(knex)
 	const messageRouter = new Router<Info, Promise<any>>();
-	messageRouter.add(info.db ? await info.db.getPrefix() : "", [], router); // prefixCommand
-	messageRouter.add(client.user!.toString(), [], router); // @botCommand
+	const messageRouter2 = new Router<Info, Promise<any>>();
+	messageRouter.add(
+		info.db ? await info.db.getPrefix() : "",
+		[],
+		messageRouter2,
+	); // prefixCommand
+	messageRouter.add(client.user!.toString(), [], messageRouter2); // @botCommand
+	for (const possibleCommand of Object.keys(nr.globalCommandNS)
+		.sort()
+		.reverse()) {
+		messageRouter2.add(possibleCommand, [], async (cmd, info) => {
+			nr.globalCommandNS[possibleCommand].handler(cmd, info);
+		});
+	}
+	messageRouter2.add("", [], router);
 
 	const handleResult = messageRouter.handle(msg.content, info);
 	// if (!handleResult) {

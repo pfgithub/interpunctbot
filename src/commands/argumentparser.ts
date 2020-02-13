@@ -520,6 +520,18 @@ function RoleArgumentType(): ArgumentType<Discord.Role> {
 	};
 }
 
+export type APListAny = Readonly<ArgumentType<any>[]>;
+export type Results<APList extends APListAny> = ArgTypeArrayToReturnType<
+	APList
+>;
+export type List<APList extends APListAny> = { list: APList };
+
+export function list<APList extends APListAny>(
+	...schema: APList
+): List<APList> {
+	return { list: schema };
+}
+
 export async function ArgumentParser<
 	ArgTypes extends Readonly<ArgumentType<any>[]>
 >(

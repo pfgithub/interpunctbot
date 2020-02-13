@@ -1,17 +1,31 @@
-import Router from "commandrouter";
+import * as nr from "../NewRouter";
 
-import Info from "../Info";
+nr.globalCommand(
+	"/help/test/test",
+	"test",
+	{
+		usage: "test {{Emoji|emoji}} {{Role|role}}",
+		quickDescription: "Test the bot",
+		fullDescription: "Test the bot",
+		examples: [],
+	},
+	nr.list(nr.a.emoji(), ...nr.a.role()),
+	async ([emoji, role], info) => {
+		await info.success(`Emoji ID: ${emoji.id}, Role ID: ${role.id}`);
+	},
+);
 
-import { AP, a } from "./argumentparser";
-
-const router = new Router<Info, Promise<any>>();
-
-router.add("test", [], async (cmd: string, info) => {
-	const ap = await AP({ info, cmd }, a.emoji(), ...a.role());
-	// there should be something like as const that doesn't make it const
-	if (!ap) return;
-	const [emoji, role] = ap.result;
-	await info.success(`Emoji ID: ${emoji.id}, Role ID: ${role.id}`);
-});
-
-export default router;
+nr.globalCommand(
+	"/help/test/crash",
+	"crash",
+	{
+		usage: "crash",
+		quickDescription: "Crash the bot",
+		fullDescription: "Crash the bot",
+		examples: [],
+	},
+	nr.list(),
+	async ([], info) => {
+		throw new Error("Crash command used");
+	},
+);
