@@ -37,8 +37,7 @@ examples:
 
 export type HelpData = {
 	usage: string;
-	quickDescription: string;
-	fullDescription: string;
+	description: string;
 	examples: { in: string; out: string }[];
 };
 export type CommandData = {
@@ -57,8 +56,12 @@ export function globalCommand<APList extends APListAny>(
 	uniqueGlobalName: string,
 	help: HelpData,
 	aplist: List<APList>,
-	cb: (apresults: Results<APList>, info: Info) => Promise<void>,
+	cb: (apresults: Results<APList>, info: Info) => Promise<any>,
 ) {
+	if (docsPath.toLowerCase() !== docsPath)
+		throw new Error("Docs path must be lowercase");
+	if (uniqueGlobalName.toLowerCase() !== uniqueGlobalName)
+		throw new Error("uniqueGlobalName must be lowercase");
 	if (!docsPath.startsWith("/help/"))
 		throw new Error("Docs path must start with /help/");
 	if (docsPath.endsWith("/"))

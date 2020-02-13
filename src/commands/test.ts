@@ -5,8 +5,7 @@ nr.globalCommand(
 	"test",
 	{
 		usage: "test {{Emoji|emoji}} {{Role|role}}",
-		quickDescription: "Test the bot",
-		fullDescription: "Test the bot",
+		description: "Test the bot",
 		examples: [],
 	},
 	nr.list(nr.a.emoji(), ...nr.a.role()),
@@ -20,9 +19,13 @@ nr.globalCommand(
 	"crash",
 	{
 		usage: "crash",
-		quickDescription: "Crash the bot",
-		fullDescription: "Crash the bot",
-		examples: [],
+		description: "Crash the bot",
+		examples: [
+			{
+				in: `ip!crash`,
+				out: `@you, {{Emoji|failure}} An internal error occured while running this command. Error code: {{Code|8oywx5uxsi}}`,
+			},
+		],
 	},
 	nr.list(),
 	async ([], info) => {

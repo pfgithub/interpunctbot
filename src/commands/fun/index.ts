@@ -9,32 +9,51 @@ import connect4 from "./connect4";
 import gamelibgames from "./gamelibgames";
 import goi from "./goi";
 import trivia from "./trivia";
+import * as nr from "../../NewRouter";
 
 const router = new Router<Info, Promise<any>>();
 
-router.add("ping", [], async (cmd: string, info) => {
-	if (info.db ? await info.db.getFunEnabled() : true) {
-	} else {
-		return await info.error(messages.fun.fun_disabled(info));
-	}
+nr.globalCommand(
+	"/help/fun/ping",
+	"ping",
+	{
+		usage: "ping",
+		description: "Play a game of ping pong against {{Interpunct}}.",
+		examples: [{ in: "ip!ping", out: "@you, Pong!" }],
+	},
+	nr.list(),
+	async ([], info) => {
+		if (info.db ? !(await info.db.getFunEnabled()) : false) {
+			return await info.error(messages.fun.fun_disabled(info));
+		}
 
-	if (Math.random() > 0.9) {
-		return await info.result("\\*misses\\*");
-	}
-	return await info.result("Pong!");
-});
+		if (Math.random() > 0.9) {
+			return await info.result("\\*misses\\*");
+		}
+		return await info.result("Pong!");
+	},
+);
 
-router.add("pong", [], async (cmd: string, info) => {
-	if (info.db ? await info.db.getFunEnabled() : true) {
-	} else {
-		return await info.error(messages.fun.fun_disabled(info));
-	}
+nr.globalCommand(
+	"/help/fun/pong",
+	"pong",
+	{
+		usage: "pong",
+		description: "Play a game of pong ping against {{Interpunct}}.",
+		examples: [{ in: "ip!pong", out: "@you, Ping!" }],
+	},
+	nr.list(),
+	async ([], info) => {
+		if (info.db ? !(await info.db.getFunEnabled()) : false) {
+			return await info.error(messages.fun.fun_disabled(info));
+		}
 
-	if (Math.random() > 0.9) {
-		return await info.result("\\*misses\\*");
-	}
-	return await info.result("Ping!");
-});
+		if (Math.random() > 0.9) {
+			return await info.result("\\*misses\\*");
+		}
+		return await info.result("Ping!");
+	},
+);
 
 router.add("color", [], async (cmd: string, info) => {
 	if (info.db ? await info.db.getFunEnabled() : true) {
