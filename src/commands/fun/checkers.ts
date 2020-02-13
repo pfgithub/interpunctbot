@@ -10,6 +10,8 @@ import { messages } from "../../../messages";
 import Info from "../../Info";
 import { AP } from "../argumentparser";
 
+import * as nr from "../../NewRouter";
+
 const router = new Router<Info, Promise<any>>();
 
 export function createTimer(
@@ -509,200 +511,217 @@ class Checkers {
 	}
 }
 
-router.add("checkers", [], async (cmd: string, info) => {
-	const apresult = await AP({ info, cmd });
-	if (!apresult) return;
+nr.globalCommand(
+	"/help/fun/checkers",
+	"checkers",
+	{
+		usage: "FILLME",
+		description: "FILLME",
+		examples: [{ in: "FILLME", out: "FILLME" }],
+	},
+	nr.list(...nr.a.words()),
+	async ([cmd], info) => {
+		const apresult = await AP({ info, cmd });
+		if (!apresult) return;
 
-	if (info.db ? await info.db.getFunEnabled() : true) {
-	} else {
-		return await info.error(messages.fun.fun_disabled(info));
-	}
-
-	if (info.myChannelPerms) {
-		if (!info.myChannelPerms.has("USE_EXTERNAL_EMOJIS")) {
-			return await info.error(
-				"I need permission to `use external emojis` here to play checkers\n> https://interpunct.info/help/fun/connect4",
-			);
+		if (info.db ? await info.db.getFunEnabled() : true) {
+		} else {
+			return await info.error(messages.fun.fun_disabled(info));
 		}
-		if (!info.myChannelPerms.has("ADD_REACTIONS")) {
-			return await info.error(
-				"I need permission to `add reactions` here to play checkers\n> https://interpunct.info/help/fun/connect4",
-			);
+
+		if (info.myChannelPerms) {
+			if (!info.myChannelPerms.has("USE_EXTERNAL_EMOJIS")) {
+				return await info.error(
+					"I need permission to `use external emojis` here to play checkers\n> https://interpunct.info/help/fun/connect4",
+				);
+			}
+			if (!info.myChannelPerms.has("ADD_REACTIONS")) {
+				return await info.error(
+					"I need permission to `add reactions` here to play checkers\n> https://interpunct.info/help/fun/connect4",
+				);
+			}
+			if (!info.myChannelPerms.has("MANAGE_MESSAGES")) {
+				return await info.error(
+					"I need permission to `manage messages` here to remove people's reactions in checkers\n> https://interpunct.info/help/fun/connect4",
+				);
+			}
 		}
-		if (!info.myChannelPerms.has("MANAGE_MESSAGES")) {
-			return await info.error(
-				"I need permission to `manage messages` here to remove people's reactions in checkers\n> https://interpunct.info/help/fun/connect4",
-			);
+
+		const playersInGame = await getPlayers(
+			[info.message.author.id],
+			2,
+			"Checkers",
+			info,
+		);
+		if (!playersInGame) {
+			return;
 		}
-	}
 
-	const playersInGame = await getPlayers(
-		[info.message.author.id],
-		2,
-		"Checkers",
-		info,
-	);
-	if (!playersInGame) {
-		return;
-	}
+		// set up game messages
+		// set up checker piece selection
+		await info.channel.send(
+			`=== Checkers === ${emojis.red.blank} <@${playersInGame[0]}>, ${emojis.black.blank} <@${playersInGame[1]}>`,
+		);
+		const checkerPieceSelectionMessage = await info.channel.send(
+			`Setting up game board...`,
+		);
+		const directionSelectionMessage = await info.channel.send(
+			`Setting up game directions...`,
+		);
 
-	// set up game messages
-	// set up checker piece selection
-	await info.channel.send(
-		`=== Checkers === ${emojis.red.blank} <@${playersInGame[0]}>, ${emojis.black.blank} <@${playersInGame[1]}>`,
-	);
-	const checkerPieceSelectionMessage = await info.channel.send(
-		`Setting up game board...`,
-	);
-	const directionSelectionMessage = await info.channel.send(
-		`Setting up game directions...`,
-	);
+		for (const cpse of emojis.interaction.pieces) {
+			await checkerPieceSelectionMessage.react(cpse);
+		}
+		await directionSelectionMessage.react(emojis.interaction.arrows.ul);
+		await directionSelectionMessage.react(emojis.interaction.arrows.ur);
+		await directionSelectionMessage.react(emojis.interaction.arrows.bl);
+		await directionSelectionMessage.react(emojis.interaction.arrows.br);
+		await directionSelectionMessage.react(emojis.interaction.done);
 
-	for (const cpse of emojis.interaction.pieces) {
-		await checkerPieceSelectionMessage.react(cpse);
-	}
-	await directionSelectionMessage.react(emojis.interaction.arrows.ul);
-	await directionSelectionMessage.react(emojis.interaction.arrows.ur);
-	await directionSelectionMessage.react(emojis.interaction.arrows.bl);
-	await directionSelectionMessage.react(emojis.interaction.arrows.br);
-	await directionSelectionMessage.react(emojis.interaction.done);
+		const game = new Checkers();
 
-	const game = new Checkers();
+		const update = async () =>
+			await Promise.all([
+				checkerPieceSelectionMessage.edit(
+					`${game
+						.getGrid()
+						.map(l => `> ${l.join("")}`)
+						.join("\n")}\n${
+						game.selectionsAvailable === "piece" ||
+						game.selectionsAvailable === "piecedirection"
+							? game.currentPlayer === "b"
+								? `<@${playersInGame[1]}>`
+								: `<@${playersInGame[0]}>`
+							: "---"
+					}, your turn.`,
+				),
+				directionSelectionMessage.edit(
+					game.selectionsAvailable === "piecedirection" ||
+						game.selectionsAvailable === "direction"
+						? `${
+								game.currentPlayer === "b"
+									? `<@${playersInGame[1]}>`
+									: `<@${playersInGame[0]}>`
+						  }, your turn.${
+								game.statusMessage === "pressCheckToEndTurn"
+									? ` Press <:check:${emojis.interaction.done}> to end your turn.`
+									: game.statusMessage ===
+									  "pressCheckToPassTurn"
+									? ` Press <:check:${emojis.interaction.done}> to pass your turn.`
+									: ""
+						  }`
+						: "---",
+				),
+			]);
 
-	const update = async () =>
-		await Promise.all([
-			checkerPieceSelectionMessage.edit(
-				`${game
-					.getGrid()
-					.map(l => `> ${l.join("")}`)
-					.join("\n")}\n${
-					game.selectionsAvailable === "piece" ||
-					game.selectionsAvailable === "piecedirection"
-						? game.currentPlayer === "b"
-							? `<@${playersInGame[1]}>`
-							: `<@${playersInGame[0]}>`
-						: "---"
-				}, your turn.`,
-			),
-			directionSelectionMessage.edit(
-				game.selectionsAvailable === "piecedirection" ||
-					game.selectionsAvailable === "direction"
-					? `${
+		const turnTimer = createTimer(
+			[
+				4 * 60 * 1000,
+				async () => {
+					// end game now
+					game.timeOut();
+				},
+			],
+			[
+				3.5 * 60 * 1000,
+				async () => {
+					await info.message.channel.send(
+						`${
 							game.currentPlayer === "b"
 								? `<@${playersInGame[1]}>`
 								: `<@${playersInGame[0]}>`
-					  }, your turn.${
-							game.statusMessage === "pressCheckToEndTurn"
-								? ` Press <:check:${emojis.interaction.done}> to end your turn.`
-								: game.statusMessage === "pressCheckToPassTurn"
-								? ` Press <:check:${emojis.interaction.done}> to pass your turn.`
-								: ""
-					  }`
-					: "---",
-			),
-		]);
+						}, it's your turn in checkers. ${
+							checkerPieceSelectionMessage.url
+						}\n> If you don't play within 30s, the game will end and you will lose. `,
+					);
+				},
+			],
+		);
 
-	const turnTimer = createTimer(
-		[
-			4 * 60 * 1000,
-			async () => {
-				// end game now
-				game.timeOut();
-			},
-		],
-		[
-			3.5 * 60 * 1000,
-			async () => {
-				await info.message.channel.send(
-					`${
-						game.currentPlayer === "b"
-							? `<@${playersInGame[1]}>`
-							: `<@${playersInGame[0]}>`
-					}, it's your turn in checkers. ${
-						checkerPieceSelectionMessage.url
-					}\n> If you don't play within 30s, the game will end and you will lose. `,
+		const pcCol = info.handleReactions(
+			checkerPieceSelectionMessage,
+			async (reaction, user) => {
+				perr(
+					reaction.users.remove(user.id),
+					"checkers remove reaction",
 				);
+				turnTimer.reset();
+				const expectedUser =
+					game.currentPlayer === "b"
+						? playersInGame[1]
+						: playersInGame[0];
+				if (user.id !== expectedUser) {
+					return;
+				}
+				const pieceNum = emojis.interaction.pieces.indexOf(
+					reaction.emoji.id!,
+				);
+				if (pieceNum === -1) {
+					return;
+				}
+				game.selectPiece(pieceNum);
 			},
-		],
-	);
+		);
 
-	const pcCol = info.handleReactions(
-		checkerPieceSelectionMessage,
-		async (reaction, user) => {
-			perr(reaction.users.remove(user.id), "checkers remove reaction");
-			turnTimer.reset();
-			const expectedUser =
-				game.currentPlayer === "b"
-					? playersInGame[1]
-					: playersInGame[0];
-			if (user.id !== expectedUser) {
-				return;
-			}
-			const pieceNum = emojis.interaction.pieces.indexOf(
-				reaction.emoji.id!,
-			);
-			if (pieceNum === -1) {
-				return;
-			}
-			game.selectPiece(pieceNum);
-		},
-	);
+		const dcCol = info.handleReactions(
+			directionSelectionMessage,
+			async (reaction, user) => {
+				perr(
+					reaction.users.remove(user.id),
+					"checkers remove reaction",
+				);
+				turnTimer.reset();
+				const expectedUser =
+					game.currentPlayer === "b"
+						? playersInGame[1]
+						: playersInGame[0];
+				if (user.id !== expectedUser) {
+					return;
+				}
+				const emid = reaction.emoji.id!;
+				if (emid === emojis.interaction.done) {
+					return game.completeTurn();
+				}
+				const dirs = emojis.interaction.arrows;
+				const direction: Direction | undefined =
+					emid === dirs.ul
+						? [-1, -1]
+						: emid === dirs.ur
+						? [1, -1]
+						: emid === dirs.bl
+						? [-1, 1]
+						: emid === dirs.br
+						? [1, 1]
+						: undefined;
+				if (!direction) {
+					return;
+				}
+				game.movePiece(direction);
+			},
+		);
 
-	const dcCol = info.handleReactions(
-		directionSelectionMessage,
-		async (reaction, user) => {
-			perr(reaction.users.remove(user.id), "checkers remove reaction");
-			turnTimer.reset();
-			const expectedUser =
-				game.currentPlayer === "b"
-					? playersInGame[1]
-					: playersInGame[0];
-			if (user.id !== expectedUser) {
-				return;
-			}
-			const emid = reaction.emoji.id!;
-			if (emid === emojis.interaction.done) {
-				return game.completeTurn();
-			}
-			const dirs = emojis.interaction.arrows;
-			const direction: Direction | undefined =
-				emid === dirs.ul
-					? [-1, -1]
-					: emid === dirs.ur
-					? [1, -1]
-					: emid === dirs.bl
-					? [-1, 1]
-					: emid === dirs.br
-					? [1, 1]
-					: undefined;
-			if (!direction) {
-				return;
-			}
-			game.movePiece(direction);
-		},
-	);
+		game.onupdate = () => {
+			perr(update(), "checkers game update");
+		};
+		game.onend = () => {
+			turnTimer.end();
 
-	game.onupdate = () => {
-		perr(update(), "checkers game update");
-	};
-	game.onend = () => {
-		turnTimer.end();
+			pcCol.end();
+			dcCol.end();
+		};
 
-		pcCol.end();
-		dcCol.end();
-	};
+		await update();
 
-	await update();
+		await Promise.all([pcCol.done, dcCol.done]);
 
-	await Promise.all([pcCol.done, dcCol.done]);
+		await info.message.channel.send("game is over. wip message.");
 
-	await info.message.channel.send("game is over. wip message.");
+		// game over
 
-	// game over
-
-	// REMAINING TODO:
-	// winning game, 4m timeout
-});
+		// REMAINING TODO:
+		// winning game, 4m timeout
+	},
+);
 
 export default router;
 

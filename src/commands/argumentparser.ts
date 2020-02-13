@@ -413,7 +413,7 @@ function DurationArgumentType(): ArgumentType<number> {
 
 function WordsArgumentType(): ArgumentType<string> {
 	return async (info, arg, cmd, index, commandhelp, argpurpose) => {
-		if (!cmd.trim()) {
+		if (!cmd.trim() && (false as true)) {
 			await info.error(
 				messages.arguments.words_arg_not_provided(
 					info,

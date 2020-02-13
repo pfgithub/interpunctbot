@@ -55,41 +55,67 @@ nr.globalCommand(
 	},
 );
 
-router.add("color", [], async (cmd: string, info) => {
-	if (info.db ? await info.db.getFunEnabled() : true) {
-	} else {
-		return await info.error(messages.fun.fun_disabled(info));
-	}
-	if (!cmd) {
-		return await info.help("/help/fun/color", "usage");
-	}
-	const hexcode = cmd.replace("#", "");
-	await info.result(
-		safe`Color #${hexcode}: https://dummyimage.com/300x300/${encodeURIComponent(
-			"#" + hexcode,
-		)}/fff&text=${encodeURIComponent("#" + hexcode)}`,
-	);
-});
+nr.globalCommand(
+	"/help/fun/color",
+	"color",
+	{
+		usage: "FILLME",
+		description: "FILLME",
+		examples: [{ in: "FILLME", out: "FILLME" }],
+	},
+	nr.list(nr.a.word()),
+	async ([word], info) => {
+		if (info.db ? await info.db.getFunEnabled() : true) {
+		} else {
+			return await info.error(messages.fun.fun_disabled(info));
+		}
+		const hexcode = word.replace("#", "");
+		await info.result(
+			safe`Color #${hexcode}: https://dummyimage.com/300x300/${encodeURIComponent(
+				"#" + hexcode,
+			)}/fff&text=${encodeURIComponent("#" + hexcode)}`,
+		);
+	},
+);
 
-router.add("play", [], async (cmd: string, info) => {
-	if (info.db ? await info.db.getFunEnabled() : true) {
-	} else {
-		return await info.error(messages.fun.fun_disabled(info));
-	}
-	if (!cmd) {
-		return await info.help("/help/fun/play", "usage");
-	}
-	await info.message.channel.send(safe`Now playing: ${cmd}
+nr.globalCommand(
+	"/help/fun/play",
+	"play",
+	{
+		usage: "FILLME",
+		description: "FILLME",
+		examples: [{ in: "FILLME", out: "FILLME" }],
+	},
+	nr.list(...nr.a.words()),
+	async ([cmd], info) => {
+		if (info.db ? await info.db.getFunEnabled() : true) {
+		} else {
+			return await info.error(messages.fun.fun_disabled(info));
+		}
+		if (!cmd) {
+			return await info.help("/help/fun/play", "usage");
+		}
+		await info.message.channel.send(safe`Now playing: ${cmd}
 󠀀󠀀󠀀0:01━━━━━━●─────── 0:02
 󠀀󠀀󠀀⇆ㅤㅤㅤ◁ㅤㅤ❚❚ㅤㅤ▷ㅤㅤㅤ↻`);
-});
+	},
+);
 
-router.add("vdb", [], async (cmd: string, info) => {
-	if (info.db ? await info.db.getFunEnabled() : true) {
-	} else {
-		return await info.error(messages.fun.fun_disabled(info));
-	}
-	await info.message.channel.send(`\`\`\`
+nr.globalCommand(
+	"/help/fun/vdb",
+	"vdb",
+	{
+		usage: "FILLME",
+		description: "FILLME",
+		examples: [{ in: "FILLME", out: "FILLME" }],
+	},
+	nr.list(...nr.a.words()),
+	async ([cmd], info) => {
+		if (info.db ? await info.db.getFunEnabled() : true) {
+		} else {
+			return await info.error(messages.fun.fun_disabled(info));
+		}
+		await info.message.channel.send(`\`\`\`
 GNU vdb (VDB) 2.4.1
 Copyright (C) 2019 Free Software Foundation, Inc.
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/Gpl.html>
@@ -106,27 +132,38 @@ Find the VDB manual and other documentation resources online at:
 For help, type "help".
 Type "apropos word" to search for commands related to "word".
 (vdb) ${
-		cmd
-			? safe`${cmd}\nUndefined command: "${cmd}". Try "help".
+			cmd
+				? safe`${cmd}\nUndefined command: "${cmd}". Try "help".
 (vdb) |`
-			: "|"
-	}
+				: "|"
+		}
 \`\`\``);
-});
+	},
+);
 
-router.add("vote2", [], async (cmd: string, info) => {
-	if (info.db ? await info.db.getFunEnabled() : true) {
-	} else {
-		return await info.error(messages.fun.fun_disabled(info));
-	}
-	if (!cmd) {
-		return await info.help("/help/fun/vote2", "usage");
-	}
-	await Promise.all([
-		info.message.react("674675568993894412"),
-		info.message.react("674675569404674059"),
-	]);
-});
+nr.globalCommand(
+	"/help/fun/vote2",
+	"vote2",
+	{
+		usage: "FILLME",
+		description: "FILLME",
+		examples: [{ in: "FILLME", out: "FILLME" }],
+	},
+	nr.list(...nr.a.words()),
+	async ([cmd], info) => {
+		if (info.db ? await info.db.getFunEnabled() : true) {
+		} else {
+			return await info.error(messages.fun.fun_disabled(info));
+		}
+		if (!cmd) {
+			return await info.help("/help/fun/vote2", "usage");
+		}
+		await Promise.all([
+			info.message.react("674675568993894412"),
+			info.message.react("674675569404674059"),
+		]);
+	},
+);
 
 /*
 @Docs
@@ -134,97 +171,127 @@ Usage: ip!vote {{Text|your message}}
 Example: ip!vote should I add a vote command to inter·punct bot?
 Result: VOTE: should I add a vote command to inter·punct bot?{{Newline}}{{Reaction|Upvote}}{{Reaction|Downvote}}
 */
-router.add("vote", [], async (cmd: string, info) => {
-	if (info.db ? await info.db.getFunEnabled() : true) {
-	} else {
-		return await info.error(messages.fun.fun_disabled(info));
-	}
-	if (!cmd) {
-		return await info.help("/help/fun/vote", "usage");
-	}
-	const msg = await info.channel.send("VOTE: " + safe`${cmd}`);
-	await Promise.all([
-		msg.react("674675568993894412"),
-		msg.react("674675569404674059"),
-	]);
+nr.globalCommand(
+	"/help/fun/vote",
+	"vote",
+	{
+		usage: "FILLME",
+		description: "FILLME",
+		examples: [{ in: "FILLME", out: "FILLME" }],
+	},
+	nr.list(...nr.a.words()),
+	async ([cmd], info) => {
+		if (info.db ? await info.db.getFunEnabled() : true) {
+		} else {
+			return await info.error(messages.fun.fun_disabled(info));
+		}
+		if (!cmd) {
+			return await info.help("/help/fun/vote", "usage");
+		}
+		const msg = await info.channel.send("VOTE: " + safe`${cmd}`);
+		await Promise.all([
+			msg.react("674675568993894412"),
+			msg.react("674675569404674059"),
+		]);
 
-	let endhandler: () => void = () => {
-		throw new Error("end not handled");
-	};
-	const countdown = createTimer([
-		60 * 1000,
-		async () => {
-			endhandler();
-		},
-	]);
+		let endhandler: () => void = () => {
+			throw new Error("end not handled");
+		};
+		const countdown = createTimer([
+			60 * 1000,
+			async () => {
+				endhandler();
+			},
+		]);
 
-	async function editMessage(over?: boolean) {
-		const upvotes = msg.reactions.get("674675568993894412")?.count;
-		const downvotes = msg.reactions.get("674675569404674059")?.count;
-		const content =
-			"VOTE: " +
-			safe`${cmd}` +
-			" (Votes: " +
-			((upvotes || 0) - (downvotes || 0)) +
-			(over ? ", Voting ended." : "") +
-			")";
-		if (msg.content !== content) await msg.edit(content);
-	}
-	const msgUpdateInterval = setInterval(() => {
-		perr(editMessage(), "vote command");
-	}, 3000);
+		async function editMessage(over?: boolean) {
+			const upvotes = msg.reactions.get("674675568993894412")?.count;
+			const downvotes = msg.reactions.get("674675569404674059")?.count;
+			const content =
+				"VOTE: " +
+				safe`${cmd}` +
+				" (Votes: " +
+				((upvotes || 0) - (downvotes || 0)) +
+				(over ? ", Voting ended." : "") +
+				")";
+			if (msg.content !== content) await msg.edit(content);
+		}
+		const msgUpdateInterval = setInterval(() => {
+			perr(editMessage(), "vote command");
+		}, 3000);
 
-	const rxnh = info.handleReactions(
-		msg,
-		async (rxn, usr) => countdown.reset(),
-		// if downvote && user upvoted, remove upvote
-		// if upvote && user downvoted, remove downvote
-	);
-	await new Promise((resolve, reject) => (endhandler = resolve));
-	clearInterval(msgUpdateInterval);
-	rxnh.end();
-	await editMessage(true);
-});
+		const rxnh = info.handleReactions(
+			msg,
+			async (rxn, usr) => countdown.reset(),
+			// if downvote && user upvoted, remove upvote
+			// if upvote && user downvoted, remove downvote
+		);
+		await new Promise((resolve, reject) => (endhandler = resolve));
+		clearInterval(msgUpdateInterval);
+		rxnh.end();
+		await editMessage(true);
+	},
+);
 
-router.add("stats", [], async (cmd: string, info) => {
-	if (info.db ? await info.db.getFunEnabled() : true) {
-	} else {
-		return await info.error(messages.fun.fun_disabled(info));
-	}
-	return await info.result(
-		`**Statistics**:
+nr.globalCommand(
+	"/help/fun/stats",
+	"stats",
+	{
+		usage: "FILLME",
+		description: "FILLME",
+		examples: [{ in: "FILLME", out: "FILLME" }],
+	},
+	nr.list(),
+	async ([], info) => {
+		if (info.db ? await info.db.getFunEnabled() : true) {
+		} else {
+			return await info.error(messages.fun.fun_disabled(info));
+		}
+		return await info.result(
+			`**Statistics**:
 > **Servers**: ${info.message.client.guilds.size} servers
 > **Uptime**: ${moment
-			.duration(new Date().getTime() - serverStartTime)
-			.format(
-				"y [years] M [months] w [weeks] d [days,] h[h]:mm[m]:s.SSS[s]",
-			)}
+				.duration(new Date().getTime() - serverStartTime)
+				.format(
+					"y [years] M [months] w [weeks] d [days,] h[h]:mm[m]:s.SSS[s]",
+				)}
 > Took ${new Date().getTime() - info.other!.startTime}ms, handling ${
-			info.other!.infoPerSecond
-		} db requests per second`,
-		undefined,
-	);
-});
+				info.other!.infoPerSecond
+			} db requests per second`,
+			undefined,
+		);
+	},
+);
 
-router.add("remindme", [], async (cmd, info) => {
-	if (info.db ? await info.db.getFunEnabled() : true) {
-	} else {
-		return await info.error(messages.fun.fun_disabled(info));
-	}
-	const ap = await AP({ cmd, info }, a.duration(), ...a.words());
-	if (!ap) return;
-	const [delay, message] = ap.result;
+nr.globalCommand(
+	"/help/fun/remindme",
+	"remindme",
+	{
+		usage: "FILLME",
+		description: "FILLME",
+		examples: [{ in: "FILLME", out: "FILLME" }],
+	},
+	nr.list(...nr.a.words()),
+	async ([cmd], info) => {
+		if (info.db ? await info.db.getFunEnabled() : true) {
+		} else {
+			return await info.error(messages.fun.fun_disabled(info));
+		}
+		const ap = await AP({ cmd, info }, a.duration(), ...a.words());
+		if (!ap) return;
+		const [delay, message] = ap.result;
 
-	await info.timedEvents.queue(
-		{
-			type: "pmuser",
-			message: `Reminder: ${message}`,
-			user: info.message.author.id,
-		},
-		new Date().getTime() + delay,
-	);
-	await info.success("Reminder set");
-});
+		await info.timedEvents.queue(
+			{
+				type: "pmuser",
+				message: `Reminder: ${message}`,
+				user: info.message.author.id,
+			},
+			new Date().getTime() + delay,
+		);
+		await info.success("Reminder set");
+	},
+);
 
 router.add("fun", [Info.theirPerm.manageBot], async (cmd: string, info) => {
 	if (!info.db) {
@@ -261,94 +328,105 @@ router.add("", [], checkers);
 
 // Or code golf it instead. Maybe the code will be more readable.
 
-router.add("minesweeper", [], async (cmd: string, info) => {
-	if (info.db ? await info.db.getFunEnabled() : true) {
-	} else {
-		return await info.error(messages.fun.fun_disabled(info));
-	}
-	const words = cmd.split(" ");
-	let difficulty: keyof typeof dv | undefined;
-	let customvalue = 0;
-	let mode: string | undefined;
-	let width: number | undefined;
-	let height: number | undefined;
-	let flag = false;
-	let group = false;
-	const remainingWords = words.filter(word => {
-		if (difficulties.includes(word as any)) {
-			difficulty = word as any;
-			return false;
-		}
-		if (modesl.includes(word as any)) {
-			mode = word as any;
-			return false;
-		}
-		if (word === "flag") {
-			flag = true;
-			return false;
-		}
-		if (word === "group") {
-			group = true;
-			return false;
-		}
-		const sizeMatch = /^([0-9]+)x([0-9]+)$/.exec(word);
-		if (sizeMatch) {
-			width = Math.min(+sizeMatch[1], 25);
-			height = Math.min(+sizeMatch[2], 25);
-			return false;
-		}
-		const percentMatch = /^([0-9]+)%$/.exec(word);
-		if (percentMatch) {
-			difficulty = "custom";
-			customvalue = Math.min(Math.max(+percentMatch[1], 0), 100) / 100;
-			return false;
-		}
-		return true;
-	});
-	difficulty = difficulty || "medium";
-	mode = mode || "emojis";
-	width = width || 13;
-	height = height || 15;
-	if (remainingWords.join(" ").trim().length > 0) {
-		return await info.error(
-			messages.fun.minesweeper_usage(info, difficulties, modesl),
-		);
-	}
-
-	const generatedBoard = badMinesweeperGenerator({
-		difficulty,
-		mode,
-		width,
-		height,
-		flag,
-		customvalue,
-		group,
-	});
-
-	// if (info.myChannelPerms ? info.myChannelPerms.has("EMBED_LINKS") : true) {
-	// ...
-	// }
-	const linesUnder2000: string[] = [];
-	const splitQuotedBoard = generatedBoard.split("\n").map(l => `> ${l}`);
-	splitQuotedBoard.push(
-		`**${width}**x**${height}** | theme: **${mode}** | difficulty: **${difficulty}** (${Math.round(
-			(dv[difficulty] === -1 ? customvalue : dv[difficulty]) * 100,
-		)}%) | ${flag ? "flag " : ""}${group ? "group" : ""}`,
-	);
-	splitQuotedBoard.forEach(line => {
-		const newLine = `${linesUnder2000[linesUnder2000.length - 1] ||
-			""}\n${line}`; // puts an extra \n on the first line
-		if (newLine.length < 1999) {
-			linesUnder2000.pop();
-			linesUnder2000.push(newLine);
+nr.globalCommand(
+	"/help/fun/minesweeper",
+	"minesweeper",
+	{
+		usage: "FILLME",
+		description: "FILLME",
+		examples: [{ in: "FILLME", out: "FILLME" }],
+	},
+	nr.list(...nr.a.words()),
+	async ([cmd], info) => {
+		if (info.db ? await info.db.getFunEnabled() : true) {
 		} else {
-			linesUnder2000.push(line.substr(0, 1999));
+			return await info.error(messages.fun.fun_disabled(info));
 		}
-	});
-	for (const line of linesUnder2000) {
-		await info.channel.send(line);
-	}
-});
+		const words = cmd.split(" ");
+		let difficulty: keyof typeof dv | undefined;
+		let customvalue = 0;
+		let mode: string | undefined;
+		let width: number | undefined;
+		let height: number | undefined;
+		let flag = false;
+		let group = false;
+		const remainingWords = words.filter(word => {
+			if (difficulties.includes(word as any)) {
+				difficulty = word as any;
+				return false;
+			}
+			if (modesl.includes(word)) {
+				mode = word;
+				return false;
+			}
+			if (word === "flag") {
+				flag = true;
+				return false;
+			}
+			if (word === "group") {
+				group = true;
+				return false;
+			}
+			const sizeMatch = /^([0-9]+)x([0-9]+)$/.exec(word);
+			if (sizeMatch) {
+				width = Math.min(+sizeMatch[1], 25);
+				height = Math.min(+sizeMatch[2], 25);
+				return false;
+			}
+			const percentMatch = /^([0-9]+)%$/.exec(word);
+			if (percentMatch) {
+				difficulty = "custom";
+				customvalue =
+					Math.min(Math.max(+percentMatch[1], 0), 100) / 100;
+				return false;
+			}
+			return true;
+		});
+		difficulty = difficulty || "medium";
+		mode = mode || "emojis";
+		width = width || 13;
+		height = height || 15;
+		if (remainingWords.join(" ").trim().length > 0) {
+			return await info.error(
+				messages.fun.minesweeper_usage(info, difficulties, modesl),
+			);
+		}
+
+		const generatedBoard = badMinesweeperGenerator({
+			difficulty,
+			mode,
+			width,
+			height,
+			flag,
+			customvalue,
+			group,
+		});
+
+		// if (info.myChannelPerms ? info.myChannelPerms.has("EMBED_LINKS") : true) {
+		// ...
+		// }
+		const linesUnder2000: string[] = [];
+		const splitQuotedBoard = generatedBoard.split("\n").map(l => `> ${l}`);
+		splitQuotedBoard.push(
+			`**${width}**x**${height}** | theme: **${mode}** | difficulty: **${difficulty}** (${Math.round(
+				(dv[difficulty] === -1 ? customvalue : dv[difficulty]) * 100,
+			)}%) | ${flag ? "flag " : ""}${group ? "group" : ""}`,
+		);
+		splitQuotedBoard.forEach(line => {
+			const newLine = `${linesUnder2000[linesUnder2000.length - 1] ||
+				""}\n${line}`; // puts an extra \n on the first line
+			if (newLine.length < 1999) {
+				linesUnder2000.pop();
+				linesUnder2000.push(newLine);
+			} else {
+				linesUnder2000.push(line.substr(0, 1999));
+			}
+		});
+		for (const line of linesUnder2000) {
+			await info.channel.send(line);
+		}
+	},
+);
 
 const dv = {
 	easy: 0.05,
