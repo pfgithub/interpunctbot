@@ -87,7 +87,9 @@ export function globalCommand<APList extends APListAny>(
 					);
 					if (apresult.error) {
 						await info.error(
-							"AP test failed (score <2). This should never happen.",
+							"AP test failed (score <2). This should never happen. Error code: `" +
+								apresult.error.errorCode +
+								"`",
 						);
 						return;
 					}
@@ -97,6 +99,7 @@ export function globalCommand<APList extends APListAny>(
 						"running command " + uniqueGlobalName,
 					);
 					if (cbResult.error) {
+						// TODO if discord api error no permission, say "interpunct does not have permission"
 						await info.error(
 							"An internal error occured while running this command. Error code: `" +
 								cbResult.error.errorCode +
