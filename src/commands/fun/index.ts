@@ -24,6 +24,7 @@ nr.globalCommand(
 	},
 	nr.list(),
 	f => f(),
+	this,
 	async ([], info) => {
 		if (info.db ? !(await info.db.getFunEnabled()) : false) {
 			return await info.error(messages.fun.fun_disabled(info));
@@ -46,6 +47,7 @@ nr.globalCommand(
 	},
 	nr.list(),
 	f => f(),
+	this,
 	async ([], info) => {
 		if (info.db ? !(await info.db.getFunEnabled()) : false) {
 			return await info.error(messages.fun.fun_disabled(info));
@@ -68,6 +70,7 @@ nr.globalCommand(
 	},
 	nr.list(nr.a.word()),
 	f => f(),
+	this,
 	async ([word], info) => {
 		if (info.db ? await info.db.getFunEnabled() : true) {
 		} else {
@@ -92,6 +95,7 @@ nr.globalCommand(
 	},
 	nr.list(...nr.a.words()),
 	f => f(),
+	this,
 	async ([cmd], info) => {
 		if (info.db ? await info.db.getFunEnabled() : true) {
 		} else {
@@ -116,6 +120,7 @@ nr.globalCommand(
 	},
 	nr.list(...nr.a.words()),
 	f => f(),
+	this,
 	async ([cmd], info) => {
 		if (info.db ? await info.db.getFunEnabled() : true) {
 		} else {
@@ -168,6 +173,7 @@ nr.globalCommand(
 	},
 	nr.list(...nr.a.words()),
 	f => f(),
+	this,
 	async ([cmd], info) => {
 		if (!info.guild) {
 			return await info.error("something something pms");
@@ -217,6 +223,7 @@ nr.globalCommand(
 	},
 	nr.list(...nr.a.words()),
 	f => f(),
+	this,
 	async ([cmd], info) => {
 		if (info.db ? await info.db.getFunEnabled() : true) {
 		} else {
@@ -248,6 +255,7 @@ nr.globalCommand(
 	},
 	nr.list(...nr.a.words()),
 	f => f(),
+	this,
 	async ([cmd], info) => {
 		if (info.db ? await info.db.getFunEnabled() : true) {
 		} else {
@@ -311,6 +319,7 @@ nr.globalCommand(
 	},
 	nr.list(),
 	f => f(),
+	this,
 	async ([], info) => {
 		if (info.db ? await info.db.getFunEnabled() : true) {
 		} else {
@@ -342,6 +351,7 @@ nr.globalCommand(
 	},
 	nr.list(...nr.a.words()),
 	f => f(),
+	this,
 	async ([cmd], info) => {
 		if (info.db ? await info.db.getFunEnabled() : true) {
 		} else {
@@ -423,6 +433,7 @@ nr.globalCommand(
 	},
 	nr.list(...nr.a.words()),
 	f => f(),
+	this,
 	async ([cmd], info) => {
 		if (info.db ? await info.db.getFunEnabled() : true) {
 		} else {

@@ -8,10 +8,13 @@ nr.globalCommand(
 		description: "Test the bot",
 		examples: [],
 	},
-	nr.list(nr.a.emoji(), ...nr.a.role()),
+	nr.list(),
 	f => f(),
-	async ([emoji, role], info) => {
-		await info.success(`Emoji ID: ${emoji.id}, Role ID: ${role.id}`);
+	this,
+	async ([], info) => {
+		await info.success(
+			`it works! this is the default webpage for this web server`,
+		);
 	},
 );
 
@@ -30,6 +33,7 @@ nr.globalCommand(
 	},
 	nr.list(),
 	f => f(),
+	this,
 	async ([], info) => {
 		throw new Error("Crash command used");
 	},

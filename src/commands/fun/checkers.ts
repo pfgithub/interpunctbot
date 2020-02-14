@@ -521,6 +521,7 @@ nr.globalCommand(
 	},
 	nr.list(...nr.a.words()),
 	f => f(),
+	this,
 	async ([cmd], info) => {
 		const apresult = await AP({ info, cmd });
 		if (!apresult) return;

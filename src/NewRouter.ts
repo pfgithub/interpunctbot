@@ -1,3 +1,5 @@
+import fs from "fs";
+import vm from "vm";
 import Info from "./Info";
 import {
 	Results,
@@ -35,6 +37,11 @@ examples:
 
 */
 
+export type CmdCb<APList extends APListAny> = (
+	apresults: Results<APList>,
+	info: Info,
+) => Promise<any>;
+
 export type HelpData = {
 	usage: string;
 	description: string;
@@ -59,7 +66,8 @@ export function globalCommand<APList extends APListAny>(
 	help: HelpData,
 	aplist: List<APList>,
 	f: (z: () => never) => never,
-	cb: (apresults: Results<APList>, info: Info) => Promise<any>,
+	surroundingThis: any,
+	cb: CmdCb<APList>,
 ) {
 	if (docsPath.toLowerCase() !== docsPath)
 		throw new Error("Docs path must be lowercase");
@@ -75,7 +83,7 @@ export function globalCommand<APList extends APListAny>(
 
 	globalDocs[docsPath] = help;
 
-	let sourceCodeLocation;
+	let sourceFile: { path: string; lastUpdated: number } | undefined;
 	if (devMode) {
 		try {
 			f(() => {
@@ -87,11 +95,58 @@ export function globalCommand<APList extends APListAny>(
 			const lines = stacktrace.split("\n");
 			const commandLines = lines.filter(l => l.includes("/src/commands"));
 			const gcmdCall = commandLines[1];
-			console.log(gcmdCall);
+			const rgxMatch = /at Object.<anonymous> \((.+?):[0-9]+?:[0-9]+?\)/.exec(
+				gcmdCall,
+			);
+			if (rgxMatch) {
+				const fpath = rgxMatch[1];
+				sourceFile = {
+					path: fpath,
+					lastUpdated: fs.statSync(fpath).mtime.getTime(),
+				};
+				console.log(
+					"Initialized command reloading for",
+					docsPath,
+					sourceFile,
+				);
+			} else {
+				console.log(
+					"Could not set up command reloading for",
+					docsPath,
+					rgxMatch,
+				);
+			}
 		}
 	}
 
 	const handleCommand = async (cmd: string, info: Info) => {
+		if (devMode && sourceFile) {
+			const newLastUpdated = fs.statSync(sourceFile.path).mtime.getTime();
+			if (sourceFile.lastUpdated !== newLastUpdated) {
+				const fileText = fs.readFileSync(sourceFile.path, "utf-8");
+
+				let text = fileText;
+				text = text.split(docsPath)[1];
+				text = text.split("\tf => f(),\n\tthis,\n\tasync (")[1];
+				text = text.split("\t},\n);")[0];
+
+				const fullFunction = "__result = async (" + text + "};";
+				const script = new vm.Script(fullFunction, {
+					filename: "reloaded.js",
+					lineOffset: 1,
+					columnOffset: 1,
+					displayErrors: true,
+				});
+				surroundingThis.__result = undefined;
+				const context = vm.createContext(surroundingThis);
+				script.runInContext(context);
+				console.log("Reloaded: ```\n" + fullFunction + "\n```");
+				cb = context.__result;
+
+				sourceFile.lastUpdated = newLastUpdated;
+			}
+		}
+
 		const apresult = await ilt(
 			AP({ info, cmd, help: docsPath, partial: false }, ...aplist.list),
 			"running command ap " + uniqueGlobalName,
