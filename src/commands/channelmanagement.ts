@@ -269,7 +269,7 @@ Output: @you, {{Emoji|success}} Slowmode for {{Channel|channel}} set to 2 second
 */
 
 router.add(
-	"channel slowmode set",
+	"channel slowmode set", // TODO slowmode set
 	[Info.theirPerm.manageChannels],
 	async (cmd, info) => {
 		const ap = await AP({ info, cmd }, a.duration(), a.channel());
