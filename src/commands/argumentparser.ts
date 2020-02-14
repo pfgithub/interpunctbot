@@ -3,6 +3,8 @@ import * as Discord from "discord.js";
 import Info from "../Info";
 import { messages, safe } from "../../messages";
 
+import Fuse from "fuse.js";
+
 export type BaseArgType<S, T> = {
 	type: S;
 	validator?: (v: T) => Promise<boolean>;
@@ -551,32 +553,58 @@ function RoleArgumentType(): ArgumentType<Discord.Role> {
 			}
 			role = foundRole;
 		} else {
-			const matchingRoles = info.guild.roles
+			const exactMatches = info.guild.roles
 				.array()
 				.filter(role => roleNameMatch(role.name, rolename));
-			if (matchingRoles.length > 1) {
+			if (exactMatches.length > 1) {
 				await info.error(
 					messages.arguments.multiple_roles_found(
 						info,
 						rolename,
-						matchingRoles,
+						exactMatches,
 						commandhelp,
 					),
 				);
 				return { result: "exit" };
 			}
-			if (matchingRoles.length === 0) {
-				await info.error(
-					messages.arguments.no_roles_found(
-						info,
-						rolename,
-						index,
-						commandhelp,
-					),
-				);
-				return { result: "exit" };
+			if (exactMatches.length === 0) {
+				const roleNameList = info.guild.roles.array();
+				const fuse = new Fuse(roleNameList, {
+					shouldSort: true,
+					threshold: 0.1,
+					location: 0,
+					distance: 100,
+					maxPatternLength: 32,
+					minMatchCharLength: 1,
+					keys: ["name"],
+				});
+				const results = fuse.search(rolename);
+				if (results.length === 0) {
+					await info.error(
+						messages.arguments.no_roles_found(
+							info,
+							rolename,
+							index,
+							commandhelp,
+						),
+					);
+					return { result: "exit" };
+				} else if (results.length > 1) {
+					await info.error(
+						messages.arguments.multiple_roles_found_fuzzy(
+							info,
+							rolename,
+							results,
+							commandhelp,
+						),
+					);
+					return { result: "exit" };
+				} else {
+					role = results[0];
+				}
+			} else {
+				role = exactMatches[0];
 			}
-			role = matchingRoles[0];
 		}
 		if (!role) {
 			throw new Error("This should never happen."); // should give people an error id and stuff

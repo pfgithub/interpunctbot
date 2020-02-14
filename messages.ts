@@ -215,6 +215,24 @@ ${Object.keys("lists")
 > **Using Roles in Commands**: <https://interpunct.info/role-arg>${
 			commandhelp ? `\n${commandhelp}` : ""
 		}`,
+		multiple_roles_found_fuzzy: (
+			info: Info,
+			rolename: string,
+			matchingRoles: Discord.Role[],
+			commandhelp: string,
+		) => `There are ${
+			matchingRoles.length
+		} roles with names similar to ${safe`${rolename}`}. Either be more specific or use a Role ID.
+> ${matchingRoles
+			.map(
+				r =>
+					messages.role(r) +
+					(matchingRoles.length <= 4 ? " (`" + r.id + "`)" : ""),
+			)
+			.join(", ")}
+> **Using Roles in Commands**: <https://interpunct.info/role-arg>${
+			commandhelp ? `\n${commandhelp}` : ""
+		}`,
 		no_roles_found: (
 			info: Info,
 			rolename: string,
