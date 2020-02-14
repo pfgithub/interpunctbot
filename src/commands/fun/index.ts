@@ -142,6 +142,55 @@ Type "apropos word" to search for commands related to "word".
 );
 
 nr.globalCommand(
+	"/help/fun/members",
+	"members",
+	{
+		usage: "members {{Optional|{{Role|role}}}}",
+		description:
+			"get the number of members on the server and optionally filter by a specific role",
+		examples: [
+			{
+				in: "ip!members",
+				out: "This server has 1,749 members.",
+			},
+			{
+				in: "ip!members {{Role|🕐︎ SUB-3}}",
+				out:
+					"This server has ... members with the role {{Role|🕐︎ SUB-3}}",
+			},
+		],
+	},
+	nr.list(...nr.a.words()),
+	async ([cmd], info) => {
+		if (!info.guild) {
+			return await info.error("something something pms");
+		}
+		if (!cmd) {
+			await info.result(
+				"This server has " +
+					info.guild.memberCount.toLocaleString("en-US") +
+					" members",
+			);
+		} else {
+			const ap = await AP(
+				{ cmd, info, help: "/help/fun/members" },
+				...a.role(),
+			);
+			if (!ap) return;
+			const [role] = ap.result;
+
+			const rolemembers = role.members.size;
+			await info.result(
+				"This server has " +
+					rolemembers.toLocaleString("en-US") +
+					" members with the role " +
+					messages.role(role),
+			);
+		}
+	},
+);
+
+nr.globalCommand(
 	"/help/fun/vote2",
 	"vote2",
 	{
