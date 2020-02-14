@@ -284,11 +284,7 @@ export default class Info {
 		// returns the message
 		const replyResult = await ilt(
 			this.message.channel.send(
-				safe`@${
-					this.message.member
-						? this.message.member.displayName
-						: this.message.author.username
-				}, ${raw(content)}`,
+				safe`${raw(this.message.author.toString())}, ${raw(content)}`,
 				{
 					...options,
 					split: true,
