@@ -57,19 +57,20 @@ export class TimedEvents {
 	}
 	async queue(event: EventData | EventData[], time: number) {
 		// add to db
+		const eventfixed = Array.isArray(event) ? event : [event];
 		const insertedResult = await knex<SqlEvent>("timed_events").insert({
 			time,
-			event: JSON.stringify(event),
+			event: JSON.stringify(eventfixed),
 			completed: false,
 		});
 		const id = insertedResult[0];
 		if (this.client.shard)
 			await this.client.shard.send({
 				action: "queueEvent",
-				event: { event, time, id },
+				event: { event: eventfixed, time, id },
 			});
 		this._queueNoAdd({
-			event: Array.isArray(event) ? event : [event],
+			event: eventfixed,
 			time,
 			id,
 		});
@@ -141,7 +142,11 @@ export class TimedEvents {
 		this.starting = false;
 		for (const event of events) {
 			const eventData = JSON.parse(event.event) as EventData[];
-			this.startEventTimeout(eventData, event.time, event.id);
+			this.startEventTimeout(
+				Array.isArray(eventData) ? eventData : [eventData],
+				event.time,
+				event.id,
+			);
 		}
 	}
 }
