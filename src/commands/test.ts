@@ -13,7 +13,7 @@ nr.globalCommand(
 	this,
 	async ([], info) => {
 		await info.success(
-			`it works! this is the default webpage for this web server`,
+			`it works! this is the default webpage for this web server.`,
 		);
 	},
 );

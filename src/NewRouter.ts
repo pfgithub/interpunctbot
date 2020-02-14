@@ -1,5 +1,7 @@
 import fs from "fs";
 import vm from "vm";
+//@ts-ignore
+const babel = require("@babel/core"); //eslint-disable-line @typescript-eslint/no-var-requires
 import Info from "./Info";
 import {
 	Results,
@@ -83,7 +85,21 @@ export function globalCommand<APList extends APListAny>(
 
 	globalDocs[docsPath] = help;
 
-	let sourceFile: { path: string; lastUpdated: number } | undefined;
+	function getFunctionCode(path: string) {
+		const fileText = fs.readFileSync(path, "utf-8");
+
+		let text = fileText;
+		text = text.split(docsPath)[1];
+		text = text.split("\tf => f(),\n\tthis,\n\tasync (")[1];
+		text = text.split("\t},\n);")[0];
+
+		const fullFunction = "__result = async (" + text + "};";
+		return fullFunction;
+	}
+
+	let sourceFile:
+		| { path: string; lastUpdated: number; prevcode: string }
+		| undefined;
 	if (devMode) {
 		try {
 			f(() => {
@@ -103,12 +119,9 @@ export function globalCommand<APList extends APListAny>(
 				sourceFile = {
 					path: fpath,
 					lastUpdated: fs.statSync(fpath).mtime.getTime(),
+					prevcode: getFunctionCode(fpath),
 				};
-				console.log(
-					"Initialized command reloading for",
-					docsPath,
-					sourceFile,
-				);
+				console.log("Initialized command reloading for", docsPath);
 			} else {
 				console.log(
 					"Could not set up command reloading for",
@@ -123,27 +136,39 @@ export function globalCommand<APList extends APListAny>(
 		if (devMode && sourceFile) {
 			const newLastUpdated = fs.statSync(sourceFile.path).mtime.getTime();
 			if (sourceFile.lastUpdated !== newLastUpdated) {
-				const fileText = fs.readFileSync(sourceFile.path, "utf-8");
+				const fullFunction = getFunctionCode(sourceFile.path);
 
-				let text = fileText;
-				text = text.split(docsPath)[1];
-				text = text.split("\tf => f(),\n\tthis,\n\tasync (")[1];
-				text = text.split("\t},\n);")[0];
+				if (fullFunction !== sourceFile.prevcode) {
+					sourceFile.prevcode = fullFunction;
+					console.log("Reloading ", docsPath);
+					const rescode: string = await new Promise((r, re) => {
+						babel.transform(
+							fullFunction,
+							{
+								filename: "rescode.ts",
+								presets: ["@babel/preset-typescript"],
+								plugins: [],
+							},
+							(err: any, res: any) => {
+								if (err) re(err);
+								r(res.code);
+							},
+						);
+					});
+					const script = new vm.Script(fullFunction, {
+						filename: "reloaded.js",
+						lineOffset: 1,
+						columnOffset: 1,
+						displayErrors: true,
+					});
+					surroundingThis.__result = undefined;
+					const context = vm.createContext(surroundingThis);
+					script.runInContext(context);
+					console.log("Reloaded: ```\n" + fullFunction + "\n```");
+					cb = context.__result;
 
-				const fullFunction = "__result = async (" + text + "};";
-				const script = new vm.Script(fullFunction, {
-					filename: "reloaded.js",
-					lineOffset: 1,
-					columnOffset: 1,
-					displayErrors: true,
-				});
-				surroundingThis.__result = undefined;
-				const context = vm.createContext(surroundingThis);
-				script.runInContext(context);
-				console.log("Reloaded: ```\n" + fullFunction + "\n```");
-				cb = context.__result;
-
-				sourceFile.lastUpdated = newLastUpdated;
+					sourceFile.lastUpdated = newLastUpdated;
+				}
 			}
 		}
 

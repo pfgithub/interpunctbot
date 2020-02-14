@@ -59,6 +59,8 @@ router.add("log", [Info.theirPerm.manageBot], logging);
 export type ErrorWithID = Error & { errorCode: string };
 
 export function wrapErrorAddID(error: Error): ErrorWithID {
+	if (typeof error !== "object")
+		error = new Error("primitive error: " + error);
 	(error as ErrorWithID).errorCode = Math.floor(
 		Math.random() * 1000000000000000,
 	).toString(36);
