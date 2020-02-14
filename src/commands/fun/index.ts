@@ -152,12 +152,12 @@ nr.globalCommand(
 		examples: [
 			{
 				in: "ip!members",
-				out: "This server has 1,749 members.",
+				out: "This server has 1,740 members.",
 			},
 			{
 				in: "ip!members {{Role|🕐︎ SUB-3}}",
 				out:
-					"This server has ... members with the role {{Role|🕐︎ SUB-3}}",
+					"This server has 83 members with the role {{Role|🕐︎ SUB-3}} (4.77%)",
 			},
 		],
 	},
@@ -185,7 +185,17 @@ nr.globalCommand(
 				"This server has " +
 					rolemembers.toLocaleString("en-US") +
 					" members with the role " +
-					messages.role(role),
+					messages.role(role) +
+					" (" +
+					(rolemembers / info.guild.memberCount).toLocaleString(
+						"en-US",
+						{
+							style: "percent",
+							minimumSignificantDigits: 3,
+							maximumSignificantDigits: 3,
+						},
+					) +
+					")",
 			);
 		}
 	},
