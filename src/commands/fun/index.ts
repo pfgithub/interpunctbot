@@ -10,6 +10,7 @@ import gamelibgames from "./gamelibgames";
 import goi from "./goi";
 import trivia from "./trivia";
 import * as nr from "../../NewRouter";
+import { durationFormat } from "../../durationFormat";
 
 const router = new Router<Info, Promise<any>>();
 
@@ -329,16 +330,31 @@ nr.globalCommand(
 		const ap = await AP({ cmd, info }, a.duration(), ...a.words());
 		if (!ap) return;
 		const [delay, message] = ap.result;
+		const restime = new Date().getTime() + delay;
 
 		await info.timedEvents.queue(
 			{
 				type: "pmuser",
-				message: `Reminder: ${message}`,
+				message: `Reminder: ${info.message.url}\n${message
+					.split("\n")
+					.map(l => "> " + l)
+					.join("\n")}`,
 				user: info.message.author.id,
 			},
-			new Date().getTime() + delay,
+			restime,
 		);
-		await info.success("Reminder set");
+		await info.success(
+			"Reminder set for " +
+				(delay >= 86400000
+					? new Date(restime).toUTCString() +
+					  " (" +
+					  durationFormat(delay) +
+					  ")"
+					: durationFormat(delay) +
+					  " (" +
+					  new Date(restime).toUTCString() +
+					  ")"),
+		);
 	},
 );
 

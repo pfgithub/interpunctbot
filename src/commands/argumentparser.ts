@@ -1,7 +1,7 @@
 import * as Discord from "discord.js";
 
 import Info from "../Info";
-import { messages } from "../../messages";
+import { messages, safe } from "../../messages";
 
 export type BaseArgType<S, T> = {
 	type: S;
@@ -381,6 +381,49 @@ function NumberArgumentType(): ArgumentType<number> {
 }
 
 function DurationArgumentType(): ArgumentType<number> {
+	const unit = {
+		ms: 1,
+		sec: 1000,
+		min: 60000,
+		hr: 3600000,
+		day: 86400000,
+		month: 2629746000,
+		year: 31556952000,
+		LL: 864000,
+		cc: 86400,
+		ii: 864,
+		qm: 108 / 125,
+	};
+	const names: { [key: string]: number } = {
+		ms: unit.ms,
+		milisecond: unit.ms,
+		miliseconds: unit.ms,
+		s: unit.sec,
+		sec: unit.sec,
+		second: unit.sec,
+		seconds: unit.sec,
+		m: unit.min,
+		min: unit.min,
+		minute: unit.min,
+		minutes: unit.min,
+		h: unit.hr,
+		hr: unit.hr,
+		hour: unit.hr,
+		hours: unit.hr,
+		d: unit.day,
+		day: unit.day,
+		days: unit.day,
+		month: unit.month,
+		months: unit.month,
+		y: unit.year,
+		yr: unit.year,
+		years: unit.year,
+		ll: unit.LL,
+		cc: unit.cc,
+		ii: unit.ii,
+		qm: unit.qm,
+	};
+
 	return async (info, arg, cmd, index, commandhelp, argpurpose) => {
 		if (!cmd.trim()) {
 			await info.error(
@@ -394,20 +437,46 @@ function DurationArgumentType(): ArgumentType<number> {
 			);
 			return { result: "exit" };
 		}
-		const wordval = /^([\S]+)\s*([\S\s]*)/m.exec(cmd);
-		if (!wordval) {
-			await info.error("duration not provided");
-			return { result: "exit" };
+
+		let remainder = cmd;
+		let result = 0;
+
+		while (true) {
+			if (remainder.startsWith(","))
+				remainder = remainder.substr(1).trim();
+			const inum = /^[0-9.\-]+/.exec(remainder);
+			if (!inum) break;
+			remainder = remainder.substr(inum[0].length).trim();
+
+			if (isNaN(+inum[0])) {
+				await info.error(
+					safe`could not parse number "${inum[0]}" bad.\n> list of units: https://interpunct.bot/help/args/units/or/something/idk`,
+				);
+				return { result: "exit" };
+			}
+			const numberv = +inum[0];
+
+			const unitstr = /^[A-Za-z]+/.exec(remainder);
+			if (!unitstr) {
+				await info.error("no unit bad");
+				return { result: "exit" };
+			}
+			remainder = remainder.substr(unitstr[0].length).trim();
+			const unitname = unitstr[0].toLowerCase();
+
+			if (names[unitname] === undefined) {
+				await info.error(
+					safe`invalid unit "${unitstr[0]}" bad.\n> list of units: https://interpunct.bot/help/args/units/or/something/idk`,
+				);
+				return { result: "exit" };
+			}
+			result += numberv * names[unitname];
 		}
-		const [, num, newCmd] = wordval;
-		const result = +num;
-		if (Number.isNaN(result)) {
-			await info.error("duration invalid");
-			return { result: "exit" };
-		}
+		if (remainder.startsWith(",")) remainder = remainder.substr(1).trim();
+
 		let nearestMS = Math.round(result);
 		if (nearestMS < 0) nearestMS = 0;
-		return { result: "continue", value: nearestMS, cmd: newCmd };
+		return { result: "continue", value: nearestMS, cmd: remainder };
 	};
 }
 
