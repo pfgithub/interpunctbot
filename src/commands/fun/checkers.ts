@@ -520,6 +520,7 @@ nr.globalCommand(
 		examples: [{ in: "FILLME", out: "FILLME" }],
 	},
 	nr.list(...nr.a.words()),
+	f => f(),
 	async ([cmd], info) => {
 		const apresult = await AP({ info, cmd });
 		if (!apresult) return;

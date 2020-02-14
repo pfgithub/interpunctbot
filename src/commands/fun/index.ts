@@ -23,6 +23,7 @@ nr.globalCommand(
 		examples: [{ in: "ip!ping", out: "@you, Pong!" }],
 	},
 	nr.list(),
+	f => f(),
 	async ([], info) => {
 		if (info.db ? !(await info.db.getFunEnabled()) : false) {
 			return await info.error(messages.fun.fun_disabled(info));
@@ -44,6 +45,7 @@ nr.globalCommand(
 		examples: [{ in: "ip!pong", out: "@you, Ping!" }],
 	},
 	nr.list(),
+	f => f(),
 	async ([], info) => {
 		if (info.db ? !(await info.db.getFunEnabled()) : false) {
 			return await info.error(messages.fun.fun_disabled(info));
@@ -65,6 +67,7 @@ nr.globalCommand(
 		examples: [{ in: "FILLME", out: "FILLME" }],
 	},
 	nr.list(nr.a.word()),
+	f => f(),
 	async ([word], info) => {
 		if (info.db ? await info.db.getFunEnabled() : true) {
 		} else {
@@ -88,6 +91,7 @@ nr.globalCommand(
 		examples: [{ in: "FILLME", out: "FILLME" }],
 	},
 	nr.list(...nr.a.words()),
+	f => f(),
 	async ([cmd], info) => {
 		if (info.db ? await info.db.getFunEnabled() : true) {
 		} else {
@@ -111,6 +115,7 @@ nr.globalCommand(
 		examples: [{ in: "FILLME", out: "FILLME" }],
 	},
 	nr.list(...nr.a.words()),
+	f => f(),
 	async ([cmd], info) => {
 		if (info.db ? await info.db.getFunEnabled() : true) {
 		} else {
@@ -162,6 +167,7 @@ nr.globalCommand(
 		],
 	},
 	nr.list(...nr.a.words()),
+	f => f(),
 	async ([cmd], info) => {
 		if (!info.guild) {
 			return await info.error("something something pms");
@@ -210,6 +216,7 @@ nr.globalCommand(
 		examples: [{ in: "FILLME", out: "FILLME" }],
 	},
 	nr.list(...nr.a.words()),
+	f => f(),
 	async ([cmd], info) => {
 		if (info.db ? await info.db.getFunEnabled() : true) {
 		} else {
@@ -240,6 +247,7 @@ nr.globalCommand(
 		examples: [{ in: "FILLME", out: "FILLME" }],
 	},
 	nr.list(...nr.a.words()),
+	f => f(),
 	async ([cmd], info) => {
 		if (info.db ? await info.db.getFunEnabled() : true) {
 		} else {
@@ -302,6 +310,7 @@ nr.globalCommand(
 		examples: [{ in: "FILLME", out: "FILLME" }],
 	},
 	nr.list(),
+	f => f(),
 	async ([], info) => {
 		if (info.db ? await info.db.getFunEnabled() : true) {
 		} else {
@@ -332,6 +341,7 @@ nr.globalCommand(
 		examples: [{ in: "FILLME", out: "FILLME" }],
 	},
 	nr.list(...nr.a.words()),
+	f => f(),
 	async ([cmd], info) => {
 		if (info.db ? await info.db.getFunEnabled() : true) {
 		} else {
@@ -412,6 +422,7 @@ nr.globalCommand(
 		examples: [{ in: "FILLME", out: "FILLME" }],
 	},
 	nr.list(...nr.a.words()),
+	f => f(),
 	async ([cmd], info) => {
 		if (info.db ? await info.db.getFunEnabled() : true) {
 		} else {

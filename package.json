@@ -15,6 +15,7 @@
 		"bookshelf": "^1.0.1",
 		"commandrouter": "pfgithub/command-router",
 		"discord.js": "discordjs/discord.js",
+		"fuse.js": "^3.4.6",
 		"he": "^1.2.0",
 		"js-yaml": "^3.13.1",
 		"knex": "^0.19.5",

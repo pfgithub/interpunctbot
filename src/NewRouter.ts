@@ -51,11 +51,14 @@ export type CommandNS = { [key: string]: CommandData };
 export const globalCommandNS: CommandNS = {}; // Object.keys(globalCommandNS).sort().reverse().find()
 export const globalDocs: { [key: string]: HelpData } = {};
 
+export const devMode = process.env.NODE_ENV !== "production";
+
 export function globalCommand<APList extends APListAny>(
 	docsPath: string,
 	uniqueGlobalName: string,
 	help: HelpData,
 	aplist: List<APList>,
+	f: (z: () => never) => never,
 	cb: (apresults: Results<APList>, info: Info) => Promise<any>,
 ) {
 	if (docsPath.toLowerCase() !== docsPath)
@@ -72,41 +75,56 @@ export function globalCommand<APList extends APListAny>(
 
 	globalDocs[docsPath] = help;
 
+	let sourceCodeLocation;
+	if (devMode) {
+		try {
+			f(() => {
+				throw new Error("");
+			});
+		} catch (e) {
+			const err = e as Error;
+			const stacktrace = err.stack || "";
+			const lines = stacktrace.split("\n");
+			const commandLines = lines.filter(l => l.includes("/src/commands"));
+			const gcmdCall = commandLines[1];
+			console.log(gcmdCall);
+		}
+	}
+
+	const handleCommand = async (cmd: string, info: Info) => {
+		const apresult = await ilt(
+			AP({ info, cmd, help: docsPath, partial: false }, ...aplist.list),
+			"running command ap " + uniqueGlobalName,
+		);
+		if (apresult.error) {
+			await info.error(
+				"AP test failed (score <2). Error code: `" +
+					apresult.error.errorCode +
+					"`",
+			);
+			return;
+		}
+		if (!apresult.result) return;
+		const cbResult = await ilt(
+			cb(apresult.result.result as any, info),
+			"running command " + uniqueGlobalName,
+		);
+		if (cbResult.error) {
+			// TODO if discord api error no permission, say "interpunct does not have permission"
+			await info.error(
+				"An internal error occured while running this command. Error code: `" +
+					cbResult.error.errorCode +
+					"`.",
+			);
+		}
+	};
+
 	globalCommandNS[uniqueGlobalName] = {
 		command: uniqueGlobalName,
 		docsPath,
 		handler: (cmd: string, info: Info) => {
 			perr(
-				(async () => {
-					const apresult = await ilt(
-						AP(
-							{ info, cmd, help: docsPath, partial: false },
-							...aplist.list,
-						),
-						"running command ap " + uniqueGlobalName,
-					);
-					if (apresult.error) {
-						await info.error(
-							"AP test failed (score <2). This should never happen. Error code: `" +
-								apresult.error.errorCode +
-								"`",
-						);
-						return;
-					}
-					if (!apresult.result) return;
-					const cbResult = await ilt(
-						cb(apresult.result.result as any, info),
-						"running command " + uniqueGlobalName,
-					);
-					if (cbResult.error) {
-						// TODO if discord api error no permission, say "interpunct does not have permission"
-						await info.error(
-							"An internal error occured while running this command. Error code: `" +
-								cbResult.error.errorCode +
-								"`.",
-						);
-					}
-				})(),
+				handleCommand(cmd, info),
 				"running command ns handler " + uniqueGlobalName,
 			);
 		},

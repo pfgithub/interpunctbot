@@ -9,6 +9,7 @@ nr.globalCommand(
 		examples: [],
 	},
 	nr.list(nr.a.emoji(), ...nr.a.role()),
+	f => f(),
 	async ([emoji, role], info) => {
 		await info.success(`Emoji ID: ${emoji.id}, Role ID: ${role.id}`);
 	},
@@ -28,6 +29,7 @@ nr.globalCommand(
 		],
 	},
 	nr.list(),
+	f => f(),
 	async ([], info) => {
 		throw new Error("Crash command used");
 	},
