@@ -6,6 +6,7 @@ import { AutodeleteRuleNoID } from "../Database";
 import { durationFormat } from "../durationFormat";
 import Info from "../Info";
 import { a, AP } from "./argumentparser";
+import * as nr from "../NewRouter";
 const router = new Router<Info, Promise<any>>();
 
 const stripMentions = (msg: string) => {
@@ -268,13 +269,24 @@ Output: @you, {{Emoji|success}} Slowmode for {{Channel|channel}} set to 2 second
 
 */
 
-router.add(
+nr.globalCommand(
+	"/help/channels/slowmode/set",
 	"slowmode set",
-	[Info.theirPerm.manageChannels],
-	async (cmd, info) => {
-		const ap = await AP({ info, cmd }, a.channel(), a.duration());
-		if (!ap) return;
-		const [channel, time] = ap.result;
+	{
+		usage: "slowmode set {{Channel|channel}} {{Duration|duration}}",
+		description:
+			"Set the slowmode for a channel to values that discord does not provide (such as 1 second, 45 minutes, ...). Maximum of 6 hours, minimum of 1 second, set to 0 to disable slowmode.",
+		examples: [
+			{
+				in: "ip!slowmode set {{Channel|channel}} 1 second",
+				out:
+					"{{Atmention|you}}, {{Emoji|Success}} Slowmode for {{Channel|channel}} set to 1 second, 000ms",
+			},
+		],
+	},
+	nr.list(nr.a.channel(), nr.a.duration()),
+	async ([channel, time], info) => {
+		if (!Info.theirPerm.manageChannels(info)) return;
 
 		const guild = info.guild;
 		if (!guild) {
