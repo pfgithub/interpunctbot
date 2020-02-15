@@ -285,8 +285,6 @@ nr.globalCommand(
 		],
 	},
 	nr.list(nr.a.channel(), nr.a.duration()),
-	f => f(),
-	this,
 	async ([channel, time], info) => {
 		if (!Info.theirPerm.manageChannels(info)) return;
 

@@ -1,7 +1,3 @@
-import fs from "fs";
-import vm from "vm";
-//@ts-ignore
-const babel = require("@babel/core"); //eslint-disable-line @typescript-eslint/no-var-requires
 import Info from "./Info";
 import {
 	Results,
@@ -67,8 +63,6 @@ export function globalCommand<APList extends APListAny>(
 	uniqueGlobalName: string,
 	help: HelpData,
 	aplist: List<APList>,
-	f: (z: () => never) => never,
-	surroundingThis: any,
 	cb: CmdCb<APList>,
 ) {
 	if (docsPath.toLowerCase() !== docsPath)
@@ -85,96 +79,7 @@ export function globalCommand<APList extends APListAny>(
 
 	globalDocs[docsPath] = help;
 
-	function getFunctionCode(path: string) {
-		const fileText = fs.readFileSync(path, "utf-8");
-
-		let text = fileText;
-		text = text.split(
-			"nr.globalCommand(\n\t" + JSON.stringify(docsPath) + ",",
-		)[1];
-		text = text.split("\tf => f(),\n\tthis,\n\tasync (")[1];
-		text = text.split("\t},\n);")[0];
-
-		const fullFunction = "__result = async (" + text + "};";
-		return fullFunction;
-	}
-
-	let sourceFile:
-		| { path: string; lastUpdated: number; prevcode: string }
-		| undefined;
-	if (devMode) {
-		try {
-			f(() => {
-				throw new Error("");
-			});
-		} catch (e) {
-			const err = e as Error;
-			const stacktrace = err.stack || "";
-			const lines = stacktrace.split("\n");
-			const commandLines = lines.filter(l => l.includes("/src/commands"));
-			const gcmdCall = commandLines[1];
-			const rgxMatch = /at Object.<anonymous> \((.+?):[0-9]+?:[0-9]+?\)/.exec(
-				gcmdCall,
-			);
-			if (rgxMatch) {
-				const fpath = rgxMatch[1];
-				sourceFile = {
-					path: fpath,
-					lastUpdated: fs.statSync(fpath).mtime.getTime(),
-					prevcode: getFunctionCode(fpath),
-				};
-				console.log("Initialized command reloading for", docsPath);
-			} else {
-				console.log(
-					"Could not set up command reloading for",
-					docsPath,
-					rgxMatch,
-				);
-			}
-		}
-	}
-
 	const handleCommand = async (cmd: string, info: Info) => {
-		if (devMode && sourceFile) {
-			const newLastUpdated = fs.statSync(sourceFile.path).mtime.getTime();
-			if (sourceFile.lastUpdated !== newLastUpdated) {
-				const fullFunction = getFunctionCode(sourceFile.path);
-				console.log(fullFunction);
-
-				if (fullFunction !== sourceFile.prevcode) {
-					sourceFile.prevcode = fullFunction;
-					console.log("Reloading ", docsPath);
-					const rescode: string = await new Promise((r, re) => {
-						babel.transform(
-							fullFunction,
-							{
-								filename: "rescode.ts",
-								presets: ["@babel/preset-typescript"],
-								plugins: [],
-							},
-							(err: any, res: any) => {
-								if (err) re(err);
-								r(res.code);
-							},
-						);
-					});
-					const script = new vm.Script(rescode, {
-						filename: "reloaded.js",
-						lineOffset: 1,
-						columnOffset: 1,
-						displayErrors: true,
-					});
-					surroundingThis.__result = undefined;
-					const context = vm.createContext(surroundingThis);
-					script.runInContext(context);
-					console.log("Reloaded: ```\n" + rescode + "\n```");
-					cb = context.__result;
-
-					sourceFile.lastUpdated = newLastUpdated;
-				}
-			}
-		}
-
 		const apresult = await ilt(
 			AP({ info, cmd, help: docsPath, partial: false }, ...aplist.list),
 			"running command ap " + uniqueGlobalName,

@@ -9,8 +9,6 @@ nr.globalCommand(
 		examples: [],
 	},
 	nr.list(),
-	f => f(),
-	this,
 	async ([], info) => {
 		await info.success(
 			`it works! this is the default webpage for this web server.`,
@@ -32,8 +30,6 @@ nr.globalCommand(
 		],
 	},
 	nr.list(),
-	f => f(),
-	this,
 	async ([], info) => {
 		throw new Error("Crash command used");
 	},
