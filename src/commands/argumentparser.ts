@@ -119,7 +119,12 @@ export const a = {
 		return [WordsArgumentType()] as const;
 	},
 	role() {
-		return [RoleArgumentType()] as const;
+		return [RoleArgumentType(false) as ArgumentType<Discord.Role>] as const;
+	},
+	manyRoles() {
+		return [
+			RoleArgumentType(true) as ArgumentType<Discord.Role[]>,
+		] as const;
 	},
 };
 
@@ -500,7 +505,9 @@ function WordsArgumentType(): ArgumentType<string> {
 	};
 }
 
-function RoleArgumentType(): ArgumentType<Discord.Role> {
+function RoleArgumentType(
+	allowMultiple: boolean,
+): ArgumentType<Discord.Role | Discord.Role[]> {
 	return async (info, arg, cmd, index, commandhelp, argpurpose) => {
 		if (!cmd.trim()) {
 			await info.error(
@@ -557,6 +564,13 @@ function RoleArgumentType(): ArgumentType<Discord.Role> {
 				.array()
 				.filter(role => roleNameMatch(role.name, rolename));
 			if (exactMatches.length > 1) {
+				if (allowMultiple) {
+					return {
+						result: "continue",
+						value: exactMatches,
+						cmd: "",
+					};
+				}
 				await info.error(
 					messages.arguments.multiple_roles_found(
 						info,
@@ -568,9 +582,11 @@ function RoleArgumentType(): ArgumentType<Discord.Role> {
 				return { result: "exit" };
 			}
 			if (exactMatches.length === 0) {
-				const roleNameList = info.guild.roles.array();
+				const roleNameList = info.guild.roles
+					.array()
+					.sort((a, b) => b.comparePositionTo(a));
 				const fuse = new Fuse(roleNameList, {
-					shouldSort: true,
+					shouldSort: false,
 					threshold: 0.1,
 					location: 0,
 					distance: 100,
@@ -590,6 +606,13 @@ function RoleArgumentType(): ArgumentType<Discord.Role> {
 					);
 					return { result: "exit" };
 				} else if (results.length > 1) {
+					if (allowMultiple) {
+						return {
+							result: "continue",
+							value: results,
+							cmd: "",
+						};
+					}
 					await info.error(
 						messages.arguments.multiple_roles_found_fuzzy(
 							info,
@@ -611,7 +634,7 @@ function RoleArgumentType(): ArgumentType<Discord.Role> {
 		}
 		return {
 			result: "continue",
-			value: role,
+			value: allowMultiple ? [role] : role,
 			cmd: "",
 		};
 	};

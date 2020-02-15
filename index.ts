@@ -356,6 +356,8 @@ client.on("guildMemberRemove", member => {
 				// partial is not supported
 				console.log(
 					"!!! PARTIAL MEMBER WAS AQUIRED IN A MEMBER REMOVE EVENT",
+					"the member is:",
+					member,
 				);
 				await member.fetch();
 				if (!tsAssert<Discord.GuildMember>(member)) return;

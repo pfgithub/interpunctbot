@@ -187,28 +187,30 @@ nr.globalCommand(
 		} else {
 			const ap = await AP(
 				{ cmd, info, help: "/help/fun/members" },
-				...a.role(),
+				...a.manyRoles(),
 			);
 			if (!ap) return;
-			const [role] = ap.result;
+			const [roles] = ap.result;
 
-			const rolemembers = role.members.size;
-			await info.result(
-				"This server has " +
-					rolemembers.toLocaleString("en-US") +
-					" members with the role " +
-					messages.role(role) +
-					" (" +
-					(rolemembers / info.guild.memberCount).toLocaleString(
-						"en-US",
-						{
-							style: "percent",
-							minimumSignificantDigits: 3,
-							maximumSignificantDigits: 3,
-						},
-					) +
-					")",
-			);
+			for (const role of roles) {
+				const rolemembers = role.members.size;
+				await info.result(
+					"This server has " +
+						rolemembers.toLocaleString("en-US") +
+						" members with the role " +
+						messages.role(role) +
+						" (" +
+						(rolemembers / info.guild.memberCount).toLocaleString(
+							"en-US",
+							{
+								style: "percent",
+								minimumSignificantDigits: 3,
+								maximumSignificantDigits: 3,
+							},
+						) +
+						")",
+				);
+			}
 		}
 	},
 );
