@@ -192,9 +192,10 @@ nr.globalCommand(
 			if (!ap) return;
 			const [roles] = ap.result;
 
+			const results: string[] = [];
 			for (const role of roles) {
 				const rolemembers = role.members.size;
-				await info.result(
+				results.push(
 					"This server has " +
 						rolemembers.toLocaleString("en-US") +
 						" members with the role " +
@@ -211,6 +212,8 @@ nr.globalCommand(
 						")",
 				);
 			}
+
+			await info.result(results.join("\n"));
 		}
 	},
 );

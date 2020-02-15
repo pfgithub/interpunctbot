@@ -89,7 +89,9 @@ export function globalCommand<APList extends APListAny>(
 		const fileText = fs.readFileSync(path, "utf-8");
 
 		let text = fileText;
-		text = text.split(docsPath)[1];
+		text = text.split(
+			"nr.globalCommand(\n\t" + JSON.stringify(docsPath) + ",",
+		)[1];
 		text = text.split("\tf => f(),\n\tthis,\n\tasync (")[1];
 		text = text.split("\t},\n);")[0];
 
@@ -137,6 +139,7 @@ export function globalCommand<APList extends APListAny>(
 			const newLastUpdated = fs.statSync(sourceFile.path).mtime.getTime();
 			if (sourceFile.lastUpdated !== newLastUpdated) {
 				const fullFunction = getFunctionCode(sourceFile.path);
+				console.log(fullFunction);
 
 				if (fullFunction !== sourceFile.prevcode) {
 					sourceFile.prevcode = fullFunction;
@@ -155,7 +158,7 @@ export function globalCommand<APList extends APListAny>(
 							},
 						);
 					});
-					const script = new vm.Script(fullFunction, {
+					const script = new vm.Script(rescode, {
 						filename: "reloaded.js",
 						lineOffset: 1,
 						columnOffset: 1,
@@ -164,7 +167,7 @@ export function globalCommand<APList extends APListAny>(
 					surroundingThis.__result = undefined;
 					const context = vm.createContext(surroundingThis);
 					script.runInContext(context);
-					console.log("Reloaded: ```\n" + fullFunction + "\n```");
+					console.log("Reloaded: ```\n" + rescode + "\n```");
 					cb = context.__result;
 
 					sourceFile.lastUpdated = newLastUpdated;
