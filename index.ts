@@ -246,6 +246,7 @@ router.add([], async (cmd, info) => {
 		unknownCommandMessages === "always" ||
 		(unknownCommandMessages === "admins" && info.authorPerms.manageBot)
 	) {
+		if (/^[^a-zA-Z]/.exec(cmd)) return; // for people using different prefixes like $ so $10 doesn't trigger
 		return await info.errorAlways(
 			messages.failure.command_not_found(info, cmd),
 			undefined,
