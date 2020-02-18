@@ -45,6 +45,10 @@ export type HelpData = {
 	description: string;
 	examples: { in: string; out: string }[];
 };
+export type ErrorData = {
+	overview: string;
+	detail: string;
+};
 export type CommandData = {
 	docsPath: string;
 	command: string;
@@ -54,9 +58,70 @@ export type CommandData = {
 export type CommandNS = { [key: string]: CommandData };
 
 export const globalCommandNS: CommandNS = {}; // Object.keys(globalCommandNS).sort().reverse().find()
-export const globalDocs: { [key: string]: HelpData } = {};
+export const globalDocs: { [key: string]: PageData & { path: string } } = {};
 
 export const devMode = process.env.NODE_ENV !== "production";
+
+export type PageData = {
+	summaries: {
+		usage: string;
+		description: string;
+	};
+	body: string;
+};
+
+export function addDocsPage(docsPath: string, page: PageData) {
+	if (docsPath.toLowerCase() !== docsPath)
+		throw new Error("Docs path must be lowercase");
+	if (!docsPath.startsWith("/"))
+		throw new Error("Docs path must start with /");
+	if (docsPath.endsWith("/"))
+		throw new Error("Docs path must not end with /");
+	if (globalDocs[docsPath]) throw new Error("Docs path must be unique.");
+
+	globalDocs[docsPath] = { ...page, path: docsPath };
+}
+
+export function addHelpDocsPage(docsPath: string, help: HelpData) {
+	if (!docsPath.startsWith("/help/"))
+		throw new Error("Docs path must start with /help/");
+	addDocsPage(docsPath, {
+		body:
+			"{{Heading|commandName}}\n\nUsage: {{Command|" +
+			help.usage +
+			"}}\n\n" +
+			help.description +
+			"\n\n" +
+			help.examples
+				.map(
+					ex =>
+						`{{ExampleUserMessage|${ex.in}}}\n\n{{ExampleBotMessage|${ex.out}}}`,
+				)
+				.join("\n\n"),
+		summaries: {
+			usage: help.usage,
+			description: help.description,
+		},
+	});
+}
+
+export function addErrorDocsPage(docsPath: string, error: ErrorData) {
+	if (!docsPath.startsWith("/errors/"))
+		throw new Error("Docs path must start with /errors/");
+	addDocsPage(docsPath, {
+		body: `${error.overview}\n\n${error.detail}`,
+		summaries: {
+			usage: "no usage **error**?¿",
+			description: error.overview,
+		},
+	});
+}
+
+// addDocsPage("/errors/somerror", {
+// 	summaries: {
+// 		usage: undefined,
+// 	},
+// });
 
 export function globalCommand<APList extends APListAny>(
 	docsPath: string,
@@ -65,19 +130,12 @@ export function globalCommand<APList extends APListAny>(
 	aplist: List<APList>,
 	cb: CmdCb<APList>,
 ) {
-	if (docsPath.toLowerCase() !== docsPath)
-		throw new Error("Docs path must be lowercase");
 	if (uniqueGlobalName.toLowerCase() !== uniqueGlobalName)
 		throw new Error("uniqueGlobalName must be lowercase");
-	if (!docsPath.startsWith("/help/"))
-		throw new Error("Docs path must start with /help/");
-	if (docsPath.endsWith("/"))
-		throw new Error("Docs path must not end with /");
-	if (globalDocs[docsPath]) throw new Error("Docs path must be unique.");
 	if (globalCommandNS[uniqueGlobalName])
 		throw new Error("Command path must be unique.");
 
-	globalDocs[docsPath] = help;
+	addHelpDocsPage(docsPath, help);
 
 	const handleCommand = async (cmd: string, info: Info) => {
 		const apresult = await ilt(

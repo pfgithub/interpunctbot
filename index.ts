@@ -4,8 +4,9 @@ import path from "path"; // TODO add something so if you delete a message with a
 import * as Discord from "discord.js";
 import Router from "commandrouter";
 import Info from "./src/Info";
-import { messages } from "./messages";
+import { messages, safe } from "./messages";
 
+import "./src/commands/help";
 import fun from "./src/commands/fun";
 import speedrun from "./src/commands/speedrun";
 import logging from "./src/commands/logging";
@@ -318,7 +319,7 @@ async function guildMemberAdd(
 			// } !!!!!!!!!!!!!!!!!!!!!!!!!!!!! this should be logged on bot.on(ban)
 		} else {
 			await db.addError(
-				`Unable to ban user named ${member.displayName}, possibly because interpunct bot does not have permission to ban members.`,
+				safe`Unable to ban user named ${member.displayName}, possibly because interpunct bot does not have permission to ban members.`,
 				"name screening",
 			);
 		}
