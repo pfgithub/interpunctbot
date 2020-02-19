@@ -250,9 +250,6 @@ nr.globalCommand(
 		} else {
 			return await info.error(messages.fun.fun_disabled(info));
 		}
-		if (!cmd) {
-			return await info.help("/help/fun/vote", "usage");
-		}
 		const msg = await info.channel.send("VOTE: " + safe`${cmd}`);
 		await Promise.all([
 			msg.react("674675568993894412"),
