@@ -14,7 +14,7 @@ export function parseDG(
 	cleanText: (txt: string) => string,
 	callFunction: (
 		name: string,
-		args: { clean: string; raw: string }[],
+		args: { safe: string; raw: string }[],
 	) => string,
 ): { resRaw: string; resClean: string; remaining: string } {
 	let resRaw = "";
@@ -51,7 +51,7 @@ export function parseDG(
 
 			const argName = dg.substr(0, closest);
 
-			const args: { clean: string; raw: string }[] = [];
+			const args: { safe: string; raw: string }[] = [];
 
 			while (size === 1) {
 				const cut = dg.substr(closest + size);
@@ -59,7 +59,7 @@ export function parseDG(
 				const parsed = parseDG(cut, cleanText, callFunction);
 
 				dg = parsed.remaining;
-				args.push({ clean: parsed.resClean, raw: parsed.resRaw });
+				args.push({ safe: parsed.resClean, raw: parsed.resRaw });
 
 				firstLine = infIndexOf(dg, "|");
 				firstCloseBracket = infIndexOf(dg, "}}");

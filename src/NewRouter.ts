@@ -8,6 +8,7 @@ import {
 	a,
 } from "./commands/argumentparser";
 import { ilt, perr } from "..";
+import { confirmDocs } from "./commands/help";
 export { list, a };
 
 /*
@@ -70,6 +71,8 @@ export type PageData = {
 	body: string;
 };
 
+const developmentMode = process.env.NODE_ENV !== "production";
+
 export function addDocsPage(docsPath: string, page: PageData) {
 	if (docsPath.toLowerCase() !== docsPath)
 		throw new Error("Docs path must be lowercase");
@@ -78,6 +81,12 @@ export function addDocsPage(docsPath: string, page: PageData) {
 	if (docsPath.endsWith("/"))
 		throw new Error("Docs path must not end with /");
 	if (globalDocs[docsPath]) throw new Error("Docs path must be unique.");
+
+	if (developmentMode) {
+		confirmDocs(page.body);
+		confirmDocs(page.summaries.usage);
+		confirmDocs(page.summaries.description);
+	}
 
 	globalDocs[docsPath] = { ...page, path: docsPath };
 }

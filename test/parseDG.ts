@@ -7,7 +7,7 @@ assert.deepStrictEqual(
 		`{{Message|Hello!|Argument 2}}`,
 		txt => "(clean: `" + txt + "`)",
 		(fn, args) =>
-			"(`" + fn + "`: " + args.map(a => a.clean).join(", ") + ")",
+			"(`" + fn + "`: " + args.map(a => a.safe).join(", ") + ")",
 	),
 	{
 		remaining: "",
@@ -22,7 +22,7 @@ assert.deepStrictEqual(
 		`Hi!`,
 		txt => "(clean: `" + txt + "`)",
 		(fn, args) =>
-			"(`" + fn + "`: " + args.map(a => a.clean).join(", ") + ")",
+			"(`" + fn + "`: " + args.map(a => a.safe).join(", ") + ")",
 	),
 	{
 		remaining: "",
@@ -36,7 +36,7 @@ assert.deepStrictEqual(
 		`text before {{Entity}} text after`,
 		txt => "(clean: `" + txt + "`)",
 		(fn, args) =>
-			"(`" + fn + "`: " + args.map(a => a.clean).join(", ") + ")",
+			"(`" + fn + "`: " + args.map(a => a.safe).join(", ") + ")",
 	),
 	{
 		remaining: "",
@@ -50,7 +50,7 @@ assert.deepStrictEqual(
 		`{{Entity|Something {{Sub-Entity|Arg}} |Arg two}}`,
 		txt => "(clean: `" + txt + "`)",
 		(fn, args) =>
-			"(`" + fn + "`: " + args.map(a => a.clean).join(", ") + ")",
+			"(`" + fn + "`: " + args.map(a => a.safe).join(", ") + ")",
 	),
 	{
 		remaining: "",
@@ -68,9 +68,9 @@ assert.deepStrictEqual(
 		txt => txt.toLowerCase().replace(/[^a-z0-9]/g, "-"),
 		(fn, args) =>
 			fn === "Heading"
-				? `<h1>${args[0].clean}</h1>`
+				? `<h1>${args[0].safe}</h1>`
 				: fn === "Link"
-				? `<a href="${args[1].raw}">${args[0].clean}</a>`
+				? `<a href="${args[1].raw}">${args[0].safe}</a>`
 				: "{{Errorbad!}}",
 	),
 	{
