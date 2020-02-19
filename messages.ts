@@ -113,7 +113,14 @@ ${Object.keys("lists")
 > [\`X\`] PM Errors: \`ip!settings pm on|off\` (Default: on)
 > [\`X\`] Set Prefix: \`ip!set prefix newprefix\` (Default \`{defaultprefix}\`)`,
 	},
-	role: (role: Discord.Role) => safe`${`@${role.name}`}`,
+	role: (role: Discord.Role) => {
+		if (
+			role.mentionable ||
+			role.guild.me!.hasPermission("MENTION_EVERYONE")
+		)
+			return safe`${`@${role.name}`}`;
+		return role.toString();
+	},
 	nd: (number: number) =>
 		number +
 		(number > 10 && number < 20 // 12th, 13th, 14th
