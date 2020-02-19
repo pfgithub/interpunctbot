@@ -8,7 +8,9 @@ function ignorePromise(_p: Promise<unknown>) {}
 
 const token = config.token;
 
-ignorePromise(client.login(token));
+export const docsGenMode = process.argv.includes("--gen-docs");
+
+if (!docsGenMode) ignorePromise(client.login(token));
 
 export let timedEvents: TimedEvents | undefined = undefined;
 

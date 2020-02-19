@@ -330,10 +330,17 @@ desc: automatically delete messages starting with ip! after 15 seconds
 */
 // autodelete list
 // autodelete remove [id]
-router.add(
+nr.globalCommand(
+	"/help/channels/autodelete/list",
 	"autodelete list",
-	[Info.theirPerm.manageChannels, Info.ourPerm.manageMessages],
-	async (cmd, info) => {
+	{
+		usage: "autodelete list",
+		description: "list all autodelete rules on this server",
+		examples: [],
+	},
+	nr.list(...nr.a.words()),
+	async ([cmd], info) => {
+		if (!Info.theirPerm.manageChannels(info)) return;
 		if (!info.db) {
 			return await info.error(
 				messages.failure.command_cannot_be_used_in_pms(info),
@@ -358,10 +365,18 @@ router.add(
 		);
 	},
 );
-router.add(
+nr.globalCommand(
+	"/help/channels/autodelete/remove",
 	"autodelete remove",
-	[Info.theirPerm.manageChannels],
-	async (cmd, info) => {
+	{
+		usage: "autodelete remove #",
+		description:
+			"remove an autodelete rule. use {{Command|autodelete list}} to list.",
+		examples: [],
+	},
+	nr.list(...nr.a.words()),
+	async ([cmd], info) => {
+		if (!Info.theirPerm.manageChannels(info)) return;
 		if (!info.db) {
 			return await info.error(
 				messages.failure.command_cannot_be_used_in_pms(info),
@@ -374,10 +389,20 @@ router.add(
 		return await info.success("Autodelete rule removed");
 	},
 );
-router.add(
+nr.globalCommand(
+	"/help/channels/autodelete/add",
 	"autodelete add",
-	[Info.theirPerm.manageChannels],
-	async (cmd, info) => {
+	{
+		usage:
+			"autodelete add {{Duration}} prefix prefix user user channel channel role role",
+		description:
+			"create an autodelete rule. autodelete rules will delete messages that match a certain rule, such as being from a specific user or in a specific channel.\n\n{{Heading|Using autodelete rules to create a 3s-delete channel}}\n\n{{Command|autodelete add 3s channel {{Channel|3s-delete}}}}\n\n{{Heading|Using autodelete rules to delete bot messages after a certain time period}}\n\n{{Command|autodelete add 10 seconds user {{Atmention|Mee6}}}}",
+		examples: [],
+	},
+	nr.list(...nr.a.words()),
+	async ([cmd], info) => {
+		if (!Info.theirPerm.manageChannels(info)) return;
+		if (!Info.ourPerm.manageMessages(info)) return;
 		if (!info.db) {
 			return await info.error(
 				messages.failure.command_cannot_be_used_in_pms(info),

@@ -96,7 +96,7 @@ const commands: {
 	Atmention: {
 		confirm: args => assert.equal(args.length, 1),
 		html: args => rawhtml`<a class="tag">@${args[0].safe}</a>`,
-		discord: args => "@" + args[0],
+		discord: args => "@" + args[0].safe,
 	},
 	Emoji: {
 		confirm: args => {
