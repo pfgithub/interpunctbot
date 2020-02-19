@@ -11,15 +11,14 @@ function max2(...args: [number, number][]) {
 
 export function parseDG(
 	dg: string,
-	{
-		cleanText,
-		callFunction,
-	}: {
-		cleanText: (str: string) => string;
-		callFunction: (name: string, args: string[]) => string;
-	},
-): { res: string; remaining: string } {
-	let res = "";
+	cleanText: (txt: string) => string,
+	callFunction: (
+		name: string,
+		args: { clean: string; raw: string }[],
+	) => string,
+): { resRaw: string; resClean: string; remaining: string } {
+	let resRaw = "";
+	let resClean = "";
 
 	while (dg) {
 		const nextOpenBracket = infIndexOf(dg, "{{");
@@ -32,7 +31,8 @@ export function parseDG(
 			[dg.length, 0],
 		);
 
-		res += cleanText(dg.substr(0, closest));
+		resRaw += dg.substr(0, closest);
+		resClean += cleanText(dg.substr(0, closest));
 
 		if (
 			nextCloseBracket < nextOpenBracket ||
@@ -51,29 +51,29 @@ export function parseDG(
 
 			const argName = dg.substr(0, closest);
 
-			const args: string[] = [];
+			const args: { clean: string; raw: string }[] = [];
 
 			while (size === 1) {
 				const cut = dg.substr(closest + size);
 
-				const parsed = parseDG(cut, { cleanText, callFunction });
+				const parsed = parseDG(cut, cleanText, callFunction);
 
 				dg = parsed.remaining;
-				args.push(parsed.res);
+				args.push({ clean: parsed.resClean, raw: parsed.resRaw });
 
 				firstLine = infIndexOf(dg, "|");
 				firstCloseBracket = infIndexOf(dg, "}}");
 				[closest, size] = max2([firstLine, 1], [firstCloseBracket, 2]);
-
-				console.log(closest, size, dg);
 			}
 
 			dg = dg.substr(closest + size);
 
-			res += callFunction(argName, args);
+			const callResult = callFunction(argName, args);
+			resRaw += callResult;
+			resClean += callResult;
 		}
 	}
-	return { res, remaining: dg };
+	return { resRaw, resClean, remaining: dg };
 }
 
 /*
