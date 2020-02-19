@@ -12,5 +12,5 @@
 		"strict": true,
 		"esModuleInterop": true
 	},
-	"include": ["src/**/*", "index.ts"]
+	"include": ["src/**/*", "test/**/*", "index.ts"]
 }
