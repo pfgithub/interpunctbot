@@ -102,8 +102,7 @@ ${Object.keys("lists")
 > [\`X\`] PM Errors: \`ip!settings pm on|off\` (Default: on)
 > [\`X\`] Set Prefix: \`ip!set prefix newprefix\` (Default \`{defaultprefix}\`)`,
 	},
-	role: (role: Discord.Role) =>
-		role.mentionable ? safe`${`@${role.name}`}` : role.toString(),
+	role: (role: Discord.Role) => safe`${`@${role.name}`}`,
 	nd: (number: number) =>
 		number +
 		(number > 10 && number < 20 // 12th, 13th, 14th
