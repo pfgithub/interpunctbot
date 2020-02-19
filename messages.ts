@@ -5,24 +5,35 @@ export function raw(string: TemplateStringsArray | string) {
 	return { __raw: `${string}` };
 }
 
-export function safe(
-	strings: TemplateStringsArray,
-	...values: (string | { __raw: string })[]
-) {
-	const result: (string | { __raw: string })[] = [];
-	strings.forEach((str, i) => {
-		result.push(raw(str), values[i] || "");
-	});
-	return result
-		.map(el =>
-			typeof (el as { __raw: string }).__raw === "string"
-				? (el as { __raw: string }).__raw
-				: (el as string)
-						.replace(/(\*|_|`|~|\\|<|>|\[|\]"|'|\(|\))/g, "\\$1")
-						.replace(/(@)(everyone|here)/g, "\\$1\u200b\\$2"),
-		)
-		.join("");
+export function templateGenerator<InType>(helper: (str: InType) => string) {
+	type ValueArrayType = (InType | string | { __raw: string })[];
+	return (
+		strings: TemplateStringsArray | InType,
+		...values: ValueArrayType
+	) => {
+		if (!(strings as TemplateStringsArray).raw && !Array.isArray(strings)) {
+			return helper(strings as InType);
+		}
+		const result: ValueArrayType = [];
+		(strings as TemplateStringsArray).forEach((str, i) => {
+			result.push(raw(str), values[i] || "");
+		});
+		return result
+			.map(el =>
+				typeof (el as { __raw: string }).__raw === "string"
+					? (el as { __raw: string }).__raw
+					: helper(el as InType),
+			)
+			.join("");
+	};
 }
+
+export const safe = templateGenerator((str: string) =>
+	str
+		.replace(/(\*|_|`|~|\\|<|>|\[|\]"|'|\(|\))/g, "\\$1")
+		.replace(/everyone/g, "every\u200bone")
+		.replace(/here/g, "he\u200bre"),
+);
 
 export const messages = {
 	help: {

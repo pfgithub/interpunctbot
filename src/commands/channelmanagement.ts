@@ -280,7 +280,7 @@ nr.globalCommand(
 			{
 				in: "ip!slowmode set {{Channel|channel}} 1 second",
 				out:
-					"{{Atmention|you}}, {{Emoji|Success}} Slowmode for {{Channel|channel}} set to 1 second, 000ms",
+					"{{Atmention|you}}, {{Emoji|success}} Slowmode for {{Channel|channel}} set to 1 second, 000ms",
 			},
 		],
 	},

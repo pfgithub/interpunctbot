@@ -1,8 +1,30 @@
 import * as nr from "../NewRouter";
 import { parseDG } from "../parseDG";
-import { messages, safe, raw } from "../../messages";
+import { messages, safe, raw, templateGenerator } from "../../messages";
 import assert from "assert";
 import Info from "../Info";
+
+export function escapeHTML(html: string) {
+	return html
+		.split("&")
+		.join("&amp;")
+		.split('"')
+		.join("&quot;")
+		.split("<")
+		.join("&lt;")
+		.split(">")
+		.join("&gt;");
+}
+
+export const rawhtml = templateGenerator((v: string) => v);
+export const safehtml = templateGenerator((v: string) => escapeHTML(v));
+
+export const emoji: { [key: string]: [string, string, string?] } = {
+	success: [":success:", "508840840416854026"],
+	failure: [":failure:", "508841130503438356"],
+	emoji: [":emoji:", "629134046332583946", "surround"],
+	admins: [":gear~1:", "646624018643943425"],
+};
 
 type Args = { raw: string; safe: string }[];
 const commands: {
@@ -16,16 +38,16 @@ const commands: {
 		confirm: args => {
 			assert.equal(args.length, 1);
 		},
-		html: args => "Not Implemented",
+		html: args => rawhtml`<h1>${args[0].safe}</h1>`,
 		discord: (args, info) => {
-			return `[ **${args[0].safe}** ]`;
+			return `==== **${args[0].safe}** ====`;
 		},
 	},
 	Command: {
 		confirm: args => {
 			assert.equal(args.length, 1);
 		},
-		html: args => "NIY",
+		html: args => rawhtml`<span class="command">ip!${args[0].safe}</span>`,
 		discord: (args, info) => {
 			return safe`\`${info.prefix}${
 				/[a-zA-Z]$/.exec(info.prefix) ? " " : ""
@@ -36,10 +58,16 @@ const commands: {
 		confirm: args => {
 			assert.equal(args.length, 0);
 		},
-		html: () => "NIY",
+		html: () =>
+			commands.Atmention.html([{ raw: "never", safe: "inter·punct" }]),
 		discord: (args, info) => info.atme,
 	},
-	Optional: { confirm: () => {}, html: () => "NIY", discord: () => "bad" },
+	Optional: {
+		confirm: args => assert.equal(args.length, 1),
+		html: args =>
+			rawhtml`<span class="optional"><span class="optionallabel">Optional</span> ${args[0].safe}</span>`,
+		discord: args => "[" + args[0].safe + "]",
+	},
 	ExampleUserMessage: {
 		confirm: () => {},
 		html: () => "NIY",
@@ -51,14 +79,14 @@ const commands: {
 		discord: () => "bad",
 	},
 	Role: {
-		confirm: () => {},
+		confirm: args => assert.equal(args.length, 1),
 		html: () => "NIY",
-		discord: () => "bad",
+		discord: args => "@​" + args[0].safe, // OK because everyone => every[ZWSP]one
 	},
 	Channel: {
-		confirm: () => {},
-		html: () => "NIY",
-		discord: () => "bad",
+		confirm: args => assert.equal(args.length, 1),
+		html: args => rawhtml`<a class="tag">${args[0].safe}</a>`,
+		discord: args => "#" + args[0].safe,
 	},
 	Duration: {
 		confirm: () => {},
@@ -66,19 +94,43 @@ const commands: {
 		discord: () => "bad",
 	},
 	Atmention: {
-		confirm: () => {},
-		html: () => "NIY",
-		discord: () => "bad",
+		confirm: args => assert.equal(args.length, 1),
+		html: args => rawhtml`<a class="tag">@${args[0].safe}</a>`,
+		discord: args => "@" + args[0],
 	},
 	Emoji: {
-		confirm: () => {},
-		html: () => "NIY",
-		discord: () => "bad",
+		confirm: args => {
+			assert.equal(args.length, 1);
+			if (!emoji[args[0].raw]) {
+				throw new Error("Invalid emoji " + args[0].raw);
+			}
+		},
+		html: args => {
+			const [emojiname, emojiid] = emoji[args[0].raw] || [
+				":err_no_emoji:",
+				"err_no_emoji",
+			];
+			return rawhtml`<img class="emoji" src="https://cdn.discordapp.com/emojis/${emojiid}.png" title="${safehtml(
+				emojiname,
+			)}" aria-label="${emojiname}" alt="${emojiname}" draggable="false" />`;
+		},
+		discord: args => {
+			const [emojiname, emojiid, surround] = emoji[args[0].raw] || [
+				":err_no_emoji:",
+				"err_no_emoji",
+			];
+			if (surround) {
+				return `\`<${emojiname}${emojiid}>\``;
+			}
+			return `<${emojiname}${emojiid}>`;
+		},
 	},
 	Code: {
-		confirm: () => {},
+		confirm: args => {
+			assert.equal(args.length, 1);
+		},
 		html: () => "NIY",
-		discord: () => "bad",
+		discord: args => "`" + args[0].safe + "`",
 	},
 };
 
