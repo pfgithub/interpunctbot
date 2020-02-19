@@ -10,7 +10,6 @@
 
 # todo before ipv3
 
--   "An internal error occured" (commandrouter does not pass the return values
-    (promises) for internal errors to show)
+-   migrate to newrouter (+documentation)
+-   remove ability to put no space in commands like `ip!votewhat happened`
 -   rankmoji
--   documentation
