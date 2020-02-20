@@ -32,6 +32,7 @@ Fun commands are enabled by default.
 {{CmdSummary|ping}}
 {{CmdSummary|stats}}
 {{CmdSummary|members}}
+{{CmdSummary|remindme}}
 {{CmdSummary|vote}}`,
 );
 
@@ -81,9 +82,9 @@ nr.globalCommand(
 	"/help/fun/color",
 	"color",
 	{
-		usage: "FILLME",
-		description: "FILLME",
-		examples: [{ in: "FILLME", out: "FILLME" }],
+		usage: "color {{Required|hex code}}",
+		description: "shows an image of a hex color",
+		examples: [],
 	},
 	nr.list(nr.a.word()),
 	async ([word], info) => {
@@ -104,9 +105,9 @@ nr.globalCommand(
 	"/help/fun/play",
 	"play",
 	{
-		usage: "FILLME",
-		description: "FILLME",
-		examples: [{ in: "FILLME", out: "FILLME" }],
+		usage: "play {{Required|song}}",
+		description: "Plays a song in a fake music player",
+		examples: [],
 	},
 	nr.list(...nr.a.words()),
 	async ([cmd], info) => {
@@ -127,9 +128,9 @@ nr.globalCommand(
 	"/help/fun/vdb",
 	"vdb",
 	{
-		usage: "FILLME",
-		description: "FILLME",
-		examples: [{ in: "FILLME", out: "FILLME" }],
+		usage: "vdb",
+		description: "runs a command in the vdb debugger",
+		examples: [],
 	},
 	nr.list(...nr.a.words()),
 	async ([cmd], info) => {
@@ -231,9 +232,9 @@ nr.globalCommand(
 	"/help/fun/vote2",
 	"vote2",
 	{
-		usage: "FILLME",
-		description: "FILLME",
-		examples: [{ in: "FILLME", out: "FILLME" }],
+		usage: "vote2 {{Required|contraversial statement}}",
+		description: "allows other people to vote on your message",
+		examples: [],
 	},
 	nr.list(...nr.a.words()),
 	async ([cmd], info) => {
@@ -261,9 +262,15 @@ nr.globalCommand(
 	"/help/fun/vote",
 	"vote",
 	{
-		usage: "FILLME",
-		description: "FILLME",
-		examples: [{ in: "FILLME", out: "FILLME" }],
+		usage: "vote {{Required|contraversial statement}}",
+		description:
+			"allows other people to vote on whether they agree or disagree with your statement",
+		examples: [
+			{
+				in: "ip!vote pineapple on pizza is good",
+				out: "VOTE: pineapple on pizza is good (Votes: +143289)",
+			},
+		],
 	},
 	nr.list(...nr.a.words()),
 	async ([cmd], info) => {
@@ -320,9 +327,15 @@ nr.globalCommand(
 	"/help/fun/stats",
 	"stats",
 	{
-		usage: "FILLME",
-		description: "FILLME",
-		examples: [{ in: "FILLME", out: "FILLME" }],
+		usage: "stats",
+		description: "displays various statistics about the bot",
+		examples: [
+			{
+				in: "ip!stats",
+				out:
+					"{{Atmention|you}}, Statistics:\n{{Blockquote|{{Bold|Servers}}: 1834 servers\n{{Bold|Uptime}}: 39m:37.128s\nTook 8ms, handling -1 db requests per second}}",
+			},
+		],
 	},
 	nr.list(),
 	async ([], info) => {
@@ -350,9 +363,15 @@ nr.globalCommand(
 	"/help/fun/remindme",
 	"remindme",
 	{
-		usage: "FILLME",
-		description: "FILLME",
-		examples: [{ in: "FILLME", out: "FILLME" }],
+		usage: "remindme {{Duration|when}} {{Optional|message}}",
+		description:
+			"{{Interpunct}} will pm you with your reminder after the specified time runs out",
+		examples: [
+			{
+				in: "ip!remindme 10 years has ipv3 released yet?",
+				out: "{{Emoji|success}} Reminder set for 10 years.",
+			},
+		],
 	},
 	nr.list(...nr.a.words()),
 	async ([cmd], info) => {
@@ -447,9 +466,14 @@ nr.globalCommand(
 	"/help/fun/minesweeper",
 	"minesweeper",
 	{
-		usage: "FILLME",
-		description: "FILLME",
-		examples: [{ in: "FILLME", out: "FILLME" }],
+		usage: "minesweeper",
+		description: "play minesweeper",
+		examples: [
+			{
+				in: "minesweeper",
+				out: "{{Screenshot|https://i.imgur.com/M0nA5Hg.png}}",
+			},
+		],
 	},
 	nr.list(...nr.a.words()),
 	async ([cmd], info) => {

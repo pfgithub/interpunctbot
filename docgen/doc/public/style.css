@@ -506,7 +506,8 @@ sup {
 	max-width: max-content;
 }
 
-.optional {
+.optional,
+.required {
 	padding: 4px;
 	background-color: var(--background-secondary);
 	border-radius: 4px;

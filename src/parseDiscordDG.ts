@@ -13,7 +13,9 @@ export function escapeHTML(html: string) {
 		.split("<")
 		.join("&lt;")
 		.split(">")
-		.join("&gt;");
+		.join("&gt;")
+		.split("\n")
+		.join("<br />");
 }
 
 export const rawhtml = templateGenerator((v: string) => v);
@@ -77,15 +79,38 @@ const commands: {
 			rawhtml`<span class="optional"><span class="optionallabel">Optional</span> ${args[0].safe}</span>`,
 		discord: args => "[" + args[0].safe + "]",
 	},
+	Required: {
+		confirm: args => assert.equal(args.length, 1),
+		html: args => rawhtml`<span class="required">${args[0].safe}</span>`,
+		discord: args => "<" + args[0].safe + ">",
+	},
 	ExampleUserMessage: {
-		confirm: () => {},
-		html: () => "NIY",
-		discord: () => "bad",
+		confirm: args => assert.equal(args.length, 1),
+		html: args => rawhtml`
+			<div class="message">
+				<img
+					class="profile"
+					src="https://cdn.discordapp.com/embed/avatars/0.png"
+				/>
+				<div class="author you">you</div>
+				<div class="msgcontent">ip!${args[0].safe}</div>
+			</div>`,
+		discord: args => "[not implemented yet]",
 	},
 	ExampleBotMessage: {
-		confirm: () => {},
-		html: () => "NIY",
-		discord: () => "bad",
+		confirm: args => assert.equal(args.length, 1),
+		html: args => rawhtml`<div class="message">
+			<img
+				class="profile"
+				src="https://cdn.discordapp.com/avatars/433078185555656705/bcc3d8799adc00afd50b9c3168b4743e.png"
+			/>
+			<div class="author bot">
+				inter·punct
+				<span class="bottag">BOT</span>
+			</div>
+			<div class="msgcontent">${args[0].safe}</div>
+		</div>`,
+		discord: args => "[not implemented yet]",
 	},
 	Role: {
 		confirm: args => assert.equal(args.length, 1),
@@ -102,10 +127,21 @@ const commands: {
 		html: () => "NIY",
 		discord: () => "bad",
 	},
+	Bold: {
+		confirm: args => assert.equal(args.length, 1),
+		html: args => rawhtml`<b>${args[0].safe}</b>`,
+		discord: args => "**" + (args[0].safe || "\u200B") + "**",
+	},
 	Atmention: {
 		confirm: args => assert.equal(args.length, 1),
 		html: args => rawhtml`<a class="tag">@${args[0].safe}</a>`,
 		discord: args => "@" + args[0].safe,
+	},
+	Screenshot: {
+		confirm: args => assert.equal(args.length, 1),
+		html: args =>
+			rawhtml`<img src="${safehtml(args[0].raw)}" class="sizimg" />`,
+		discord: args => `screenshot: <${args[0].safe}>`,
 	},
 	Emoji: {
 		confirm: args => {
@@ -139,7 +175,7 @@ const commands: {
 			assert.equal(args.length, 1);
 		},
 		html: () => "NIY",
-		discord: args => "`" + args[0].safe + "`",
+		discord: args => "`" + (args[0].safe || "\u200B") + "`",
 	},
 	Blockquote: {
 		confirm: args => assert.equal(args.length, 1),
