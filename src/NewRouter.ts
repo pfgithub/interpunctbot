@@ -117,7 +117,7 @@ export function addHelpDocsPage(docsPath: string, help: HelpData) {
 				)
 				.join("\n\n"),
 		summaries: {
-			usage: help.usage,
+			usage: "{{Command|" + help.usage + "|" + docsPath + "}}",
 			description: help.description,
 		},
 	});

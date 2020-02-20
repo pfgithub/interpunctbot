@@ -25,8 +25,11 @@ nr.globalCommand(
 	},
 	nr.list(...nr.a.words()),
 	async ([cmd], info) => {
+		const autoResolution = "/help/" + (cmd || "").split(" ").join("/");
+
 		const docsPage =
 			nr.globalDocs[cmd || "/help"] ||
+			nr.globalDocs[autoResolution] ||
 			nr.globalDocs[
 				nr.globalCommandNS[cmd.toLowerCase()]?.docsPath || ""
 			];

@@ -14,6 +14,27 @@ import { durationFormat } from "../../durationFormat";
 
 const router = new Router<Info, Promise<any>>();
 
+nr.addDocsWebPage(
+	"/help/fun",
+	`{{Heading|Fun}}\n\n{{Interpunct}} has a variety of fun commands.
+
+{{Heading|Configuration}}
+Fun commands are enabled by default.
+{{CmdSummary|fun}}
+
+{{Heading|Games}}
+{{CmdSummary|minesweeper}}
+{{CmdSummary|connect4}}
+{{CmdSummary|checkers}}
+{{CmdSummary|trivia}}
+
+{{Heading|Misc}}
+{{CmdSummary|ping}}
+{{CmdSummary|stats}}
+{{CmdSummary|members}}
+{{CmdSummary|vote}}`,
+);
+
 nr.globalCommand(
 	"/help/fun/ping",
 	"ping",
@@ -370,21 +391,38 @@ nr.globalCommand(
 	},
 );
 
-router.add("fun", [Info.theirPerm.manageBot], async (cmd: string, info) => {
-	if (!info.db) {
-		return await info.error(
-			messages.failure.command_cannot_be_used_in_pms(info),
-		);
-	}
-	if (cmd === "enable") {
-		await info.db.setFunEnabled(true);
-		return await info.success(messages.fun.fun_has_been_enabled(info));
-	} else if (cmd === "disable") {
-		await info.db.setFunEnabled(false);
-		return await info.success(messages.fun.fun_has_been_disabled(info));
-	}
-	return await info.error(messages.fun.command_not_found(info));
-});
+nr.globalCommand(
+	"/help/fun/config",
+	"fun",
+	{
+		usage: "fun {{Enum|enable|disable}}",
+		description: "enables or disables fun",
+		examples: [
+			{
+				in: "fun disable",
+				out:
+					"{{Emoji|success}} Fun is no longer allowed on this server.",
+			},
+		],
+	},
+	nr.list(nr.a.enum("enable", "disable")),
+	async ([mode], info) => {
+		if (!Info.theirPerm.manageBot(info)) return;
+		if (!info.db) {
+			return await info.error(
+				messages.failure.command_cannot_be_used_in_pms(info),
+			);
+		}
+		if (mode === "enable") {
+			await info.db.setFunEnabled(true);
+			return await info.success(messages.fun.fun_has_been_enabled(info));
+		} else if (mode === "disable") {
+			await info.db.setFunEnabled(false);
+			return await info.success(messages.fun.fun_has_been_disabled(info));
+		}
+		return await info.error(messages.fun.command_not_found(info));
+	},
+);
 
 router.add("", [], connect4);
 router.add("", [], gamelibgames);

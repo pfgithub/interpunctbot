@@ -2,6 +2,7 @@ import assert from "assert";
 import { messages, raw, safe, templateGenerator } from "../messages";
 import Info from "./Info";
 import { parseDG } from "./parseDG";
+import { globalCommandNS, globalDocs } from "./NewRouter";
 
 export function escapeHTML(html: string) {
 	return html
@@ -25,6 +26,8 @@ export const emoji: { [key: string]: [string, string, string?] } = {
 	admins: [":gear~1:", "646624018643943425"],
 };
 
+let globalSummaryDepth = 0;
+
 type Args = { raw: string; safe: string }[];
 const commands: {
 	[cmd: string]: {
@@ -44,9 +47,16 @@ const commands: {
 	},
 	Command: {
 		confirm: args => {
-			assert.equal(args.length, 1);
+			assert.ok(args.length >= 1 && args.length <= 2);
 		},
-		html: args => rawhtml`<span class="command">ip!${args[0].safe}</span>`,
+		html: args => {
+			const result = rawhtml`<span class="command">ip!${args[0].safe}</span>`;
+			if (args[1])
+				return rawhtml`<a href="${safehtml(
+					args[1].raw,
+				)}">${result}</a>`;
+			return result;
+		},
 		discord: (args, info) => {
 			return safe`\`${info.prefix}${
 				/[a-zA-Z]$/.exec(info.prefix) ? " " : ""
@@ -130,6 +140,59 @@ const commands: {
 		},
 		html: () => "NIY",
 		discord: args => "`" + args[0].safe + "`",
+	},
+	Blockquote: {
+		confirm: args => assert.equal(args.length, 1),
+		html: args =>
+			rawhtml`<div class="blockquote-container"><div class="blockquote-divider"></div><blockquote>${args[0].safe}</blockquote></div>`,
+		discord: args =>
+			args[0].safe
+				.split("\n")
+				.map(l => "> " + l)
+				.join("\n"),
+	},
+	CmdSummary: {
+		confirm: args => {
+			assert.equal(args.length, 1);
+		},
+		html: args => {
+			const command = globalCommandNS[args[0].raw];
+			if (!command)
+				return "<p>" + commands.Command.html(args) + " — Error :(</p>";
+			const docs = globalDocs[command.docsPath];
+			if (globalSummaryDepth >= 1)
+				return rawhtml`<p>${dgToHTML(
+					docs.summaries.usage,
+				)} — ${dgToHTML(docs.summaries.description)}</p>`;
+			globalSummaryDepth++;
+			const result = rawhtml`<p>${commands.Blockquote.html([
+				{
+					raw: "no",
+					safe: rawhtml`${dgToHTML(docs.body)}`,
+				},
+			])}</p>`;
+			globalSummaryDepth--;
+			return result;
+		},
+		discord: (args, info) => {
+			const command = globalCommandNS[args[0].raw];
+			if (!command)
+				return (
+					"- " + commands.Command.discord(args, info) + " — Error :("
+				);
+			const docs = globalDocs[command.docsPath];
+			return (
+				"- " +
+				parseDiscord(docs.summaries.usage, info) +
+				" — " +
+				parseDiscord(docs.summaries.description, info)
+			);
+		},
+	},
+	Enum: {
+		confirm: args => assert.ok(args.length > 0),
+		html: () => "NIY",
+		discord: () => "NIY",
 	},
 };
 

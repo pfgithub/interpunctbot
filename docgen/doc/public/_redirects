@@ -2,4 +2,5 @@
 /sending-messages-to-multiple-channels	/#sending-messages-to-multiple-channels
 /role-id								/role
 /lists									/#lists
-/support 								https://discord.gg/e7BmyqD
+/support/* 								https://discord.gg/e7BmyqD
+/invite/* 								https://discordapp.com/oauth2/authorize?client_id=433078185555656705&permissions=268445780&scope=bot
