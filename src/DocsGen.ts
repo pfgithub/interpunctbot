@@ -171,13 +171,18 @@ export async function DocsGen() {
 
 		const sidebart = sidebar(docItem.path, sidebarCont);
 		const webfile = fDocs(docItem.path + ".html");
+		const pagetitle = docItem.path.substr(
+			docItem.path.lastIndexOf("/") + 1,
+		);
 		await fs.mkdir(dirname(webfile), { recursive: true });
 		await fs.writeFile(
 			webfile,
 			htmlMinifier.minify(
 				htmlTemplate
 					.replace("{{html|content}}", html)
-					.replace("{{html|sidebar}}", sidebart),
+					.replace("{{html|sidebar}}", sidebart)
+					.replace("{{html|pagetitle}}", pagetitle)
+					.replace("{{html|pagetitle}}", pagetitle),
 				{
 					collapseWhitespace: true,
 				},
