@@ -14,6 +14,7 @@ type Connect4 = {
 	board: Board<"bg" | "fg">;
 	turn: "r" | "y";
 	players: { r: Player; y: Player };
+	status: { s: "playing" } | { s: "winner"; winner: Player; reason: string };
 };
 
 const tileset = newTileset({
@@ -40,6 +41,8 @@ const tileset = newTileset({
 	],
 });
 
+function checkWin(gameState: Connect4) {}
+
 export const connect4 = newGame<Connect4>({
 	title: "Connect 4",
 	help: "/help/fun/connect4",
@@ -51,6 +54,7 @@ export const connect4 = newGame<Connect4>({
 				r: players[0], // person who ran the command
 				y: players[1], // next person to join
 			},
+			status: { s: "playing" },
 		};
 
 		for (let y = 0; y < 6; y++) {
@@ -105,10 +109,16 @@ export const connect4 = newGame<Connect4>({
 		const currentplayer = state.players[state.turn];
 		const playercolor =
 			state.turn === "r" ? tileset.tiles.red : tileset.tiles.yellow;
+		const statusbar =
+			state.status.s === "playing"
+				? `<@${currentplayer.id}>'s turn (${playercolor})`
+				: state.status.s === "winner"
+				? `<@${state.status.winner.id}> won!`
+				: "never.";
 		return [
 			`
 **Connect 4**
-<@${currentplayer.id}>'s turn (${playercolor})
+${statusbar}
 ==============
 ${tileset.tiles.laneHeadings.join("")}
 ${state.board.render()}
@@ -131,7 +141,11 @@ ${state.board.render()}
 		{
 			time: unit(60, "sec"),
 			update: state => {
-				// set game over
+				state.status = {
+					s: "winner",
+					winner: state.players[state.turn === "r" ? "y" : "r"],
+					reason: "Time out!",
+				};
 				return state;
 			},
 		},
