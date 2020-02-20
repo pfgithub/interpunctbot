@@ -601,7 +601,6 @@ sup {
 .reaction {
 	background-color: var(--background-modifier-accent);
 	display: inline-block;
-	padding: 2px;
 	border-radius: 0.25rem;
 	margin-right: 2px;
 	padding-left: 6px;
