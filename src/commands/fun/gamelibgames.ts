@@ -1,7 +1,8 @@
-import Router from "commandrouter";
-import Info from "../../Info";
-import { connect4 } from "./gamelib";
+import * as nr from "../../NewRouter";
+import { connect4 } from "./gamelib/connect4";
 
-const router = new Router<Info, Promise<any>>();
-router.add("gamelib", [], connect4);
-export default router;
+nr.globalCommand("/help/fun/connect4", "gamelib", {
+	usage: "connect4",
+	description: "Play a game of connect 4. {{Interpunct}} requires permission to manage reactions to run the game best.",
+	examples: []
+}, nr.list(...nr.a.words()), connect4);

@@ -6,7 +6,7 @@ import {
 	MoveSet,
 	unit,
 	Board,
-} from "./gamelib2";
+} from "./gamelib";
 
 //
 

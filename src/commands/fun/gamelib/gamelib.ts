@@ -1,8 +1,8 @@
 import * as Discord from "discord.js";
 
-import Info from "../../Info";
-import { perr, ilt } from "../../..";
-import { getPlayers, createTimer } from "./checkers";
+import Info from "../../../Info";
+import { perr } from "../../../..";
+import { getPlayers, createTimer } from "../checkers";
 
 export const ratelimit = (frequency: number & { __unit: "ms" }) => {
 	let timeout: NodeJS.Timeout | undefined;
@@ -56,7 +56,7 @@ export function copyState<T>(s: T): T {
 }
 
 export const newGame = <State>(conf: GameConfig<State>) => async (
-	cmd: string,
+	[cmd]: [string],
 	info: Info,
 ) => {
 	if (cmd.trim()) {
@@ -68,7 +68,7 @@ export const newGame = <State>(conf: GameConfig<State>) => async (
 	}
 
 	if (!(await info.db.getFunEnabled())) {
-		return await info.help("/errors/fun", "error");
+		return await info.help("/errors/fun-disabled", "error");
 	}
 
 	const players = await getPlayers(

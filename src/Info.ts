@@ -417,10 +417,11 @@ export default class Info {
 		}
 		if (mode === "usage") {
 			return await this.error(
-				dgToDiscord(docsPage.summaries.usage, this) +
-					"\n\n> Full help: <https://interpunct.info" +
+				"Usage: " +
+					dgToDiscord(docsPage.summaries.usage, this) +
+					" (<https://interpunct.info" +
 					path +
-					">",
+					">)",
 			);
 		}
 		if (mode === "error") {

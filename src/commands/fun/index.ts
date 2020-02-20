@@ -6,7 +6,7 @@ import Info from "../../Info";
 import { a, AP } from "../argumentparser";
 import checkers, { createTimer } from "./checkers";
 import connect4 from "./connect4";
-import gamelibgames from "./gamelibgames";
+import "./gamelibgames";
 import goi from "./goi";
 import trivia from "./trivia";
 import * as nr from "../../NewRouter";
@@ -445,7 +445,6 @@ nr.globalCommand(
 );
 
 router.add("", [], connect4);
-router.add("", [], gamelibgames);
 router.add("", [], trivia);
 router.add("", [], goi);
 router.add("", [], checkers);
