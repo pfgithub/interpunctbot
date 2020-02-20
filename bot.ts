@@ -10,6 +10,8 @@ const token = config.token;
 
 export const docsGenMode = process.argv.includes("--gen-docs");
 
+console.log("Starting inter·punct bot");
+if (docsGenMode) console.log("] Docs gen mode active");
 if (!docsGenMode) ignorePromise(client.login(token));
 
 export let timedEvents: TimedEvents | undefined = undefined;

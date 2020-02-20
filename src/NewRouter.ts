@@ -9,32 +9,9 @@ import {
 } from "./commands/argumentparser";
 import { ilt, perr } from "..";
 import { confirmDocs } from "./commands/help";
+import { docsGenMode } from "../bot";
+import { DocsGen } from "./DocsGen";
 export { list, a };
-
-/*
-command("help", `
-Usage: {{Command|help {{Text...|topic}}}}
-`, async () => {
-
-})
-
-command("/help/help", "help", yml`
-usage: "{{Command|help {{Optional|topic}}}}"
-examples:
-- in: "ip!help log enable"
-  out: |
-  	{{EmbedFull|/help/logging/enable}}
-- in: "ip!help"
-  out: |
-    {{EmbedShort|/help}}
-`, ap.init(a.number, a.string), (([number, string], info) => {
-
-});
-
-
-)
-
-*/
 
 export type CmdCb<APList extends APListAny> = (
 	apresults: Results<APList>,
@@ -58,6 +35,7 @@ export type CommandData = {
 
 export type CommandNS = { [key: string]: CommandData };
 
+export let canModifyGlobalValues = true; // in zig all these globals could be comptime and not require any runtime work
 export const globalCommandNS: CommandNS = {}; // Object.keys(globalCommandNS).sort().reverse().find()
 export const globalDocs: { [key: string]: PageData & { path: string } } = {};
 
@@ -71,9 +49,37 @@ export type PageData = {
 	body: string;
 };
 
+console.log("Loading commands...");
+setTimeout(() => {
+	console.log(
+		"All commands loaded (" +
+			Object.entries(globalCommandNS).length +
+			" commands, " +
+			Object.entries(globalDocs).length +
+			" docs entries)",
+	);
+	canModifyGlobalValues = false;
+
+	if (docsGenMode) {
+		console.log("Generating docs now");
+		DocsGen()
+			.catch(e => {
+				console.log("Error!", e);
+				process.exit(1);
+			})
+			.then(() => {
+				process.exit(0);
+			})
+			.catch(e => console.log(e));
+	}
+}, 0);
+
 const developmentMode = process.env.NODE_ENV !== "production";
 
 export function addDocsPage(docsPath: string, page: PageData) {
+	if (!canModifyGlobalValues)
+		throw new Error("Time to add global commands is over!");
+
 	if (docsPath.toLowerCase() !== docsPath)
 		throw new Error("Docs path must be lowercase");
 	if (!docsPath.startsWith("/"))
@@ -83,12 +89,15 @@ export function addDocsPage(docsPath: string, page: PageData) {
 	if (globalDocs[docsPath]) throw new Error("Docs path must be unique.");
 
 	if (developmentMode) {
+		process.stdout.write("  docs...");
 		confirmDocs(page.body);
 		confirmDocs(page.summaries.usage);
 		confirmDocs(page.summaries.description);
 	}
 
 	globalDocs[docsPath] = { ...page, path: docsPath };
+
+	process.stdout.write("\r  Loaded docs: " + docsPath + "\u001b[0K\n");
 }
 
 export function addHelpDocsPage(docsPath: string, help: HelpData) {
@@ -122,6 +131,16 @@ export function addErrorDocsPage(docsPath: string, error: ErrorData) {
 		summaries: {
 			usage: "no usage **error**?¿",
 			description: error.overview,
+		},
+	});
+}
+
+export function addDocsWebPage(docsPath: string, body: string) {
+	addDocsPage(docsPath, {
+		body: body,
+		summaries: {
+			usage: "no usage **error**?¿",
+			description: "no description **error**?¿",
 		},
 	});
 }
@@ -184,6 +203,8 @@ export function globalCommand<APList extends APListAny>(
 			);
 		},
 	};
+
+	console.log("  Loaded command:", "ip!" + uniqueGlobalName);
 }
 
 // export function nsCommand<APList>(ns: CommandNS) // eg ip!quote, the help page has to be for lists in general not just the specific quote one

@@ -152,7 +152,7 @@ export function confirmDocs(text: string) {
 export function parseDiscord(text: string, info: Info) {
 	const res = parseDG(
 		text,
-		txt => safe`${txt}`,
+		txt => safe(txt),
 		(fn, args) => {
 			if (!commands[fn]) {
 				return "Uh oh! " + messages.emoji.failure;
@@ -162,6 +162,28 @@ export function parseDiscord(text: string, info: Info) {
 	);
 	return res.resClean;
 }
+
+export function dgToHTML(text: string) {
+	const res = parseDG(
+		text,
+		txt => safehtml(txt),
+		(fn, args) => {
+			if (!commands[fn]) {
+				return "Uh oh! " + messages.emoji.failure;
+			}
+			return commands[fn].html(args);
+		},
+	);
+	return res.resClean;
+}
+
+nr.addDocsWebPage(
+	"/index",
+	"{{Heading|{{Interpunct}} Bot}}\n\nThis website is for version 3 of {{Interpunct}} which is currently in development. For version 2, see https://top.gg/bot/433078185555656705",
+);
+nr.addDocsWebPage("/404", "{{Heading|Uh oh!}}\n\n404 not found.");
+nr.addDocsWebPage("/docstest", "a");
+nr.addDocsWebPage("/docstest/b", "b");
 
 nr.addErrorDocsPage("/errors/help-path-not-found", {
 	overview:
