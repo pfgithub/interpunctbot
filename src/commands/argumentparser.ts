@@ -424,6 +424,7 @@ function DurationArgumentType(): ArgumentType<number> {
 		months: unit.month,
 		y: unit.year,
 		yr: unit.year,
+		year: unit.year,
 		years: unit.year,
 		ll: unit.LL,
 		cc: unit.cc,
@@ -457,7 +458,7 @@ function DurationArgumentType(): ArgumentType<number> {
 
 			if (isNaN(+inum[0])) {
 				await info.error(
-					safe`could not parse number "${inum[0]}" bad.\n> list of units: https://interpunct.bot/help/args/units/or/something/idk`,
+					safe`could not parse number "${inum[0]}" bad.\n> list of units: https://interpunct.info/help/args/units/or/something/idk`,
 				);
 				return { result: "exit" };
 			}
@@ -473,7 +474,7 @@ function DurationArgumentType(): ArgumentType<number> {
 
 			if (names[unitname] === undefined) {
 				await info.error(
-					safe`invalid unit "${unitstr[0]}" bad.\n> list of units: https://interpunct.bot/help/args/units/or/something/idk`,
+					safe`invalid unit "${unitstr[0]}" bad.\n> list of units: https://interpunct.info/help/args/units/or/something/idk`,
 				);
 				return { result: "exit" };
 			}

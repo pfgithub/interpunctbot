@@ -597,3 +597,27 @@ sup {
 .blockquote-container + br {
 	display: none;
 }
+
+.reaction {
+	background-color: var(--background-modifier-accent);
+	display: inline-block;
+	padding: 2px;
+	border-radius: 0.25rem;
+	margin-right: 2px;
+	padding-left: 6px;
+	padding-right: 6px;
+}
+.reactionemoji {
+	display: inline-block;
+}
+.reactionemoji img {
+	width: 1rem;
+	height: 1rem;
+	margin: 0.125rem 0;
+}
+.reactioncount {
+	display: inline-block;
+	color: var(--text-muted);
+	margin-left: 6px;
+	font-size: 0.875rem;
+}

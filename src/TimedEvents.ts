@@ -124,7 +124,8 @@ export class TimedEvents {
 				}
 			}
 		};
-		setTimeout(() => perr(handle(), "Handling event"), deltaTime);
+		if (deltaTime < 2147483647)
+			setTimeout(() => perr(handle(), "Handling event"), deltaTime);
 	}
 	async startNext() {
 		if (!globalKnex) {

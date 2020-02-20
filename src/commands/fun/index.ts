@@ -141,7 +141,7 @@ nr.globalCommand(
 		await info.message.channel.send(`\`\`\`
 GNU vdb (VDB) 2.4.1
 Copyright (C) 2019 Free Software Foundation, Inc.
-License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/Gpl.html>
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
 This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.
 Type "show copying" and "show warranty" for details.
@@ -262,14 +262,14 @@ nr.globalCommand(
 	"/help/fun/vote",
 	"vote",
 	{
-		usage: "vote {{Required|contraversial statement}}",
+		usage: "vote {{Required|controversial statement}}",
 		description:
 			"allows other people to vote on whether they agree or disagree with your statement",
 		examples: [
 			{
 				in: "vote pineapple on pizza is good",
 				out:
-					"VOTE: pineapple on pizza is good (Votes: +143289, Voting ended)\n{{Screenshot|https://i.imgur.com/hXEkypw.png}}",
+					"VOTE: pineapple on pizza is good (Votes: +143,289, Voting ended)\n{{Reaction|upvote|7,543,829}}{{Reaction|downvote|7,400,540}}", // so in discord it can show as [^ 6543643] [v 543]
 			},
 		],
 	},
@@ -302,7 +302,7 @@ nr.globalCommand(
 				"VOTE: " +
 				safe`${cmd}` +
 				" (Votes: " +
-				((upvotes || 0) - (downvotes || 0)) +
+				((upvotes || 0) - (downvotes || 0)).toLocaleString("en-US") +
 				(over ? ", Voting ended." : "") +
 				")";
 			if (msg.content !== content) await msg.edit(content);

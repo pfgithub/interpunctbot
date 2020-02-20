@@ -26,6 +26,8 @@ export const emoji: { [key: string]: [string, string, string?] } = {
 	failure: [":failure:", "508841130503438356"],
 	emoji: [":emoji:", "629134046332583946", "surround"],
 	admins: [":gear~1:", "646624018643943425"],
+	upvote: [":upvote:", "674675568993894412"],
+	downvote: [":downvote:", "674675569404674059"],
 };
 
 let globalSummaryDepth = 0;
@@ -145,6 +147,19 @@ const commands: {
 		confirm: args => assert.equal(args.length, 1),
 		html: args => rawhtml`<b>${args[0].safe}</b>`,
 		discord: args => "**" + (args[0].safe || "\u200B") + "**",
+	},
+	Reaction: {
+		confirm: args => assert.equal(args.length, 2),
+		html: args =>
+			rawhtml`<div class="reaction"><div class="reactionemoji">${commands.Emoji.html(
+				[args[0]],
+			)}</div><div class="reactioncount">${args[1].safe}</div></div>`,
+		discord: (args, info) =>
+			"[" +
+			commands.Emoji.discord([args[0]], info) +
+			" " +
+			args[1].safe +
+			"] ",
 	},
 	Atmention: {
 		confirm: args => assert.equal(args.length, 1),
