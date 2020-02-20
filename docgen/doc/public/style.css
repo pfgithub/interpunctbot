@@ -529,6 +529,7 @@ sup {
 .topbar {
 	background: var(--background-primary);
 	filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.8));
+	position: -webkit-sticky;
 	position: sticky;
 	top: 0;
 	height: 48px;
@@ -536,6 +537,7 @@ sup {
 	grid-template-rows: 1fr max-content 1fr;
 	padding-left: 16px;
 	padding-right: 16px;
+	z-index: 100;
 }
 
 .channelbar {
@@ -566,15 +568,21 @@ sup {
 	padding-right: 8px;
 	font-weight: 600;
 	color: white;
+
+	display: flex;
+	align-items: center;
 }
 
 .channelbuttons {
 	padding-left: 8px;
 	padding-right: 8px;
+
+	display: flex;
+	align-items: center;
 }
 
 .heading {
-	margin-top: 0;
+	margin-bottom: 0;
 }
 
 .navlinks {
@@ -587,10 +595,6 @@ sup {
 }
 
 .message + br {
-	display: none;
-}
-
-.heading + br {
 	display: none;
 }
 
@@ -619,4 +623,16 @@ sup {
 	color: var(--text-muted);
 	margin-left: 6px;
 	font-size: 0.875rem;
+}
+
+.showsidebar {
+	color: white;
+	background: none;
+	border: none;
+	margin: 0;
+	margin-left: -16px;
+	padding-right: 16px;
+	margin-top: -10px;
+	margin-bottom: -10px;
+	font-size: 16px;
 }

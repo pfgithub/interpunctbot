@@ -92,6 +92,9 @@
 		<main class="content" id="main-content">
 			<div class="topbar">
 				<div class="channelbar">
+					<button class="showsidebar" aria-label="Show Sidebar">
+						☰
+					</button>
 					<svg
 						width="24"
 						height="24"
@@ -106,17 +109,17 @@
 						></path>
 					</svg>
 					<div class="hashtag"></div>
-					<div class="channelname">{{html|pagetitle}}</div>
+					<div class="channelname"><div>{{html|pagetitle}}</div></div>
 					<div class="vdivider"></div>
 					<div class="channelbuttons">
-						<a href="/invite/menubtn">Add to your server</a>
+						<div>
+							<a href="/invite/menubtn">Add to your server</a>
+						</div>
 					</div>
 				</div>
 			</div>
 			<div class="contentpadding">
-				<button class="showsidebar">Show Sidebar</button>
-				{{html|navbar}}
-				{{html|content}}
+				{{html|navbar}} {{html|content}}
 			</div>
 		</main>
 		<script src="/inline.js" charset="utf-8"></script>

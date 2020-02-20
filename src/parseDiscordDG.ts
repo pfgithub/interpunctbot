@@ -301,5 +301,5 @@ export function dgToHTML(text: string) {
 			return commands[fn].html(args);
 		},
 	);
-	return res.resClean;
+	return res.resClean.replace(/<br \/>(?:\s*<br \/>)+/g, "<br />");
 }
