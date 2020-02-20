@@ -72,14 +72,12 @@ body {
 		width: 240px;
 		transform: translate(-100vw, 0);
 		position: absolute;
-		opacity: 0; /*hide from screen readers*/
-		transition: 0.1s transform ease-out;
+		transition: 0.1s transform ease-in-out;
 		z-index: 2;
 	}
 	.sidebar.shown {
 		transform: translate(0, 0);
 		opacity: 1;
-		transition: 0.1s transform ease-in;
 	}
 	.sidebar.shown + .clickaway {
 		opacity: 0.3;
@@ -87,7 +85,7 @@ body {
 		z-index: 1;
 	}
 	.content {
-		transition: 0.1s transform;
+		transition: 0.1s transform ease-in-out;
 		max-width: 100vw;
 		max-height: 100vh;
 	}
@@ -229,7 +227,7 @@ code {
 	box-sizing: border-box;
 	height: 32px;
 	padding: 0 8px;
-	margin: 1px 0 1px 8px;
+	margin: 1px 8px 1px 8px;
 	border-radius: 4px;
 	display: flex;
 	flex-direction: row;
@@ -607,6 +605,7 @@ sup {
 	display: inline-block;
 	border-radius: 0.25rem;
 	margin-right: 2px;
+	margin-bottom: 2px;
 	padding-left: 6px;
 	padding-right: 6px;
 }
