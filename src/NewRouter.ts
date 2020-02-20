@@ -100,12 +100,17 @@ export function addDocsPage(docsPath: string, page: PageData) {
 	process.stdout.write("\r  Loaded docs: " + docsPath + "\u001b[0K\n");
 }
 
-export function addHelpDocsPage(docsPath: string, help: HelpData) {
+export function addHelpDocsPage(
+	docsPath: string,
+	help: HelpData & { title: string },
+) {
 	if (!docsPath.startsWith("/help/"))
 		throw new Error("Docs path must start with /help/");
 	addDocsPage(docsPath, {
 		body:
-			"{{Heading|commandName}}\n\nUsage: {{Command|" +
+			"{{Heading|" +
+			help.title +
+			"}}\n\nUsage: {{Command|" +
 			help.usage +
 			"}}\n\n" +
 			help.description +
@@ -163,7 +168,7 @@ export function globalCommand<APList extends APListAny>(
 	if (globalCommandNS[uniqueGlobalName])
 		throw new Error("Command path must be unique.");
 
-	addHelpDocsPage(docsPath, help);
+	addHelpDocsPage(docsPath, Object.assign({ title: uniqueGlobalName }, help));
 
 	const handleCommand = async (cmd: string, info: Info) => {
 		const apresult = await ilt(
