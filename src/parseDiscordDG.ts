@@ -54,9 +54,7 @@ const commands: {
 		html: args => {
 			const result = rawhtml`<span class="command">ip!${args[0].safe}</span>`;
 			if (args[1])
-				return rawhtml`<a href="${safehtml(
-					args[1].raw,
-				)}">${result}</a>`;
+				return rawhtml`<a href="${safehtml(result)}">${result}</a>`;
 			return result;
 		},
 		discord: (args, info) => {
@@ -114,7 +112,7 @@ const commands: {
 	},
 	Role: {
 		confirm: args => assert.equal(args.length, 1),
-		html: () => "NIY",
+		html: args => "@" + args[0].safe,
 		discord: args => "@​" + args[0].safe, // OK because everyone => every[ZWSP]one
 	},
 	Channel: {
