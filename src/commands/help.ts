@@ -37,8 +37,8 @@ nr.globalCommand(
 			const bodyText = parseDiscord(docsPage.body, info);
 			await info.result(
 				bodyText +
-					"\n" +
-					"> <https://interpunct.info" +
+					"\n\n" +
+					"**Full Help**: <https://interpunct.info" +
 					docsPage.path +
 					">",
 			);

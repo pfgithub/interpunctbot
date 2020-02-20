@@ -30,6 +30,15 @@ export const emoji: { [key: string]: [string, string, string?] } = {
 
 let globalSummaryDepth = 0;
 
+const inlineOrBlockQuote = (text: string) =>
+	text.includes("\n")
+		? "\n" +
+		  text
+				.split("\n")
+				.map(q => "> " + q)
+				.join("\n")
+		: text;
+
 type Args = { raw: string; safe: string }[];
 const commands: {
 	[cmd: string]: {
@@ -42,7 +51,11 @@ const commands: {
 		confirm: args => {
 			assert.equal(args.length, 1);
 		},
-		html: args => rawhtml`<h2 class="heading">${args[0].safe}</h2>`,
+		html: args => {
+			if (globalSummaryDepth > 0)
+				return rawhtml`<h3 class="heading">${args[0].safe}</h3>`;
+			return rawhtml`<h2 class="heading">${args[0].safe}</h2>`;
+		},
 		discord: (args, info) => {
 			return `==== **${args[0].safe}** ====`;
 		},
@@ -95,7 +108,7 @@ const commands: {
 				<div class="author you">you</div>
 				<div class="msgcontent">ip!${args[0].safe}</div>
 			</div>`,
-		discord: args => "[not implemented yet]",
+		discord: args => `**you**: ${inlineOrBlockQuote(args[0].safe)}`,
 	},
 	ExampleBotMessage: {
 		confirm: args => assert.equal(args.length, 1),
@@ -110,7 +123,8 @@ const commands: {
 			</div>
 			<div class="msgcontent">${args[0].safe}</div>
 		</div>`,
-		discord: args => "[not implemented yet]",
+		discord: args =>
+			`**inter·punct** [BOT]: ${inlineOrBlockQuote(args[0].safe)}`,
 	},
 	Role: {
 		confirm: args => assert.equal(args.length, 1),

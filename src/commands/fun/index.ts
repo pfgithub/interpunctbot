@@ -267,8 +267,9 @@ nr.globalCommand(
 			"allows other people to vote on whether they agree or disagree with your statement",
 		examples: [
 			{
-				in: "ip!vote pineapple on pizza is good",
-				out: "VOTE: pineapple on pizza is good (Votes: +143289)",
+				in: "vote pineapple on pizza is good",
+				out:
+					"VOTE: pineapple on pizza is good (Votes: +143289, Voting ended)\n{{Screenshot|https://i.imgur.com/hXEkypw.png}}",
 			},
 		],
 	},
@@ -368,7 +369,7 @@ nr.globalCommand(
 			"{{Interpunct}} will pm you with your reminder after the specified time runs out",
 		examples: [
 			{
-				in: "ip!remindme 10 years has ipv3 released yet?",
+				in: "remindme 10 years has ipv3 released yet?",
 				out: "{{Emoji|success}} Reminder set for 10 years.",
 			},
 		],

@@ -586,15 +586,11 @@ sup {
 	display: none;
 }
 
-.message + br + br {
+.message + br {
 	display: none;
 }
 
 .heading + br {
-	display: none;
-}
-
-.heading + br + br {
 	display: none;
 }
 

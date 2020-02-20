@@ -120,7 +120,7 @@ export function addHelpDocsPage(
 			help.examples
 				.map(
 					ex =>
-						`{{ExampleUserMessage|${ex.in}}}\n\n{{ExampleBotMessage|${ex.out}}}`,
+						`{{ExampleUserMessage|${ex.in}}}\n{{ExampleBotMessage|${ex.out}}}`,
 				)
 				.join("\n\n"),
 		summaries: {
