@@ -141,17 +141,20 @@ async function copyFolder(dir: string, to: string) {
 }
 
 const fRoot = mkpath(__dirname, "..");
-const fDist = mkpath(fRoot("dist"));
+const fDocs = mkpath(fRoot("docs"));
 const fDocgen = mkpath(fRoot("docgen"));
 const fDoc = mkpath(fDocgen("doc"));
-const fWebDist = mkpath(fDist("web"));
 
 export async function DocsGen() {
 	try {
-		await fs.rmdir(fDist(), { recursive: true });
-	} catch (e) {}
-	await copyFolder(fDoc("public"), fDist());
-	await copyFolder(fDoc("public2"), fDist());
+		await fs.rmdir(fDocs(), { recursive: true });
+	} catch (e) {
+		console.log(
+			"Remove docs dir failed. Maybe it does not exist or the node version is <13?",
+		);
+	}
+	await copyFolder(fDoc("public"), fDocs());
+	await copyFolder(fDoc("public2"), fDocs());
 
 	const htmlTemplate = await fs.readFile(fDoc("template.html"), "utf-8");
 
@@ -165,7 +168,7 @@ export async function DocsGen() {
 		const html = dgToHTML(docItem.body);
 
 		const sidebart = sidebar(docItem.path, sidebarCont);
-		const webfile = fWebDist(docItem.path + ".html");
+		const webfile = fDocs(docItem.path + ".html");
 		await fs.mkdir(dirname(webfile), { recursive: true });
 		await fs.writeFile(
 			webfile,
