@@ -3,6 +3,7 @@ import { promises as fs } from "fs";
 import path from "path";
 import { dgToHTML, safehtml } from "./parseDiscordDG";
 import { raw } from "../messages";
+import htmlMinifier from "html-minifier";
 
 const mkpath = (...initial: string[]) => {
 	return (...more: string[]) => path.join(...initial, ...more);
@@ -173,9 +174,14 @@ export async function DocsGen() {
 		await fs.mkdir(dirname(webfile), { recursive: true });
 		await fs.writeFile(
 			webfile,
-			htmlTemplate
-				.replace("{{html|content}}", html)
-				.replace("{{html|sidebar}}", sidebart),
+			htmlMinifier.minify(
+				htmlTemplate
+					.replace("{{html|content}}", html)
+					.replace("{{html|sidebar}}", sidebart),
+				{
+					collapseWhitespace: true,
+				},
+			),
 			"utf-8",
 		);
 
