@@ -1,5 +1,5 @@
 import * as nr from "../NewRouter";
-import { parseDiscord } from "../parseDiscordDG";
+import { dgToDiscord } from "../parseDiscordDG";
 
 nr.addDocsWebPage(
 	"/index",
@@ -34,7 +34,7 @@ nr.globalCommand(
 				nr.globalCommandNS[cmd.toLowerCase()]?.docsPath || ""
 			];
 		if (docsPage) {
-			const bodyText = parseDiscord(docsPage.body, info);
+			const bodyText = dgToDiscord(docsPage.body, info);
 			await info.result(
 				bodyText +
 					"\n\n" +

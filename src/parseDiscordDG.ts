@@ -248,9 +248,9 @@ const commands: {
 			const docs = globalDocs[command.docsPath];
 			return (
 				"- " +
-				parseDiscord(docs.summaries.usage, info) +
+				dgToDiscord(docs.summaries.usage, info) +
 				" — " +
-				parseDiscord(docs.summaries.description, info)
+				dgToDiscord(docs.summaries.description, info)
 			);
 		},
 	},
@@ -276,7 +276,7 @@ export function confirmDocs(text: string) {
 	if (res.remaining) throw new Error("imbalanced dg curlies}}");
 }
 
-export function parseDiscord(text: string, info: Info) {
+export function dgToDiscord(text: string, info: Info) {
 	const res = parseDG(
 		text,
 		txt => safe(txt),

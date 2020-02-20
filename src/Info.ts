@@ -5,6 +5,8 @@ import { ilt, perr } from "..";
 import { safe, raw } from "../messages";
 import { TimedEvents } from "./TimedEvents";
 import { globalConfig } from "./config";
+import { globalDocs } from "./NewRouter";
+import { dgToDiscord } from "./parseDiscordDG";
 
 const result = {
 	error: "<:failure:508841130503438356> Error: ",
@@ -406,15 +408,27 @@ export default class Info {
 		return res;
 	}
 	async help(path: string, mode: "usage" | "error") {
+		const docsPage = globalDocs[path];
+		if (!docsPage) {
+			return await this.error(
+				"Uh oh! This is an invalid message! https://interpunct.info" +
+					safe(path),
+			);
+		}
 		if (mode === "usage") {
 			return await this.error(
-				"Usage: <https://interpunct.info" + path + ">",
+				dgToDiscord(docsPage.summaries.usage, this) +
+					"\n\n> Full help: <https://interpunct.info" +
+					path +
+					">",
 			);
 		}
 		if (mode === "error") {
-			// have the full suppotr page contain a support server link but there's no reason for this to have it
 			return await this.error(
-				path + "\n> More Info: <https://interpunct.info" + path,
+				dgToDiscord(docsPage.summaries.description, this) +
+					"\n\n> More Info: <https://interpunct.info" +
+					path +
+					">",
 			);
 		}
 		throw new Error("bad help :{ !! }:");
