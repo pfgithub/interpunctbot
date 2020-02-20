@@ -1,38 +1,28 @@
-import client, { timedEvents } from "./bot";
-import config from "./config.json";
-import path from "path"; // TODO add something so if you delete a message with a command it deletes the result messages or a reaction on the result msg or idk
-import * as Discord from "discord.js";
 import Router from "commandrouter";
-import Info from "./src/Info";
-import { messages, safe } from "./messages";
+import * as Discord from "discord.js";
+import { mkdirSync, promises as fs } from "fs";
+import moment from "moment";
+import mdf from "moment-duration-format";
+import path from "path";
 
-import "./src/commands/help";
-import fun from "./src/commands/fun";
-import speedrun from "./src/commands/speedrun";
-import logging from "./src/commands/logging";
-import channelsRouter from "./src/commands/channelmanagement";
+import client, { timedEvents } from "./bot";
+import { messages, safe } from "./messages";
 import aboutRouter from "./src/commands/about";
-import settingsRouter from "./src/commands/settings";
-import quoteRouter from "./src/commands/quote";
+import channelsRouter from "./src/commands/channelmanagement";
 import emojiRouter from "./src/commands/emoji";
+import fun from "./src/commands/fun";
+import "./src/commands/help";
+import logging from "./src/commands/logging";
+import quoteRouter from "./src/commands/quote";
+import settingsRouter from "./src/commands/settings";
+import speedrun from "./src/commands/speedrun";
 import "./src/commands/test";
+import { globalConfig } from "./src/config";
+import Database from "./src/Database";
+import Info from "./src/Info";
 import * as nr from "./src/NewRouter";
 
-import moment from "moment";
-import mdf from "moment-duration-format"; // for typescript
 mdf(moment as any);
-
-declare global {
-	namespace NodeJS {
-		interface Global {
-			__basedir: string;
-		}
-	}
-}
-global.__basedir = __dirname;
-
-import { promises as fs, mkdirSync } from "fs";
-import Database from "./src/Database";
 
 try {
 	mkdirSync(path.join(__dirname, `logs`));
@@ -270,6 +260,10 @@ function updateActivity() {
 	// request.post(options, (er, res) => {});
 }
 
+export function shouldIgnore(user: Discord.User) {
+	return user.bot && !globalConfig.testing?.users?.includes(user.id);
+}
+
 client.on("ready", () => {
 	global.console.log("Ready");
 	serverStartTime = new Date().getTime();
@@ -500,7 +494,7 @@ async function onMessage(msg: Discord.Message | Discord.PartialMessage) {
 		}
 	}
 
-	if (msg.author.bot && msg.author.id !== config.allowMessagesFrom) {
+	if (shouldIgnore(msg.author)) {
 		return;
 	}
 	logMsg({ prefix: "I", msg: msg });
@@ -574,7 +568,7 @@ async function onMessageUpdate(
 		console.log("!! MESSAGE UPDATE HAD A PARTIAL MESSAGE");
 		return;
 	}
-	if (msg.author.bot && msg.author.id !== config.allowMessagesFrom) {
+	if (shouldIgnore(msg.author)) {
 		return;
 	}
 	logMsg({ prefix: "Edit From", msg: from });
@@ -783,10 +777,21 @@ process.on("unhandledRejection", (reason: any, p) => {
 export async function sendMessageToErrorReportingChannel(message: string) {
 	// !!!! SHARDING: this does not work with sharding
 	console.log(message);
+
+	const serverID = globalConfig.errorReporting?.server; // this could be used to make sure this is the right shard. right now error reporting will not yet work across shards. or it could just be unused and channelid could be used for shards.
+	const channelID = globalConfig.errorReporting?.channel;
+
+	if (!channelID) {
+		console.log(message);
+		console.log(
+			"!!! VERYBAD !!! Error reporting not set up in config. Nowhere to report errors.",
+		);
+		return;
+	}
+
 	try {
-		const rept = config.errorReporting.split(`/`);
 		const channel: Discord.TextChannel = client.channels.get(
-			rept[1],
+			channelID,
 		)! as Discord.TextChannel;
 		await channel.send(message);
 	} catch (e) {

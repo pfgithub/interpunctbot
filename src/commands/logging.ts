@@ -42,7 +42,7 @@ router.add("download", [], async (cmd, info) => {
 });
 
 async function deleteLogs(guildID: string) {
-	await fs.unlink(path.join(global.__basedir, `/logs/${guildID}.log`));
+	await fs.unlink(path.join("../..", `/logs/${guildID}.log`));
 }
 
 router.add("reset", [], async (cmd, info) => {

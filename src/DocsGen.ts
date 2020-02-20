@@ -1,16 +1,15 @@
 import { globalDocs } from "./NewRouter";
 import { promises as fs } from "fs";
 import path from "path";
-import { dgToHTML, safehtml } from "./commands/help";
+import { dgToHTML, safehtml } from "./parseDiscordDG";
 import { raw } from "../messages";
 
 const mkpath = (...initial: string[]) => {
-        return (...more: string[]) => path.join(...initial, ...more);
+	return (...more: string[]) => path.join(...initial, ...more);
 };
 
-
 function category(name: string, link: string, active: boolean) {
-return safehtml`
+	return safehtml`
     <a class="category${active ? " active" : ""}" href="${link}">
         <svg
             class="category-collapse"
@@ -33,7 +32,7 @@ return safehtml`
 }
 
 function channel(name: string, url: string, active: boolean) {
-return safehtml`
+	return safehtml`
     <a class="channel${active ? " active" : ""}" href="${url}">
         <svg
             width="24"
@@ -54,20 +53,20 @@ return safehtml`
 }
 
 function sidebar(
-thisurl: string,
-json: [string, string, string | undefined][],
+	thisurl: string,
+	json: [string, string, string | undefined][],
 ) {
-const items: string[] = [];
-json.forEach(([type, link, name]) => {
-    if (!name) name = path.basename(link);
-    if (type === "category") {
-        items.push(category(name, link, thisurl === link));
-    }
-    if (type === "channel") {
-        items.push(channel(name, link, thisurl === link));
-    }
-});
-return safehtml`
+	const items: string[] = [];
+	json.forEach(([type, link, name]) => {
+		if (!name) name = path.basename(link);
+		if (type === "category") {
+			items.push(category(name, link, thisurl === link));
+		}
+		if (type === "channel") {
+			items.push(channel(name, link, thisurl === link));
+		}
+	});
+	return safehtml`
     <div class="banner">
         <a class="banner-header" href="/">
             <div class="banner-icon"></div>
@@ -147,50 +146,35 @@ const fDocgen = mkpath(fRoot("docgen"));
 const fDoc = mkpath(fDocgen("doc"));
 const fWebDist = mkpath(fDist("web"));
 
-export async function DocsGen(){
-    try {
-        await fs.rmdir(fDist(), { recursive: true });
-    } catch (e) {}
-    await copyFolder(
-        fDoc("public"),
-        fDist(),
-    );
-    await copyFolder(
-        fDoc("public2"),
-        fDist(),
-    );
-    
-    const htmlTemplate = await fs.readFile(
-        fDoc("template.html"),
-        "utf-8",
-    );
+export async function DocsGen() {
+	try {
+		await fs.rmdir(fDist(), { recursive: true });
+	} catch (e) {}
+	await copyFolder(fDoc("public"), fDist());
+	await copyFolder(fDoc("public2"), fDist());
 
-    const sidebarItems: string[] = [];
-    const sidebarJSON = await fs.readFile(
-        fDoc("sidebar.json"),
-        "utf-8",
-    );
-    const sidebarCont = JSON.parse(sidebarJSON);
+	const htmlTemplate = await fs.readFile(fDoc("template.html"), "utf-8");
 
-    const emojiJSON = await fs.readFile(
-        fDoc("emoji.json"),
-        "utf-8",
-    );
-    
-	for(const docItem of Object.values(globalDocs)){
+	const sidebarItems: string[] = [];
+	const sidebarJSON = await fs.readFile(fDoc("sidebar.json"), "utf-8");
+	const sidebarCont = JSON.parse(sidebarJSON);
+
+	const emojiJSON = await fs.readFile(fDoc("emoji.json"), "utf-8");
+
+	for (const docItem of Object.values(globalDocs)) {
 		const html = dgToHTML(docItem.body);
-        
-        const sidebart = sidebar(docItem.path, sidebarCont);
-        const webfile = fWebDist(docItem.path + ".html");
-        await fs.mkdir(dirname(webfile), { recursive: true });
-        await fs.writeFile(
-            webfile,
-            htmlTemplate
-                .replace("{{html|content}}", html)
-                .replace("{{html|sidebar}}", sidebart),
-            "utf-8",
-        );
 
-        console.log("  Generated HTML "+docItem.path);
+		const sidebart = sidebar(docItem.path, sidebarCont);
+		const webfile = fWebDist(docItem.path + ".html");
+		await fs.mkdir(dirname(webfile), { recursive: true });
+		await fs.writeFile(
+			webfile,
+			htmlTemplate
+				.replace("{{html|content}}", html)
+				.replace("{{html|sidebar}}", sidebart),
+			"utf-8",
+		);
+
+		console.log("  Generated HTML " + docItem.path);
 	}
 }

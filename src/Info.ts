@@ -1,10 +1,10 @@
 import * as Discord from "discord.js";
 import { MessageBuilder } from "./MessageBuilder";
 import Database from "./Database";
-import config from "../config.json";
 import { ilt, perr } from "..";
 import { safe, raw } from "../messages";
 import { TimedEvents } from "./TimedEvents";
+import { globalConfig } from "./config";
 
 const result = {
 	error: "<:failure:508841130503438356> Error: ",
@@ -85,7 +85,10 @@ export const theirPerm = {
 		return false;
 	}, // I want an r.load() that calls startloading and awaits for it
 	owner: (info: Info) => {
-		if (info.message.author.id === config.owner) {
+		if (
+			globalConfig.owner && // just in case
+			info.message.author.id === globalConfig.owner
+		) {
 			return true;
 		}
 		perr(

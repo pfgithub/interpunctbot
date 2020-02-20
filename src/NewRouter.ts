@@ -8,7 +8,7 @@ import {
 	a,
 } from "./commands/argumentparser";
 import { ilt, perr } from "..";
-import { confirmDocs } from "./commands/help";
+import { confirmDocs } from "./parseDiscordDG";
 import { docsGenMode } from "../bot";
 import { DocsGen } from "./DocsGen";
 export { list, a };

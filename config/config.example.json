@@ -1,0 +1,16 @@
+{
+	"token": "The token to run the bot. If this is not provided, the bot cannot be run",
+	"owner": "Optional, the id of the owner of the bot",
+	"errorReporting": {
+		"server": "Optional, a guild id to report errors to",
+		"channel": "Optional, the channel in that guild to report errors to"
+	},
+	"listings": {
+		"bots.discord.pw": "Optional: A token to use for publishing statistics to bots.discord.pw. Interpunct will run even if you don't provide this token."
+	},
+	"testing": {
+		"users": [
+			"Optional, A list of user IDs that messages will be processed from, even if they are bots. This is used to allow automated testing without tos-violating selfbots."
+		]
+	}
+}

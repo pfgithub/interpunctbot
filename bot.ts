@@ -1,18 +1,22 @@
 import * as Discord from "discord.js";
-import config from "./config.json";
+import { globalConfig } from "./src/config";
 import { TimedEvents } from "./src/TimedEvents";
 const client = new Discord.Client({ disableEveryone: true });
 
 //eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
 function ignorePromise(_p: Promise<unknown>) {}
 
-const token = config.token;
-
 export const docsGenMode = process.argv.includes("--gen-docs");
 
 console.log("Starting inter·punct bot");
 if (docsGenMode) console.log("] Docs gen mode active");
-if (!docsGenMode) ignorePromise(client.login(token));
+if (!docsGenMode) {
+	if (!globalConfig.token)
+		throw new Error(
+			"Token not provided, bot cannot start. Configure in config/config.json",
+		);
+	ignorePromise(client.login(globalConfig.token));
+}
 
 export let timedEvents: TimedEvents | undefined = undefined;
 
