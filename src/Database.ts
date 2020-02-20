@@ -4,7 +4,7 @@ await db.getPrefix(guild.id, prefix)
 
 */
 
-import knex from "./db";
+import { globalKnex } from "./db";
 import { logError } from "..";
 
 type GuildData = { [key in keyof Fields]?: Fields[key] };
@@ -112,7 +112,7 @@ class Database {
 			return this._data;
 		}
 
-		let data = (await knex("guilds").where({ id: this.guild }))[0]; // THIS IS NOT THE RIGHT WAY
+		let data = (await globalKnex!("guilds").where({ id: this.guild }))[0]; // THIS IS NOT THE RIGHT WAY
 		if (!data) {
 			if (lock[this.guild]) {
 				await new Promise(r => lock[this.guild].push(() => r()));
@@ -121,13 +121,20 @@ class Database {
 			lock[this.guild] = [];
 			// we need a better way to do this
 			try {
-				data = await knex("guilds").insert({
+				data = await globalKnex!("guilds").insert({
 					id: this.guild,
 					prefix: "ip!",
 				});
 			} catch (er) {
+				console.log(
+					`no db entry was found for guild id ${this.guild}, but a new one could not be created because `,
+					er,
+					`, the data was `,
+					data,
+					``,
+				);
 				throw new Error(
-					`no db entry was found for guild id ${this.guild}, but a new one could not be created because ${er}, the data was ${data}`,
+					`no db entry was found for guild id ${this.guild},`,
 				);
 			}
 			const values = lock[this.guild];
@@ -156,7 +163,7 @@ class Database {
 	}
 	async _set<Name extends keyof Fields>(name: Name, value: Fields[Name]) {
 		// value is a string // we need an updateMany function
-		await knex("guilds")
+		await globalKnex!("guilds")
 			.where({ id: this.guild })
 			.update({ [name]: value });
 		if (shouldCache[name]) {

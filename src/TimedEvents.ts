@@ -1,4 +1,4 @@
-import knex from "./db";
+import { globalKnex } from "./db";
 import { logError, ilt, perr } from "..";
 import * as Discord from "discord.js";
 
@@ -58,7 +58,9 @@ export class TimedEvents {
 	async queue(event: EventData | EventData[], time: number) {
 		// add to db
 		const eventfixed = Array.isArray(event) ? event : [event];
-		const insertedResult = await knex<SqlEvent>("timed_events").insert({
+		const insertedResult = await globalKnex!<SqlEvent>(
+			"timed_events",
+		).insert({
 			time,
 			event: JSON.stringify(eventfixed),
 			completed: false,
@@ -107,7 +109,7 @@ export class TimedEvents {
 					// await knex<SqlEvent>("timed_events")
 					// 	.where("id", "=", id)
 					// 	.update("completed", true);
-					await knex<SqlEvent>("timed_events")
+					await globalKnex!<SqlEvent>("timed_events")
 						.where("id", "=", id)
 						.delete();
 				}
@@ -125,13 +127,20 @@ export class TimedEvents {
 		setTimeout(() => perr(handle(), "Handling event"), deltaTime);
 	}
 	async startNext() {
+		if (!globalKnex) {
+			console.log(
+				"Cannot begin timedEvents because there is no knex instance.",
+			);
+			return;
+		}
+
 		const ongoingEvents = this.currentEvents.size;
 		if (100 - ongoingEvents > 0 && !this.starting) {
 		} else {
 			return;
 		}
 		this.starting = true;
-		const events = await knex<SqlEvent>("timed_events")
+		const events = await globalKnex<SqlEvent>("timed_events")
 			.where("time", ">", this.currentTime)
 			.andWhere("completed", "=", false)
 			.orderBy("time")

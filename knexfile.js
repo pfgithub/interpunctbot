@@ -1,1 +1,1 @@
-module.exports = require("./knexfile.json");
+module.exports = require("./config/knexfile.json");
