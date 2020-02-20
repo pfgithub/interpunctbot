@@ -42,7 +42,7 @@ const commands: {
 		confirm: args => {
 			assert.equal(args.length, 1);
 		},
-		html: args => rawhtml`<h1>${args[0].safe}</h1>`,
+		html: args => rawhtml`<h2 class="heading">${args[0].safe}</h2>`,
 		discord: (args, info) => {
 			return `==== **${args[0].safe}** ====`;
 		},
@@ -54,7 +54,9 @@ const commands: {
 		html: args => {
 			const result = rawhtml`<span class="command">ip!${args[0].safe}</span>`;
 			if (args[1])
-				return rawhtml`<a href="${safehtml(result)}">${result}</a>`;
+				return rawhtml`<a href="${safehtml(
+					args[1].raw,
+				)}">${result}</a>`;
 			return result;
 		},
 		discord: (args, info) => {
@@ -192,19 +194,19 @@ const commands: {
 		html: args => {
 			const command = globalCommandNS[args[0].raw];
 			if (!command)
-				return "<p>" + commands.Command.html(args) + " — Error :(</p>";
+				return "" + commands.Command.html(args) + " — Error :(";
 			const docs = globalDocs[command.docsPath];
 			if (globalSummaryDepth >= 1)
-				return rawhtml`<p>${dgToHTML(
-					docs.summaries.usage,
-				)} — ${dgToHTML(docs.summaries.description)}</p>`;
+				return rawhtml`${dgToHTML(docs.summaries.usage)} — ${dgToHTML(
+					docs.summaries.description,
+				)}`;
 			globalSummaryDepth++;
-			const result = rawhtml`<p>${commands.Blockquote.html([
+			const result = rawhtml`${commands.Blockquote.html([
 				{
 					raw: "no",
 					safe: rawhtml`${dgToHTML(docs.body)}`,
 				},
-			])}</p>`;
+			])}`;
 			globalSummaryDepth--;
 			return result;
 		},

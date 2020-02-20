@@ -112,6 +112,8 @@ export function addHelpDocsPage(
 			help.title +
 			"}}\n\nUsage: {{Command|" +
 			help.usage +
+			"|" +
+			docsPath +
 			"}}\n\n" +
 			help.description +
 			"\n\n" +

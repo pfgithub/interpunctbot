@@ -174,12 +174,26 @@ export async function DocsGen() {
 		const pagetitle = docItem.path.substr(
 			docItem.path.lastIndexOf("/") + 1,
 		);
+		const navbar =
+			'<div class="navlinks">' +
+			docItem.path
+				.split("/")
+				.map((q, i) => {
+					const title = q || "home";
+					return safehtml`/<a href="${docItem.path
+						.split("/")
+						.slice(0, i + 1)
+						.join("/") || "/"}">${title}</a>`;
+				})
+				.join("") +
+			"</div>";
 		await fs.mkdir(dirname(webfile), { recursive: true });
 		await fs.writeFile(
 			webfile,
 			htmlMinifier.minify(
 				htmlTemplate
 					.replace("{{html|content}}", html)
+					.replace("{{html|navbar}}", navbar)
 					.replace("{{html|sidebar}}", sidebart)
 					.replace("{{html|pagetitle}}", pagetitle)
 					.replace("{{html|pagetitle}}", pagetitle),

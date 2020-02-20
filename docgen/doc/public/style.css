@@ -573,6 +573,31 @@ sup {
 	padding-right: 8px;
 }
 
-h1 {
-	margin: 0;
+.heading {
+	margin-top: 0;
+}
+
+.navlinks {
+	margin-top: 10px;
+	margin-bottom: 10px;
+}
+
+.message + br {
+	display: none;
+}
+
+.message + br + br {
+	display: none;
+}
+
+.heading + br {
+	display: none;
+}
+
+.heading + br + br {
+	display: none;
+}
+
+.blockquote-container + br {
+	display: none;
 }
