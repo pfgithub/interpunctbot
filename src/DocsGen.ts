@@ -153,6 +153,7 @@ export async function DocsGen() {
 			"Remove docs dir failed. Maybe it does not exist or the node version is <13?",
 		);
 	}
+	await fs.mkdir(dirname(fDocs()), { recursive: true });
 	await copyFolder(fDoc("public"), fDocs());
 	await copyFolder(fDoc("public2"), fDocs());
 
