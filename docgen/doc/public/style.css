@@ -635,3 +635,7 @@ sup {
 	margin-bottom: -10px;
 	font-size: 16px;
 }
+
+blockquote > .heading:first-child {
+	margin-top: 0;
+}
