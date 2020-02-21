@@ -101,6 +101,10 @@ router.add("spoiler", [], async (cmd, info) => {
 });
 
 depricate("spaceChannels", "channels spacing", "2.0"); // 1.0 -> 2.0
+remove(
+	"channels spacing",
+	"Unfortunately, discord has removed the ability for bots to put spaces in channel names.",
+);
 
 // usage.add("channels", require("./src/commands/channelmanagement")); !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

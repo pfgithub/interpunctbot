@@ -415,7 +415,7 @@ nr.globalCommand(
 	"/help/fun/config",
 	"fun",
 	{
-		usage: "fun {{Enum|enable|disable}}",
+		usage: "fun {{Required|{{Enum|enable|disable}}}}",
 		description: "enables or disables fun",
 		examples: [
 			{
@@ -440,7 +440,7 @@ nr.globalCommand(
 			await info.db.setFunEnabled(false);
 			return await info.success(messages.fun.fun_has_been_disabled(info));
 		}
-		return await info.error(messages.fun.command_not_found(info));
+		return await info.help("/help/fun/config", "usage");
 	},
 );
 

@@ -36,6 +36,7 @@ nr.globalCommand(
 		if (docsPage) {
 			const bodyText = dgToDiscord(docsPage.body, info);
 			await info.result(
+				// dgToDiscord(`{{Var|bodyText}}\n\n{{Bold|Full Help}}: {{Link|${url}}}`) // concept
 				(
 					bodyText +
 					"\n\n" +

@@ -515,9 +515,9 @@ nr.globalCommand(
 	"/help/fun/checkers",
 	"checkers",
 	{
-		usage: "FILLME",
-		description: "FILLME",
-		examples: [{ in: "FILLME", out: "FILLME" }],
+		usage: "checkers",
+		description: "play checkers.",
+		examples: [],
 	},
 	nr.list(...nr.a.words()),
 	async ([cmd], info) => {

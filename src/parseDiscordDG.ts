@@ -67,12 +67,11 @@ const commands: {
 			assert.ok(args.length >= 1 && args.length <= 2);
 		},
 		html: args => {
-			const result = rawhtml`<span class="command">ip!${args[0].safe}</span>`;
 			if (args[1])
 				return rawhtml`<a href="${safehtml(
 					args[1].raw,
-				)}">${result}</a>`;
-			return result;
+				)}" class="command">ip!${args[0].safe}</a>`;
+			return rawhtml`<span class="command">ip!${args[0].safe}</span>`;
 		},
 		discord: (args, info) => {
 			return safe`\`${info.prefix}${
@@ -135,13 +134,13 @@ const commands: {
 	},
 	Channel: {
 		confirm: args => assert.equal(args.length, 1),
-		html: args => rawhtml`<a class="tag">${args[0].safe}</a>`,
+		html: args => rawhtml`<span class="tag">#${args[0].safe}</span>`,
 		discord: args => "#" + args[0].safe,
 	},
 	Duration: {
 		confirm: () => {},
-		html: () => "NIY",
-		discord: () => "bad",
+		html: () => "duration, NIY",
+		discord: () => "duration",
 	},
 	Bold: {
 		confirm: args => assert.equal(args.length, 1),
@@ -163,7 +162,7 @@ const commands: {
 	},
 	Atmention: {
 		confirm: args => assert.equal(args.length, 1),
-		html: args => rawhtml`<a class="tag">@${args[0].safe}</a>`,
+		html: args => rawhtml`<span class="tag">@${args[0].safe}</span>`,
 		discord: args => "@" + args[0].safe,
 	},
 	Screenshot: {
@@ -256,8 +255,8 @@ const commands: {
 	},
 	Enum: {
 		confirm: args => assert.ok(args.length > 0),
-		html: () => "NIY",
-		discord: () => "NIY",
+		html: args => args.map(a => a.safe).join("|"),
+		discord: args => args.map(a => a.safe).join("|"),
 	},
 };
 

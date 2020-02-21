@@ -16,70 +16,44 @@ const stripMentions = (msg: string) => {
 		.replace(/<#!?[0-9]+>/g, "");
 };
 
-router.add(
-	"space channels automatically",
-	[
-		Info.theirPerm.manageChannels,
-		Info.theirPerm.manageBot,
-		Info.ourPerm.manageChannels,
-	],
-	async (cmd, info) => {
-		if (!info.guild || !info.db) {
-			return await info.error(
-				messages.failure.command_cannot_be_used_in_pms(info),
-			);
-		}
-		await info.db.setAutospaceChannels(true);
-		await info.success(messages.settings.autospace_enabled(info));
+nr.addDocsWebPage(
+	"/help/channels",
+	`{{Heading|Fun}}
 
-		// space now
-		const channelsToSpaceNow = findChannelsRequireSpacing(info.guild, "-");
-		for (const channel of channelsToSpaceNow) {
-			await spaceChannel(
-				channel,
-				"-",
-				`started autospacing by @${info.message.member!.displayName}`,
-			);
-		}
-	},
+{{Interpunct}} has a variety of channel management commands.
+
+{{CmdSummary|purge}}
+{{CmdSummary|slowmode set}}
+{{CmdSummary|autodelete add}}
+{{CmdSummary|autodelete list}}
+{{CmdSummary|autodelete remove}}
+{{CmdSummary|send}}`,
 );
 
-router.add(
-	"space channels disable",
-	[
-		Info.theirPerm.manageChannels,
-		Info.theirPerm.manageBot,
-		Info.ourPerm.manageChannels,
-	],
-	async (cmd, info) => {
-		if (!info.guild || !info.db) {
-			return await info.error(
-				messages.failure.command_cannot_be_used_in_pms(info),
-			);
-		}
-		await info.db.setAutospaceChannels(false);
-		return await info.success(messages.settings.autospace_disabled(info));
-	},
-);
-
-router.add(
+nr.globalCommand(
+	"/help/channels/purge",
 	"purge",
-	[Info.theirPerm.manageMessages, Info.ourPerm.manageMessages],
-	async (cmd, info) => {
+	{
+		usage: "purge {{Required|message count}}",
+		description: "Purge messages in a channel",
+		examples: [
+			{
+				in: "purge 1",
+				out:
+					"{{Atmention|you}}, {{Emoji|success}} Succesfully deleted 1 messages.",
+			},
+		],
+	},
+	nr.list(nr.a.number()),
+	async ([messageLimit], info) => {
+		if (!Info.theirPerm.manageMessages(info)) return;
+		Info.ourPerm.manageMessages;
 		if (!info.guild || !info.db) {
 			return await info.error(
 				messages.failure.command_cannot_be_used_in_pms(info),
 			);
 		}
 
-		const ap = await AP(
-			{ info, cmd },
-			a.number(),
-			// what if we want an optional channel? oh no
-			// now the argument parser gets messy
-		);
-		if (!ap) return;
-		const [messageLimit] = ap.result;
 		if (
 			messageLimit < 1 ||
 			messageLimit > 100 ||
@@ -165,95 +139,6 @@ export function doesChannelRequireSpacing(
 	);
 }
 
-export async function spaceChannel(
-	channel: GuildChannel,
-	characterToReplace: string,
-	reason: string,
-) {
-	if (!doesChannelRequireSpacing(channel, characterToReplace)) {
-		return {
-			error: new Error("Channel does not need spacing"),
-			result: undefined,
-		};
-	}
-	return await ilt(
-		channel.setName(
-			channel.name.split(characterToReplace).join("\u2005"),
-			reason,
-		),
-		"renaming channel for spacechannels",
-	);
-}
-
-router.add(
-	"space channels",
-	[Info.theirPerm.manageChannels, Info.ourPerm.manageChannels],
-	async (cmd, info) => {
-		const apresult = await AP({ info, cmd });
-		if (!apresult) return;
-
-		const guild = info.guild;
-		if (!guild) {
-			return await info.error(
-				messages.failure.command_cannot_be_used_in_pms(info),
-			);
-		}
-		const characterToReplace = (/^[\s\S]*`(.+?)`/.exec(cmd) ||
-			([, "-"] as const))[1];
-		const channelsNeedUpdating = findChannelsRequireSpacing(
-			guild,
-			characterToReplace,
-		);
-
-		if (channelsNeedUpdating.length <= 0) {
-			return await info.error(
-				messages.channels.spacing.no_channels_to_space(info),
-			);
-		}
-
-		const successChannels: GuildChannel[] = [];
-		const failureChannels: GuildChannel[] = [];
-
-		for (const channel of channelsNeedUpdating) {
-			const setNameResult = await spaceChannel(
-				channel,
-				characterToReplace,
-				`@${info.message.member!.displayName}`,
-			);
-			if (setNameResult.error) {
-				failureChannels.push(channel);
-			} else {
-				successChannels.push(channel);
-			}
-		}
-
-		if (failureChannels.length === 0) {
-			return await info.success(
-				`${messages.channels.spacing.succeeded_spacing(
-					info,
-					successChannels,
-				)}\n${
-					(await info.db!.getAutospaceChannels())
-						? messages.channels.spacing.autospace_info_on(info)
-						: messages.channels.spacing.autospace_info_off(info)
-				}`,
-			);
-		}
-		if (successChannels.length === 0) {
-			return await info.error(
-				messages.channels.spacing.failed_spacing(info, failureChannels),
-			);
-		}
-		return await info.error(
-			messages.channels.spacing.partially_succeeded_spacing(
-				info,
-				successChannels,
-				failureChannels,
-			),
-		);
-	},
-);
-
 /*
 @CommandDocumentation /help/channels/slowmode
 
@@ -273,12 +158,13 @@ nr.globalCommand(
 	"/help/channels/slowmode/set",
 	"slowmode set",
 	{
-		usage: "slowmode set {{Channel|channel}} {{Duration|duration}}",
+		usage:
+			"slowmode set {{Required|{{Channel|channel}}}} {{Required|{{Duration|duration}}}}",
 		description:
 			"Set the slowmode for a channel to values that discord does not provide (such as 1 second, 45 minutes, ...). Maximum of 6 hours, minimum of 1 second, set to 0 to disable slowmode.",
 		examples: [
 			{
-				in: "ip!slowmode set {{Channel|channel}} 1 second",
+				in: "slowmode set {{Channel|channel}} 1 second",
 				out:
 					"{{Atmention|you}}, {{Emoji|success}} Slowmode for {{Channel|channel}} set to 1 second, 000ms",
 			},
@@ -394,9 +280,11 @@ nr.globalCommand(
 	"autodelete add",
 	{
 		usage:
-			"autodelete add {{Duration}} prefix prefix user user channel channel role role",
+			"autodelete add {{Required|{{Duration}}}} {{Required|{{Enum|prefix|user|channel|role}}}}",
 		description:
-			"create an autodelete rule. autodelete rules will delete messages that match a certain rule, such as being from a specific user or in a specific channel.\n\n{{Heading|Using autodelete rules to create a 3s-delete channel}}\n\n{{Command|autodelete add 3s channel {{Channel|3s-delete}}}}\n\n{{Heading|Using autodelete rules to delete bot messages after a certain time period}}\n\n{{Command|autodelete add 10 seconds user {{Atmention|Mee6}}}}",
+			"create an autodelete rule. autodelete rules will delete messages that match a certain rule, such as those from a specific user or in a specific channel.",
+		longDescription:
+			"{{Heading|Using autodelete rules to create a 3s-delete channel}}\n\n{{Command|autodelete add 3s channel {{Channel|3s-delete}}}}\n\n{{Heading|Using autodelete rules to delete bot messages after a certain time period}}\n\n{{Command|autodelete add 10 seconds user {{Atmention|Mee6}}}}",
 		examples: [],
 	},
 	nr.list(...nr.a.words()),
@@ -462,7 +350,7 @@ router.add("autodelete", [Info.theirPerm.manageChannels], async (cmd, info) => {
 	return await info.error("usage"); // !!!
 });
 
-router.add("send:", [Info.theirPerm.manageChannels], async (cmd, info) => {
+router.add("send", [Info.theirPerm.manageChannels], async (cmd, info) => {
 	await info.startLoading();
 	const message = stripMentions(info.message.content).replace(
 		/^[\s\S]*?send: ?/i,
