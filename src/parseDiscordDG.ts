@@ -287,7 +287,7 @@ export function dgToDiscord(text: string, info: Info) {
 			return commands[fn].discord(args, info);
 		},
 	);
-	return res.resClean;
+	return res.resClean.replace(/\n\n+/g, "\n\n");
 }
 
 export function dgToHTML(text: string) {

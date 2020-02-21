@@ -128,7 +128,7 @@ nr.globalCommand(
 	"/help/fun/vdb",
 	"vdb",
 	{
-		usage: "vdb",
+		usage: "vdb {{Optional|command}}",
 		description: "runs a command in the vdb debugger",
 		examples: [],
 	},

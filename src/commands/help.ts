@@ -36,11 +36,13 @@ nr.globalCommand(
 		if (docsPage) {
 			const bodyText = dgToDiscord(docsPage.body, info);
 			await info.result(
-				bodyText +
+				(
+					bodyText +
 					"\n\n" +
 					"**Full Help**: <https://interpunct.info" +
 					docsPage.path +
-					">",
+					">"
+				).replace(/\n\n+/g, "\n\n"),
 			);
 		} else {
 			await info.help("/errors/help-path-not-found", "error");
