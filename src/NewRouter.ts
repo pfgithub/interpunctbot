@@ -109,13 +109,13 @@ export function addHelpDocsPage(
 		throw new Error("Docs path must start with /help/");
 	addDocsPage(docsPath, {
 		body:
-			"{{Heading|" +
+			"{Heading|" +
 			help.title +
-			"}}\n\nUsage: {{Command|" +
+			"}\n\nUsage: {Command|" +
 			help.usage +
 			"|" +
 			docsPath +
-			"}}\n\n" +
+			"}\n\n" +
 			help.description +
 			"\n\n" +
 			(help.extendedDescription || "") +
@@ -123,11 +123,11 @@ export function addHelpDocsPage(
 			help.examples
 				.map(
 					ex =>
-						`{{ExampleUserMessage|${ex.in}}}\n{{ExampleBotMessage|${ex.out}}}`,
+						`{ExampleUserMessage|${ex.in}}\n{ExampleBotMessage|${ex.out}}`,
 				)
 				.join("\n\n"),
 		summaries: {
-			usage: "{{Command|" + help.usage + "|" + docsPath + "}}",
+			usage: "{Command|" + help.usage + "|" + docsPath + "}",
 			description: help.description,
 		},
 	});

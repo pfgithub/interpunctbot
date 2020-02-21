@@ -99,7 +99,7 @@ const htmlmethods: { [key: string]: (v: string) => string } = {
 const discordmethods: { [key: string]: (v: string) => string } = {
 	Channel: v => `#${v}`,
 	Link: v => `<${v}>`, // very basic version
-	Command: v => `{{Computed|prefix}}${v}`,
+	Command: v => `{Computed|prefix}${v}`,
 	Bold: v => `**${v}**`,
 	Argument: v => v,
 	Srclink: v => "",
@@ -120,7 +120,7 @@ const discordmethods: { [key: string]: (v: string) => string } = {
 		return `<${emojiname}${emojiid}>`;
 	},
 	Image: v => `<${v}> (image)`,
-	Interpunct: v => `{{Computed|atme}}`,
+	Interpunct: v => `{Computed|atme}`,
 	Atmention: v => `@${v}`,
 	Optional: v => `[Optional ${v}]`,
 	Enum: v => v,
@@ -152,7 +152,7 @@ const discordprocess = (str: string) =>
 			}
 			console.log(`Unsupported Discord function ${name}`);
 			return html`
-				\`{{${name}|${v}</span>}}\`
+				\`{${name}|${v}</span>}\`
 			`;
 		},
 	}).res;
@@ -213,7 +213,7 @@ async function processText(
 					</div>
 				`,
 			);
-			// discordResult.push(`\`{{Computed|prefix}}${discordprocess(v)}\``);
+			// discordResult.push(`\`{Computed|prefix}${discordprocess(v)}\``);
 			continue;
 		}
 		if (line.startsWith("Output: ")) {
@@ -480,8 +480,8 @@ async function copyFolder(dir: string, to: string) {
 			await fs.writeFile(
 				webfile,
 				htmlTemplate
-					.replace("{{html|content}}", html)
-					.replace("{{html|sidebar}}", sidebart),
+					.replace("{html|content}", html)
+					.replace("{html|sidebar}", sidebart),
 				"utf-8",
 			);
 			completed++;

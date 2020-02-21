@@ -287,13 +287,13 @@ export function confirmDocs(text: string) {
 		() => "[[ConfirmClean]]",
 		(fn, args) => {
 			if (!commands[fn]) {
-				throw new Error("dg function {{" + fn + "}} not found");
+				throw new Error("dg function {" + fn + "} not found");
 			}
 			commands[fn].confirm(args);
-			return "[[Confirm{{" + fn + "}}]]";
+			return "[[Confirm{" + fn + "}]]";
 		},
 	);
-	if (res.remaining) throw new Error("imbalanced dg curlies}}");
+	if (res.remaining) throw new Error("imbalanced dg curlies}");
 }
 
 export function dgToDiscord(text: string, info: Info) {

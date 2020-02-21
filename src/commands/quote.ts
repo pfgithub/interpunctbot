@@ -131,18 +131,18 @@ TODO
 
 GOAL: Store command permissions, usage, and output in the same place
 
-@Command {{Command|lists list}}
+@Command {Command|lists list}
 @Permissions manageBot
 @Description
 Lists all lists and their pastebin links for this server.
 @/Description
 @Example
 Command: lists list
-Output: {{Translate|lists.list_lists|{"A": ""}|}}
+Output: {Translate|lists.list_lists|{"A": ""}|}
 @/Example
 @Example
 Command: lists list
-Output: {{Translate|lists.list_lists|{"A"}|}}
+Output: {Translate|lists.list_lists|{"A"}|}
 @/Example
 
 */

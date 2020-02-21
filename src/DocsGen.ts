@@ -192,11 +192,11 @@ export async function DocsGen() {
 			webfile,
 			htmlMinifier.minify(
 				htmlTemplate
-					.replace("{{html|content}}", html)
-					.replace("{{html|navbar}}", navbar)
-					.replace("{{html|sidebar}}", sidebart)
-					.replace("{{html|pagetitle}}", pagetitle)
-					.replace("{{html|pagetitle}}", pagetitle),
+					.replace("{html|content}", html)
+					.replace("{html|navbar}", navbar)
+					.replace("{html|sidebar}", sidebart)
+					.replace("{html|pagetitle}", pagetitle)
+					.replace("{html|pagetitle}", pagetitle),
 				{
 					collapseWhitespace: true,
 				},

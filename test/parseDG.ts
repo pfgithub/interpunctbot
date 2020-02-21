@@ -4,7 +4,7 @@ import assert from "assert";
 console.log("parse dg");
 assert.deepStrictEqual(
 	parseDG(
-		`{{Message|Hello!|Argument 2}}`,
+		`{Message|Hello!|Argument 2}`,
 		txt => "(clean: `" + txt + "`)",
 		(fn, args) =>
 			"(`" + fn + "`: " + args.map(a => a.safe).join(", ") + ")",
@@ -33,7 +33,7 @@ assert.deepStrictEqual(
 
 assert.deepStrictEqual(
 	parseDG(
-		`text before {{Entity}} text after`,
+		`text before {Entity} text after`,
 		txt => "(clean: `" + txt + "`)",
 		(fn, args) =>
 			"(`" + fn + "`: " + args.map(a => a.safe).join(", ") + ")",
@@ -47,7 +47,7 @@ assert.deepStrictEqual(
 
 assert.deepStrictEqual(
 	parseDG(
-		`{{Entity|Something {{Sub-Entity|Arg}} |Arg two}}`,
+		`{Entity|Something {Sub-Entity|Arg} |Arg two}`,
 		txt => "(clean: `" + txt + "`)",
 		(fn, args) =>
 			"(`" + fn + "`: " + args.map(a => a.safe).join(", ") + ")",
@@ -63,7 +63,7 @@ assert.deepStrictEqual(
 
 assert.deepStrictEqual(
 	parseDG(
-		`{{Heading|Hey there! Here is a {{Link|link to the website|https://www.google.com/}}. I hope it's helpful!}}`,
+		`{Heading|Hey there! Here is a {Link|link to the website|https://www.google.com/}. I hope it's helpful!}`,
 
 		txt => txt.toLowerCase().replace(/[^a-z0-9]/g, "-"),
 		(fn, args) =>
@@ -71,7 +71,7 @@ assert.deepStrictEqual(
 				? `<h1>${args[0].safe}</h1>`
 				: fn === "Link"
 				? `<a href="${args[1].raw}">${args[0].safe}</a>`
-				: "{{Errorbad!}}",
+				: "{Errorbad!}",
 	),
 	{
 		remaining: ``,

@@ -16,24 +16,24 @@ const router = new Router<Info, Promise<any>>();
 
 nr.addDocsWebPage(
 	"/help/fun",
-	`{{Heading|Fun}}\n\n{{Interpunct}} has a variety of fun commands.
+	`{Heading|Fun}\n\n{Interpunct} has a variety of fun commands.
 
-{{Heading|Configuration}}
+{Heading|Configuration}
 Fun commands are enabled by default.
-{{CmdSummary|fun}}
+{CmdSummary|fun}
 
-{{Heading|Games}}
-{{CmdSummary|minesweeper}}
-{{CmdSummary|connect4}}
-{{CmdSummary|checkers}}
-{{CmdSummary|trivia}}
+{Heading|Games}
+{CmdSummary|minesweeper}
+{CmdSummary|connect4}
+{CmdSummary|checkers}
+{CmdSummary|trivia}
 
-{{Heading|Misc}}
-{{CmdSummary|ping}}
-{{CmdSummary|stats}}
-{{CmdSummary|members}}
-{{CmdSummary|remindme}}
-{{CmdSummary|vote}}`,
+{Heading|Misc}
+{CmdSummary|ping}
+{CmdSummary|stats}
+{CmdSummary|members}
+{CmdSummary|remindme}
+{CmdSummary|vote}`,
 );
 
 nr.globalCommand(
@@ -41,7 +41,7 @@ nr.globalCommand(
 	"ping",
 	{
 		usage: "ping",
-		description: "Play a game of ping pong against {{Interpunct}}.",
+		description: "Play a game of ping pong against {Interpunct}.",
 		examples: [{ in: "ip!ping", out: "@you, Pong!" }],
 	},
 	nr.list(),
@@ -62,7 +62,7 @@ nr.globalCommand(
 	"pong",
 	{
 		usage: "pong",
-		description: "Play a game of pong ping against {{Interpunct}}.",
+		description: "Play a game of pong ping against {Interpunct}.",
 		examples: [{ in: "ip!pong", out: "@you, Ping!" }],
 	},
 	nr.list(),
@@ -82,7 +82,7 @@ nr.globalCommand(
 	"/help/fun/color",
 	"color",
 	{
-		usage: "color {{Required|hex code}}",
+		usage: "color {Required|hex code}",
 		description: "shows an image of a hex color",
 		examples: [],
 	},
@@ -105,7 +105,7 @@ nr.globalCommand(
 	"/help/fun/play",
 	"play",
 	{
-		usage: "play {{Required|song}}",
+		usage: "play {Required|song}",
 		description: "Plays a song in a fake music player",
 		examples: [],
 	},
@@ -128,7 +128,7 @@ nr.globalCommand(
 	"/help/fun/vdb",
 	"vdb",
 	{
-		usage: "vdb {{Optional|command}}",
+		usage: "vdb {Optional|command}",
 		description: "runs a command in the vdb debugger",
 		examples: [],
 	},
@@ -168,7 +168,7 @@ nr.globalCommand(
 	"/help/fun/members",
 	"members",
 	{
-		usage: "members {{Optional|{{Role|role}}}}",
+		usage: "members {Optional|{Role|role}}",
 		description:
 			"get the number of members on the server and optionally filter by a specific role",
 		examples: [
@@ -177,9 +177,9 @@ nr.globalCommand(
 				out: "This server has 1,740 members.",
 			},
 			{
-				in: "ip!members {{Role|🕐︎ SUB-3}}",
+				in: "ip!members {Role|🕐︎ SUB-3}",
 				out:
-					"This server has 83 members with the role {{Role|🕐︎ SUB-3}} (4.77%)",
+					"This server has 83 members with the role {Role|🕐︎ SUB-3} (4.77%)",
 			},
 		],
 	},
@@ -232,7 +232,7 @@ nr.globalCommand(
 	"/help/fun/vote2",
 	"vote2",
 	{
-		usage: "vote2 {{Required|contraversial statement}}",
+		usage: "vote2 {Required|contraversial statement}",
 		description: "allows other people to vote on your message",
 		examples: [],
 	},
@@ -254,22 +254,22 @@ nr.globalCommand(
 
 /*
 @Docs
-Usage: ip!vote {{Text|your message}}
+Usage: ip!vote {Text|your message}
 Example: ip!vote should I add a vote command to inter·punct bot?
-Result: VOTE: should I add a vote command to inter·punct bot?{{Newline}}{{Reaction|Upvote}}{{Reaction|Downvote}}
+Result: VOTE: should I add a vote command to inter·punct bot?{Newline}{Reaction|Upvote}{Reaction|Downvote}
 */
 nr.globalCommand(
 	"/help/fun/vote",
 	"vote",
 	{
-		usage: "vote {{Required|controversial statement}}",
+		usage: "vote {Required|controversial statement}",
 		description:
 			"allows other people to vote on whether they agree or disagree with your statement",
 		examples: [
 			{
 				in: "vote pineapple on pizza is good",
 				out:
-					"VOTE: pineapple on pizza is good (Votes: +143,289, Voting ended)\n{{Reaction|upvote|7,543,829}}{{Reaction|downvote|7,400,540}}", // so in discord it can show as [^ 6543643] [v 543]
+					"VOTE: pineapple on pizza is good (Votes: +143,289, Voting ended)\n{Reaction|upvote|7,543,829}{Reaction|downvote|7,400,540}", // so in discord it can show as [^ 6543643] [v 543]
 			},
 		],
 	},
@@ -334,7 +334,7 @@ nr.globalCommand(
 			{
 				in: "ip!stats",
 				out:
-					"{{Atmention|you}}, Statistics:\n{{Blockquote|{{Bold|Servers}}: 1834 servers\n{{Bold|Uptime}}: 39m:37.128s\nTook 8ms, handling -1 db requests per second}}",
+					"{Atmention|you}, Statistics:\n{Blockquote|{Bold|Servers}: 1834 servers\n{Bold|Uptime}: 39m:37.128s\nTook 8ms, handling -1 db requests per second}",
 			},
 		],
 	},
@@ -364,13 +364,13 @@ nr.globalCommand(
 	"/help/fun/remindme",
 	"remindme",
 	{
-		usage: "remindme {{Duration|when}} {{Optional|message}}",
+		usage: "remindme {Duration|when} {Optional|message}",
 		description:
-			"{{Interpunct}} will pm you with your reminder after the specified time runs out",
+			"{Interpunct} will pm you with your reminder after the specified time runs out",
 		examples: [
 			{
 				in: "remindme 10 years has ipv3 released yet?",
-				out: "{{Emoji|success}} Reminder set for 10 years.",
+				out: "{Emoji|success} Reminder set for 10 years.",
 			},
 		],
 	},
@@ -415,13 +415,12 @@ nr.globalCommand(
 	"/help/fun/config",
 	"fun",
 	{
-		usage: "fun {{Required|{{Enum|enable|disable}}}}",
+		usage: "fun {Required|{Enum|enable|disable}}",
 		description: "enables or disables fun",
 		examples: [
 			{
 				in: "fun disable",
-				out:
-					"{{Emoji|success}} Fun is no longer allowed on this server.",
+				out: "{Emoji|success} Fun is no longer allowed on this server.",
 			},
 		],
 	},
@@ -471,7 +470,7 @@ nr.globalCommand(
 		examples: [
 			{
 				in: "minesweeper",
-				out: "{{Screenshot|https://i.imgur.com/M0nA5Hg.png}}",
+				out: "{Screenshot|https://i.imgur.com/M0nA5Hg.png}",
 			},
 		],
 	},

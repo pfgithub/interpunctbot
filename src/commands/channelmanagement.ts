@@ -18,29 +18,29 @@ const stripMentions = (msg: string) => {
 
 nr.addDocsWebPage(
 	"/help/channels",
-	`{{Heading|Channels}}
+	`{Heading|Channels}
 
-{{Interpunct}} has a variety of channel management commands.
+{Interpunct} has a variety of channel management commands.
 
-{{CmdSummary|purge}}
-{{CmdSummary|slowmode set}}
-{{CmdSummary|autodelete add}}
-{{CmdSummary|autodelete list}}
-{{CmdSummary|autodelete remove}}
-{{CmdSummary|send}}`,
+{CmdSummary|purge}
+{CmdSummary|slowmode set}
+{CmdSummary|autodelete add}
+{CmdSummary|autodelete list}
+{CmdSummary|autodelete remove}
+{CmdSummary|send}`,
 );
 
 nr.globalCommand(
 	"/help/channels/purge",
 	"purge",
 	{
-		usage: "purge {{Required|message count}}",
+		usage: "purge {Required|message count}",
 		description: "Purge messages in a channel",
 		examples: [
 			{
 				in: "purge 1",
 				out:
-					"{{Atmention|you}}, {{Emoji|success}} Succesfully deleted 1 messages.",
+					"{Atmention|you}, {Emoji|success} Succesfully deleted 1 messages.",
 			},
 		],
 	},
@@ -144,13 +144,13 @@ export function doesChannelRequireSpacing(
 
 ## Slow Mode
 
-## {{Emoji|admins}} Enable Slowmode
+## {Emoji|admins} Enable Slowmode
 
-: {{Command|channel slowmode set {{Required|seconds}} {{Enum|seconds|minutes|hours|days}} {{Required|{{Channel|channel}}}}}}
-: {{Command|channel slowmode disable {{Required|{{Channel|channel}}}}
-: Set slowmode on {{Channel|channel}} to some number of seconds.
+: {Command|channel slowmode set {Required|seconds} {Enum|seconds|minutes|hours|days} {Required|{Channel|channel}}}
+: {Command|channel slowmode disable {Required|{Channel|channel}}
+: Set slowmode on {Channel|channel} to some number of seconds.
 Command: channel slowmode set 2 seconds #general
-Output: @you, {{Emoji|success}} Slowmode for {{Channel|channel}} set to 2 seconds.
+Output: @you, {Emoji|success} Slowmode for {Channel|channel} set to 2 seconds.
 
 */
 
@@ -159,14 +159,14 @@ nr.globalCommand(
 	"slowmode set",
 	{
 		usage:
-			"slowmode set {{Required|{{Channel|channel}}}} {{Required|{{Duration|duration}}}}",
+			"slowmode set {Required|{Channel|channel}} {Required|{Duration|duration}}",
 		description:
 			"Set the slowmode for a channel to values that discord does not provide (such as 1 second, 45 minutes, ...). Maximum of 6 hours, minimum of 1 second, set to 0 to disable slowmode.",
 		examples: [
 			{
-				in: "slowmode set {{Channel|channel}} 1 second",
+				in: "slowmode set {Channel|channel} 1 second",
 				out:
-					"{{Atmention|you}}, {{Emoji|success}} Slowmode for {{Channel|channel}} set to 1 second, 000ms",
+					"{Atmention|you}, {Emoji|success} Slowmode for {Channel|channel} set to 1 second, 000ms",
 			},
 		],
 	},
@@ -204,8 +204,8 @@ nr.globalCommand(
 @DocAdd /help/autodelete
 
 ```
-usage: ip!autodelete add {{Duration}}
-example: ip!autodelete add 10s user {{Atmention|@Mee6}}
+usage: ip!autodelete add {Duration}
+example: ip!autodelete add 10s user {Atmention|@Mee6}
 desc: automatically delete messages from Mee6 after 10 seconds
 example: ip!autodelete add 1 hour channel #vent
 desc: automatically delete messages in the #vent channel after 1 hour
@@ -257,7 +257,7 @@ nr.globalCommand(
 	{
 		usage: "autodelete remove #",
 		description:
-			"remove an autodelete rule. use {{Command|autodelete list}} to list.",
+			"remove an autodelete rule. use {Command|autodelete list} to list.",
 		examples: [],
 	},
 	nr.list(...nr.a.words()),
@@ -279,14 +279,14 @@ nr.globalCommand(
 nr.addHelpDocsPage("/help/channels/autodelete/add/prefix", {
 	title: "autodelete prefix",
 	usage:
-		"ip!autodelete add {{Required|{{Duration}}}} prefix {{Required|the prefix}}",
+		"ip!autodelete add {Required|{Duration}} prefix {Required|the prefix}",
 	description:
 		"create an autodelete rule to remove all messages that start with a specified prefix",
 	examples: [
 		{
 			in: "ip!autodelete add 1s prefix https://tenor.com/",
 			out:
-				"{{Atmention|you}}, {{Emoji|success}} These types of messages will be automatically deleted after 1 second.\nNIY\nExample of a message that will be removed: {{Code|https://tenor.com/}}",
+				"{Atmention|you}, {Emoji|success} These types of messages will be automatically deleted after 1 second.\nNIY\nExample of a message that will be removed: {Code|https://tenor.com/}",
 		},
 	],
 });
@@ -296,7 +296,7 @@ nr.addHelpDocsPage("/help/channels/autodelete/add/prefix", {
 nr.addHelpDocsPage("/help/channels/autodelete/add/channel", {
 	title: "autodelete channel",
 	usage:
-		"ip!autodelete add {{Required|{{Duration}}}} channel {{Required|{{Channel|the-channel}}}}",
+		"ip!autodelete add {Required|{Duration}} channel {Required|{Channel|the-channel}}",
 	description:
 		"create an autodelete rule to remove all messages in a certain channel",
 	examples: [],
@@ -305,7 +305,7 @@ nr.addHelpDocsPage("/help/channels/autodelete/add/channel", {
 nr.addHelpDocsPage("/help/channels/autodelete/add/user", {
 	title: "autodelete user",
 	usage:
-		"ip!autodelete add {{Required|{{Duration}}}} user {{Required|{{Atmention|the-user}}}}",
+		"ip!autodelete add {Required|{Duration}} user {Required|{Atmention|the-user}}",
 	description:
 		"create an autodelete rule to remove all messages from a certain user or bot",
 	examples: [],
@@ -314,7 +314,7 @@ nr.addHelpDocsPage("/help/channels/autodelete/add/user", {
 nr.addHelpDocsPage("/help/channels/autodelete/add/role", {
 	title: "autodelete role",
 	usage:
-		"ip!autodelete add {{Required|{{Duration}}}} role {{Required|{{Role|the role}}}}",
+		"ip!autodelete add {Required|{Duration}} role {Required|{Role|the role}}",
 	description:
 		"create an autodelete rule to remove all messages from people with a certain role",
 	examples: [],
@@ -325,21 +325,21 @@ nr.globalCommand(
 	"autodelete add",
 	{
 		usage:
-			"autodelete add {{Required|{{Duration}}}} {{Required|{{Enum|prefix|user|channel|role}}}}",
+			"autodelete add {Required|{Duration}} {Required|{Enum|prefix|user|channel|role}}",
 		description:
 			"create an autodelete rule. autodelete rules will delete messages that match a certain rule, such as those from a specific user or in a specific channel.",
-		extendedDescription: `{{UsageSummary|/help/channels/autodelete/add/prefix}}
-{{UsageSummary|/help/channels/autodelete/add/user}}
-{{UsageSummary|/help/channels/autodelete/add/channel}}
-{{UsageSummary|/help/channels/autodelete/add/role}}
+		extendedDescription: `{UsageSummary|/help/channels/autodelete/add/prefix}
+{UsageSummary|/help/channels/autodelete/add/user}
+{UsageSummary|/help/channels/autodelete/add/channel}
+{UsageSummary|/help/channels/autodelete/add/role}
 
-{{Heading|Using autodelete rules to create a 3s-delete channel}}
+{Heading|Using autodelete rules to create a 3s-delete channel}
 
-{{Command|autodelete add 3s channel {{Channel|3s-delete}}}}
+{Command|autodelete add 3s channel {Channel|3s-delete}}
 
-{{Heading|Using autodelete rules to delete bot messages after a certain time period}}
+{Heading|Using autodelete rules to delete bot messages after a certain time period}
 
-{{Command|autodelete add 10 seconds user {{Atmention|Mee6}}}}`,
+{Command|autodelete add 10 seconds user {Atmention|Mee6}}`,
 		examples: [],
 	},
 	nr.list(...nr.a.words()),

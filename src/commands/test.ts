@@ -4,7 +4,7 @@ nr.globalCommand(
 	"/help/test/test",
 	"test",
 	{
-		usage: "test {{Emoji|emoji}} {{Role|role}}",
+		usage: "test {Emoji|emoji} {Role|role}",
 		description: "Test the bot",
 		examples: [],
 	},
@@ -25,7 +25,7 @@ nr.globalCommand(
 		examples: [
 			{
 				in: `ip!crash`,
-				out: `@you, {{Emoji|failure}} An internal error occured while running this command. Error code: {{Code|8oywx5uxsi}}`,
+				out: `@you, {Emoji|failure} An internal error occured while running this command. Error code: {Code|8oywx5uxsi}`,
 			},
 		],
 	},
