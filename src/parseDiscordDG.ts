@@ -311,7 +311,7 @@ export function dgToDiscord(text: string, info: Info) {
 export function dgToHTML(text: string) {
 	const res = parseDG(
 		text.replace(/(\n\s*\n)|(\n)/g, (q, a, b) =>
-			a ? "\n" : b ? "" : "uh oh",
+			a ? "\n" : b ? "\n" : "uh oh",
 		),
 		(fn, args) => {
 			if (!fn)
