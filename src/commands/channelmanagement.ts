@@ -308,6 +308,7 @@ nr.globalCommand(
 		let autodeleteInfo: AutodeleteRuleNoID;
 		if (mode === "prefix") {
 			const prefix = cmd;
+			if (!prefix) return await info.error("Expected prefix bad");
 			autodeleteInfo = { type: "prefix", prefix, duration };
 		} else if (mode === "user") {
 			const ap = await AP({ info, cmd }, a.user());
