@@ -223,7 +223,29 @@ const commands: {
 			const command = globalCommandNS[args[0].raw];
 			if (!command)
 				return "" + commands.Command.html(args) + " — Error :(";
-			const docs = globalDocs[command.docsPath];
+			return commands.UsageSummary.html([
+				{ raw: command.docsPath, safe: "never" },
+			]);
+		},
+		discord: (args, info) => {
+			const command = globalCommandNS[args[0].raw];
+			if (!command)
+				return (
+					"- " + commands.Command.discord(args, info) + " — Error :("
+				);
+			return commands.UsageSummary.discord(
+				[{ raw: command.docsPath, safe: "never" }],
+				info,
+			);
+		},
+	},
+	UsageSummary: {
+		confirm: args => {
+			assert.equal(args.length, 1);
+		},
+		html: args => {
+			const docs = globalDocs[args[0].raw];
+			if (!docs) return "" + commands.Command.html(args) + " — Error :(";
 			if (globalSummaryDepth >= 1)
 				return rawhtml`${dgToHTML(docs.summaries.usage)} — ${dgToHTML(
 					docs.summaries.description,
@@ -239,12 +261,11 @@ const commands: {
 			return result;
 		},
 		discord: (args, info) => {
-			const command = globalCommandNS[args[0].raw];
-			if (!command)
+			const docs = globalDocs[args[0].raw];
+			if (!docs)
 				return (
 					"- " + commands.Command.discord(args, info) + " — Error :("
 				);
-			const docs = globalDocs[command.docsPath];
 			return (
 				"- " +
 				dgToDiscord(docs.summaries.usage, info) +

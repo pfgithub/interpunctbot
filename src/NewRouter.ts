@@ -21,7 +21,7 @@ export type CmdCb<APList extends APListAny> = (
 export type HelpData = {
 	usage: string;
 	description: string;
-	longDescription?: string;
+	extendedDescription?: string;
 	examples: { in: string; out: string }[];
 };
 export type ErrorData = {
@@ -118,7 +118,7 @@ export function addHelpDocsPage(
 			"}}\n\n" +
 			help.description +
 			"\n\n" +
-			(help.longDescription || "") +
+			(help.extendedDescription || "") +
 			"\n\n" +
 			help.examples
 				.map(

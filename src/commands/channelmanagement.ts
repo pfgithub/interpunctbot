@@ -18,7 +18,7 @@ const stripMentions = (msg: string) => {
 
 nr.addDocsWebPage(
 	"/help/channels",
-	`{{Heading|Fun}}
+	`{{Heading|Channels}}
 
 {{Interpunct}} has a variety of channel management commands.
 
@@ -275,6 +275,51 @@ nr.globalCommand(
 		return await info.success("Autodelete rule removed");
 	},
 );
+
+nr.addHelpDocsPage("/help/channels/autodelete/add/prefix", {
+	title: "autodelete prefix",
+	usage:
+		"ip!autodelete add {{Required|{{Duration}}}} prefix {{Required|the prefix}}",
+	description:
+		"create an autodelete rule to remove all messages that start with a specified prefix",
+	examples: [
+		{
+			in: "ip!autodelete add 1s prefix https://tenor.com/",
+			out:
+				"{{Atmention|you}}, {{Emoji|success}} These types of messages will be automatically deleted after 1 second.\nNIY\nExample of a message that will be removed: {{Code|https://tenor.com/}}",
+		},
+	],
+});
+
+// nr.addDocsShorthand("autodelete add prefix", "/help/channels/autodelete/add/prefix");
+
+nr.addHelpDocsPage("/help/channels/autodelete/add/channel", {
+	title: "autodelete channel",
+	usage:
+		"ip!autodelete add {{Required|{{Duration}}}} channel {{Required|{{Channel|the-channel}}}}",
+	description:
+		"create an autodelete rule to remove all messages in a certain channel",
+	examples: [],
+});
+
+nr.addHelpDocsPage("/help/channels/autodelete/add/user", {
+	title: "autodelete user",
+	usage:
+		"ip!autodelete add {{Required|{{Duration}}}} user {{Required|{{Atmention|the-user}}}}",
+	description:
+		"create an autodelete rule to remove all messages from a certain user or bot",
+	examples: [],
+});
+
+nr.addHelpDocsPage("/help/channels/autodelete/add/role", {
+	title: "autodelete role",
+	usage:
+		"ip!autodelete add {{Required|{{Duration}}}} role {{Required|{{Role|the role}}}}",
+	description:
+		"create an autodelete rule to remove all messages from people with a certain role",
+	examples: [],
+});
+
 nr.globalCommand(
 	"/help/channels/autodelete/add",
 	"autodelete add",
@@ -283,8 +328,18 @@ nr.globalCommand(
 			"autodelete add {{Required|{{Duration}}}} {{Required|{{Enum|prefix|user|channel|role}}}}",
 		description:
 			"create an autodelete rule. autodelete rules will delete messages that match a certain rule, such as those from a specific user or in a specific channel.",
-		longDescription:
-			"{{Heading|Using autodelete rules to create a 3s-delete channel}}\n\n{{Command|autodelete add 3s channel {{Channel|3s-delete}}}}\n\n{{Heading|Using autodelete rules to delete bot messages after a certain time period}}\n\n{{Command|autodelete add 10 seconds user {{Atmention|Mee6}}}}",
+		extendedDescription: `{{UsageSummary|/help/channels/autodelete/add/prefix}}
+{{UsageSummary|/help/channels/autodelete/add/user}}
+{{UsageSummary|/help/channels/autodelete/add/channel}}
+{{UsageSummary|/help/channels/autodelete/add/role}}
+
+{{Heading|Using autodelete rules to create a 3s-delete channel}}
+
+{{Command|autodelete add 3s channel {{Channel|3s-delete}}}}
+
+{{Heading|Using autodelete rules to delete bot messages after a certain time period}}
+
+{{Command|autodelete add 10 seconds user {{Atmention|Mee6}}}}`,
 		examples: [],
 	},
 	nr.list(...nr.a.words()),
