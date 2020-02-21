@@ -304,12 +304,18 @@ export function dgToDiscord(text: string, info: Info) {
 }
 
 export function dgToHTML(text: string) {
-	const res = parseDG(text, (fn, args) => {
-		if (!fn) return safehtml`<span class="safetext">${args[0].raw}</span>`;
-		if (!commands[fn]) {
-			return "Uh oh! " + messages.emoji.failure;
-		}
-		return commands[fn].html(args);
-	});
-	return res.safe.replace(/<br \/>(?:\s*<br \/>)+/g, "<br />");
+	const res = parseDG(
+		text.replace(/(\n\s*\n)|(\n)/g, (q, a, b) =>
+			a ? "\n" : b ? "" : "uh oh",
+		),
+		(fn, args) => {
+			if (!fn)
+				return safehtml`<span class="safetext">${args[0].raw}</span>`;
+			if (!commands[fn]) {
+				return "Uh oh! " + messages.emoji.failure;
+			}
+			return commands[fn].html(args);
+		},
+	);
+	return res.safe;
 }

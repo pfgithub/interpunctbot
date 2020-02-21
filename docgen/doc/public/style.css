@@ -577,17 +577,13 @@ sup {
 	align-items: center;
 }
 
-.heading {
-	margin-bottom: 0;
+.heading + .safetext > br:first-child {
+	display: none;
 }
 
 .navlinks {
 	margin-top: 10px;
 	margin-bottom: 10px;
-}
-
-.message + .safetext > br:first-child {
-	display: none;
 }
 
 .reaction {
