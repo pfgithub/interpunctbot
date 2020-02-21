@@ -85,6 +85,19 @@ assert.deepStrictEqual(parseDG(`\\{what\\|\\}`, defaultFormat), {
 	try {
 		res = parseDG("what{s a dg help please explain\\", defaultFormat);
 	} catch (e) {
+		assert.equal(
+			e.message,
+			"Expected [rbracket] or [argseparator] but got [EOF]",
+		);
+	}
+	assert.equal(res, undefined);
+}
+
+{
+	let res;
+	try {
+		res = parseDG("{action|oops\\", defaultFormat);
+	} catch (e) {
 		assert.equal(e.message, "Not all brackets exited before eof.");
 	}
 	assert.equal(res, undefined);
@@ -122,6 +135,19 @@ assert.deepStrictEqual(parseDG(`\\{what\\|\\}`, defaultFormat), {
 		);
 	} catch (e) {
 		assert.equal(e.message, "Expected [text], got [argseparator]");
+	}
+	assert.equal(res, undefined);
+}
+
+{
+	let res;
+	try {
+		res = parseDG("ano {oi{what}is going|on?}", defaultFormat);
+	} catch (e) {
+		assert.equal(
+			e.message,
+			"Expected [rbracket] or [argseparator] but got [lbracket]",
+		);
 	}
 	assert.equal(res, undefined);
 }

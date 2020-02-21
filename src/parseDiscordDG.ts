@@ -1,7 +1,7 @@
 import assert from "assert";
 import { messages, raw, safe, templateGenerator } from "../messages";
 import Info from "./Info";
-import { parseDG } from "./parseDG";
+import { parseDG } from "./parseDGv2";
 import { globalCommandNS, globalDocs } from "./NewRouter";
 
 export function escapeHTML(html: string) {
@@ -282,44 +282,34 @@ const commands: {
 };
 
 export function confirmDocs(text: string) {
-	const res = parseDG(
-		text,
-		() => "[[ConfirmClean]]",
-		(fn, args) => {
-			if (!commands[fn]) {
-				throw new Error("dg function {" + fn + "} not found");
-			}
-			commands[fn].confirm(args);
-			return "[[Confirm{" + fn + "}]]";
-		},
-	);
-	if (res.remaining) throw new Error("imbalanced dg curlies}");
+	parseDG(text, (fn, args) => {
+		if (!fn) return "[[ConfirmClean]]";
+		if (!commands[fn]) {
+			throw new Error("dg function {" + fn + "} not found");
+		}
+		commands[fn].confirm(args);
+		return "[[Confirm{" + fn + "}]]";
+	});
 }
 
 export function dgToDiscord(text: string, info: Info) {
-	const res = parseDG(
-		text,
-		txt => safe(txt),
-		(fn, args) => {
-			if (!commands[fn]) {
-				return "Uh oh! " + messages.emoji.failure;
-			}
-			return commands[fn].discord(args, info);
-		},
-	);
-	return res.resClean.replace(/\n\n+/g, "\n\n");
+	const res = parseDG(text, (fn, args) => {
+		if (!fn) return safe(args[0].raw);
+		if (!commands[fn]) {
+			return "Uh oh! " + messages.emoji.failure;
+		}
+		return commands[fn].discord(args, info);
+	});
+	return res.safe.replace(/\n\n+/g, "\n\n");
 }
 
 export function dgToHTML(text: string) {
-	const res = parseDG(
-		text,
-		txt => safehtml(txt),
-		(fn, args) => {
-			if (!commands[fn]) {
-				return "Uh oh! " + messages.emoji.failure;
-			}
-			return commands[fn].html(args);
-		},
-	);
-	return res.resClean.replace(/<br \/>(?:\s*<br \/>)+/g, "<br />");
+	const res = parseDG(text, (fn, args) => {
+		if (!fn) return safehtml(args[0].raw);
+		if (!commands[fn]) {
+			return "Uh oh! " + messages.emoji.failure;
+		}
+		return commands[fn].html(args);
+	});
+	return res.safe.replace(/<br \/>(?:\s*<br \/>)+/g, "<br />");
 }

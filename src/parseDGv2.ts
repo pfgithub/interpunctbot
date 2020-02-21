@@ -66,6 +66,18 @@ export function parseDG(
 			if (name?.type !== "text") {
 				throw new Error("Expected [text], got [" + name?.type + "]");
 			}
+			const topToken = tokens[0];
+			if (
+				!topToken ||
+				(topToken.type !== "rbracket" &&
+					topToken.type !== "argseparator")
+			) {
+				throw new Error(
+					"Expected [rbracket] or [argseparator] but got [" +
+						(topToken?.type || "EOF") +
+						"]",
+				);
+			}
 			state.push({
 				type: "callaction",
 				action: name.text,
