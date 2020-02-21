@@ -373,6 +373,9 @@ class Database {
 	async setSpeedrunDefault(gameID: string, categoryID: string) {
 		return await this._set("speedrun", `${gameID}, ${categoryID}`);
 	}
+	async disableSpeedrun() {
+		return await this._set("speedrun", undefined);
+	}
 	async addError(error: string, settingCause: string) {
 		// log for the ip!error log
 		void error;

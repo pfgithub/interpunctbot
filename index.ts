@@ -15,7 +15,7 @@ import "./src/commands/help";
 import "./src/commands/logging";
 import quoteRouter from "./src/commands/quote";
 import settingsRouter from "./src/commands/settings";
-import speedrun from "./src/commands/speedrun";
+import "./src/commands/speedrun";
 import "./src/commands/test";
 import { globalConfig } from "./src/config";
 import Database from "./src/Database";
@@ -44,7 +44,6 @@ function devlog(...msg: any) {
 
 router.add([], fun);
 router.add([], channelsRouter);
-router.add([], speedrun);
 
 export type ErrorWithID = Error & { errorCode: string };
 

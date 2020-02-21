@@ -284,6 +284,12 @@ const commands: {
 		html: args => rawhtml`<span class="divider">${args[0].safe}</span>`,
 		discord: args => "--- " + args[0].safe + " ---",
 	},
+	Link: {
+		confirm: args => assert.equal(args.length, 1),
+		html: args =>
+			rawhtml`<a href="${safehtml(args[0].raw)}">${args[0].safe}</a>`,
+		discord: args => "<" + args[0].safe + ">",
+	},
 };
 
 export function confirmDocs(text: string) {

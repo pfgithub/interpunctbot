@@ -25,19 +25,28 @@ speedrun ruels <category>
 import SpeedrunAPI from "speedrunapi";
 const sr = new SpeedrunAPI();
 import MB, { TextBuilder } from "../MessageBuilder";
-import Router from "commandrouter";
 import Info from "../Info";
 import { messages } from "../../messages";
+import * as nr from "../NewRouter";
 //@ts-ignore
 import request from "async-request"; // this is a terrible library why am I using it // TODO switch to node-fetch
 
 import moment from "moment";
 
-const router = new Router<Info, Promise<any>>();
-
-const adminrouter = new Router<Info, Promise<any>>();
-
 const ctime = () => new Date().getTime();
+
+nr.addDocsWebPage(
+	"/help/speedrun",
+	`{Heading|Speedrun}
+
+{Interpunct} has support for showing rules and times from {Link|https://speedrun.com}.
+
+{CmdSummary|speedrun set}
+{CmdSummary|speedrun disable}
+{CmdSummary|wr}
+{CmdSummary|leaderboard}
+{CmdSummary|speedrun rules}`,
+);
 
 export async function getURL(
 	strings: TemplateStringsArray | string | string[],
@@ -94,150 +103,57 @@ function parseAbbreviation({ from: speedrunpage = "" }) {
 //router.add([r.manageBot], adminrouter); // that might error if anyone doesn't have managebot // confirmed it does, might want to change this in commandourndstgjkh
 // forex we could have the router still route through the paths but once an actual matching command is found, it could check these. not sure if that would work with
 // quotes though
-router.add([], adminrouter);
 
-router.add("wr", [], async (cmd, info) => {
-	const startTime = new Date().getTime();
-	// wr <category> gets the wr for the specified category||default
-	await info.startLoading();
-	const categoryNameArray = cmd.split(` `);
-	const categoryName = categoryNameArray.join(` `);
-
+async function getGameAndCategory(
+	categoryName: string,
+	info: Info,
+): Promise<
+	{ gameID: string; categoryID: string; error: false } | { error: true }
+> {
 	if (!info.db) {
-		return await info.error(
-			messages.failure.command_cannot_be_used_in_pms(info),
-		);
+		await info.error(messages.failure.command_cannot_be_used_in_pms(info));
+		return { error: true };
 	}
-
 	const defaultGameCategory = await info.db.getSpeedrunDefault();
 	if (!defaultGameCategory) {
-		return await info.error(messages.speedrun.requires_setup(info));
+		await info.error(messages.speedrun.requires_setup(info));
+		return { error: true };
 	}
 	let { gameID, categoryID } = defaultGameCategory;
 	gameID = gameID;
 
 	if (categoryName) {
-		// wouuldn't it be cool if loading could be updated to say "Getting Category..."
 		const categories = await getCategoriesFromGameID(gameID);
 
 		const categoryFilter = categories.items.filter((cat: any) =>
 			compareCatName(cat.name, categoryName),
 		);
 		if (categoryFilter.length <= 0) {
-			return await info.error(
+			await info.error(
 				messages.speedrun.invalid_category_name(
 					info,
 					categoryName,
 					categories.items.map((cat: any) => cat.name),
 				),
 			);
+			return { error: true };
 		} // TODO return as a mb fields[categoryname,url,name,url...]
 		categoryID = categoryFilter[0].id;
 	}
 
-	const place = 1;
-
-	const gameData = await sr
-		.leaderboards(gameID, categoryID)
-		.embed(["category", "players", "game"])
-		.exec();
-	const actualGameData = gameData.items.game.data;
-	const runs = gameData.items.runs.filter(
-		(run: any) => run.place.toString() === place.toString(),
-	); // TODO run.place === place and have place just get the person in nth place
-	const getPlayer = (player: any) =>
-		gameData.items.players.data.filter((pl: any) => pl.id === player)[0];
-	const run_ = runs[0];
-	if (!run_) {
-		return await info.error(messages.speedrun.no_wr_found(info));
-	}
-	const run = run_.run;
-
-	const mb = MB();
-	mb.url.putRaw(gameData.items.category.data.weblink);
-	mb.title.put(gameData.items.category.data.name);
-
-	const runPlayer = getPlayer(run.players[0].id);
-	mb.setAuthor(
-		runPlayer.names.international,
-		`https://www.speedrun.com/images/flags/${runPlayer.location &&
-			runPlayer.location.country &&
-			runPlayer.location.country.code}.png`,
-		runPlayer.weblink,
-	);
-	const duration = moment.duration(run.times.primary_t, "seconds");
-	mb.description.tag`[${duration.format(
-		"y [years] M [months] w [weeks] d [days,] h[h]:mm[m]:s.SSS[s]",
-	)}](`;
-	mb.description.putRaw(run.weblink);
-	mb.description.tag`)
-	${run.comment || "No comment"}
-	`;
-
-	mb.footer.tag`Took ${`${ctime() - startTime}`} ms`;
-	console.log(`Finished loading WR in ${ctime() - startTime} ms`);
-
-	const assetIcon =
-		actualGameData.assets[
-			`trophy-${["1st", "2nd", "3rd", "4th"][run_.place - 1]}`
-		];
-	if (assetIcon) {
-		mb.setThumbnail(assetIcon.uri);
-	}
-
-	if (info.myChannelPerms!.has("EMBED_LINKS")) {
-		await info.result(...mb.build(true));
-	} else {
-		await info.result(...mb.build(false));
-	}
-});
-function isNormalInteger(str: string) {
-	const n = Math.floor(Number(str));
-	return n !== Infinity && String(n) === str && n > 0;
+	return { gameID, categoryID, error: false };
 }
 
-router.add("speedrun leaderboard", [], async (cmd, info) => {
-	const startTime = ctime();
-	// speedrun leaderboard <<abbreviation> category> n gets the person in nth placed
-	const [positionString, ...categoryNameList] = cmd.split(` `);
-	const categoryName = categoryNameList.join(` `); // 10/10
+async function displayLeaderboard(
+	position: number,
+	categoryName: string,
+	info: Info,
+) {
+	const startTime = new Date().getTime();
 
-	if (!positionString || !isNormalInteger(positionString)) {
-		return await info.error(messages.speedrun.position_required(info));
-	}
-	const position = parseInt(positionString, 10); // position =+ position
-
-	if (!info.db) {
-		return await info.error(
-			messages.failure.command_cannot_be_used_in_pms(info),
-		);
-	}
-	const defaultGameCategory = await info.db.getSpeedrunDefault();
-	if (!defaultGameCategory) {
-		return await info.error(messages.speedrun.requires_setup(info));
-	}
-	let { gameID, categoryID } = defaultGameCategory;
-	gameID = gameID;
-
-	await info.startLoading();
-
-	if (categoryName) {
-		const categories = await getCategoriesFromGameID(gameID);
-
-		const categoryFilter = categories.items.filter((cat: any) =>
-			compareCatName(cat.name, categoryName),
-		);
-		if (categoryFilter.length <= 0) {
-			return await info.error(
-				messages.speedrun.invalid_category_name(
-					info,
-					categoryName,
-					categories.items.map((cat: any) => cat.name),
-				),
-			);
-		} // TODO return as a mb fields[categoryname,url,name,url...]
-		categoryID = categoryFilter[0].id;
-	}
+	const gac = await getGameAndCategory(categoryName, info); // const gac = await getGameAndCategory catch |e| switch(e => .Exit => return; else => return e;)
+	if (gac.error) return;
+	const { gameID, categoryID } = gac;
 
 	const place = position;
 
@@ -295,66 +211,82 @@ router.add("speedrun leaderboard", [], async (cmd, info) => {
 	} else {
 		await info.result(...mb.build(false));
 	}
-});
-router.add("speedrun rules", [], async (cmd, info) => {
-	const startTime = ctime();
-	await info.startLoading();
-	const categoryNameArray = cmd.split(` `);
-	const categoryName = categoryNameArray.join(` `);
+}
 
-	if (!info.db) {
-		return await info.error(
-			"Speedrun commands cannot be used in PMs.",
-			undefined,
-		);
-	}
+nr.globalCommand(
+	"/help/speedrun/wr",
+	"wr",
+	{
+		usage: "wr {Optional|Category%}",
+		description: "Get the current speedrun world record holder",
+		examples: [],
+	},
+	nr.list(...nr.a.words()),
+	async ([cmd], info) => {
+		await info.startLoading();
+		await displayLeaderboard(1, cmd, info);
+	},
+);
+function isNormalInteger(str: string) {
+	const n = Math.floor(Number(str));
+	return n !== Infinity && String(n) === str && n > 0;
+}
 
-	const defaultGameCategory = await info.db.getSpeedrunDefault();
-	if (!defaultGameCategory) {
-		return await info.error(
-			"Speedrun commands have not been configured for this server. Configure them with `speedrun set`",
-			undefined,
-		);
-	}
-	let { gameID, categoryID } = defaultGameCategory;
-	gameID = gameID;
+nr.globalCommand(
+	"/help/speedrun/leaderboard",
+	"leaderboard",
+	{
+		usage: "leaderboard {Required|Position#} {Optional|Category%}",
+		description: "Get the current speedrun world record holder",
+		examples: [],
+	},
+	nr.list(nr.a.number(), ...nr.a.words()),
+	async ([position, cmd], info) => {
+		await info.startLoading();
+		if (!position || !isNormalInteger("" + position)) {
+			return await info.error(messages.speedrun.position_required(info));
+		}
+		await displayLeaderboard(position, cmd, info);
+	},
+);
 
-	if (categoryName) {
-		// wouuldn't it be cool if loading could be updated to say "Getting Category..."
-		const categories = await getCategoriesFromGameID(gameID);
+nr.globalCommand(
+	"/help/speedrun/rules",
+	"speedrun rules",
+	{
+		usage: "speedrun rules {Optional|Category%}",
+		description: "Get the speedrun rules",
+		examples: [],
+	},
+	nr.list(...nr.a.words()),
+	async ([cmd], info) => {
+		const startTime = ctime();
+		await info.startLoading();
+		const categoryNameArray = cmd.split(` `);
+		const categoryName = categoryNameArray.join(` `);
 
-		const categoryFilter = categories.items.filter((cat: any) =>
-			compareCatName(cat.name, categoryName),
-		);
-		if (categoryFilter.length <= 0) {
-			return await info.error(
-				new TextBuilder()
-					.tag`The category \`${categoryName}\` is not in the game.
-		Valid categories: ${categories.items.map((cat: any) => cat.name)
-			.join`, `}`.build(),
-				undefined,
-			);
-		} // TODO return as a mb fields[categoryname,url,name,url...]
-		categoryID = categoryFilter[0].id;
-	}
+		const gac = await getGameAndCategory(categoryName, info);
+		if (gac.error) return;
+		const { gameID, categoryID } = gac;
 
-	const gameData = await sr
-		.leaderboards(gameID, categoryID)
-		.embed(["category"])
-		.exec();
+		const gameData = await sr
+			.leaderboards(gameID, categoryID)
+			.embed(["category"])
+			.exec();
 
-	const mb = MB();
-	mb.url.putRaw(gameData.items.category.data.weblink);
-	mb.title.put(gameData.items.category.data.name);
-	mb.description.put(gameData.items.category.data.rules);
-	mb.footer.tag`Took ${`${ctime() - startTime}`} ms`;
+		const mb = MB();
+		mb.url.putRaw(gameData.items.category.data.weblink);
+		mb.title.put(gameData.items.category.data.name);
+		mb.description.put(gameData.items.category.data.rules);
+		mb.footer.tag`Took ${`${ctime() - startTime}`} ms`;
 
-	if (info.myChannelPerms!.has("EMBED_LINKS")) {
-		await info.result(...mb.build(true));
-	} else {
-		await info.result(...mb.build(false));
-	}
-}); // <<abbreviation> category>
+		if (info.myChannelPerms!.has("EMBED_LINKS")) {
+			await info.result(...mb.build(true));
+		} else {
+			await info.result(...mb.build(false));
+		}
+	},
+); // <<abbreviation> category>
 
 async function getGameAtPage(abbreviation: string) {
 	// Get the list of games from the abbreviation
@@ -370,14 +302,45 @@ async function getGameAtPage(abbreviation: string) {
 
 	return games[0];
 }
-adminrouter.add(
+
+nr.globalCommand(
+	"/help/speedrun/disable",
+	"speedrun disable",
+	{
+		usage: "speedrun disable",
+		description: "disable speedrun commands",
+		examples: [],
+	},
+	nr.list(),
+	async ([], info) => {
+		if (!Info.theirPerm.manageBot(info)) return;
+
+		if (!info.db) {
+			return await info.error(
+				"Cannot use speedrun commands in private pm messages",
+				undefined,
+			);
+		}
+
+		await info.db.disableSpeedrun();
+	},
+);
+
+nr.globalCommand(
+	"/help/speedrun/set",
 	"speedrun set",
-	[Info.theirPerm.manageBot],
-	async (cmd, info) => {
+	{
+		usage:
+			"speedrun set {Required|https://speedrun.com/game%} {Required|Category%}",
+		description: "Set the speedrun game",
+		examples: [],
+	},
+	nr.list(nr.a.word(), ...nr.a.words()),
+	async ([speedrunpage, categoryName], info) => {
+		if (!Info.theirPerm.manageBot(info)) return;
+
 		const startTime = ctime();
 		// extract the abbreviation from the command
-		const [speedrunpage, ...categoryNameArray] = cmd.split(` `);
-		const categoryName = categoryNameArray.join(` `);
 
 		if (!info.db) {
 			return await info.error(
@@ -428,5 +391,3 @@ adminrouter.add(
 		);
 	},
 ); // set <abbreviaton> <category> // sets the default category
-
-export default router;

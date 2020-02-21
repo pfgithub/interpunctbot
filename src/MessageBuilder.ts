@@ -18,13 +18,13 @@ export class TextBuilder {
 		this.text = [];
 		this.type = type;
 	}
-	tag(strings: TemplateStringsArray, ...values: string[]) {
+	tag(strings: TemplateStringsArray, ...values: (string | number)[]) {
 		// Values are escaped
 		// Strings are not
 		strings.forEach((str, i) => {
 			this.putRaw(str);
 			if (values[i]) {
-				this.put(values[i]);
+				this.put("" + values[i]);
 			}
 		});
 		return this;
