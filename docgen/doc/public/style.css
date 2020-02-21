@@ -586,15 +586,7 @@ sup {
 	margin-bottom: 10px;
 }
 
-.message + br {
-	display: none;
-}
-
-.message + br {
-	display: none;
-}
-
-.blockquote-container + br {
+.message + .safetext > br:first-child {
 	display: none;
 }
 

@@ -305,7 +305,7 @@ export function dgToDiscord(text: string, info: Info) {
 
 export function dgToHTML(text: string) {
 	const res = parseDG(text, (fn, args) => {
-		if (!fn) return safehtml(args[0].raw);
+		if (!fn) return safehtml`<span class="safetext">${args[0].raw}</span>`;
 		if (!commands[fn]) {
 			return "Uh oh! " + messages.emoji.failure;
 		}
