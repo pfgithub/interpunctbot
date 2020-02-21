@@ -279,6 +279,11 @@ const commands: {
 		html: args => args.map(a => a.safe).join("|"),
 		discord: args => args.map(a => a.safe).join("|"),
 	},
+	Divider: {
+		confirm: args => assert.equal(args.length, 1),
+		html: args => rawhtml`<span class="divider">${args[0].safe}</span>`,
+		discord: args => "--- " + args[0].safe + " ---",
+	},
 };
 
 export function confirmDocs(text: string) {
