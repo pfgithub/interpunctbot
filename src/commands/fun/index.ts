@@ -42,7 +42,7 @@ nr.globalCommand(
 	{
 		usage: "ping",
 		description: "Play a game of ping pong against {Interpunct}.",
-		examples: [{ in: "ip!ping", out: "@you, Pong!" }],
+		examples: [{ in: "ping", out: "@you, Pong!" }],
 	},
 	nr.list(),
 	async ([], info) => {
@@ -63,7 +63,7 @@ nr.globalCommand(
 	{
 		usage: "pong",
 		description: "Play a game of pong ping against {Interpunct}.",
-		examples: [{ in: "ip!pong", out: "@you, Ping!" }],
+		examples: [{ in: "pong", out: "@you, Ping!" }],
 	},
 	nr.list(),
 	async ([], info) => {
