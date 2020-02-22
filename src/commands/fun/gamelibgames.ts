@@ -3,7 +3,7 @@ import { connect4 } from "./gamelib/connect4";
 
 nr.globalCommand(
 	"/help/fun/connect4",
-	"gamelib",
+	"connect4",
 	{
 		usage: "connect4",
 		description:
