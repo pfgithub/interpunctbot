@@ -13,3 +13,62 @@
 -   migrate to newrouter (+documentation)
 -   remove ability to put no space in commands like `ip!votewhat happened`
 -   rankmoji
+
+# running
+
+requires: yarn package manager, node >=11 (preferrably >=13)
+
+```bash
+git clone https://github.com/pfgithub/interpunctbot
+cd interpunctbot
+yarn install
+```
+
+## building docs
+
+```bash
+yarn docs
+```
+
+view the docs by setting up a webserver in /docs. for example
+
+```bash
+yarn global add serve
+serve docs
+```
+
+## running the bot
+
+go to https://discordapp.com/developers/applications/me and create a new
+application. in the sidebar go to bot and select to create a bot user.
+
+go to the oauth tab and under scopes check `bot`. then under bot permissions,
+select any you want. back in the scopes section, copy the url and visit it to
+invite the bot to a server.
+
+go to the bot tab and get the token (click to reveal token or press the copy
+button).
+
+copy `config/knexfile.example.json` to `config/knexfile.json`. you probably
+don't need to make any changes.
+
+create `config/config.json` and fill it with
+
+```json
+{ "token": "your bot token goes here" }
+```
+
+there are other configuration options available which you can see in
+`config/config.example.json`
+
+now, set up the database with
+
+```bash
+yarn knex migrate:latest
+```
+
+finally, start the bot with
+
+```bash
+yarn ts-node .
+```
