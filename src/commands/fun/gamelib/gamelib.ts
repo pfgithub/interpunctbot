@@ -4,6 +4,47 @@ import Info from "../../../Info";
 import { perr } from "../../../..";
 import { getPlayers, createTimer } from "../checkers";
 
+/// pass data async
+/// stream.write()
+/// await stream.read()
+/// adapted from https://github.com/pfgithub/advent-of-code-2019/blob/master/solutions/_defaults/_defaults.0.ts
+function oneway<T>(): {
+	read: () => Promise<T>;
+	write: (v: T) => void;
+	close: () => void;
+} {
+	const stream: T[] = [];
+	let waitingnow: ((v: T) => void) | undefined;
+	let over = false;
+	return {
+		read: () => {
+			return new Promise(resolve => {
+				if (stream.length > 0) {
+					return resolve(stream.shift());
+				} else {
+					waitingnow = v => {
+						waitingnow = undefined;
+						resolve(v);
+					};
+				}
+			});
+		},
+		write: v => {
+			if (over) throw new Error("cannot write to closed oneway");
+			if (waitingnow) {
+				waitingnow(v);
+			} else {
+				stream.push(v);
+			}
+		},
+		close: () => {
+			over = true;
+			if (stream.length > 0)
+				throw new Error("oneway closed while items are in stream");
+		},
+	};
+}
+
 export const ratelimit = (frequency: number & { __unit: "ms" }) => {
 	let timeout: NodeJS.Timeout | undefined;
 	let nextExec: undefined | (() => Promise<void>);
@@ -45,6 +86,7 @@ export type GameConfig<State> = {
 		message?: (v: Readonly<State>) => string;
 		update?: (v: State) => State;
 	}[];
+	checkGameOver: (state: Readonly<State>) => boolean;
 	help: string;
 	title: string;
 };
@@ -71,6 +113,9 @@ export const newGame = <State>(conf: GameConfig<State>) => async (
 		return await info.help("/errors/fun-disabled", "error");
 	}
 
+	const gameOverListener = oneway<boolean>();
+	let gameOver = false;
+
 	const players = await getPlayers(
 		[info.message.author.id],
 		2,
@@ -84,7 +129,14 @@ export const newGame = <State>(conf: GameConfig<State>) => async (
 			id: pl,
 		})),
 	);
-	state = state;
+	state = state; // I'm pretty sure there's a reason this is here...
+	const setState = (newState: State) => {
+		state = newState;
+		if (conf.checkGameOver(state)) {
+			gameOverListener.write(true);
+			gameOver = true;
+		}
+	};
 
 	let gameStarted = false;
 
@@ -151,6 +203,8 @@ export const newGame = <State>(conf: GameConfig<State>) => async (
 		reaction: Discord.MessageReaction,
 		user: Discord.User,
 	) {
+		if (gameOver) return;
+
 		perr(reaction.users.remove(user), "remove reaction for game");
 		if (!gameStarted) return;
 		if (!reaction.emoji.id) return;
@@ -168,7 +222,7 @@ export const newGame = <State>(conf: GameConfig<State>) => async (
 		if (!action) return; // maybe log "no" or something
 		// copy state
 		const stateCopy = copyState(state);
-		state = action.apply(stateCopy);
+		setState(action.apply(stateCopy));
 		availableActions = undefined;
 		////////////// here's an idea                       \\\\\\\\\\\\\\
 		///////////// update available actions now           \\\\\\\\\\\\\
@@ -200,7 +254,7 @@ export const newGame = <State>(conf: GameConfig<State>) => async (
 				}
 				if (timer.update) {
 					const stateCopy = copyState(state);
-					state = timer.update(stateCopy);
+					setState(timer.update(stateCopy));
 					availableActions = undefined;
 					rerender();
 				}
@@ -210,15 +264,11 @@ export const newGame = <State>(conf: GameConfig<State>) => async (
 
 	gameStarted = true;
 
-	await new Promise(() => {
-		/*todo*/
-	});
+	await gameOverListener.read();
+	gameOverListener.close();
+	gameTimer.end();
 
-	// TODO:
-	// - win conditions
-	// - board
-
-	//// ===== wait for game to end =====
+	await info.message.channel.send("Game over.");
 
 	for (const message of messages) {
 		message.rxnh.end();
@@ -227,8 +277,9 @@ export const newGame = <State>(conf: GameConfig<State>) => async (
 			"remove all reactions (optional)",
 		);
 	}
-
-	return "a";
+	for (const msg of toRemoveOnNextReset) {
+		perr(msg.delete(), "removing message in game");
+	}
 };
 
 export type Tileset<T> = { tiles: T };
@@ -252,8 +303,8 @@ export type Board<Layers extends string> = {
 			x: number,
 			y: number,
 			onBoard: boolean,
-		) => Pos | true,
-	): { x: number; y: number } | undefined;
+		) => Pos | true | false,
+	): { x: number; y: number; distance: number } | undefined;
 	copy(): Board<Layers>;
 };
 export type Pos = [number, number];
@@ -300,16 +351,20 @@ export function newBoard<Layers extends string>(
 		search(startingPosition, cb) {
 			let [cx, cy] = startingPosition;
 			let [x, y] = startingPosition;
-			const i = 0;
+			let i = 0;
 			while (true) {
-				if (i > 100)
-					throw new Error("Potentially infinite find!:(passed 100)");
+				if (i > 1000)
+					throw new Error("Potentially infinite find!:(passed 1000)");
 				const result =
 					cx >= w || cx < 0 || cy >= h || cy < 0
 						? cb({}, cx, cy, false)
 						: cb(tiles[cy][cx], cx, cy, true);
-				if (result === true) return { x, y };
+				if (result === false)
+					if (i === 0) return undefined;
+					else return { x, y, distance: i };
 				[x, y] = [cx, cy];
+				i++;
+				if (result === true) return { x, y, distance: i };
 				[cx, cy] = result;
 			}
 		},

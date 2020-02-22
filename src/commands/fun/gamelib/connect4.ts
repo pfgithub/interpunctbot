@@ -41,7 +41,38 @@ const tileset = newTileset({
 	],
 });
 
-function checkWin(gameState: Connect4) {}
+function checkWin(gameState: Connect4, [placedX, placedY]: [number, number]) {
+	const checks: [number, number][] = [
+		[-1, -1],
+		[-1, 0],
+		[-1, 1],
+		[0, -1],
+	];
+	const tile = gameState.board.get("fg", placedX, placedY)!;
+	console.log("placed tile: ", tile);
+	for (const check of checks) {
+		const downmost = gameState.board.search(
+			[placedX, placedY],
+			(stack, x, y, onBoard) => {
+				if (!onBoard) return false;
+				if (stack.fg !== tile) return false;
+				return [x + check[0], y + check[1]];
+			},
+		);
+		if (!downmost) throw new Error("tile was not found but it must be");
+		const upmost = gameState.board.search(
+			[downmost.x, downmost.y],
+			(stack, x, y, onBoard) => {
+				if (!onBoard) return false;
+				if (stack.fg !== tile) return false;
+				return [x - check[0], y - check[1]];
+			},
+		);
+		if (!upmost) throw new Error("tile was not found but it must be 2");
+		if (upmost.distance >= 4) return true;
+	}
+	return false;
+}
 
 export const connect4 = newGame<Connect4>({
 	title: "Connect 4",
@@ -71,8 +102,8 @@ export const connect4 = newGame<Connect4>({
 			const found = state.board.search(
 				[x, -1],
 				(stack, x, y, onBoard) => {
-					if (!onBoard && y > 0) return true;
-					return stack.fg === undefined ? [x, y + 1] : true;
+					if (!onBoard && y > 0) return false;
+					return stack.fg === undefined ? [x, y + 1] : false;
 				},
 			); // should have a findPrev for the thing one before
 			if (found && found.y >= 0) {
@@ -88,7 +119,13 @@ export const connect4 = newGame<Connect4>({
 								: tileset.tiles.yellow;
 						state.board.set("fg", x, y, tile);
 
-						state.turn = state.turn === "r" ? "y" : "r";
+						if (checkWin(state, [x, y])) {
+							state.status = {
+								s: "winner",
+								winner: state.players[state.turn],
+								reason: "Won!",
+							};
+						} else state.turn = state.turn === "r" ? "y" : "r";
 						return state;
 					},
 				});
@@ -105,6 +142,9 @@ export const connect4 = newGame<Connect4>({
 	renderSetup() {
 		return [{ type: "once", actions: [...tileset.tiles.buttons] }];
 	},
+	checkGameOver(state) {
+		return state.status.s === "winner";
+	},
 	render(state: Connect4): string[] {
 		const currentplayer = state.players[state.turn];
 		const playercolor =
@@ -113,7 +153,7 @@ export const connect4 = newGame<Connect4>({
 			state.status.s === "playing"
 				? `<@${currentplayer.id}>'s turn (${playercolor})`
 				: state.status.s === "winner"
-				? `<@${state.status.winner.id}> won!`
+				? `<@${state.status.winner.id}> won! (${state.status.reason})`
 				: "never.";
 		return [
 			`
