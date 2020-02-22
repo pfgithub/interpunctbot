@@ -16,6 +16,8 @@ const router = new Router<Info, Promise<any>>();
 
 nr.addDocsWebPage(
 	"/help/fun",
+	"Fun",
+	"games and other fun commands",
 	`{Heading|Fun}\n\n{Interpunct} has a variety of fun commands.
 
 {Heading|Configuration}

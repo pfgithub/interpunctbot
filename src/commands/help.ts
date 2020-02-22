@@ -2,12 +2,48 @@ import * as nr from "../NewRouter";
 import { dgToDiscord } from "../parseDiscordDG";
 
 nr.addDocsWebPage(
-	"/index",
-	"{Heading|{Interpunct} Bot}\n\nThis website is for version 3 of {Interpunct} which is currently in development. For version 2, see https://top.gg/bot/433078185555656705",
+	"/help",
+	"Help",
+	"interpunct bot commands",
+	`{Heading|inter·punct bot}
+
+{LinkSummary|/help/configuration}
+{LinkSummary|/help/fun}
+{LinkSummary|/help/emoji}
+{LinkSummary|/help/channels}
+{LinkSummary|/help/administration}
+{LinkSummary|/help/customcommands}
+{LinkSummary|/help/log}
+{LinkSummary|/help/speedrun}`,
 );
-nr.addDocsWebPage("/404", "{Heading|Uh oh!}\n\n404 not found.");
-nr.addDocsWebPage("/docstest", "a");
-nr.addDocsWebPage("/docstest/b", "b");
+
+nr.addDocsWebPage(
+	"/index",
+	"Home",
+	"Website homepage",
+	"{Heading|Inter·punct Bot}\n\nThis website is for version 3 of {Interpunct} which is currently in development. For version 2, see https://top.gg/bot/433078185555656705",
+);
+nr.addDocsWebPage(
+	"/404",
+	"404",
+	"Not found",
+	"{Heading|Uh oh!}\n\n404 not found.",
+);
+
+nr.addDocsWebPage(
+	"/help/administration",
+	"Administration",
+	"commands to help administration",
+	`{Heading|Administration}
+
+{Interpunct} has a few commands for helping with administration
+
+{CmdSummary|purge}
+{CmdSummary|quickrank}
+{CmdSummary|autoban add}
+{CmdSummary|autoban list}
+{CmdSummary|autoban disable}`,
+);
 
 nr.addErrorDocsPage("/errors/help-path-not-found", {
 	overview:

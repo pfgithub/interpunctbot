@@ -3,8 +3,23 @@ import * as Discord from "discord.js";
 import { messages } from "../../messages";
 import Info from "../Info";
 import { a, AP } from "./argumentparser";
+import * as nr from "../NewRouter";
 
 const router = new Router<Info, Promise<any>>();
+
+nr.addDocsWebPage(
+	"/help/emoji",
+	"Emoji",
+	"commands for managing emoji",
+	`{Heading|Emoji}
+
+{Interpunct} has the ability to restrict emojis so only people with certain roles can use them.
+
+{CmdSummary|emoji restrict}
+{CmdSummary|emoji unrestrict}
+{CmdSummary|emoji inspect}
+{CmdSummary|quickrank}`,
+);
 
 function roleNameMatch(rolename: string, message: string) {
 	const rn = rolename.trim().toLowerCase();

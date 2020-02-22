@@ -37,6 +37,8 @@ const ctime = () => new Date().getTime();
 
 nr.addDocsWebPage(
 	"/help/speedrun",
+	"Speedrun",
+	"speedrun.com integrations",
 	`{Heading|Speedrun}
 
 {Interpunct} has support for showing rules and times from {Link|https://speedrun.com}.

@@ -1,15 +1,14 @@
 [
+	["channel", "/index", "home"],
 	["channel", "/about"],
 	["channel", "/updates"],
 	["category", "/help"],
-	["channel", "/help/administration"],
-	["channel", "/help/botinfo", "bot info"],
-	["channel", "/help/channels"],
 	["channel", "/help/configuration"],
-	["channel", "/help/customcommands", "custom commands"],
-	["channel", "/help/emoji"],
 	["channel", "/help/fun"],
-	["channel", "/help/lists"],
-	["channel", "/help/log"],
-	["channel", "/help/speedrun"]
+	["channel", "/help/emoji"],
+	["channel", "/help/channels"],
+	["channel", "/help/administration"],
+	["channel", "/help/customcommands", "custom commands"],
+	["channel", "/help/log", "logging"],
+	["channel", "/help/speedrun", "speedrun.com"]
 ]

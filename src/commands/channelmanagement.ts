@@ -18,6 +18,8 @@ const stripMentions = (msg: string) => {
 
 nr.addDocsWebPage(
 	"/help/channels",
+	"Channels",
+	"channel management",
 	`{Heading|Channels}
 
 {Interpunct} has a variety of channel management commands.

@@ -179,7 +179,8 @@ export async function DocsGen() {
 			docItem.path
 				.split("/")
 				.map((q, i) => {
-					const title = q || "home";
+					if (!q) return "";
+					const title = q;
 					return safehtml`/<a href="${docItem.path
 						.split("/")
 						.slice(0, i + 1)

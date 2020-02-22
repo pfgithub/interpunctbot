@@ -1,8 +1,22 @@
+import * as nr from "../NewRouter";
 import Router from "commandrouter";
 import Info from "../Info";
 const router = new Router<Info, Promise<any>>();
 
 import { messages } from "../../messages";
+
+nr.addDocsWebPage(
+	"/help/configuration",
+	"Configuration",
+	"settings for some parts of inter·punct",
+	`{Heading|Configuration}
+
+Some parts of {Interpunct} can be configured
+
+{CmdSummary|set prefix}
+{CmdSummary|set show errors}
+{CmdSummary|set show unknown command}`,
+);
 
 router.add("set prefix", [Info.theirPerm.manageBot], async (cmd, info) => {
 	if (!info.db) {

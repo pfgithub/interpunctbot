@@ -151,3 +151,13 @@ assert.deepStrictEqual(parseDG(`\\{what\\|\\}`, defaultFormat), {
 	}
 	assert.equal(res, undefined);
 }
+
+{
+	let res;
+	try {
+		res = parseDG("I am {{used}} to the {{old|syntax}}", defaultFormat);
+	} catch (e) {
+		assert.equal(e.message, "Expected [text], got [lbracket]");
+	}
+	assert.equal(res, undefined);
+}

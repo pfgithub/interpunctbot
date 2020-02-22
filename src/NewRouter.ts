@@ -44,6 +44,7 @@ export const devMode = process.env.NODE_ENV !== "production";
 
 export type PageData = {
 	summaries: {
+		title: string;
 		usage: string;
 		description: string;
 	};
@@ -92,6 +93,7 @@ export function addDocsPage(docsPath: string, page: PageData) {
 	if (developmentMode) {
 		process.stdout.write("  docs...");
 		confirmDocs(page.body);
+		confirmDocs(page.summaries.title);
 		confirmDocs(page.summaries.usage);
 		confirmDocs(page.summaries.description);
 	}
@@ -127,6 +129,7 @@ export function addHelpDocsPage(
 				)
 				.join("\n\n"),
 		summaries: {
+			title: docsPath.substr(docsPath.lastIndexOf("/")),
 			usage: "{Command|" + help.usage + "|" + docsPath + "}",
 			description: help.description,
 		},
@@ -139,18 +142,25 @@ export function addErrorDocsPage(docsPath: string, error: ErrorData) {
 	addDocsPage(docsPath, {
 		body: `${error.overview}\n\n${error.detail}`,
 		summaries: {
+			title: docsPath.substr(docsPath.lastIndexOf("/")),
 			usage: "no usage **error**?¿",
 			description: error.overview,
 		},
 	});
 }
 
-export function addDocsWebPage(docsPath: string, body: string) {
+export function addDocsWebPage(
+	docsPath: string,
+	title: string,
+	summary: string,
+	body: string,
+) {
 	addDocsPage(docsPath, {
 		body: body,
 		summaries: {
+			title,
 			usage: "no usage **error**?¿",
-			description: "no description **error**?¿",
+			description: summary,
 		},
 	});
 }

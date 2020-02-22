@@ -262,13 +262,61 @@ const commands: {
 		},
 		discord: (args, info) => {
 			const docs = globalDocs[args[0].raw];
-			if (!docs)
-				return (
-					"- " + commands.Command.discord(args, info) + " — Error :("
-				);
+			if (!docs) return "- " + args[0].safe + " — Error :(";
 			return (
 				"- " +
 				dgToDiscord(docs.summaries.usage, info) +
+				" — " +
+				dgToDiscord(docs.summaries.description, info)
+			);
+		},
+	},
+	LinkSummary: {
+		confirm: args => {
+			assert.equal(args.length, 1);
+		},
+		html: args => {
+			const docs = globalDocs[args[0].raw];
+			if (!docs) return "" + commands.Command.html(args) + " — Error :(";
+			if (globalSummaryDepth >= 1)
+				return rawhtml`<a href="${safehtml(docs.path)}">${dgToHTML(
+					docs.summaries.title,
+				)}</a> — ${dgToHTML(docs.summaries.description)}`;
+			globalSummaryDepth++;
+			const result = rawhtml`${commands.Blockquote.html([
+				{
+					raw: "no",
+					safe: rawhtml`${dgToHTML(docs.body)}`,
+				},
+			])}`;
+			globalSummaryDepth--;
+			return result;
+		},
+		discord: (args, info) => {
+			const docs = globalDocs[args[0].raw];
+			if (!docs) return "- " + args[0].safe + " — Error :(";
+			return (
+				"- " +
+				dgToDiscord(docs.summaries.title, info) +
+				": " +
+				// renderdiscord`{Command|${docs.path.split("/").join(" ")}}` would be nice
+				commands.Command.discord(
+					[
+						{
+							safe:
+								docs.path.split("/")[1] === "help"
+									? safe(
+											docs.path
+												.slice(1)
+												.split("/")
+												.join(" "),
+									  )
+									: "help " + safe(docs.path),
+							raw: "never",
+						},
+					],
+					info,
+				) +
 				" — " +
 				dgToDiscord(docs.summaries.description, info)
 			);
