@@ -109,6 +109,15 @@ export const newGame = <State>(conf: GameConfig<State>) => async (
 		return await info.help("/errors/pms", "error");
 	}
 
+	if (!info.myChannelPerms!.has("MANAGE_MESSAGES")) {
+		await info.warn(
+			conf.title +
+				" works best when " +
+				info.atme +
+				" has permission to Manage Messages so that reactions can be removed automatically. You must remove reactions yourself.",
+		);
+	}
+
 	if (!(await info.db.getFunEnabled())) {
 		return await info.help("/errors/fun-disabled", "error");
 	}
@@ -205,7 +214,7 @@ export const newGame = <State>(conf: GameConfig<State>) => async (
 	) {
 		if (gameOver) return;
 
-		perr(reaction.users.remove(user), "remove reaction for game");
+		perr(reaction.users.remove(user), false);
 		if (!gameStarted) return;
 		if (!reaction.emoji.id) return;
 		resetTimer();
@@ -272,10 +281,7 @@ export const newGame = <State>(conf: GameConfig<State>) => async (
 
 	for (const message of messages) {
 		message.rxnh.end();
-		perr(
-			message.msg.reactions.removeAll(),
-			"remove all reactions (optional)",
-		);
+		perr(message.msg.reactions.removeAll(), false);
 	}
 	for (const msg of toRemoveOnNextReset) {
 		perr(msg.delete(), "removing message in game");

@@ -7,8 +7,13 @@ nr.globalCommand(
 	{
 		usage: "connect4",
 		description:
-			"Play a game of connect 4. {Interpunct} requires permission to manage reactions to run the game best.",
-		examples: [],
+			"Play a game of connect 4. {Interpunct} requires permission to manage reactions to run games best.",
+		examples: [
+			{
+				in: "connect4",
+				out: "{Screenshot|https://i.imgur.com/3YjxBXi.png}",
+			},
+		],
 	},
 	nr.list(...nr.a.words()),
 	connect4,
