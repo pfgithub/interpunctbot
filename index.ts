@@ -272,7 +272,7 @@ client.on("ready", () => {
 	updateActivity();
 });
 
-setInterval(updateActivity, 15 * 1000); // update every 15 min
+setInterval(updateActivity, 1 * 1000); // update every 1 min
 
 function streplace(str: string, eplace: { [key: string]: string }) {
 	Object.keys(eplace).forEach(key => {
