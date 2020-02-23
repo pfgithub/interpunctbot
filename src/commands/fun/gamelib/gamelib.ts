@@ -294,63 +294,53 @@ export function newTileset<T>(tiles: T): Tileset<T> {
 	// TODO: create tilesets from png images and have this automatically manage emojis in a set list of emoji servers provided by id in the config
 }
 
-export type Stack<Layers extends string> = {
-	[key in Layers]?: Tile;
-};
-export type Board<Layers extends string> = {
-	get(layer: Layers, x: number, y: number): Tile | undefined;
-	set(layer: Layers, x: number, y: number, tile: Tile | undefined): void;
-	setStack(x: number, y: number, tile: Stack<Layers>): void;
-	render(): string;
+export type Board<TileData> = {
+	get(x: number, y: number): TileData | undefined;
+	set( // or mutate tile
+		x: number,
+		y: number,
+		tile: TileData,
+	): void;
+	fill(tile: (x: number, y: number) => TileData): void;
+	render(draw: (tile: TileData, x: number, y: number) => string): string;
 	search(
 		startingPosition: Pos,
-		cb: (
-			stack: Stack<Layers>,
-			x: number,
-			y: number,
-			onBoard: boolean,
-		) => Pos | true | false,
+		cb: (tile: TileData, x: number, y: number) => Pos | true | false,
 	): { x: number; y: number; distance: number } | undefined;
-	copy(): Board<Layers>;
 };
 export type Pos = [number, number];
 // this should just be a class instead of this function thing
-export function newBoard<Layers extends string>(
+export function newBoard<TileData>(
 	w: number,
 	h: number,
-	layerOrder: Layers[],
-): Board<Layers> {
-	const tiles: Stack<Layers>[][] = []; // wait woah this is a completely private member. nothing else can access it. I guess it comes at the cost of making new functions every time the board is instantiated and having seperate typescript types and implementation.
+	fill: (x: number, y: number) => TileData, // to make copies, x and y are unnecessary but why not
+): Board<TileData> {
+	const tiles: TileData[][] = [];
 	for (let y = 0; y < h; y++) {
 		tiles[y] = [];
 		for (let x = 0; x < w; x++) {
-			tiles[y][x] = {};
+			tiles[y][x] = fill(x, y);
 		}
 	}
 
-	const board: Board<Layers> = {
-		get(layer, x, y) {
-			return tiles[y][x][layer];
+	const board: Board<TileData> = {
+		get(x, y) {
+			return tiles[y][x];
 		},
-		set(layer, x, y, tile) {
-			tiles[y][x][layer] = tile;
+		set(x, y, tile) {
+			tiles[y][x] = tile;
 		},
-		setStack(x, y, stack) {
-			tiles[y][x] = { ...stack }; // this might cause issues if tiles get more complicated unfortunately
+		fill(tile) {
+			for (let y = 0; y < h; y++) {
+				for (let x = 0; x < w; x++) {
+					board.set(x, y, tile(x, y));
+				}
+			}
 		},
-		render() {
+		render(draw) {
 			return tiles
-				.map(row =>
-					row
-						.map(stack => {
-							for (const order of layerOrder) {
-								if (stack[order]) return stack[order];
-							}
-							throw new Error(
-								"A tile was blank while rendering!",
-							);
-						})
-						.join(""),
+				.map((row, y) =>
+					row.map((tile, x) => draw(tile, x, y)).join(""),
 				)
 				.join("\n");
 		},
@@ -361,10 +351,10 @@ export function newBoard<Layers extends string>(
 			while (true) {
 				if (i > 1000)
 					throw new Error("Potentially infinite find!:(passed 1000)");
-				const result =
+				const result = // in zig this could be a normal if statement instead of a ternary thing. that is the obvious way to do it, why doesn't every language do it that way
 					cx >= w || cx < 0 || cy >= h || cy < 0
-						? cb({}, cx, cy, false)
-						: cb(tiles[cy][cx], cx, cy, true);
+						? false // search will now automatically fail when off board
+						: cb(tiles[cy][cx], cx, cy);
 				if (result === false)
 					if (i === 0) return undefined;
 					else return { x, y, distance: i };
@@ -373,15 +363,6 @@ export function newBoard<Layers extends string>(
 				if (result === true) return { x, y, distance: i };
 				[cx, cy] = result;
 			}
-		},
-		copy() {
-			const nb = newBoard(w, h, layerOrder);
-			for (let y = 0; y < h; y++) {
-				for (let x = 0; x < w; x++) {
-					nb.setStack(x, y, tiles[y][x]);
-				}
-			}
-			return nb;
 		},
 	};
 

@@ -10,16 +10,20 @@ import {
 
 //
 
+type Color = "r" | "y";
+
+type Piece = { color?: Color };
+
 type Connect4 = {
-	board: Board<"bg" | "fg">;
-	turn: "r" | "y";
+	board: Board<Piece>;
+	turn: Color;
 	players: { r: Player; y: Player };
 	status: { s: "playing" } | { s: "winner"; winner: Player; reason: string };
 };
 
 const tileset = newTileset({
-	red: "<:r:648226318017626132>",
-	yellow: "<:y:648226318118420500>",
+	r: "<:r:648226318017626132>",
+	y: "<:y:648226318118420500>",
 	empty: "<:w:648296516406083595>",
 	buttons: [
 		"<:1:648291430028279808>",
@@ -48,23 +52,21 @@ function checkWin(gameState: Connect4, [placedX, placedY]: [number, number]) {
 		[-1, 1],
 		[0, -1],
 	];
-	const tile = gameState.board.get("fg", placedX, placedY)!;
-	console.log("placed tile: ", tile);
+	const tile = gameState.board.get(placedX, placedY)!;
+	if (!tile.color) throw new Error("checkWin called at invalid location");
 	for (const check of checks) {
 		const downmost = gameState.board.search(
 			[placedX, placedY],
-			(stack, x, y, onBoard) => {
-				if (!onBoard) return false;
-				if (stack.fg !== tile) return false;
+			(tileh, x, y) => {
+				if (tileh.color !== tile.color) return false;
 				return [x + check[0], y + check[1]];
 			},
 		);
 		if (!downmost) throw new Error("tile was not found but it must be");
 		const upmost = gameState.board.search(
 			[downmost.x, downmost.y],
-			(stack, x, y, onBoard) => {
-				if (!onBoard) return false;
-				if (stack.fg !== tile) return false;
+			(tileh, x, y) => {
+				if (tileh.color !== tile.color) return false;
 				return [x - check[0], y - check[1]];
 			},
 		);
@@ -78,8 +80,8 @@ export const connect4 = newGame<Connect4>({
 	title: "Connect 4",
 	help: "/help/fun/connect4",
 	setup(players) {
-		const initialState: Connect4 = {
-			board: newBoard(7, 6, ["fg", "bg"]),
+		return {
+			board: newBoard(7, 6, () => ({})),
 			turn: "r",
 			players: {
 				r: players[0], // person who ran the command
@@ -87,37 +89,21 @@ export const connect4 = newGame<Connect4>({
 			},
 			status: { s: "playing" },
 		};
-
-		for (let y = 0; y < 6; y++) {
-			for (let x = 0; x < 7; x++) {
-				initialState.board.set("bg", x, y, tileset.tiles.empty);
-			}
-		}
-
-		return initialState;
 	},
 	getMoves(state) {
 		const resmoves: MoveSet<Connect4> = [];
 		for (let x = 0; x < 7; x++) {
-			const found = state.board.search(
-				[x, -1],
-				(stack, x, y, onBoard) => {
-					if (!onBoard && y > 0) return false;
-					return stack.fg === undefined ? [x, y + 1] : false;
-				},
-			); // should have a findPrev for the thing one before
-			if (found && found.y >= 0) {
+			const found = state.board.search([x, 0], (tile, x, y) => {
+				return tile.color ? (y === 0 ? true : false) : [x, y + 1];
+			});
+			if (found) {
 				const [x, y] = [found.x, found.y];
 				resmoves.push({
 					button: tileset.tiles.buttons[x],
 					player: state.players[state.turn],
 					apply: state => {
-						// state is a copy, it should be mutated
-						const tile =
-							state.turn === "r"
-								? tileset.tiles.red
-								: tileset.tiles.yellow;
-						state.board.set("fg", x, y, tile);
+						// we're pretending state is a copy (even though it isn't because that isn't implemented yet), it should be mutated
+						state.board.set(x, y, { color: state.turn });
 
 						if (checkWin(state, [x, y])) {
 							state.status = {
@@ -148,20 +134,24 @@ export const connect4 = newGame<Connect4>({
 	render(state: Connect4): string[] {
 		const currentplayer = state.players[state.turn];
 		const playercolor =
-			state.turn === "r" ? tileset.tiles.red : tileset.tiles.yellow;
+			state.turn === "r" ? tileset.tiles.r : tileset.tiles.y;
 		const statusbar =
 			state.status.s === "playing"
 				? `<@${currentplayer.id}>'s turn (${playercolor})`
 				: state.status.s === "winner"
 				? `<@${state.status.winner.id}> won! (${state.status.reason})`
 				: "never.";
+		const renderedBoard = state.board.render((tile, x, y) => {
+			if (tile.color) return tileset.tiles[tile.color];
+			return tileset.tiles.empty;
+		});
 		return [
 			`
 **Connect 4**
 ${statusbar}
 ==============
 ${tileset.tiles.laneHeadings.join("")}
-${state.board.render()}
+${renderedBoard}
 ==============
 `,
 		];
@@ -171,10 +161,7 @@ ${state.board.render()}
 			time: unit(30, "sec"),
 			message: state => {
 				const currentplayer = state.players[state.turn];
-				const playercolor =
-					state.turn === "r"
-						? tileset.tiles.red
-						: tileset.tiles.yellow;
+				const playercolor = tileset.tiles[state.turn];
 				return `<@${currentplayer.id}> (${playercolor}), it's your turn. 30s left.`;
 			},
 		},
