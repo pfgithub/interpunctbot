@@ -61,7 +61,8 @@ export const ratelimit = (frequency: number & { __unit: "ms" }) => {
 	};
 };
 
-export function unit(v: number, name: "ms" | "sec") {
+export function unit(v: number, name: "ms" | "sec" | "min") {
+	if (name === "min") return (v * 1000 * 60) as number & { __unit: "ms" };
 	if (name === "sec") return (v * 1000) as number & { __unit: "ms" };
 	if (name === "ms") return v as number & { __unit: "ms" };
 	throw new Error("invalid unit " + name);
@@ -200,12 +201,13 @@ export const newGame = <State>(conf: GameConfig<State>) => async (
 
 	let availableActions: MoveSet<State> | undefined; // to prevent constant recalculations. probably not a terrible performance issue but idk
 
-	const toRemoveOnNextReset: Discord.Message[] = [];
+	let toRemoveOnNextReset: Discord.Message[] = [];
 	const resetTimer = () => {
 		gameTimer.reset();
 		for (const msg of toRemoveOnNextReset) {
 			perr(msg.delete(), "removing message in game");
 		}
+		toRemoveOnNextReset = [];
 	};
 
 	async function onReactionHoisted(
@@ -286,6 +288,7 @@ export const newGame = <State>(conf: GameConfig<State>) => async (
 	for (const msg of toRemoveOnNextReset) {
 		perr(msg.delete(), "removing message in game");
 	}
+	toRemoveOnNextReset = [];
 };
 
 export type Tileset<T> = { tiles: T };
@@ -301,8 +304,12 @@ export type Board<TileData> = {
 		y: number,
 		tile: TileData,
 	): void;
-	fill(tile: (x: number, y: number) => TileData): void;
+	fill(tile: (tile: TileData, x: number, y: number) => TileData): void;
 	render(draw: (tile: TileData, x: number, y: number) => string): string;
+	forEach(cb: (tile: TileData, x: number, y: number) => void): void;
+	filter(
+		compare: (tile: TileData, x: number, y: number) => boolean,
+	): { tile: TileData; x: number; y: number }[];
 	search(
 		startingPosition: Pos,
 		cb: (tile: TileData, x: number, y: number) => Pos | true | false,
@@ -324,18 +331,17 @@ export function newBoard<TileData>(
 	}
 
 	const board: Board<TileData> = {
+		// returns undefined when out of map
 		get(x, y) {
-			return tiles[y][x];
+			return tiles[y]?.[x];
 		},
 		set(x, y, tile) {
 			tiles[y][x] = tile;
 		},
 		fill(tile) {
-			for (let y = 0; y < h; y++) {
-				for (let x = 0; x < w; x++) {
-					board.set(x, y, tile(x, y));
-				}
-			}
+			board.forEach((tilec, x, y) => {
+				board.set(x, y, tile(tilec, x, y));
+			});
 		},
 		render(draw) {
 			return tiles
@@ -343,6 +349,20 @@ export function newBoard<TileData>(
 					row.map((tile, x) => draw(tile, x, y)).join(""),
 				)
 				.join("\n");
+		},
+		forEach(cb) {
+			for (let y = 0; y < h; y++) {
+				for (let x = 0; x < w; x++) {
+					cb(board.get(x, y)!, x, y);
+				}
+			}
+		},
+		filter(filtration) {
+			const results: { tile: TileData; x: number; y: number }[] = [];
+			board.forEach((tile, x, y) => {
+				if (filtration(tile, x, y)) results.push({ tile, x, y });
+			});
+			return results;
 		},
 		search(startingPosition, cb) {
 			let [cx, cy] = startingPosition;
