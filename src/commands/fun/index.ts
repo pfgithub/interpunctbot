@@ -80,6 +80,32 @@ nr.globalCommand(
 );
 
 nr.globalCommand(
+	"/help/fun/botdev",
+	"botdev",
+	{ usage: "botdev", description: "Get help", examples: [] },
+	nr.list(),
+	async ([], info) => {
+		await info.error(
+			`Command \`botdev\` not found, type \`${info.prefix}notdev\` for a list of commands.`,
+		);
+		return;
+	},
+);
+
+nr.globalCommand(
+	"/help/fun/notdev",
+	"notdev",
+	{ usage: "botdev", description: "Get help", examples: [] },
+	nr.list(),
+	async ([], info) => {
+		await info.error(
+			`Command \`notdev\` not found, type \`${info.prefix}botdev\` for a list of commands.`,
+		);
+		return;
+	},
+);
+
+nr.globalCommand(
 	"/help/fun/color",
 	"color",
 	{
