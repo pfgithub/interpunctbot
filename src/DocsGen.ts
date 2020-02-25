@@ -178,13 +178,16 @@ export async function DocsGen() {
 			'<div class="navlinks">' +
 			docItem.path
 				.split("/")
-				.map((q, i) => {
-					if (!q) return "";
-					const title = q;
-					return safehtml`/<a href="${docItem.path
-						.split("/")
-						.slice(0, i + 1)
-						.join("/") || "/"}">${title}</a>`;
+				.map((q, i, a) => {
+					// if (!q) return "";
+					let current = false;
+					if (i === a.length - 1) current = true;
+					if (!q) return;
+					const title = q || "home";
+					return safehtml`/<a href="${a.slice(0, i + 1).join("/") ||
+						"/"}" class="${
+						current ? "navitem current" : "navitem"
+					}">${title}</a>`;
 				})
 				.join("") +
 			"</div>";
