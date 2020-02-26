@@ -407,7 +407,7 @@ export default class Info {
 		// res && res.forEach(r => r.delete({ timeout: 20 * 1000 }));
 		return res;
 	}
-	async help(path: string, mode: "usage" | "error") {
+	async docs(path: string, mode: "usage" | "error") {
 		const docsPage = globalDocs[path];
 		if (!docsPage) {
 			return await this.error(

@@ -103,11 +103,11 @@ export const newGame = <State>(conf: GameConfig<State>) => async (
 	info: Info,
 ) => {
 	if (cmd.trim()) {
-		return await info.help(conf.help, "usage");
+		return await info.docs(conf.help, "usage");
 	}
 
 	if (!info.db) {
-		return await info.help("/errors/pms", "error");
+		return await info.docs("/errors/pms", "error");
 	}
 
 	if (!info.myChannelPerms!.has("MANAGE_MESSAGES")) {
@@ -120,7 +120,7 @@ export const newGame = <State>(conf: GameConfig<State>) => async (
 	}
 
 	if (!(await info.db.getFunEnabled())) {
-		return await info.help("/errors/fun-disabled", "error");
+		return await info.docs("/errors/fun-disabled", "error");
 	}
 
 	const gameOverListener = oneway<boolean>();

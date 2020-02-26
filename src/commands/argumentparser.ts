@@ -436,7 +436,7 @@ function DurationArgumentType(): ArgumentType<number> {
 
 	return async (info, arg, cmd, index, commandhelp, argpurpose) => {
 		if (!cmd.trim()) {
-			await info.help("/errors/arg/duration/no-duration", "error");
+			await info.docs("/errors/arg/duration/no-duration", "error");
 			return { result: "exit" };
 		}
 
@@ -463,7 +463,7 @@ function DurationArgumentType(): ArgumentType<number> {
 			const unitstr = /^[A-Za-z]+/.exec(remainder);
 			if (!unitstr) {
 				if (!anyfound) {
-					await info.help("/errors/arg/duration/bad-unit", "error");
+					await info.docs("/errors/arg/duration/bad-unit", "error");
 					return { result: "exit" };
 				}
 				break;
@@ -473,7 +473,7 @@ function DurationArgumentType(): ArgumentType<number> {
 
 			if (names[unitname] === undefined) {
 				if (!anyfound) {
-					await info.help("/errors/arg/duration/bad-unit", "error");
+					await info.docs("/errors/arg/duration/bad-unit", "error");
 					return { result: "exit" };
 				}
 				break; // once again,
@@ -491,7 +491,7 @@ function DurationArgumentType(): ArgumentType<number> {
 		}
 		if (remainder.startsWith(",")) remainder = remainder.substr(1).trim();
 		if (!anyfound)
-			await info.help("/errors/arg/duration/no-duration", "error");
+			await info.docs("/errors/arg/duration/no-duration", "error");
 
 		let nearestMS = Math.round(result);
 		if (nearestMS < 0) nearestMS = 0;

@@ -143,7 +143,7 @@ nr.globalCommand(
 			return await info.error(messages.fun.fun_disabled(info));
 		}
 		if (!cmd) {
-			return await info.help("/help/fun/play", "usage");
+			return await info.docs("/help/fun/play", "usage");
 		}
 		await info.message.channel.send(safe`Now playing: ${cmd}
 󠀀󠀀󠀀0:01━━━━━━●─────── 0:02
@@ -270,7 +270,7 @@ nr.globalCommand(
 			return await info.error(messages.fun.fun_disabled(info));
 		}
 		if (!cmd) {
-			return await info.help("/help/fun/vote2", "usage");
+			return await info.docs("/help/fun/vote2", "usage");
 		}
 		await Promise.all([
 			info.message.react("674675568993894412"),
@@ -466,7 +466,7 @@ nr.globalCommand(
 			await info.db.setFunEnabled(false);
 			return await info.success(messages.fun.fun_has_been_disabled(info));
 		}
-		return await info.help("/help/fun/config", "usage");
+		return await info.docs("/help/fun/config", "usage");
 	},
 );
 

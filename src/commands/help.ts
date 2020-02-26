@@ -114,7 +114,7 @@ nr.globalCommand(
 				).replace(/\n\n+/g, "\n\n"),
 			);
 		} else {
-			await info.help("/errors/help-path-not-found", "error");
+			await info.docs("/errors/help-path-not-found", "error");
 		}
 	},
 );
