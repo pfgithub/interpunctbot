@@ -49,6 +49,38 @@ nr.addErrorDocsPage("/errors/help-path-not-found", {
 	overview:
 		"That help page could not be found. For all help, use {Command|help}",
 	detail: "",
+	mainPath: "/help/help/help",
+});
+
+nr.addErrorDocsPage("/errors/arg/duration/no-duration", {
+	overview: "This command requires a duration like 10s or 25 minutes.",
+	detail: "",
+	mainPath: "/args/duration",
+});
+
+/*
+errors should look like this:
+
+I don't understand the unit you provided.
+Usage: `ip!remindme <when> [message]`
+> Error Help: https://interpunct.info/errors/arg/duration/bad-unit
+> Duration Help: https://interpunct.info/arg/duration
+> Command Help: https://interpunct.info/help/fun/remindme
+
+maybe even put it in an embed
+
+first implement the error pairing thing so when the original message is deleted, the error goes away too
+
+Error!
+] body
+] clean [links like this](https://)
+footer: For more help, join the support server. https://interpunct.info/support
+
+*/
+nr.addErrorDocsPage("/errors/arg/duration/bad-unit", {
+	overview: "I don't understand the unit you provided.",
+	detail: "",
+	mainPath: "/args/duration",
 });
 
 nr.globalCommand(

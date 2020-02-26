@@ -1,5 +1,7 @@
 import * as Discord from "discord.js";
 
+import * as nr from "../NewRouter";
+
 import Info from "../Info";
 import { messages, safe } from "../../messages";
 
@@ -434,53 +436,62 @@ function DurationArgumentType(): ArgumentType<number> {
 
 	return async (info, arg, cmd, index, commandhelp, argpurpose) => {
 		if (!cmd.trim()) {
-			await info.error(
-				messages.arguments.num_arg_not_provided(
-					info,
-					cmd,
-					index,
-					commandhelp,
-					argpurpose,
-				),
-			);
+			await info.help("/errors/arg/duration/no-duration", "error");
 			return { result: "exit" };
 		}
 
 		let remainder = cmd;
 		let result = 0;
+		let anyfound = false;
 
 		while (true) {
 			if (remainder.startsWith(","))
 				remainder = remainder.substr(1).trim();
 			const inum = /^[0-9.\-]+/.exec(remainder);
+			// todo(/*check if makes sense as a number, eg remindme 1 day .hi! should not be a number. */);
 			if (!inum) break;
 			remainder = remainder.substr(inum[0].length).trim();
 
 			if (isNaN(+inum[0])) {
-				await info.error(
-					safe`could not parse number "${inum[0]}" bad.\n> list of units: https://interpunct.info/help/args/units/or/something/idk`,
-				);
-				return { result: "exit" };
+				break; // parsing with ambiguity doesn't have a correct answer
+				// (other than removing the ambiguity)
+				// ip!remindme (2 days) do something
+				// but that looks bad and is weird, ip!remindme 2 days do something is better
 			}
 			const numberv = +inum[0];
 
 			const unitstr = /^[A-Za-z]+/.exec(remainder);
 			if (!unitstr) {
-				await info.error("no unit bad");
-				return { result: "exit" };
+				if (!anyfound) {
+					await info.help("/errors/arg/duration/bad-unit", "error");
+					return { result: "exit" };
+				}
+				break;
 			}
 			remainder = remainder.substr(unitstr[0].length).trim();
 			const unitname = unitstr[0].toLowerCase();
 
 			if (names[unitname] === undefined) {
-				await info.error(
-					safe`invalid unit "${unitstr[0]}" bad.\n> list of units: https://interpunct.info/help/args/units/or/something/idk`,
-				);
-				return { result: "exit" };
+				if (!anyfound) {
+					await info.help("/errors/arg/duration/bad-unit", "error");
+					return { result: "exit" };
+				}
+				break; // once again,
+				// ip!remindme 2 test
+				// what should that do? this will make it error with no duration provided
+				// ip!remindme 5 microseconds test
+				// that should say it's an invalid unit
+				// is `ip!remindme 5 fortnights` more or less common than `ip!remindme 3 days 2 do a thing`
+				// I have made the decision to allow `ip!remindme 3 days 2 do a thing` but not have as good of an error on `ip!remindme 5 microseconds`
+				// maybe if anyfound is still false, it could display the unit error?
+				// sure
 			}
 			result += numberv * names[unitname];
+			anyfound = true;
 		}
 		if (remainder.startsWith(",")) remainder = remainder.substr(1).trim();
+		if (!anyfound)
+			await info.help("/errors/arg/duration/no-duration", "error");
 
 		let nearestMS = Math.round(result);
 		if (nearestMS < 0) nearestMS = 0;

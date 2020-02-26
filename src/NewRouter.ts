@@ -27,6 +27,7 @@ export type HelpData = {
 export type ErrorData = {
 	overview: string;
 	detail: string;
+	mainPath: string;
 };
 export type CommandData = {
 	docsPath: string;
@@ -140,11 +141,19 @@ export function addErrorDocsPage(docsPath: string, error: ErrorData) {
 	if (!docsPath.startsWith("/errors/"))
 		throw new Error("Docs path must start with /errors/");
 	addDocsPage(docsPath, {
-		body: `${error.overview}\n\n${error.detail}`,
+		body:
+			`${error.overview}\n\n${error.detail}` +
+			"\n\n{Blockquote|More info: {LinkSummary|" +
+			error.mainPath +
+			"}}",
 		summaries: {
 			title: docsPath.substr(docsPath.lastIndexOf("/")),
 			usage: "no usage **error**?¿",
-			description: error.overview,
+			description:
+				error.overview +
+				"\n{Blockquote|More info: {LinkSummary|" +
+				error.mainPath +
+				"}}",
 		},
 	});
 }
