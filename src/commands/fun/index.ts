@@ -326,11 +326,13 @@ nr.globalCommand(
 		async function editMessage(over?: boolean) {
 			const upvotes = msg.reactions.get("674675568993894412")?.count;
 			const downvotes = msg.reactions.get("674675569404674059")?.count;
+			const voteCount = (upvotes || 0) - (downvotes || 0);
 			const content =
 				"VOTE: " +
 				safe`${cmd}` +
 				" (Votes: " +
-				((upvotes || 0) - (downvotes || 0)).toLocaleString("en-US") +
+				(voteCount > 0 ? "+" : "") +
+				voteCount.toLocaleString("en-US") +
 				(over ? ", Voting ended." : "") +
 				")";
 			if (msg.content !== content) await msg.edit(content);
