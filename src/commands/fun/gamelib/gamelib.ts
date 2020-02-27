@@ -191,6 +191,7 @@ export const newGame = <State>(conf: GameConfig<State>) => async (
 			let i = 0;
 			for (const item of newText) {
 				const message = messages[i];
+				// todo make it so only one can be edited at once and only the first and last goes through
 				if (item.trim() !== message.text.trim())
 					await message.msg.edit(item.trim());
 				i++;

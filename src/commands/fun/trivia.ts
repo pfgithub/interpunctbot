@@ -6,6 +6,7 @@ import { messages, raw, safe } from "../../../messages";
 import Info from "../../Info";
 import { AP } from "../argumentparser";
 import { getURL } from "../speedrun";
+import { setEditInterval } from "../../editInterval";
 
 const router = new Router<Info, Promise<any>>();
 
@@ -278,19 +279,24 @@ ${raw(
 			);
 
 		await updateResultMessage();
-
-		const selectionEndTimer = setTimeout(
-			() => reactionWatcher.end(),
-			20000,
-		);
-		const messageUpdateInterval = setInterval(() => {
-			perr(updateResultMessage(), "trivia timer update");
+		const messageEdit = setEditInterval(async () => {
+			await updateResultMessage();
 			if (startTime + 30000 - new Date().getTime() < 0) {
-				clearInterval(messageUpdateInterval);
+				messageEdit.end();
 			}
-		}, 3000);
+		});
+
+		const selectionEndTimer = setTimeout(() => {
+			reactionWatcher.end();
+		}, 20000);
 
 		await reactionWatcher.done;
+		// await Promise.race([reactionWatcher.done, messageEdit.end()])
+		// ^that would be nice because then maybe message edit errors would show instead of waiting 20 seconds
+		// also maybe check if the original message is still there before sending an error
+		// ^^oh do that
+		messageEdit.end();
+		clearTimeout(selectionEndTimer);
 
 		const winners: { id: string; time: number }[] = [];
 		Object.entries(playerResponses).forEach(
@@ -302,8 +308,6 @@ ${raw(
 				}
 			},
 		);
-		clearTimeout(selectionEndTimer);
-		clearInterval(messageUpdateInterval);
 		state = {
 			state: "over",
 			winners: winners.sort((wa, wb) => wa.time - wb.time).map(q => q.id),

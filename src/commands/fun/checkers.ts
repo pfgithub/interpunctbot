@@ -11,6 +11,7 @@ import Info from "../../Info";
 import { AP } from "../argumentparser";
 
 import * as nr from "../../NewRouter";
+import { setEditInterval } from "../../editInterval";
 
 const router = new Router<Info, Promise<any>>();
 
@@ -771,10 +772,9 @@ export async function getPlayers(
 
 		await joinRequestMessage.react(emojis.interaction.join);
 
-		const interval = setInterval(
-			() => perr(updateMessage(), "updating join message"),
-			3000,
-		);
+		const editInterval = setEditInterval(async () => {
+			await updateMessage();
+		});
 
 		const tempt = setTimeout(() => {
 			perr(updateMessage(), "updating join message 2");
@@ -782,7 +782,7 @@ export async function getPlayers(
 		}, 60000);
 		await handleReactions.done;
 		clearTimeout(tempt);
-		clearInterval(interval);
+		editInterval.end();
 		await joinRequestMessage.delete();
 
 		if (playersInGame.length !== playerLimit) {

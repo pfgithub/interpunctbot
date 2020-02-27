@@ -10,6 +10,7 @@ import goi from "./goi";
 import trivia from "./trivia";
 import * as nr from "../../NewRouter";
 import { durationFormat } from "../../durationFormat";
+import { setEditInterval } from "../../editInterval";
 
 const router = new Router<Info, Promise<any>>();
 
@@ -334,9 +335,9 @@ nr.globalCommand(
 				")";
 			if (msg.content !== content) await msg.edit(content);
 		}
-		const msgUpdateInterval = setInterval(() => {
-			perr(editMessage(), "vote command");
-		}, 3000);
+		const msgEditInterval = setEditInterval(async () => {
+			await editMessage();
+		});
 
 		const rxnh = info.handleReactions(
 			msg,
@@ -345,7 +346,7 @@ nr.globalCommand(
 			// if upvote && user downvoted, remove downvote
 		);
 		await new Promise((resolve, reject) => (endhandler = resolve));
-		clearInterval(msgUpdateInterval);
+		msgEditInterval.end();
 		rxnh.end();
 		await editMessage(true);
 	},

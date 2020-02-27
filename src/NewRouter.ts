@@ -214,11 +214,13 @@ export function globalCommand<APList extends APListAny>(
 		);
 		if (cbResult.error) {
 			// TODO if discord api error no permission, say "interpunct does not have permission"
-			await info.error(
-				"An internal error occured while running this command. Error code: `" +
-					cbResult.error.errorCode +
-					"`.",
-			);
+			if (!info.message.deleted) {
+				await info.error(
+					"An internal error occured while running this command. Error code: `" +
+						cbResult.error.errorCode +
+						"`.",
+				);
+			}
 		}
 	};
 
