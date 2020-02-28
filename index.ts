@@ -56,7 +56,7 @@ nr.globalCommand(
 	nr.list(),
 	async ([], info) => {
 		const msg = (await info.result(
-			"<a:loading:393852367751086090> Restarting...",
+			"<a:loading:682804438783492139> Restarting...",
 		))![0];
 		await fs.writeFile(
 			path.join(process.cwd(), ".restarting"),

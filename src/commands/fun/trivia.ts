@@ -144,7 +144,6 @@ router.add("trivia", [], async (cmd: string, info) => {
 	// fetch trivia question
 	let triviaQuestion: OpenTDB.Question;
 	{
-		// const fetchProgressMessage = await info.channel.send(":loading:");
 		await info.startLoading();
 		const triviaResponse: OpenTDB.Response = await getURL`https://opentdb.com/api.php?amount=1`; // TODO other things
 		if (triviaResponse.response_code !== 0) {

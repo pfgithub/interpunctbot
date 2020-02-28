@@ -159,8 +159,8 @@ export const newGame = <State>(conf: GameConfig<State>) => async (
 	{
 		const emojiPromises: Promise<unknown>[] = [];
 		const initialMessages = [
-			"<a:loading:393852367751086090> Starting Game...",
-			"<a:loading:393852367751086090>",
+			"<a:loading:682804438783492139> Starting Game...",
+			"<a:loading:682804438783492139>",
 		];
 		let messageNumber = 0;
 
