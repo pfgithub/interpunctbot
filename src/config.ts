@@ -22,7 +22,7 @@ export let globalConfig: Config = {};
 let configText = "";
 try {
 	configText = fs.readFileSync(
-		path.join(__dirname, "..", "config", "config.json"),
+		path.join(process.cwd(), "config", "config.json"),
 		"utf-8",
 	);
 } catch (e) {

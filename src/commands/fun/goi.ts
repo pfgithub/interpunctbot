@@ -22,7 +22,10 @@ type LevelSpec = {
 };
 
 const gamedata = yaml.safeLoad(
-	fs.readFileSync(path.join(__dirname, "goi.yaml"), "utf-8"),
+	fs.readFileSync(
+		path.join(process.cwd(), "src/commands/fun/goi.yaml"),
+		"utf-8",
+	),
 );
 
 const ge: { [key: string]: string | undefined } = gamedata.emojis;

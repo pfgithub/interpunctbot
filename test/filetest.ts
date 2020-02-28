@@ -26,7 +26,7 @@ const actions: {
 	},
 	async channel(t, args, rewrite) {
 		const [channelType, ...channelNameArr] = args.split(" ");
-		if (channelNameArr[0][0] !== "#") {
+		if (!channelNameArr[0].startsWith("#")) {
 			throw new Error(`Channel name does not start with #`);
 		}
 		const channelName = channelNameArr.join(" ").substr(1);
@@ -43,10 +43,10 @@ const actions: {
 	},
 	async renameChannel(t, args, rewrite) {
 		const [originalName, newName] = args.split(" ");
-		if (originalName[0] !== "#") {
+		if (!originalName.startsWith("#")) {
 			throw new Error(`Channel name does not start with #`);
 		}
-		if (newName[0] !== "#") {
+		if (!newName.startsWith("#")) {
 			throw new Error(`Channel name does not start with #`);
 		}
 		const channelName = originalName.substr(1);
@@ -135,7 +135,7 @@ const actions: {
 	}
 
 	const infileName = providedMode;
-	const infilePath = path.join(__dirname, infileName);
+	const infilePath = path.join(process.cwd(), "test", infileName);
 
 	const mode: "file" | "repl" | "preset" =
 		providedMode === "repl"

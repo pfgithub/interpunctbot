@@ -25,7 +25,7 @@ import * as nr from "./src/NewRouter";
 mdf(moment as any);
 
 try {
-	mkdirSync(path.join(__dirname, `logs`));
+	mkdirSync(path.join(process.cwd(), `logs`));
 } catch (e) {}
 
 export let serverStartTime = 0;
@@ -419,7 +419,7 @@ function logMsg({ msg, prefix }: { msg: Discord.Message; prefix: string }) {
 
 async function guildLog(id: string, log: string) {
 	await fs.appendFile(
-		path.join(__dirname, `logs/${id}.log`),
+		path.join(process.cwd(), `logs/${id}.log`),
 		`${log}\n`,
 		"utf8",
 	);

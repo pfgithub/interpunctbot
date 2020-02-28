@@ -39,6 +39,12 @@ send "bye"
 
 */
 
+type todo = any;
+
+declare let error: todo;
+declare let codeBlock: todo;
+declare let getText: todo;
+
 export async function runAction(counter: { i: number }) {
 	if (counter.i > 100) {
 		return error();
@@ -47,14 +53,14 @@ export async function runAction(counter: { i: number }) {
 	if (!isObject(codeBlock)) {
 		return await error(
 			"ipscript contains code block that is not an object",
-			"system"
+			"system",
 		);
 	}
 	const type = codeBlock.type;
 	if (!isString(type)) {
 		return await error(
 			"ipscript contains code block that does not have a type string",
-			"system"
+			"system",
 		);
 	}
 	if (type === "send") {
@@ -70,7 +76,7 @@ export async function execScript(
 	// user means the error was caused by the user
 	guild: Discord.Guild,
 	parameters: {},
-	counter: { i: number } = { i: 0 }
+	counter: { i: number } = { i: 0 },
 ) {
 	// parse script
 	let parsedScript: UserJSON;
@@ -79,7 +85,7 @@ export async function execScript(
 	} catch (e) {
 		return await error(
 			`ipscript contains invalid json: ${e.toString()}`,
-			"system"
+			"system",
 		);
 	}
 	if (!isArray(parsedScript)) {
@@ -87,7 +93,7 @@ export async function execScript(
 	}
 	for (const codeBlock of parsedScript) {
 		// count how many code blocks run and error if it's greater than the guild's code limit
-		await runAction(codeBlock);
+		await runAction(codeBlock as todo);
 	}
 }
 

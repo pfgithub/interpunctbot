@@ -141,7 +141,7 @@ async function copyFolder(dir: string, to: string) {
 	}
 }
 
-const fRoot = mkpath(__dirname, "..");
+const fRoot = mkpath(process.cwd());
 const fDocs = mkpath(fRoot("docs"));
 const fDocgen = mkpath(fRoot("docgen"));
 const fDoc = mkpath(fDocgen("doc"));

@@ -1,5 +1,7 @@
 import * as g from "./gamelib";
 
+declare let todo: any;
+
 // reminder:
 // if(can jump) must jump
 // if(did just jump) must pass
@@ -23,7 +25,8 @@ type Piece = {
 		| {
 				type: "selpiece";
 				color: Color;
-		  };
+		  }
+		| { type: "ghost"; color: Color };
 	// should this be here? seems like there should be a better way to do this like if it was only a concept that existed in the renderer and had nothing to do with state // the answer is no it can't only exist in the renderer because sometimes the piece can only jump or only move or ... and ...
 };
 

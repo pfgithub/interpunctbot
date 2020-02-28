@@ -6,7 +6,7 @@ export let globalKnex: Knex<any, unknown[]> | undefined;
 let configText = "";
 try {
 	configText = fs.readFileSync(
-		path.join(__dirname, "..", "config", "knexfile.json"),
+		path.join(process.cwd(), "config", "knexfile.json"),
 		"utf-8",
 	);
 } catch (e) {

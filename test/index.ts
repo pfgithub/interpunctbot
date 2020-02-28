@@ -3,7 +3,7 @@ import { readFileSync, promises as fs } from "fs";
 import childProcess from "child_process";
 import path from "path";
 const config = JSON.parse(
-	readFileSync(path.join(__dirname, "config.json"), "utf-8"),
+	readFileSync(path.join(process.cwd(), "test", "config.json"), "utf-8"),
 );
 
 type TesterCallback = (t: TestHelper) => Promise<void>;
@@ -139,7 +139,7 @@ export class TestHelper {
 			if (!this.watchEvents) {
 				return;
 			}
-			if (message.channel.type === "dm") {
+			if (message.channel?.type === "dm") {
 				this.mostRecentEvents.push(
 					`DM TO=${
 						(message.channel as Discord.DMChannel).recipient
@@ -153,10 +153,10 @@ export class TestHelper {
 					}: ${message.cleanContent}`,
 				);
 			}
-			if (message.embeds.length > 0) {
+			if (message.embeds && message.embeds.length > 0) {
 				this.mostRecentEvents.push(["embeds:", message.embeds]);
 			}
-			if (message.attachments.array().length > 0) {
+			if (message.attachments && message.attachments.array().length > 0) {
 				this.mostRecentEvents.push([
 					"attachments:",
 					message.attachments.array().map(a => a.toJSON()),
@@ -242,7 +242,7 @@ export class TestHelper {
 		// remove database
 		console.log("--- Removing database");
 		try {
-			await fs.unlink(path.join(__dirname, "..", "data.db"));
+			await fs.unlink(path.join(process.cwd(), "data.db"));
 		} catch (e) {}
 		// create database
 		console.log("--- Creating database");
@@ -250,7 +250,7 @@ export class TestHelper {
 			"yarn",
 			["knex", "migrate:latest"],
 			{
-				cwd: path.join(__dirname, ".."),
+				cwd: path.join(process.cwd()),
 			},
 		);
 		spawnedProcesses.push(createDB);
@@ -262,17 +262,13 @@ export class TestHelper {
 					.join("\\n")}`,
 			);
 		};
-		createDB.stdout!.on("data", datahandler);
-		createDB.stderr!.on("data", datahandler);
+		createDB.stdout.on("data", datahandler);
+		createDB.stderr.on("data", datahandler);
 		await new Promise<void>((r, re) => createDB.on("exit", () => r()));
 		console.log("--- Resetting logs");
-		const logs = await fs.readdir(
-			path.join(__dirname, "..", "built", "logs"),
-		);
+		const logs = await fs.readdir(path.join(process.cwd(), "logs"));
 		for (const logfile of logs) {
-			await fs.unlink(
-				path.join(__dirname, "..", "built", "logs", logfile),
-			);
+			await fs.unlink(path.join(process.cwd(), "logs", logfile));
 		}
 		// done
 		console.log("--- Everything Reset");
@@ -342,7 +338,7 @@ export class TestHelper {
 	startBot(): Promise<void> {
 		console.log("--- Starting bot...");
 		this.botProcess = childProcess.spawn("yarn", ["nyc", "node", "built"], {
-			cwd: path.join(__dirname, ".."),
+			cwd: path.join(process.cwd()),
 		});
 		const botProcess = this.botProcess;
 		spawnedProcesses.push(botProcess);
@@ -380,7 +376,7 @@ export class TestHelper {
 (async () => {
 	console.log("-- Compiling Code");
 	const compileCode = childProcess.spawn("yarn", ["tsc"], {
-		cwd: path.join(__dirname, ".."),
+		cwd: path.join(process.cwd()),
 	});
 	spawnedProcesses.push(compileCode);
 	const datahandler = (data: Buffer) => {
@@ -391,16 +387,16 @@ export class TestHelper {
 				.join("\\n")}`,
 		);
 	};
-	compileCode.stdout!.on("data", datahandler);
-	compileCode.stderr!.on("data", datahandler);
+	compileCode.stdout.on("data", datahandler);
+	compileCode.stderr.on("data", datahandler);
 	await new Promise<void>((r, re) => compileCode.on("exit", () => r()));
 	console.log("-- Ready");
 
 	let exitCode = 0;
 	const adminClient = new Discord.Client();
-	adminClient.login(config.rolegiverToken);
+	adminClient.login(config.rolegiverToken).catch(e => console.log(e));
 	const botInteractionClient = new Discord.Client();
-	botInteractionClient.login(config.token);
+	botInteractionClient.login(config.token).catch(e => console.log(e));
 	const onReady = async () => {
 		const adminGuild = adminClient.guilds.get(config.server)!;
 		const botInteractionGuild = botInteractionClient.guilds.get(
@@ -434,7 +430,7 @@ export class TestHelper {
 				`------ Test ${success ? "PASSED" : "FAILED"} in ${ms}ms`,
 			);
 			i++;
-			testHelper.stopBot();
+			testHelper.stopBot().catch(e => console.log(e));
 			testHelper.watchTime = 2000;
 		}
 		await new Promise(r => setTimeout(r, 1000)); //wait 1s before closing
@@ -444,16 +440,16 @@ export class TestHelper {
 	adminClient.on("ready", () => {
 		readyCount++;
 		if (readyCount >= 2) {
-			onReady();
+			onReady().catch(e => console.log(e));
 		}
 	});
 	botInteractionClient.on("ready", () => {
 		readyCount++;
 		if (readyCount >= 2) {
-			onReady();
+			onReady().catch(e => console.log(e));
 		}
 	});
-})();
+})().catch(e => console.log(e));
 
 // kill children before exit
 const cleanExit = () => {
