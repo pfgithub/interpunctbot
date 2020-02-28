@@ -76,6 +76,21 @@ export const theirPerm = {
 		);
 		return false;
 	},
+	banMembers: (info: Info) => {
+		if (!theirPerm.pm(false)(info)) {
+			return false;
+		}
+		if (info.authorPerms.banMembers) {
+			return true;
+		}
+		perr(
+			info.error(
+				"You need permisison to `Ban Members` to use this command",
+			),
+			"manage messages theirperm error",
+		);
+		return false;
+	},
 	pm: (expected: boolean) => (info: Info) => {
 		if (info.pm === expected) {
 			return true;
@@ -103,6 +118,7 @@ export const theirPerm = {
 	},
 };
 
+// todo remove these they are terrible and a waste of code
 export const ourPerm = {
 	manageChannels: (info: Info) => {
 		if (!theirPerm.pm(false)(info)) {
@@ -144,6 +160,21 @@ export const ourPerm = {
 		perr(
 			info.error(
 				`${info.atme} needs permisison to \`Manage Messages\` to use this command.`,
+			),
+			"manage messages ourperm error",
+		);
+		return false;
+	},
+	banMembers: (info: Info) => {
+		if (!theirPerm.pm(false)(info)) {
+			return false;
+		}
+		if (info.myPerms.banMembers) {
+			return true;
+		}
+		perr(
+			info.error(
+				`${info.atme} needs permisison to \`Ban Members\` to use this command.`,
 			),
 			"manage messages ourperm error",
 		);
@@ -247,6 +278,9 @@ export default class Info {
 			manageMessages: this.authorGuildPerms // maybe we should only allow send: to send to channels author has manage messages perms for
 				? this.authorGuildPerms.has("MANAGE_MESSAGES")
 				: true,
+			banMembers: this.authorGuildPerms
+				? this.authorGuildPerms.has("BAN_MEMBERS")
+				: true,
 		};
 	}
 	get myPerms() {
@@ -262,6 +296,9 @@ export default class Info {
 				: true,
 			manageMessages: this.myChannelPerms
 				? this.myChannelPerms.has("MANAGE_MESSAGES")
+				: true,
+			banMembers: this.myChannelPerms
+				? this.myChannelPerms.has("BAN_MEMBERS")
 				: true,
 		};
 	}

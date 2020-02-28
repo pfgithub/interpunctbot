@@ -1,9 +1,7 @@
 import * as nr from "../NewRouter";
-import Router from "commandrouter";
-import Info from "../Info";
-const router = new Router<Info, Promise<any>>();
 
-import { messages } from "../../messages";
+import { messages, safe } from "../../messages";
+import Info from "../Info";
 
 nr.addDocsWebPage(
 	"/help/configuration",
@@ -18,50 +16,88 @@ Some parts of {Interpunct} can be configured
 {CmdSummary|set show unknown command}`,
 );
 
-router.add("set prefix", [Info.theirPerm.manageBot], async (cmd, info) => {
-	if (!info.db) {
-		return await info.error(
-			messages.failure.command_cannot_be_used_in_pms(info),
-		);
-	}
-	const newPrefix = cmd.trim();
-	if (!newPrefix) {
-		// !"" === true
-		return await info.error(messages.settings.no_prefix_provided(info));
-	}
-	await info.db.setPrefix(newPrefix);
-	return await info.success(
-		messages.settings.prefix_updated(info, newPrefix),
-	);
-});
+nr.globalCommand(
+	"/help/settings/prefix",
+	"set prefix",
+	{
+		description:
+			"Set the prefix for running commands. If you ever get stuck, you can always reset the prefix using {Interpunct} set prefix ip!",
+		usage: "set prefix {Required|prefix}",
+		examples: [
+			{
+				in: "set prefix !",
+				out:
+					"{Emoji|success} Prefix set to !\n{Blockquote|Try it out with !test}",
+			},
+		],
+	},
+	nr.list(...nr.a.words()),
+	async ([cmd], info) => {
+		if (!Info.theirPerm.manageBot(info)) return;
 
-router.add("set show errors", [Info.theirPerm.manageBot], async (cmd, info) => {
-	if (!info.db) {
-		return await info.error(
-			messages.failure.command_cannot_be_used_in_pms(info),
-		);
-	}
-	if (cmd === "always" || cmd === "admins" || cmd === "never") {
-		await info.db.setCommandErrors(cmd);
+		if (!info.db) {
+			return await info.error(
+				messages.failure.command_cannot_be_used_in_pms(info),
+			);
+		}
+		const newPrefix = cmd.trim();
+		if (!newPrefix) {
+			// !"" === true
+			return await info.error(messages.settings.no_prefix_provided(info));
+		}
+		await info.db.setPrefix(newPrefix);
 		return await info.success(
-			messages.settings.show_errors_set(
+			messages.settings.prefix_updated(info, newPrefix),
+		);
+	},
+);
+
+nr.globalCommand(
+	"/help/settings/show-errors",
+	"set show errors",
+	{
+		usage: "set show errors {Required|{Enum|always|admins|never}}",
+		description: "choose who command errors are shown to",
+		examples: [],
+	},
+	nr.list(nr.a.enum("always", "admins", "never")),
+	async ([cmd], info) => {
+		if (!Info.theirPerm.manageBot(info)) return;
+		if (!info.db) {
+			return await info.error(
+				messages.failure.command_cannot_be_used_in_pms(info),
+			);
+		}
+		if (cmd === "always" || cmd === "admins" || cmd === "never") {
+			await info.db.setCommandErrors(cmd);
+			return await info.success(
+				messages.settings.show_errors_set(
+					info,
+					cmd,
+					await info.db.getUnknownCommandMessages(),
+				),
+			);
+		}
+		return await info.error(
+			messages.settings.show_errors_usage(
 				info,
-				cmd,
-				await info.db.getUnknownCommandMessages(),
+				await info.db.getCommandErrors(),
 			),
 		);
-	}
-	return await info.error(
-		messages.settings.show_errors_usage(
-			info,
-			await info.db.getCommandErrors(),
-		),
-	);
-});
-router.add(
+	},
+);
+
+nr.globalCommand(
+	"/help/settings/show-unknown-command",
 	"set show unknown command",
-	[Info.theirPerm.manageBot],
-	async (cmd, info) => {
+	{
+		usage: "set show errors {Required|{Enum|always|admins|never}}",
+		description: "choose who unknown command errors are shown to",
+		examples: [],
+	},
+	nr.list(nr.a.enum("always", "admins", "never")),
+	async ([cmd], info) => {
+		if (!Info.theirPerm.manageBot(info)) return;
 		if (!info.db) {
 			return await info.error(
 				messages.failure.command_cannot_be_used_in_pms(info),
@@ -86,7 +122,56 @@ router.add(
 	},
 );
 
-export default router;
+// nr.alias("highway", "autoban")
+
+nr.globalCommand(
+	"/help/administration/autoban/add",
+	"autoban add",
+	{
+		usage: "autoban add {Required|newline separated list of words}",
+		description: "ban users with certain words in their username.",
+		extendedDescription:
+			"{Emoji|warning} Banning words that are very short can get many users banned. Check the server audit log to see banned users.",
+		examples: [
+			{
+				in: "autoban add\ntwitch.tv\ndiscord.dg",
+				out:
+					"{Emoji|success} Users with these words in their name (not case-sensitive) will be banned when they join the server:\n",
+			},
+		],
+	},
+	nr.list(...nr.a.words()),
+	async ([words], info) => {
+		if (!Info.theirPerm.banMembers(info)) return;
+		if (!Info.theirPerm.manageBot(info)) return;
+		if (!Info.ourPerm.banMembers(info)) return;
+		const nlsep = words
+			.split("\n")
+			.map(w => w.trim())
+			.filter(w => w);
+		if (!nlsep.length) {
+			return await info.docs("/errors/autoban/no-words", "error");
+		}
+		if (!info.db) {
+			return await info.docs("/errors/pms", "error");
+		}
+		const ad = await info.db.getAutoban(); // this isn't safe, if two people add to autodelete at once only one will actually save.
+		ad.push(...nlsep);
+		// maybe ad should be a set so it doesn't have duplicates
+		await info.db.setAutoban(ad);
+		await info.success(
+			"Users with these words in their name (not case-sensitive) will be banned when they join the server:\n" +
+				ad
+					.map(
+						q =>
+							(nlsep.includes(q) ? "(new) " : "") +
+							"- " +
+							safe(q),
+					)
+					.join("\n"),
+		);
+	},
+);
 
 // import Usage from "command-parser";
 // import o from "../options";

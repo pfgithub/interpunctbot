@@ -14,7 +14,7 @@ import fun from "./src/commands/fun";
 import "./src/commands/help";
 import "./src/commands/logging";
 import quoteRouter from "./src/commands/quote";
-import settingsRouter from "./src/commands/settings";
+import "./src/commands/settings";
 import "./src/commands/speedrun";
 import "./src/commands/test";
 import { globalConfig } from "./src/config";
@@ -44,29 +44,6 @@ function devlog(...msg: any) {
 
 router.add([], fun);
 router.add([], channelsRouter);
-
-nr.globalCommand(
-	"/help/owner/restart",
-	"restart",
-	{
-		usage: "restart",
-		description: "restart the bot",
-		examples: [],
-	},
-	nr.list(),
-	async ([], info) => {
-		if (!Info.theirPerm.owner(info)) return;
-		const msg = (await info.result(
-			"<a:loading:682804438783492139> Restarting...",
-		))![0];
-		await fs.writeFile(
-			path.join(process.cwd(), ".restarting"),
-			msg.channel + ":" + msg.id + ":" + new Date().getTime(),
-			"utf-8",
-		);
-		process.exit(0);
-	},
-);
 
 export type ErrorWithID = Error & { errorCode: string };
 
@@ -151,7 +128,6 @@ router.add("crash", [], () => {
 	throw new Error("crash command used");
 });
 
-router.add([], settingsRouter);
 router.add([], emojiRouter);
 router.add([], quoteRouter);
 

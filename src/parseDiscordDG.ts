@@ -24,6 +24,7 @@ export const safehtml = templateGenerator((v: string) => escapeHTML(v));
 export const emoji: { [key: string]: [string, string, string?] } = {
 	success: [":success:", "508840840416854026"],
 	failure: [":failure:", "508841130503438356"],
+	warning: [":warning:", "508841130503438356"],
 	emoji: [":emoji:", "629134046332583946", "surround"],
 	admins: [":gear~1:", "646624018643943425"],
 	upvote: [":upvote:", "674675568993894412"],

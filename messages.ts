@@ -439,9 +439,9 @@ ${info.prefix}space channels disable
 				  }`
 				: `this should never happen`,
 		no_prefix_provided: (info: Info) =>
-			`The current prefix for this server is ${info.prefix}. To change it, use \`${info.prefix}set prefix new_prefix\``,
+			safe`The current prefix for this server is ${info.prefix}. To change it, use \`${info.prefix}set prefix new_prefix\``,
 		prefix_updated: (info: Info, newPrefix: string) =>
-			`Prefix changed to ${newPrefix}. Try it out with \`${newPrefix}ping\`.`,
+			safe`Prefix changed to ${newPrefix}.\n> Try it out with \`${newPrefix}test\`.`,
 		show_errors_usage: (
 			info: Info,
 			showErrors: "always" | "admins" | "never",
