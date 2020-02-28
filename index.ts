@@ -55,6 +55,7 @@ nr.globalCommand(
 	},
 	nr.list(),
 	async ([], info) => {
+		if (!Info.theirPerm.owner(info)) return;
 		const msg = (await info.result(
 			"<a:loading:682804438783492139> Restarting...",
 		))![0];
