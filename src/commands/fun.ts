@@ -134,7 +134,8 @@ nr.globalCommand(
 		await ms(24000);
 		await msg.edit(prefix + " Please hold...");
 		await ms(48000);
-		await msg.edit(prefix + "");
+		await info.error("Huh, it seems something went wrong.");
+		await msg.delete();
 	},
 );
 
