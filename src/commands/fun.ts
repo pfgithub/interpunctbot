@@ -1,16 +1,16 @@
 import Router from "commandrouter";
 import moment from "moment";
-import { serverStartTime, perr } from "../../..";
-import { messages, safe } from "../../../messages";
-import Info from "../../Info";
-import { a, AP } from "../argumentparser";
-import checkers, { createTimer } from "./checkers";
-import "./gamelibgames";
-import goi from "./goi";
-import trivia from "./trivia";
-import * as nr from "../../NewRouter";
-import { durationFormat } from "../../durationFormat";
-import { setEditInterval } from "../../editInterval";
+import { serverStartTime, perr } from "../..";
+import { messages, safe } from "../../messages";
+import Info from "../Info";
+import { a, AP } from "./argumentparser";
+import checkers, { createTimer } from "./fun/checkers";
+import "./fun/gamelibgames";
+import goi from "./fun/goi";
+import trivia from "./fun/trivia";
+import * as nr from "../NewRouter";
+import { durationFormat } from "../durationFormat";
+import { setEditInterval } from "../editInterval";
 
 const router = new Router<Info, Promise<any>>();
 
