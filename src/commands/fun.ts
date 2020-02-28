@@ -106,6 +106,38 @@ nr.globalCommand(
 	},
 );
 
+const ms = (ms: number) => new Promise(r => setTimeout(r, ms));
+
+nr.globalCommand(
+	"/help/fun/load",
+	"load",
+	{
+		usage: "load",
+		description: "Load",
+		examples: [],
+	},
+	nr.list(),
+	async ([], info) => {
+		const prefix =
+			"<@" + info.message.author.id + ">, <a:loading:682804438783492139>";
+		const msg = await info.channel.send(prefix);
+		await ms(3000);
+		await msg.edit(prefix + " Just one moment...");
+		await ms(6000);
+		await msg.edit(
+			prefix + " This is taking a bit longer than expected...",
+		);
+		await ms(9000);
+		await msg.edit(prefix + " Please wait, fetching results...");
+		await ms(12000);
+		await msg.edit(prefix + " This should be over shortly...");
+		await ms(24000);
+		await msg.edit(prefix + " Please hold...");
+		await ms(48000);
+		await msg.edit(prefix + "");
+	},
+);
+
 nr.globalCommand(
 	"/help/fun/color",
 	"color",
