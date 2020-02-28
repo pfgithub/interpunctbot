@@ -1,6 +1,8 @@
 import * as Discord from "discord.js";
 import { globalConfig } from "./src/config";
 import { TimedEvents } from "./src/TimedEvents";
+import { promises as fs } from "fs";
+import path from "path";
 const client = new Discord.Client({ disableEveryone: true });
 
 //eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
@@ -21,6 +23,23 @@ if (!docsGenMode) {
 export let timedEvents: TimedEvents | undefined = undefined;
 
 client.on("ready", () => {
+	(async () => {
+		const pth = path.join(process.cwd(), ".restarting");
+		const [channelid, msgid, timems] = (
+			await fs.readFile(pth, "utf-8")
+		).split(":");
+		await fs.unlink(pth);
+		const channel = client.channels.get(channelid) as Discord.TextChannel;
+		const message = await channel.messages.fetch(msgid)!;
+		await channel.send(
+			message.content.substr(0, message.content.lastIndexOf(",")) +
+				", <:success:508840840416854026> Bot restarted in " +
+				(new Date().getTime() - +timems) +
+				" ms.",
+		);
+		await message.delete();
+	})().catch(e => {});
+
 	timedEvents = new TimedEvents(client);
 	timedEvents.setHandler("pmuser", async event => {
 		if (client.shard && !client.shard.ids.includes(0)) {

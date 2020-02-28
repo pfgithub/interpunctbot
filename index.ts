@@ -45,6 +45,28 @@ function devlog(...msg: any) {
 router.add([], fun);
 router.add([], channelsRouter);
 
+nr.globalCommand(
+	"/help/owner/restart",
+	"restart",
+	{
+		usage: "restart",
+		description: "restart the bot",
+		examples: [],
+	},
+	nr.list(),
+	async ([], info) => {
+		const msg = (await info.result(
+			"<a:loading:393852367751086090> Restarting...",
+		))![0];
+		await fs.writeFile(
+			path.join(process.cwd(), ".restarting"),
+			msg.channel + ":" + msg.id + ":" + new Date().getTime(),
+			"utf-8",
+		);
+		process.exit(0);
+	},
+);
+
 export type ErrorWithID = Error & { errorCode: string };
 
 export function wrapErrorAddID(error: Error): ErrorWithID {

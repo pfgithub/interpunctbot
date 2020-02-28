@@ -10,6 +10,7 @@
 		"docs": "ts-node . --gen-docs",
 		"serve": "static-server docgen/dist/web --not-found docgen/dist/web/404.html",
 		"build": "tsc",
+		"build-watch": "tsc --watch",
 		"run-slow": "ts-node .",
 		"run-built": "node built"
 	},

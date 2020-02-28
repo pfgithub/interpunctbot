@@ -67,8 +67,16 @@ now, set up the database with
 yarn knex migrate:latest
 ```
 
-finally, start the bot with
+start the build watcher with
 
 ```bash
-yarn ts-node .
+yarn build-watch
 ```
+
+then start the bot with
+
+```bash
+node built
+```
+
+and restart that to restart the bot
