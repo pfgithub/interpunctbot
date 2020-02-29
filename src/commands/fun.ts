@@ -86,6 +86,10 @@ nr.globalCommand(
 	{ usage: "botdev", description: "Get help", examples: [] },
 	nr.list(),
 	async ([], info) => {
+		if (info.db ? !(await info.db.getFunEnabled()) : false) {
+			return await info.error(messages.fun.fun_disabled(info));
+		}
+
 		await info.error(
 			`Command \`botdev\` not found, type \`${info.prefix}notdev\` for a list of commands.`,
 		);
@@ -99,6 +103,10 @@ nr.globalCommand(
 	{ usage: "botdev", description: "Get help", examples: [] },
 	nr.list(),
 	async ([], info) => {
+		if (info.db ? !(await info.db.getFunEnabled()) : false) {
+			return await info.error(messages.fun.fun_disabled(info));
+		}
+
 		await info.error(
 			`Command \`notdev\` not found, type \`${info.prefix}botdev\` for a list of commands.`,
 		);
@@ -118,6 +126,10 @@ nr.globalCommand(
 	},
 	nr.list(),
 	async ([], info) => {
+		if (info.db ? !(await info.db.getFunEnabled()) : false) {
+			return await info.error(messages.fun.fun_disabled(info));
+		}
+
 		const prefix =
 			"<@" + info.message.author.id + ">, <a:loading:682804438783492139>";
 		const msg = await info.channel.send(prefix);
@@ -153,10 +165,10 @@ nr.globalCommand(
 	},
 	nr.list(nr.a.word()),
 	async ([word], info) => {
-		if (info.db ? await info.db.getFunEnabled() : true) {
-		} else {
+		if (info.db ? !(await info.db.getFunEnabled()) : false) {
 			return await info.error(messages.fun.fun_disabled(info));
 		}
+
 		const hexcode = word.replace("#", "");
 		await info.result(
 			safe`Color #${hexcode}: https://dummyimage.com/300x300/${encodeURIComponent(
@@ -176,10 +188,10 @@ nr.globalCommand(
 	},
 	nr.list(...nr.a.words()),
 	async ([cmd], info) => {
-		if (info.db ? await info.db.getFunEnabled() : true) {
-		} else {
+		if (info.db ? !(await info.db.getFunEnabled()) : false) {
 			return await info.error(messages.fun.fun_disabled(info));
 		}
+
 		if (!cmd) {
 			return await info.docs("/help/fun/play", "usage");
 		}
@@ -199,10 +211,10 @@ nr.globalCommand(
 	},
 	nr.list(...nr.a.words()),
 	async ([cmd], info) => {
-		if (info.db ? await info.db.getFunEnabled() : true) {
-		} else {
+		if (info.db ? !(await info.db.getFunEnabled()) : false) {
 			return await info.error(messages.fun.fun_disabled(info));
 		}
+
 		await info.message.channel.send(`\`\`\`
 GNU vdb (VDB) 2.4.1
 Copyright (C) 2019 Free Software Foundation, Inc.
@@ -250,6 +262,10 @@ nr.globalCommand(
 	},
 	nr.list(...nr.a.words()),
 	async ([cmd], info) => {
+		if (info.db ? !(await info.db.getFunEnabled()) : false) {
+			return await info.error(messages.fun.fun_disabled(info));
+		}
+
 		if (!info.guild) {
 			return await info.error("something something pms");
 		}
@@ -303,10 +319,10 @@ nr.globalCommand(
 	},
 	nr.list(...nr.a.words()),
 	async ([cmd], info) => {
-		if (info.db ? await info.db.getFunEnabled() : true) {
-		} else {
+		if (info.db ? !(await info.db.getFunEnabled()) : false) {
 			return await info.error(messages.fun.fun_disabled(info));
 		}
+
 		if (!cmd) {
 			return await info.docs("/help/fun/vote2", "usage");
 		}
@@ -340,10 +356,10 @@ nr.globalCommand(
 	},
 	nr.list(...nr.a.words()),
 	async ([cmd], info) => {
-		if (info.db ? await info.db.getFunEnabled() : true) {
-		} else {
+		if (info.db ? !(await info.db.getFunEnabled()) : false) {
 			return await info.error(messages.fun.fun_disabled(info));
 		}
+
 		const msg = await info.channel.send("VOTE: " + safe`${cmd}`);
 		await Promise.all([
 			msg.react("674675568993894412"),
