@@ -626,11 +626,15 @@ nr.globalCommand(
 		// ...
 		// }
 		const linesUnder2000: string[] = [];
-		const splitQuotedBoard = generatedBoard.split("\n").map(l => `> ${l}`);
+		const splitQuotedBoard = generatedBoard.boardStr
+			.split("\n")
+			.map(l => `> ${l}`);
 		splitQuotedBoard.push(
 			`**${width}**x**${height}** | theme: **${mode}** | difficulty: **${difficulty}** (${Math.round(
 				(dv[difficulty] === -1 ? customvalue : dv[difficulty]) * 100,
-			)}%) | ${flag ? "flag " : ""}${group ? "group" : ""}`,
+			)}%) | ${generatedBoard.mineCount + " mines "}${
+				flag ? "flag " : ""
+			}${group ? "group" : ""}`,
 		);
 		splitQuotedBoard.forEach(line => {
 			const newLine = `${linesUnder2000[linesUnder2000.length - 1] ||
@@ -736,8 +740,9 @@ const badMinesweeperGenerator = ({
 	flag: boolean;
 	customvalue: number;
 	group: false;
-}) => {
+}): { boardStr: string; mineCount: number } => {
 	const v = modes[mode];
+	let mineCount = 0;
 	const vals = v;
 	// if(v === "custom") {vals =
 	// [0,1,2,3,4,5,6,7,8,9].map(i=>document.getElementById(i).value)} else
@@ -752,6 +757,7 @@ const badMinesweeperGenerator = ({
 		revealed[y] = [];
 		for (let x = 0; x < w; x++) {
 			arr[y][x] = Math.random() > b ? 0 : 9;
+			if (arr[y][x] === 9) mineCount++;
 			revealed[y][x] = false;
 		}
 	}
@@ -795,7 +801,7 @@ const badMinesweeperGenerator = ({
 			}
 		}
 	}
-	return arr
+	const boardStr = arr
 		.map((el, y) =>
 			el
 				.map((e, x) => {
@@ -815,6 +821,7 @@ const badMinesweeperGenerator = ({
 				.join(""),
 		)
 		.join("\n");
+	return { boardStr, mineCount };
 };
 
 export default router;

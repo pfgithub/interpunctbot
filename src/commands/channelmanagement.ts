@@ -33,6 +33,28 @@ nr.addDocsWebPage(
 );
 
 nr.globalCommand(
+	"/help/channels/purge/until",
+	"purge until",
+	{
+		usage: "purge until {Required|message url}",
+		description:
+			"Delete messages backwards until reaching a specific message. (also deletes that message).",
+		examples: [
+			{
+				in:
+					"purge https://discordapp.com/channels/407693624374067201/407917609636462592/407918623353602049",
+				out:
+					"{Atmention|you}, {Emoji|success} Succesfully deleted 3 messages.",
+			},
+		],
+	},
+	nr.list(...nr.a.words()),
+	async ([messageLink], info) => {
+		// fetch message from the link
+		// confirm("are you sure")
+	},
+);
+nr.globalCommand(
 	"/help/channels/purge",
 	"purge",
 	{
@@ -42,7 +64,7 @@ nr.globalCommand(
 			{
 				in: "purge 1",
 				out:
-					"{Atmention|you}, {Emoji|success} Succesfully deleted 1 messages.",
+					"{Atmention|you}, {Emoji|success} Succesfully deleted 1 message.",
 			},
 		],
 	},
