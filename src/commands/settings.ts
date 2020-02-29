@@ -124,6 +124,7 @@ nr.globalCommand(
 
 // nr.alias("highway", "autoban")
 
+// add remove clear
 nr.globalCommand(
 	"/help/administration/autoban/add",
 	"autoban add",
