@@ -2,11 +2,9 @@
 import PastebinAPI from "pastebin-js";
 const pastebin = new PastebinAPI();
 import { MessageEmbed } from "discord.js";
-import Router from "commandrouter";
 import Info from "../Info";
 import { messages } from "../../messages";
-
-const router = new Router<Info, Promise<any>>();
+import * as nr from "../NewRouter";
 
 function escapeMarkdown(text: string) {
 	const unescaped = text.replace(/\\(\*|_|`|~|\\)/g, "$1"); // unescape any "backslashed" character // why is this required?
@@ -18,7 +16,7 @@ function normalizeSearchTerm(str: string) {
 	return str.toLowerCase();
 }
 
-async function handleList(
+export async function handleList(
 	listName: string,
 	listPastebin: string,
 	cmd: string,
@@ -120,8 +118,6 @@ ${quoteFull
 	.join("\n")}
 ${line + 1}/${allQuotes.length}`);
 }
-const settingsRouter = new Router<Info, Promise<any>>();
-router.add([], settingsRouter);
 
 /*
 
@@ -146,19 +142,32 @@ Output: {Translate|lists.list_lists|{"A"}|}
 @/Example
 
 */
-async function listslist(cmd: string, info: Info) {
-	// if (cmd) return await info.docs("help lists list", "usage");
-	await info.startLoading();
-	if (!info.db) {
-		return await info.error(
-			messages.failure.command_cannot_be_used_in_pms(info),
-		);
-	}
-	const lists = await info.db.getLists();
-	return await info.result(messages.lists.list_lists(info, lists));
-}
-settingsRouter.add("lists list", [Info.theirPerm.manageBot], listslist);
-settingsRouter.add("list lists", [Info.theirPerm.manageBot], listslist);
+nr.globalCommand(
+	"/help/lists/list",
+	"lists list",
+	{
+		usage: "",
+		description: "",
+		examples: [
+			{
+				in: "list lists",
+				out:
+					"{Atmention|you}, {Bold|Lists}:\n{Blockquote|motivation: {Link|https://pastebin.com/NFuKYjUN}}",
+			},
+		],
+	},
+	nr.list(),
+	async ([], info) => {
+		if (!info.db) {
+			return await info.error(
+				messages.failure.command_cannot_be_used_in_pms(info),
+			);
+		}
+		const lists = await info.db.getLists();
+		return await info.result(messages.lists.list_lists(info, lists));
+	},
+);
+nr.globalAlias("lists list", "list lists");
 
 function parsePastebinURL(url = "") {
 	const match = /^.*([A-Za-z0-9]{8})/.exec(url);
@@ -229,30 +238,71 @@ async function addOrEditList(add: boolean, cmd: string, info: Info) {
 	);
 }
 
-settingsRouter.add(
+nr.globalCommand(
+	"/help/lists/add",
 	"lists add",
-	[Info.theirPerm.manageBot],
-	async (cmd, info) => {
-		// if lists.length > 3 say "your list limit has been reached, join the support server in `about` and ask to increase it"
+	{
+		usage:
+			"lists add {Required|listname} {Required|https://pastebin.com/url}",
+		description: "Add custom command list.",
+		extendedDescription:
+			"Example list: {Link|https://pastebin.com/NFuKYjUN}",
+		examples: [
+			{
+				in: "lists add motivation {Link|https://pastebin.com/NFuKYjUN}",
+				out:
+					"{Atmention|you}, {Emoji|success} Added list motivation with pastebin URL {Link|https://pastebin.com/NFuKYjUN}\nTry it out with {Command|motivation}",
+			},
+		],
+	},
+	nr.list(...nr.a.words()),
+	async ([cmd], info) => {
+		if (!Info.theirPerm.manageBot(info)) return;
 		return await addOrEditList(true, cmd, info);
 	},
 );
 
-settingsRouter.add(
+nr.globalCommand(
+	"/help/lists/edit",
 	"lists edit",
-	[Info.theirPerm.manageBot],
-	async (cmd, info) => {
-		// there's not much purpose to a distinction between add and edit...
+	{
+		usage:
+			"lists edit {Required|listname} {Required|https://pastebin.com/url}",
+		description: "Edit custom command list.",
+		extendedDescription:
+			"Example list: {Link|https://pastebin.com/NFuKYjUN}",
+		examples: [
+			{
+				in:
+					"lists edit motivation {Link|https://pastebin.com/NFuKYjUN}",
+				out:
+					"{Atmention|you}, {Emoji|success} Updated list motivation with new pastebin URL {Link|https://pastebin.com/NFuKYjUN}\nTry it out with {Command|motivation}",
+			},
+		],
+	},
+	nr.list(...nr.a.words()),
+	async ([cmd], info) => {
+		if (!Info.theirPerm.manageBot(info)) return;
 		return await addOrEditList(false, cmd, info);
 	},
 );
 
-settingsRouter.add(
+nr.globalCommand(
+	"/help/lists/remove",
 	"lists remove",
-	[Info.theirPerm.manageBot],
-	async (cmd, info) => {
+	{
+		usage: "lists remove {Required|list name}",
+		description: "Remove a list",
+		examples: [
+			{
+				in: "lists remove motivation",
+				out: "{Emoji|success} List removed",
+			},
+		],
+	},
+	nr.list(...nr.a.words()),
+	async ([listName], info) => {
 		// there's not much purpose to a distinction between add and edit...
-		const listName = cmd;
 		if (!info.db) {
 			return await info.error(
 				messages.failure.command_cannot_be_used_in_pms(info),
@@ -271,22 +321,3 @@ settingsRouter.add(
 		);
 	},
 );
-
-router.add([], async (cmd, info, next) => {
-	if (!info.db) {
-		return next();
-	}
-	const lists = await info.db.getLists(); // TODO info.db.lists
-	const listNames = Object.keys(lists);
-	// Here we create a new router and add all the lists to it
-	const listRouter = new Router<Info, Promise<any>>();
-	listNames.forEach(listName =>
-		listRouter.add(listName, [], (c, i) =>
-			handleList(listName, lists[listName], c, i),
-		),
-	);
-	// Then we handle our request by instead giving the job to the new router. If no list is found, next will be called on the superrouter.
-	return listRouter.handle(cmd, info, next);
-});
-
-export default router;

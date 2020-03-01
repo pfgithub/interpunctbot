@@ -13,7 +13,7 @@ import "./src/commands/emoji";
 import fun from "./src/commands/fun";
 import "./src/commands/help";
 import "./src/commands/logging";
-import quoteRouter from "./src/commands/quote";
+import "./src/commands/quote";
 import "./src/commands/settings";
 import "./src/commands/speedrun";
 import "./src/commands/test";
@@ -22,6 +22,7 @@ import Database from "./src/Database";
 import Info from "./src/Info";
 import * as nr from "./src/NewRouter";
 import { dgToDiscord } from "./src/parseDiscordDG";
+import { handleList } from "./src/commands/quote";
 
 mdf(moment as any);
 
@@ -127,8 +128,6 @@ router.add("crash", [], () => {
 	throw new Error("crash command used");
 });
 
-router.add([], quoteRouter);
-
 function depricate(oldcmd: string, newcmd: string, version = "3.0") {
 	router.add(oldcmd, [], async (cmd, info) => {
 		return await info.error(
@@ -228,6 +227,22 @@ depricate("settings", "help");
 */
 
 router.add([], async (cmd, info) => {
+	if (info.db) {
+		const lists = await info.db.getLists(); // TODO info.db.lists
+		const listNames = Object.keys(lists);
+		for (const listName of listNames) {
+			if (cmd.toLowerCase().startsWith(listName)) {
+				await handleList(
+					listName,
+					lists[listName],
+					cmd.substr(listName.length).trim(),
+					info,
+				);
+				return;
+			}
+		}
+	}
+
 	const autoResolution =
 		"/" +
 		cmd

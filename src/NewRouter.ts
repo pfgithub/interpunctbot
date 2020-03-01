@@ -180,6 +180,16 @@ export function addDocsWebPage(
 // 	},
 // });
 
+export function globalAlias(original: string, aliasname: string) {
+	const origcmd = globalCommandNS[original];
+	if (!origcmd)
+		throw new Error("Alias original not found `" + original + "'");
+	if (globalCommandNS[aliasname])
+		throw new Error("Command already defined: `" + aliasname + "'");
+
+	globalCommandNS[aliasname] = origcmd;
+}
+
 export function globalCommand<APList extends APListAny>(
 	docsPath: string,
 	uniqueGlobalName: string,

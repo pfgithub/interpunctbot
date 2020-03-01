@@ -562,7 +562,7 @@ ${info.prefix}space channels disable
 			`**Lists**:
 ${Object.keys(lists)
 	.map(key => `> ${key}: <https://pastebin.com/${lists[key]}>`)
-	.join(`\n`)}`,
+	.join(`\n`) || "> *No lists yet. Create some with {Command|lists add}*"}`,
 		no_list_name_provided: (
 			info: Info,
 		) => `A list name and pastebin URL is required. For example: \`${info.prefix}lists add listname pastebin.com/NFuKYjUN\`

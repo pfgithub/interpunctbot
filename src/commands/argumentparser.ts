@@ -326,12 +326,16 @@ function WordArgumentType(): ArgumentType<string> {
 function EnumArgumentType<T extends string>(options: T[]): ArgumentType<T> {
 	return async (info, arg, cmd, index, commandhelp, argpurpose) => {
 		if (!cmd.trim()) {
-			await info.error("value not provided");
+			await info.error(
+				"not provided. must be one of:" + options.join(","),
+			);
 			return { result: "exit" };
 		}
 		const word = /^([\S]+)\s*([\S\s]*)/m.exec(cmd);
 		if (!word) {
-			await info.error("value not provided");
+			await info.error(
+				"not provided. must be one of:" + options.join(","),
+			);
 			return { result: "exit" };
 		}
 		const [, result, newCmd] = word;
