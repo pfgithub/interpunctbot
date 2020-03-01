@@ -6,7 +6,7 @@ import Info from "../Info";
 import { a, AP } from "./argumentparser";
 import checkers, { createTimer } from "./fun/checkers";
 import "./fun/gamelibgames";
-import goi from "./fun/goi";
+import "./fun/goi";
 import trivia from "./fun/trivia";
 import * as nr from "../NewRouter";
 import { durationFormat } from "../durationFormat";
@@ -527,7 +527,6 @@ nr.globalCommand(
 );
 
 router.add("", [], trivia);
-router.add("", [], goi);
 router.add("", [], checkers);
 
 // ------------------- MINESWEEPER -----------------------
