@@ -92,7 +92,7 @@ export function addDocsPage(docsPath: string, page: PageData) {
 	if (globalDocs[docsPath]) throw new Error("Docs path must be unique.");
 
 	if (developmentMode) {
-		process.stdout.write("  docs...");
+		// process.stdout.write("  docs..."); // \r  Loaded docs: \u001b[0K\n
 		confirmDocs(page.body);
 		confirmDocs(page.summaries.title);
 		confirmDocs(page.summaries.usage);
@@ -101,7 +101,7 @@ export function addDocsPage(docsPath: string, page: PageData) {
 
 	globalDocs[docsPath] = { ...page, path: docsPath };
 
-	process.stdout.write("\r  Loaded docs: " + docsPath + "\u001b[0K\n");
+	process.stdout.write("  Loaded docs: " + docsPath + "");
 }
 
 export function addHelpDocsPage(

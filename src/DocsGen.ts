@@ -153,6 +153,7 @@ export async function DocsGen() {
 		console.log(
 			"Remove docs dir failed. Maybe it does not exist or the node version is <13?",
 		);
+		console.log(e);
 	}
 	await fs.mkdir(dirname(fDocs()), { recursive: true });
 	await copyFolder(fDoc("public"), fDocs());
@@ -160,11 +161,8 @@ export async function DocsGen() {
 
 	const htmlTemplate = await fs.readFile(fDoc("template.html"), "utf-8");
 
-	const sidebarItems: string[] = [];
 	const sidebarJSON = await fs.readFile(fDoc("sidebar.json"), "utf-8");
 	const sidebarCont = JSON.parse(sidebarJSON);
-
-	const emojiJSON = await fs.readFile(fDoc("emoji.json"), "utf-8");
 
 	for (const docItem of Object.values(globalDocs)) {
 		const html = dgToHTML(docItem.body);
