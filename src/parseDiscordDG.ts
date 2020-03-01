@@ -323,6 +323,43 @@ const commands: {
 			);
 		},
 	},
+	LinkDocs: {
+		confirm: args => {
+			assert.equal(args.length, 1);
+		},
+		html: args => {
+			const docs = globalDocs[args[0].raw];
+			if (!docs) return "Error :(";
+
+			return rawhtml`<a href="${safehtml(docs.path)}">${dgToHTML(
+				docs.summaries.title,
+			)}</a>`;
+		},
+		discord: (args, info) => {
+			const docs = globalDocs[args[0].raw];
+			if (!docs) return "- " + args[0].safe + " — Error :(";
+			return (
+				// renderdiscord`{Command|${docs.path.split("/").join(" ")}}` would be nice
+				commands.Command.discord(
+					[
+						{
+							safe:
+								docs.path.split("/")[1] === "help"
+									? safe(
+											docs.path
+												.slice(1)
+												.split("/")
+												.join(" "),
+									  )
+									: "help " + safe(docs.path),
+							raw: "never",
+						},
+					],
+					info,
+				)
+			);
+		},
+	},
 	Enum: {
 		confirm: args => assert.ok(args.length > 0),
 		html: args => args.map(a => a.safe).join("|"),
