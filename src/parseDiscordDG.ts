@@ -334,9 +334,12 @@ const commands: {
 		discord: args => "--- " + args[0].safe + " ---",
 	},
 	Link: {
-		confirm: args => assert.equal(args.length, 1),
+		confirm: args => {
+			assert.ok(args.length === 1 || args.length === 2);
+		},
 		html: args =>
-			rawhtml`<a href="${safehtml(args[0].raw)}">${args[0].safe}</a>`,
+			rawhtml`<a href="${safehtml(args[0].raw)}">${args[1]?.safe ||
+				args[0].safe}</a>`,
 		discord: args => "<" + args[0].safe + ">",
 	},
 };
