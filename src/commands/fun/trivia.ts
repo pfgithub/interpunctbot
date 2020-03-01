@@ -1,14 +1,11 @@
-import Router from "commandrouter";
 import * as Discord from "discord.js";
 import he from "he";
 import { perr } from "../../..";
 import { messages, raw, safe } from "../../../messages";
 import Info from "../../Info";
-import { AP } from "../argumentparser";
 import { getURL } from "../speedrun";
 import { setEditInterval } from "../../editInterval";
-
-const router = new Router<Info, Promise<any>>();
+import * as nr from "../../NewRouter";
 
 declare namespace OpenTDB {
 	type Difficulty = "easy" | "medium" | "hard";
@@ -119,200 +116,215 @@ const defaultEmojiOrder = [
 	"🇵",
 ];
 
-router.add("trivia", [], async (cmd: string, info) => {
-	const ap = await AP({ info, cmd });
-	if (!ap) return;
-
-	if (info.db ? await info.db.getFunEnabled() : true) {
-	} else {
-		return await info.error(messages.fun.fun_disabled(info));
-	}
-
-	if (info.myChannelPerms) {
-		if (!info.myChannelPerms.has("ADD_REACTIONS")) {
-			return await info.error(
-				"I need permission to `add reactions` here to play trivia\n> https://interpunct.info/help/fun/trivia",
-			);
-		}
-		if (!info.myChannelPerms.has("MANAGE_MESSAGES")) {
-			return await info.error(
-				"I need permission to `manage messages` here to remove people's reactions in trivia\n> https://interpunct.info/help/fun/trivia",
-			);
-		}
-	}
-
-	// fetch trivia question
-	let triviaQuestion: OpenTDB.Question;
+nr.globalCommand(
+	"/help/fun/trivia",
+	"trivia",
 	{
-		await info.startLoading();
-		const triviaResponse: OpenTDB.Response = await getURL`https://opentdb.com/api.php?amount=1`; // TODO other things
-		if (triviaResponse.response_code !== 0) {
-			throw new Error(
-				`Nonzero response code on trivia. Response is: ${JSON.stringify(
-					triviaResponse,
-				)}`,
-			);
+		usage: "trivia",
+		description: "play a game of trivia",
+		examples: [
+			{
+				in: "trivia",
+				out: "{Screenshot|https://i.imgur.com/kejbm15.png}",
+			},
+		],
+	},
+	nr.list(),
+	async ([], info) => {
+		if (info.db ? !(await info.db.getFunEnabled()) : false) {
+			return await info.error(messages.fun.fun_disabled(info));
 		}
-		triviaQuestion = triviaResponse.results[0];
-		// await fetchProgressMessage.delete();
-		await info.stopLoading();
-	}
-	{
-		let triviaChoices: {
-			name: string;
-			emoji: string;
-		}[] = [];
-		{
-			const choiceNames = [
-				triviaQuestion.correct_answer,
-				...triviaQuestion.incorrect_answers,
-			].sort();
 
-			const getFirstCharacterEmoji = (choiceName: string) => {
-				return (
-					letterToEmojiMap[choiceName.charAt(0).toLowerCase()] ||
-					unknownCharacterEmoji
+		if (info.myChannelPerms) {
+			if (!info.myChannelPerms.has("ADD_REACTIONS")) {
+				return await info.error(
+					"I need permission to `add reactions` here to play trivia\n> https://interpunct.info/help/fun/trivia",
 				);
-			};
-			let useFirstCharacterEmoji = true;
-			const emojiToAnswerMap: { [key: string]: string } = {};
-			choiceNames.forEach(choice => {
-				const firstCharacterEmoji = getFirstCharacterEmoji(choice);
-				if (emojiToAnswerMap[firstCharacterEmoji])
-					useFirstCharacterEmoji = false;
-				emojiToAnswerMap[firstCharacterEmoji] = choice;
-				triviaChoices.push({
-					name: choice,
-					emoji: firstCharacterEmoji,
+			}
+			if (!info.myChannelPerms.has("MANAGE_MESSAGES")) {
+				return await info.error(
+					"I need permission to `manage messages` here to remove people's reactions in trivia\n> https://interpunct.info/help/fun/trivia",
+				);
+			}
+		}
+
+		// fetch trivia question
+		let triviaQuestion: OpenTDB.Question;
+		{
+			await info.startLoading();
+			const triviaResponse: OpenTDB.Response = await getURL`https://opentdb.com/api.php?amount=1`; // TODO other things
+			if (triviaResponse.response_code !== 0) {
+				throw new Error(
+					`Nonzero response code on trivia. Response is: ${JSON.stringify(
+						triviaResponse,
+					)}`,
+				);
+			}
+			triviaQuestion = triviaResponse.results[0];
+			// await fetchProgressMessage.delete();
+			await info.stopLoading();
+		}
+		{
+			let triviaChoices: {
+				name: string;
+				emoji: string;
+			}[] = [];
+			{
+				const choiceNames = [
+					triviaQuestion.correct_answer,
+					...triviaQuestion.incorrect_answers,
+				].sort();
+
+				const getFirstCharacterEmoji = (choiceName: string) => {
+					return (
+						letterToEmojiMap[choiceName.charAt(0).toLowerCase()] ||
+						unknownCharacterEmoji
+					);
+				};
+				let useFirstCharacterEmoji = true;
+				const emojiToAnswerMap: { [key: string]: string } = {};
+				choiceNames.forEach(choice => {
+					const firstCharacterEmoji = getFirstCharacterEmoji(choice);
+					if (emojiToAnswerMap[firstCharacterEmoji])
+						useFirstCharacterEmoji = false;
+					emojiToAnswerMap[firstCharacterEmoji] = choice;
+					triviaChoices.push({
+						name: choice,
+						emoji: firstCharacterEmoji,
+					});
 				});
+
+				if (!useFirstCharacterEmoji) {
+					triviaChoices = choiceNames.map((choice, i) => ({
+						name: choice,
+						emoji: defaultEmojiOrder[i],
+					}));
+				}
+			}
+			const triviaMessageHeader = safe`Trivia questions from <https://opentdb.com/>
+		**Category**: ${decodeHTML(triviaQuestion.category)}
+		**Difficulty**: ${decodeHTML(triviaQuestion.difficulty)}`;
+			const gameMessage = await info.channel.send(
+				`${triviaMessageHeader}
+		> When the question appears, react with the correct answer before the time runs out.`,
+			);
+
+			const playerResponses: {
+				[id: string]: {
+					choiceName: string;
+					reactionPile: Discord.MessageReaction;
+					time: number;
+				};
+			} = {};
+
+			let state = { state: "running" } as
+				| { state: "running" }
+				| { state: "over"; winners: string[] };
+
+			const reactionWatcher = info.handleReactions(
+				gameMessage,
+				async (reaction, user) => {
+					if (state.state !== "running") {
+						return;
+					}
+					const choice = triviaChoices.find(
+						choice => choice.emoji === reaction.emoji.name,
+					);
+					if (!choice) {
+						await reaction.users.remove(user.id);
+						return;
+					}
+					const previousChoice = playerResponses[user.id];
+					playerResponses[user.id] = {
+						choiceName: choice.name,
+						reactionPile: reaction,
+						time: new Date().getTime(),
+					};
+					if (previousChoice) {
+						await previousChoice.reactionPile.users.remove(user.id);
+					}
+				},
+			);
+
+			for (const choice of triviaChoices) {
+				await gameMessage.react(choice.emoji);
+			}
+
+			const startTime = new Date().getTime();
+
+			const updateResultMessage = () =>
+				gameMessage.edit(
+					triviaMessageHeader +
+						safe`
+		**Question**: ${decodeHTML(triviaQuestion.question)}
+		**Answers**:
+		${raw(
+			triviaChoices
+				.map(({ name, emoji }) => {
+					return `> ${emoji} - ${safe`${decodeHTML(name)}`}`;
+				})
+				.join("\n"),
+		)}
+		${raw(
+			state.state === "running"
+				? `**Time Left**: ${(
+						(startTime + 20000 - new Date().getTime()) /
+						1000
+				  ).toFixed(0)}s`
+				: `**Correct Answer**: ${
+						triviaChoices.find(
+							cd => cd.name === triviaQuestion.correct_answer,
+						)!.emoji
+				  } - ${safe`${decodeHTML(triviaQuestion.correct_answer)}`}
+		**Winners**: ${
+			state.winners.length === 0
+				? "*No one won*"
+				: state.winners.map(w => `<@${w}>`).join(", ")
+		}`,
+		)}`,
+				);
+
+			await updateResultMessage();
+			const messageEdit = setEditInterval(async () => {
+				await updateResultMessage();
+				if (startTime + 30000 - new Date().getTime() < 0) {
+					messageEdit.end();
+				}
 			});
 
-			if (!useFirstCharacterEmoji) {
-				triviaChoices = choiceNames.map((choice, i) => ({
-					name: choice,
-					emoji: defaultEmojiOrder[i],
-				}));
-			}
-		}
-		const triviaMessageHeader = safe`Trivia questions from <https://opentdb.com/>
-**Category**: ${decodeHTML(triviaQuestion.category)}
-**Difficulty**: ${decodeHTML(triviaQuestion.difficulty)}`;
-		const gameMessage = await info.channel.send(
-			`${triviaMessageHeader}
-> When the question appears, react with the correct answer before the time runs out.`,
-		);
+			const selectionEndTimer = setTimeout(() => {
+				reactionWatcher.end();
+			}, 20000);
 
-		const playerResponses: {
-			[id: string]: {
-				choiceName: string;
-				reactionPile: Discord.MessageReaction;
-				time: number;
-			};
-		} = {};
+			await reactionWatcher.done;
+			// await Promise.race([reactionWatcher.done, messageEdit.end()])
+			// ^that would be nice because then maybe message edit errors would show instead of waiting 20 seconds
+			// also maybe check if the original message is still there before sending an error
+			// ^^oh do that
+			messageEdit.end();
+			clearTimeout(selectionEndTimer);
 
-		let state = { state: "running" } as
-			| { state: "running" }
-			| { state: "over"; winners: string[] };
-
-		const reactionWatcher = info.handleReactions(
-			gameMessage,
-			async (reaction, user) => {
-				if (state.state !== "running") {
-					return;
-				}
-				const choice = triviaChoices.find(
-					choice => choice.emoji === reaction.emoji.name,
-				);
-				if (!choice) {
-					await reaction.users.remove(user.id);
-					return;
-				}
-				const previousChoice = playerResponses[user.id];
-				playerResponses[user.id] = {
-					choiceName: choice.name,
-					reactionPile: reaction,
-					time: new Date().getTime(),
-				};
-				if (previousChoice) {
-					await previousChoice.reactionPile.users.remove(user.id);
-				}
-			},
-		);
-
-		for (const choice of triviaChoices) {
-			await gameMessage.react(choice.emoji);
-		}
-
-		const startTime = new Date().getTime();
-
-		const updateResultMessage = () =>
-			gameMessage.edit(
-				triviaMessageHeader +
-					safe`
-**Question**: ${decodeHTML(triviaQuestion.question)}
-**Answers**:
-${raw(
-	triviaChoices
-		.map(({ name, emoji }) => {
-			return `> ${emoji} - ${safe`${decodeHTML(name)}`}`;
-		})
-		.join("\n"),
-)}
-${raw(
-	state.state === "running"
-		? `**Time Left**: ${(
-				(startTime + 20000 - new Date().getTime()) /
-				1000
-		  ).toFixed(0)}s`
-		: `**Correct Answer**: ${
-				triviaChoices.find(
-					cd => cd.name === triviaQuestion.correct_answer,
-				)!.emoji
-		  } - ${safe`${decodeHTML(triviaQuestion.correct_answer)}`}
-**Winners**: ${
-				state.winners.length === 0
-					? "*No one won*"
-					: state.winners.map(w => `<@${w}>`).join(", ")
-		  }`,
-)}`,
+			const winners: { id: string; time: number }[] = [];
+			Object.entries(playerResponses).forEach(
+				([playerID, playerResponse]) => {
+					if (
+						playerResponse.choiceName ===
+						triviaQuestion.correct_answer
+					) {
+						winners.push({
+							id: playerID,
+							time: playerResponse.time,
+						});
+					}
+				},
 			);
-
-		await updateResultMessage();
-		const messageEdit = setEditInterval(async () => {
+			state = {
+				state: "over",
+				winners: winners
+					.sort((wa, wb) => wa.time - wb.time)
+					.map(q => q.id),
+			};
 			await updateResultMessage();
-			if (startTime + 30000 - new Date().getTime() < 0) {
-				messageEdit.end();
-			}
-		});
-
-		const selectionEndTimer = setTimeout(() => {
-			reactionWatcher.end();
-		}, 20000);
-
-		await reactionWatcher.done;
-		// await Promise.race([reactionWatcher.done, messageEdit.end()])
-		// ^that would be nice because then maybe message edit errors would show instead of waiting 20 seconds
-		// also maybe check if the original message is still there before sending an error
-		// ^^oh do that
-		messageEdit.end();
-		clearTimeout(selectionEndTimer);
-
-		const winners: { id: string; time: number }[] = [];
-		Object.entries(playerResponses).forEach(
-			([playerID, playerResponse]) => {
-				if (
-					playerResponse.choiceName === triviaQuestion.correct_answer
-				) {
-					winners.push({ id: playerID, time: playerResponse.time });
-				}
-			},
-		);
-		state = {
-			state: "over",
-			winners: winners.sort((wa, wb) => wa.time - wb.time).map(q => q.id),
-		};
-		await updateResultMessage();
-	}
-});
-
-export default router;
+		}
+	},
+);

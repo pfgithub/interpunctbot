@@ -1,4 +1,3 @@
-import Router from "commandrouter";
 import moment from "moment";
 import { serverStartTime, perr } from "../..";
 import { messages, safe } from "../../messages";
@@ -7,12 +6,10 @@ import { a, AP } from "./argumentparser";
 import { createTimer } from "./fun/helpers";
 import "./fun/gamelibgames";
 import "./fun/goi";
-import trivia from "./fun/trivia";
+import "./fun/trivia";
 import * as nr from "../NewRouter";
 import { durationFormat } from "../durationFormat";
 import { setEditInterval } from "../editInterval";
-
-const router = new Router<Info, Promise<any>>();
 
 nr.addDocsWebPage(
 	"/help/fun",
@@ -429,8 +426,7 @@ nr.globalCommand(
 	},
 	nr.list(),
 	async ([], info) => {
-		if (info.db ? await info.db.getFunEnabled() : true) {
-		} else {
+		if (info.db ? !(await info.db.getFunEnabled()) : false) {
 			return await info.error(messages.fun.fun_disabled(info));
 		}
 		return await info.result(
@@ -465,8 +461,7 @@ nr.globalCommand(
 	},
 	nr.list(...nr.a.words()),
 	async ([cmd], info) => {
-		if (info.db ? await info.db.getFunEnabled() : true) {
-		} else {
+		if (info.db ? !(await info.db.getFunEnabled()) : false) {
 			return await info.error(messages.fun.fun_disabled(info));
 		}
 		const ap = await AP({ cmd, info }, a.duration(), ...a.words());
@@ -532,8 +527,6 @@ nr.globalCommand(
 	},
 );
 
-router.add("", [], trivia);
-
 // ------------------- MINESWEEPER -----------------------
 
 /////////////////////////////////////
@@ -562,8 +555,7 @@ nr.globalCommand(
 	},
 	nr.list(...nr.a.words()),
 	async ([cmd], info) => {
-		if (info.db ? await info.db.getFunEnabled() : true) {
-		} else {
+		if (info.db ? !(await info.db.getFunEnabled()) : false) {
 			return await info.error(messages.fun.fun_disabled(info));
 		}
 		const words = cmd.split(" ");
@@ -827,5 +819,3 @@ const badMinesweeperGenerator = ({
 		.join("\n");
 	return { boardStr, mineCount };
 };
-
-export default router;

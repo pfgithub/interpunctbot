@@ -10,7 +10,7 @@ import { messages, safe } from "./messages";
 import "./src/commands/about";
 import "./src/commands/channelmanagement";
 import "./src/commands/emoji";
-import fun from "./src/commands/fun";
+import "./src/commands/fun";
 import "./src/commands/help";
 import "./src/commands/logging";
 import "./src/commands/quote";
@@ -43,8 +43,6 @@ function devlog(...msg: any) {
 		global.console.log(...msg);
 	}
 }
-
-router.add([], fun);
 
 export type ErrorWithID = Error & { errorCode: string };
 
