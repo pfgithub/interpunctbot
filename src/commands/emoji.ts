@@ -1,11 +1,8 @@
-import Router from "commandrouter";
 import * as Discord from "discord.js";
 import { messages } from "../../messages";
 import Info from "../Info";
 import { a, AP } from "./argumentparser";
 import * as nr from "../NewRouter";
-
-const router = new Router<Info, Promise<any>>();
 
 nr.addDocsWebPage(
 	"/help/emoji",
@@ -132,13 +129,20 @@ async function getEmojiAndRole(
 	return { emoji, role };
 }
 
-router.add(
+nr.globalCommand(
+	"/help/emoji/restrict",
 	"emoji restrict",
-	[Info.theirPerm.manageEmoji, Info.ourPerm.manageEmoji],
-	async (cmd, info, next) => {
-		const ap = await AP({ info, cmd }, a.emoji(), ...a.role());
-		if (!ap) return;
-		const [emoji, role] = ap.result;
+	{
+		usage:
+			"emoji restrict {Required|{Emoji|emoji}} {Required|{Role|role list}}",
+		description:
+			"restrict an emoji so only people with one of the specified roles can use it",
+		examples: [],
+	},
+	nr.list(nr.a.emoji(), ...nr.a.role()),
+	async ([emoji, role], info) => {
+		if (!Info.theirPerm.manageEmoji(info)) return;
+		if (!Info.ourPerm.manageEmoji(info)) return;
 
 		const newRoles = emoji.roles.array();
 		newRoles.push(role);
@@ -152,10 +156,20 @@ router.add(
 	},
 );
 
-router.add(
+nr.globalCommand(
+	"/help/emoji/unrestrict",
 	"emoji unrestrict",
-	[Info.theirPerm.manageEmoji, Info.ourPerm.manageEmoji],
-	async (cmd, info, next) => {
+	{
+		usage:
+			"emoji unrestrict {Optional|{Emoji|emoji}} {Optional|{Role|role}}",
+		description: "unrestrict an emoji so anyone can use it",
+		examples: [],
+	},
+	nr.list(...nr.a.words()),
+	async ([cmd], info) => {
+		if (!Info.theirPerm.manageEmoji(info)) return;
+		if (!Info.ourPerm.manageEmoji(info)) return;
+
 		if (!info.guild) {
 			return await info.error(
 				messages.failure.command_cannot_be_used_in_pms(info),
@@ -194,45 +208,40 @@ router.add(
 	},
 );
 
-router.add(
+nr.globalCommand(
+	"/help/emoji/inspect",
 	"emoji inspect",
-	[Info.theirPerm.manageEmoji],
-	async (cmd, info, next) => {
-		const ap = await AP({ info, cmd }, a.emoji());
-		if (!ap) return;
-		const [emoji] = ap.result;
-
+	{
+		usage: "emoji inspect {Required|{Emoji|emoji}}",
+		description: "get information about an emoji",
+		examples: [],
+	},
+	nr.list(nr.a.emoji()),
+	async ([emoji], info) => {
 		await info.result(messages.emoji.inspect(info, emoji));
 	},
 );
 
-router.add("emoji", [Info.theirPerm.manageBot], async (cmd, info, next) => {
-	// catchall. show emojirank commands:
-	return await info.error(
-		"`ip!help emoji` https://interpunct.info/help/emoji",
-	);
-});
-
-router.add(
-	"quickrank channel",
-	[Info.theirPerm.manageBot],
-	async (cmd, info, next) => {
-		const ap = await AP({ info, cmd }, a.channel());
-		if (!ap) {
-			return;
-		}
-		const [channel] = ap.result;
-		if (!info.db) {
-			return await info.error(
-				messages.failure.command_cannot_be_used_in_pms(info),
-			);
-		}
-		await info.db.setEmojiRankChannel(channel.id);
-		await info.success(`Set rank emoji channel to <#${channel.id}>
-**IF**［*hasRankmojiSetup*］: Try it out by reacting with [one of the set up emojis]
-**IF**［*doesNotHaveRankmojiSetup*］: Add some emojis to rank people: \`${info.prefix}emojirank add :emoji: @Role\``);
-	},
-);
+// router.add(
+// 	"quickrank channel",
+// 	[Info.theirPerm.manageBot],
+// 	async (cmd, info, next) => {
+// 		const ap = await AP({ info, cmd }, a.channel());
+// 		if (!ap) {
+// 			return;
+// 		}
+// 		const [channel] = ap.result;
+// 		if (!info.db) {
+// 			return await info.error(
+// 				messages.failure.command_cannot_be_used_in_pms(info),
+// 			);
+// 		}
+// 		await info.db.setEmojiRankChannel(channel.id);
+// 		await info.success(`Set rank emoji channel to <#${channel.id}>
+// **IF**［*hasRankmojiSetup*］: Try it out by reacting with [one of the set up emojis]
+// **IF**［*doesNotHaveRankmojiSetup*］: Add some emojis to rank people: \`${info.prefix}emojirank add :emoji: @Role\``);
+// 	},
+// );
 
 /*
 emoji role dependson
@@ -271,5 +280,3 @@ ip!ipscript // web interface for editing ipscript
 // 		"`ip!help emojirank` https://interpunct.info/help/quickrank"
 // 	);
 // });
-
-export default router;
