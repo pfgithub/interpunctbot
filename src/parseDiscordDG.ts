@@ -204,7 +204,7 @@ const commands: {
 		confirm: args => {
 			assert.equal(args.length, 1);
 		},
-		html: () => "NIY",
+		html: args => "<code>" + args[0].safe + "</code>",
 		discord: args => "`" + (args[0].safe || "\u200B") + "`",
 	},
 	Blockquote: {
