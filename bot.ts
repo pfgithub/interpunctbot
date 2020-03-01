@@ -3,7 +3,8 @@ import { globalConfig } from "./src/config";
 import { TimedEvents } from "./src/TimedEvents";
 import { promises as fs } from "fs";
 import path from "path";
-const client = new Discord.Client({ disableEveryone: true });
+import { durationFormat } from "./src/durationFormat";
+const client = new Discord.Client({ disableMentions: "everyone" }); // I don't know of any mention issues but just in case there is probably no reason for the bot to ever be saying @everyone
 
 //eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
 function ignorePromise(_p: Promise<unknown>) {}
@@ -29,12 +30,14 @@ client.on("ready", () => {
 			await fs.readFile(pth, "utf-8")
 		).split(":");
 		await fs.unlink(pth);
-		const channel = client.channels.get(channelid) as Discord.TextChannel;
+		const channel = client.channels.resolve(
+			channelid,
+		) as Discord.TextChannel;
 		const message = await channel.messages.fetch(msgid)!;
 		await channel.send(
 			message.content.substr(0, message.content.lastIndexOf(",")) +
 				", <:success:508840840416854026> Bot restarted in " +
-				(new Date().getTime() - +timems) +
+				durationFormat(new Date().getTime() - +timems) +
 				" ms.",
 		);
 		await message.delete();
@@ -55,11 +58,11 @@ client.on("ready", () => {
 		return "handled";
 	});
 	timedEvents.setHandler("delete", async event => {
-		const guild = client.guilds.get(event.guild);
+		const guild = client.guilds.resolve(event.guild);
 		if (!guild) {
 			return "notmine"; // !!! OR the guild has kicked the bot. this will create ghost events that everyone has notmine.
 		}
-		const channel = guild.channels.get(event.channel);
+		const channel = guild.channels.resolve(event.channel);
 		if (!channel) return "handled";
 		if (!(channel instanceof Discord.TextChannel)) return "handled";
 		const message = await channel.messages.fetch(event.message);
@@ -68,11 +71,11 @@ client.on("ready", () => {
 		return "handled";
 	});
 	timedEvents.setHandler("send", async event => {
-		const guild = client.guilds.get(event.guild);
+		const guild = client.guilds.resolve(event.guild);
 		if (!guild) {
 			return "notmine"; // !!! OR the guild has kicked the bot. this will create ghost events that everyone has notmine.
 		}
-		const channel = guild.channels.get(event.channel);
+		const channel = guild.channels.resolve(event.channel);
 		if (!channel) return "handled";
 		if (!(channel instanceof Discord.TextChannel)) return "handled";
 		await channel.send(event.message);

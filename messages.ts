@@ -357,9 +357,9 @@ ${fullList.map(role => `- ${messages.role(role)}\n`).join("")}
 			emoji: Discord.GuildEmoji,
 		) => `**Emoji ${emoji.toString()}**:
 ${
-	emoji.roles.array().length > 0
+	emoji.roles.cache.array().length > 0
 		? `This emoji can only be used by members with at least one of these roles:
-${emoji.roles
+${emoji.roles.cache
 	.array()
 	.map(role => `- ${messages.role(role)}\n`)
 	.join("")}`

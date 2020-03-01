@@ -107,8 +107,8 @@ export class TestHelper {
 	) {
 		this.adminClient = adminClient;
 		this.adminGuild = adminGuild;
-		this.adminIPBot = adminGuild.members.get(config.ipbot)!;
-		this.adminInteractionBot = adminGuild.members.get(config.testbot)!;
+		this.adminIPBot = adminGuild.members.resolve(config.ipbot)!;
+		this.adminInteractionBot = adminGuild.members.resolve(config.testbot)!;
 
 		this.botInteractionClient = botInteractionClient;
 		this.botInteractionGuild = botInteractionGuild;
@@ -144,13 +144,13 @@ export class TestHelper {
 					`DM TO=${
 						(message.channel as Discord.DMChannel).recipient
 							.username
-					}: ${message.author!.username}: ${message.cleanContent}`,
+					}: ${message.author!.username}: ${message.cleanContent!}`,
 				);
 			} else {
 				this.mostRecentEvents.push(
 					`MSG #${(message.channel as Discord.TextChannel).name}: ${
 						message.member!.displayName
-					}: ${message.cleanContent}`,
+					}: ${message.cleanContent!}`,
 				);
 			}
 			if (message.embeds && message.embeds.length > 0) {
@@ -180,7 +180,7 @@ export class TestHelper {
 	events(): Promise<any[]> {
 		// await nextEvents()
 		// next events until 2000ms after there are no more events
-		return new Promise((r, re) => {
+		return new Promise(r => {
 			this.noEventsCallback = ev => r(ev);
 		});
 	}
@@ -220,12 +220,12 @@ export class TestHelper {
 		console.log("-- ResetAll");
 		// remove all channels
 		console.log("--- Removing channels");
-		for (const channel of this.adminGuild.channels.array()) {
+		for (const channel of this.adminGuild.channels.cache.array()) {
 			await channel.delete();
 		}
 		// remove all roles from ipbot
 		console.log("--- Removing roles from bot");
-		for (const role of this.adminIPBot.roles.array()) {
+		for (const role of this.adminIPBot.roles.cache.array()) {
 			if (role.name === "@everyone") {
 				continue;
 			}
@@ -233,7 +233,7 @@ export class TestHelper {
 		}
 		// remove all roles from tester
 		console.log("--- Removing roles from tester");
-		for (const role of this.adminInteractionBot.roles.array()) {
+		for (const role of this.adminInteractionBot.roles.cache.array()) {
 			if (role.name === "@everyone") {
 				continue;
 			}
@@ -287,7 +287,9 @@ export class TestHelper {
 			console.log(
 				`------------- Adding role ${permission} to ${botMember.displayName}`,
 			);
-			const role = this.adminGuild.roles.find(r => r.name === permission);
+			const role = this.adminGuild.roles.cache.find(
+				r => r.name === permission,
+			);
 			if (!role) {
 				console.log(
 					`------------- The role named ${permission} does not exist in the testing server`,
@@ -313,7 +315,9 @@ export class TestHelper {
 			console.log(
 				`------------- Adding role ${permission} to ${botMember.displayName}`,
 			);
-			const role = this.adminGuild.roles.find(r => r.name === permission);
+			const role = this.adminGuild.roles.cache.find(
+				r => r.name === permission,
+			);
 			if (!role) {
 				console.log(
 					`------------- The role named ${permission} does not exist in the testing server`,
@@ -398,8 +402,8 @@ export class TestHelper {
 	const botInteractionClient = new Discord.Client();
 	botInteractionClient.login(config.token).catch(e => console.log(e));
 	const onReady = async () => {
-		const adminGuild = adminClient.guilds.get(config.server)!;
-		const botInteractionGuild = botInteractionClient.guilds.get(
+		const adminGuild = adminClient.guilds.resolve(config.server)!;
+		const botInteractionGuild = botInteractionClient.guilds.resolve(
 			config.server,
 		)!;
 		const testHelper = new TestHelper(

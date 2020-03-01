@@ -283,7 +283,7 @@ router.add([], async (cmd, info) => {
 });
 
 function updateActivity() {
-	const count = client.guilds.size;
+	const count = client.guilds.cache.size;
 	client.user && client.user.setActivity(`ip!help on ${count} servers`);
 	// if(process.env.NODE_ENV !== "production") return; // only production should post
 	// let options = {
@@ -500,7 +500,7 @@ async function onMessage(msg: Discord.Message | Discord.PartialMessage) {
 				deleteMsg = true;
 			} else if (
 				rule.type === "role" &&
-				msg.member!.roles.has(rule.role)
+				msg.member!.roles.cache.has(rule.role)
 			) {
 				deleteMsg = true;
 			}
@@ -828,7 +828,7 @@ export async function sendMessageToErrorReportingChannel(message: string) {
 	}
 
 	try {
-		const channel: Discord.TextChannel = client.channels.get(
+		const channel: Discord.TextChannel = client.channels.resolve(
 			channelID,
 		)! as Discord.TextChannel;
 		await channel.send(message);

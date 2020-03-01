@@ -145,7 +145,7 @@ export function findChannelsRequireSpacing(
 	guild: Guild,
 	characterToReplace: string,
 ) {
-	return guild.channels
+	return guild.channels.cache
 		.array()
 		.filter(chan => doesChannelRequireSpacing(chan, characterToReplace));
 }

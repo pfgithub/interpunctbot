@@ -377,8 +377,9 @@ nr.globalCommand(
 		]);
 
 		async function editMessage(over?: boolean) {
-			const upvotes = msg.reactions.get("674675568993894412")?.count;
-			const downvotes = msg.reactions.get("674675569404674059")?.count;
+			const upvotes = msg.reactions.resolve("674675568993894412")?.count;
+			const downvotes = msg.reactions.resolve("674675569404674059")
+				?.count;
 			const voteCount = (upvotes || 0) - (downvotes || 0);
 			const content =
 				"VOTE: " +
@@ -429,7 +430,7 @@ nr.globalCommand(
 		}
 		return await info.result(
 			`**Statistics**:
-> **Servers**: ${info.message.client.guilds.size} servers
+> **Servers**: ${info.message.client.guilds.cache.size} servers
 > **Uptime**: ${moment
 				.duration(new Date().getTime() - serverStartTime)
 				.format(

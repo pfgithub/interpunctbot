@@ -72,7 +72,7 @@ async function getEmojiAndRole(
 				return;
 			}
 
-			const emoji = info.guild.emojis.get(emojiID);
+			const emoji = info.guild.emojis.resolve(emojiID);
 			if (!emoji) {
 				await info.error(
 					messages.emoji.could_not_find_emoji(info, emojiID),
@@ -86,7 +86,7 @@ async function getEmojiAndRole(
 		return;
 	}
 
-	const emoji = info.guild.emojis.get(emojiID);
+	const emoji = info.guild.emojis.resolve(emojiID);
 	if (!emoji) {
 		await info.error(messages.emoji.could_not_find_emoji(info, emojiID));
 		return;
@@ -99,14 +99,14 @@ async function getEmojiAndRole(
 	])[1];
 	let role: Discord.Role;
 	if (roleID) {
-		const foundRole = info.guild.roles.get(roleID);
+		const foundRole = info.guild.roles.resolve(roleID);
 		if (!foundRole) {
 			await info.error(messages.emoji.role_does_not_exist(info, roleID));
 			return;
 		}
 		role = foundRole;
 	} else {
-		const matchingRoles = info.guild.roles
+		const matchingRoles = info.guild.roles.cache
 			.array()
 			.filter(role => roleNameMatch(role.name, rolename));
 		if (matchingRoles.length > 1) {
@@ -144,7 +144,7 @@ nr.globalCommand(
 		if (!Info.theirPerm.manageEmoji(info)) return;
 		if (!Info.ourPerm.manageEmoji(info)) return;
 
-		const newRoles = emoji.roles.array();
+		const newRoles = emoji.roles.cache.array();
 		newRoles.push(role);
 		await emoji.edit(
 			{ roles: newRoles },
@@ -184,7 +184,7 @@ nr.globalCommand(
 		}
 		const { emoji, role } = emojiAndRole;
 
-		let newRoles = emoji.roles.array();
+		let newRoles = emoji.roles.cache.array();
 
 		// note that emojirolestore.set() and .add() exist. this way makes it possible to set a reason and await for completion.
 

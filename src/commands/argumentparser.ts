@@ -1,7 +1,5 @@
 import * as Discord from "discord.js";
 
-import * as nr from "../NewRouter";
-
 import Info from "../Info";
 import { messages, safe } from "../../messages";
 
@@ -183,7 +181,7 @@ function ChannelArgumentType(): ArgumentType<Discord.GuildChannel> {
 			return { result: "exit" };
 		}
 		const [, channelID, remainingCmd] = match;
-		const channel = info.guild.channels.get(channelID);
+		const channel = info.guild.channels.resolve(channelID);
 		if (!channel) {
 			await info.error(
 				messages.arguments.channel_not_found(
@@ -221,7 +219,7 @@ function UserArgumentType(): ArgumentType<Discord.User> {
 			return { result: "exit" };
 		}
 		const [, userID, remainingCmd] = match;
-		const channel = info.message.client.users.get(userID);
+		const channel = info.message.client.users.resolve(userID);
 		if (!channel) {
 			await info.error("user not found");
 			return { result: "exit" };
@@ -270,7 +268,7 @@ function EmojiArgumentType(): ArgumentType<Discord.GuildEmoji> {
 			return { result: "exit" };
 		}
 		const [, emojiID, remainingCmd] = match;
-		const emoji = info.guild.emojis.get(emojiID);
+		const emoji = info.guild.emojis.resolve(emojiID);
 		if (!emoji) {
 			await info.error(
 				messages.arguments.emoji_not_found(
@@ -562,7 +560,7 @@ function RoleArgumentType(
 			.match(/^[\S\s]*?([0-9]{16,})[\S\s]*$/) || ["", ""])[1];
 		let role: Discord.Role;
 		if (roleID) {
-			const foundRole = info.guild.roles.get(roleID);
+			const foundRole = info.guild.roles.resolve(roleID);
 			if (!foundRole) {
 				await info.error(
 					messages.arguments.role_name_not_provided(
@@ -576,7 +574,7 @@ function RoleArgumentType(
 			}
 			role = foundRole;
 		} else {
-			const exactMatches = info.guild.roles
+			const exactMatches = info.guild.roles.cache
 				.array()
 				.filter(role => roleNameMatch(role.name, rolename));
 			if (exactMatches.length > 1) {
@@ -598,7 +596,7 @@ function RoleArgumentType(
 				return { result: "exit" };
 			}
 			if (exactMatches.length === 0) {
-				const roleNameList = info.guild.roles
+				const roleNameList = info.guild.roles.cache
 					.array()
 					.sort((a, b) => b.comparePositionTo(a));
 				const fuse = new Fuse(roleNameList, {

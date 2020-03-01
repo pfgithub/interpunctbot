@@ -21,7 +21,10 @@ module.exports = {
 		// enabled
 		"prefer-const": 1, // maybe don't auto fix though
 		"@typescript-eslint/no-floating-promises": 2, // this should be a default in typescript, how are people expected to have the node process crash for unhandled promises when it's so hard to actually know
-		"@typescript-eslint/restrict-template-expressions": 1, // I have [object Object] in template string so often
+		"@typescript-eslint/restrict-template-expressions": [
+			1,
+			{ allowNumber: true },
+		], // I have [object Object] in template string so often
 
 		// disabled
 		"@typescript-eslint/require-await": 0, // sometimes it's necessary to have a function return a promise even though it doesn't await itself

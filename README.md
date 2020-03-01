@@ -16,7 +16,7 @@
 
 # running
 
-requires: yarn package manager, node >=11 (preferrably >=13)
+requires: yarn package manager, node >=12 (preferrably >=13)
 
 ```bash
 git clone https://github.com/pfgithub/interpunctbot

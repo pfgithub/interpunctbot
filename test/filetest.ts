@@ -51,7 +51,7 @@ const actions: {
 		}
 		const channelName = originalName.substr(1);
 		const newChannelName = newName.substr(1);
-		const channel = t.botInteractionGuild.channels.find(
+		const channel = t.botInteractionGuild.channels.cache.find(
 			c => c.name === channelName,
 		);
 		if (!channel) {
@@ -95,7 +95,7 @@ const actions: {
 	async send(t, args, rewrite) {
 		let [channelName, ...messageArr] = args.split(": ");
 		let message = messageArr.join(": ");
-		for (const channel of t.adminGuild.channels.array()) {
+		for (const channel of t.adminGuild.channels.cache.array()) {
 			message = message
 				.split(`#[${channel.name}]`)
 				.join(channel.toString());
@@ -104,7 +104,7 @@ const actions: {
 			throw new Error(`Channel name does not start with #`);
 		}
 		channelName = channelName.substr(1);
-		const channel = t.botInteractionGuild.channels.find(
+		const channel = t.botInteractionGuild.channels.cache.find(
 			c => c.name === channelName,
 		); // note that multiple channels with the same name is not testable
 		if (!channel) {
@@ -118,7 +118,7 @@ const actions: {
 	},
 	async test(t, args, rewrite) {
 		const events = await t.events();
-		rewrite(
+		await rewrite(
 			`test\n${JSON.stringify(events, null, "\t")
 				.split("\n")
 				.map(l => `!! ${l}`)
@@ -169,8 +169,11 @@ const actions: {
 				  })();
 
 		let lineNumber = 0;
+		// it's ok here because it gets called under the global. namespace
+		// eslint-disable-next-line @typescript-eslint/unbound-method
 		const realLog = global.console.log;
 		const preContinue = () => {
+			// eslint-disable-next-line @typescript-eslint/unbound-method
 			global.console.log = realLog;
 			mode === "repl" && process.stdout.write("test> ");
 		};
@@ -202,7 +205,10 @@ const actions: {
 
 			console.log(`${lineNumber}:\tRunning: ${line}...`);
 
+			// once again, ok here but this should be updated so it doesn't do things twice
+			// eslint-disable-next-line @typescript-eslint/unbound-method
 			const realLog = global.console.log;
+			// eslint-disable-next-line @typescript-eslint/unbound-method
 			global.console.log = (...v: any[]) => {
 				if (typeof v[0] === "string") {
 					const copy = v.slice(0);
@@ -249,4 +255,4 @@ const actions: {
 		const resultText = linesForOutput.join("\n");
 		await fs.writeFile(infilePath, resultText, "utf-8");
 	});
-})();
+})().catch(() => {});
