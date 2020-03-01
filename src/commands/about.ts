@@ -22,6 +22,14 @@ discord.bots.gg: {Link|https://discord.bots.gg/bots/433078185555656705}
 {Interpunct} is open source. Unfortunately, that doesn't mean the code is good.`,
 );
 
+/*
+other bot lists:
+botsfordiscord.com
+bots.ondiscord.xyz
+discord.boats
+discordbotlist.com
+*/
+
 nr.globalCommand(
 	"/help/about",
 	"about",

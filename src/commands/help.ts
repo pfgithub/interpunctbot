@@ -21,7 +21,7 @@ nr.addDocsWebPage(
 	"/index",
 	"Home",
 	"Website homepage",
-	"{Heading|Inter·punct Bot}\n\nThis website is for version 3 of {Interpunct} which is currently in development. For version 2, see https://top.gg/bot/433078185555656705",
+	"{Heading|Inter·punct Bot}\n\nThis website is for version 3 of {Interpunct} which is currently in development. For version 2, see https://top.gg/bot/433078185555656705\n\n{Screenshot|https://top.gg/api/widget/433078185555656705.png}",
 );
 nr.addDocsWebPage(
 	"/404",
