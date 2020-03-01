@@ -4,7 +4,7 @@ import { serverStartTime, perr } from "../..";
 import { messages, safe } from "../../messages";
 import Info from "../Info";
 import { a, AP } from "./argumentparser";
-import checkers, { createTimer } from "./fun/checkers";
+import { createTimer } from "./fun/helpers";
 import "./fun/gamelibgames";
 import "./fun/goi";
 import trivia from "./fun/trivia";
@@ -533,7 +533,6 @@ nr.globalCommand(
 );
 
 router.add("", [], trivia);
-router.add("", [], checkers);
 
 // ------------------- MINESWEEPER -----------------------
 

@@ -5,7 +5,7 @@ import * as nr from "../../NewRouter";
 import { perr, ilt } from "../../..";
 import { messages } from "../../../messages";
 import Info from "../../Info";
-import { createTimer } from "./checkers";
+import { createTimer } from "./helpers";
 
 type GoDirectionSpec = (
 	| string

@@ -2,7 +2,7 @@ import * as Discord from "discord.js";
 
 import Info from "../../../Info";
 import { perr } from "../../../..";
-import { getPlayers, createTimer } from "../checkers";
+import { getPlayers, createTimer } from "../helpers";
 
 /// pass data async
 /// stream.write()
