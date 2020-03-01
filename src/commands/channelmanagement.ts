@@ -1,4 +1,3 @@
-import Router from "commandrouter";
 import { Channel, Guild, GuildChannel, TextChannel } from "discord.js";
 import { ilt, perr } from "../..";
 import { messages } from "../../messages";
@@ -7,13 +6,12 @@ import { durationFormat } from "../durationFormat";
 import Info from "../Info";
 import { a, AP } from "./argumentparser";
 import * as nr from "../NewRouter";
-const router = new Router<Info, Promise<any>>();
 
 const stripMentions = (msg: string) => {
 	return msg
 		.replace(/@(everyone|here)/g, "")
-		.replace(/<@!?[0-9]+>/g, "")
-		.replace(/<#!?[0-9]+>/g, "");
+		.replace(/<@.+?>/g, "")
+		.replace(/<#.+?>/g, "");
 };
 
 nr.addDocsWebPage(
@@ -425,58 +423,68 @@ nr.globalCommand(
 		);
 	},
 );
-router.add("autodelete", [Info.theirPerm.manageChannels], async (cmd, info) => {
-	// return await info.usage("autodelete")
-	return await info.error("usage"); // !!!
-});
 
-router.add("send", [Info.theirPerm.manageChannels], async (cmd, info) => {
-	await info.startLoading();
-	const message = stripMentions(info.message.content).replace(
-		/^[\s\S]*?send: ?/i,
-		"",
-	); // TODO find a better way to do this
-	const channelsToSendTo = info.message.mentions.channels.array();
+nr.globalCommand(
+	"/help/channels/send",
+	"send",
+	{
+		usage:
+			"send {Required|{Channel|list-of-channels}} {Required|message to send}",
+		description: "",
+		examples: [
+			{
+				in: "send {Channel|channel-one} {Channel|channel-two} hi!",
+				out:
+					"{Atmention|you}, {Emoji|success} Your message was sent to {Channel|channel-one}, {Channel|channel-two}",
+			},
+		],
+	},
+	nr.list(...nr.a.words()),
+	async ([cmd], info) => {
+		if (!Info.theirPerm.manageChannels(info)) return;
 
-	if (channelsToSendTo.length === 0) {
-		return await info.error(
-			messages.channels.send_many.no_channels_tagged(info),
-		);
-	}
+		const channelsToSendTo = info.message.mentions.channels.array();
 
-	const failures: Channel[] = [];
-	const successes: Channel[] = []; // maybe do Message[] and link to every message i.p sent?
-	for (const channel of channelsToSendTo) {
-		const sent = await ilt(
-			channel.send(message),
-			"sending message for sendmany",
-		);
-		if (sent.error) {
-			failures.push(channel);
-		} else {
-			successes.push(channel);
+		if (channelsToSendTo.length === 0) {
+			return await info.error(
+				messages.channels.send_many.no_channels_tagged(info),
+			);
 		}
-	}
 
-	if (failures.length === 0) {
-		return await info.success(
-			messages.channels.send_many.succeeded_sending(info, successes),
-		);
-	}
-	if (successes.length === 0) {
+		const safeMessage = stripMentions(cmd); // makes a message safe (removes @everyone and @here and all other mentions)
+
+		const failures: Channel[] = [];
+		const successes: Channel[] = []; // maybe do Message[] and link to every message i.p sent?
+		for (const channel of channelsToSendTo) {
+			const sent = await ilt(
+				channel.send(safeMessage),
+				"sending message for sendmany",
+			);
+			if (sent.error) {
+				failures.push(channel);
+			} else {
+				successes.push(channel);
+			}
+		}
+
+		if (failures.length === 0) {
+			return await info.success(
+				messages.channels.send_many.succeeded_sending(info, successes),
+			);
+		}
+		if (successes.length === 0) {
+			return await info.error(
+				messages.channels.send_many.failed_sending(info, failures),
+			);
+		}
 		return await info.error(
-			messages.channels.send_many.failed_sending(info, failures),
+			messages.channels.send_many.partially_succeeded_sending(
+				info,
+				successes,
+				failures,
+			),
 		);
-	}
-	return await info.error(
-		messages.channels.send_many.partially_succeeded_sending(
-			info,
-			successes,
-			failures,
-		),
-	);
-});
+	},
+);
 
 // !!!!!!!!!!!!!!! router.add("pin message")
-
-export default router;

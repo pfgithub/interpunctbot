@@ -8,7 +8,7 @@ import path from "path";
 import client, { timedEvents } from "./bot";
 import { messages, safe } from "./messages";
 import "./src/commands/about";
-import channelsRouter from "./src/commands/channelmanagement";
+import "./src/commands/channelmanagement";
 import emojiRouter from "./src/commands/emoji";
 import fun from "./src/commands/fun";
 import "./src/commands/help";
@@ -43,7 +43,6 @@ function devlog(...msg: any) {
 }
 
 router.add([], fun);
-router.add([], channelsRouter);
 
 export type ErrorWithID = Error & { errorCode: string };
 
