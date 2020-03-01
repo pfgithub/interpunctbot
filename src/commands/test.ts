@@ -60,3 +60,31 @@ nr.globalCommand(
 		process.exit(0);
 	},
 );
+
+nr.globalCommand(
+	"/help/owner/eval",
+	"eval",
+	{
+		usage: "eval {Required|javascript.code}",
+		description: "evaluate javascript",
+		examples: [
+			{
+				in: "eval {Code|client.guilds.cache.size}",
+				out: "{Atmention|you}, 1824",
+			},
+		],
+	},
+	nr.list(...nr.a.words()),
+	async ([cmd], info) => {
+		cmd = cmd.replace(/(^\`|\`$)/g, "").trim();
+		if (cmd === "client.guilds.cache.size")
+			return await info.result(
+				"" + info.message.client.guilds.cache.size,
+			);
+		if (cmd === "client.token")
+			return await info.result("||token is kept secret||");
+		await info.error(
+			"```diff\n- SyntaxError: expected expression, got ')'\n```",
+		);
+	},
+);
