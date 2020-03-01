@@ -110,7 +110,8 @@ const commands: {
 				<div class="author you">you</div>
 				<div class="msgcontent">ip!${args[0].safe}</div>
 			</div>`,
-		discord: args => `**you**: ${inlineOrBlockQuote(args[0].safe)}`,
+		discord: (args, info) =>
+			`**you**: ${safe(info.prefix)}${inlineOrBlockQuote(args[0].safe)}`,
 	},
 	ExampleBotMessage: {
 		confirm: args => assert.equal(args.length, 1),
