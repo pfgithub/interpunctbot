@@ -9,7 +9,7 @@ import client, { timedEvents } from "./bot";
 import { messages, safe } from "./messages";
 import "./src/commands/about";
 import "./src/commands/channelmanagement";
-import emojiRouter from "./src/commands/emoji";
+import "./src/commands/emoji";
 import fun from "./src/commands/fun";
 import "./src/commands/help";
 import "./src/commands/logging";
@@ -21,6 +21,7 @@ import { globalConfig } from "./src/config";
 import Database from "./src/Database";
 import Info from "./src/Info";
 import * as nr from "./src/NewRouter";
+import { dgToDiscord } from "./src/parseDiscordDG";
 
 mdf(moment as any);
 
@@ -126,7 +127,6 @@ router.add("crash", [], () => {
 	throw new Error("crash command used");
 });
 
-router.add([], emojiRouter);
 router.add([], quoteRouter);
 
 function depricate(oldcmd: string, newcmd: string, version = "3.0") {
@@ -228,6 +228,30 @@ depricate("settings", "help");
 */
 
 router.add([], async (cmd, info) => {
+	const autoResolution =
+		"/" +
+		cmd
+			.trim()
+			.split(" ")
+			.join("/");
+	const docsPage =
+		nr.globalDocs["/help" + autoResolution] ||
+		nr.globalDocs[autoResolution];
+	if (docsPage) {
+		const bodyText = dgToDiscord(docsPage.body, info);
+		await info.result(
+			// dgToDiscord(`{Var|bodyText}\n\n{Bold|Full Help}: {Link|${url}}`) // concept
+			(
+				bodyText +
+				"\n\n" +
+				"**Full Help**: <https://interpunct.info" +
+				docsPage.path +
+				">"
+			).replace(/\n\n+/g, "\n\n"),
+		);
+		return;
+	}
+
 	const unknownCommandMessages = info.db
 		? await info.db.getUnknownCommandMessages()
 		: "always";
