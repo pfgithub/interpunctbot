@@ -1,8 +1,6 @@
 import * as Discord from "discord.js";
 import MB from "../MessageBuilder";
-import Router from "commandrouter";
 import Info from "../Info";
-const router = new Router<Info, Promise<any>>();
 
 type UserJSON =
 	| { [key: string]: UserJSON }
@@ -97,12 +95,12 @@ export async function execScript(
 	}
 }
 
-router.add([], async (cmd, info) => {
-	const script = cmd
-		.trim()
-		.replace(/^```.*?\r?\n/, "")
-		.replace(/```$/, "")
-		.trim();
-});
+// router.add([], async (cmd, info) => {
+// 	const script = cmd
+// 		.trim()
+// 		.replace(/^```.*?\r?\n/, "")
+// 		.replace(/```$/, "")
+// 		.trim();
+// });
 
-export default router;
+// export default router;
