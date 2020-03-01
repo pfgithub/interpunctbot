@@ -81,8 +81,7 @@ nr.globalCommand(
 			return await info.result(
 				"" + info.message.client.guilds.cache.size,
 			);
-		if (cmd === "client.token")
-			return await info.result("||token is kept secret||");
+		if (cmd === "client.token") return await info.error("no");
 		await info.error(
 			"```diff\n- SyntaxError: expected expression, got ')'\n```",
 		);
