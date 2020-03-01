@@ -444,12 +444,13 @@ export default class Info {
 		// res && res.forEach(r => r.delete({ timeout: 20 * 1000 }));
 		return res;
 	}
-	async docs(path: string, mode: "usage" | "error") {
+	async docs(path: string, mode: "usage" | "error" | "full") {
 		const docsPage = globalDocs[path];
 		if (!docsPage) {
 			return await this.error(
-				"Uh oh! This is an invalid message! https://interpunct.info" +
-					safe(path),
+				"Uh oh! This is an invalid message:( https://interpunct.info" +
+					safe(path) +
+					" ):",
 			);
 		}
 		if (mode === "usage") {
@@ -465,6 +466,14 @@ export default class Info {
 			return await this.error(
 				dgToDiscord(docsPage.summaries.description, this) +
 					"\n\n> More Info: <https://interpunct.info" +
+					path +
+					">",
+			);
+		}
+		if (mode === "full") {
+			return await this.result(
+				dgToDiscord(docsPage.body, this) +
+					"\n\n> Full Page: <https://interpunct.info" +
 					path +
 					">",
 			);

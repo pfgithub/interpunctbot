@@ -7,7 +7,7 @@ import path from "path";
 
 import client, { timedEvents } from "./bot";
 import { messages, safe } from "./messages";
-import aboutRouter from "./src/commands/about";
+import "./src/commands/about";
 import channelsRouter from "./src/commands/channelmanagement";
 import emojiRouter from "./src/commands/emoji";
 import fun from "./src/commands/fun";
@@ -108,7 +108,6 @@ remove(
 
 reroute("invite", "about", "2.0");
 
-router.add("about", [], aboutRouter);
 // router.add("help", [], async (cmd, info, next) => {
 // 	await info.result(
 // 		messages.help(info, info.db ? await info.db.getLists() : {}),
