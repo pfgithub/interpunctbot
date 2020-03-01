@@ -215,6 +215,16 @@ nr.globalCommand(
 			return await info.error(messages.fun.fun_disabled(info));
 		}
 
+		const callcmd = (cmd: string) => {
+			if (cmd === "help") {
+				return safe`Uh oh! VDB debugging mode is not enabled. Help is not enabled.`;
+			}
+			if (cmd === "quit") {
+				return "";
+			}
+			return safe`Undefined command: "${cmd}". Try "help".`;
+		};
+
 		await info.message.channel.send(`\`\`\`
 GNU vdb (VDB) 2.4.1
 Copyright (C) 2019 Free Software Foundation, Inc.
@@ -231,12 +241,7 @@ Find the VDB manual and other documentation resources online at:
 
 For help, type "help".
 Type "apropos word" to search for commands related to "word".
-(vdb) ${
-			cmd
-				? safe`${cmd}\nUndefined command: "${cmd}". Try "help".
-(vdb) |`
-				: "|"
-		}
+(vdb) ${cmd ? safe`${cmd}\n` + callcmd(cmd) + "\n(vdb) quit" : "|"}
 \`\`\``);
 	},
 );

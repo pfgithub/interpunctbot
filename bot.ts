@@ -38,7 +38,7 @@ client.on("ready", () => {
 			message.content.substr(0, message.content.lastIndexOf(",")) +
 				", <:success:508840840416854026> Bot restarted in " +
 				durationFormat(new Date().getTime() - +timems) +
-				" ms.",
+				".",
 		);
 		await message.delete();
 	})().catch(e => {});
