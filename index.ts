@@ -777,7 +777,7 @@ export function logError(
 				(message as ErrorWithID).errorCode
 			}\`!!. ${
 				additionalDetails
-					? `Details: ${additionalDetails}
+					? `Details: ${additionalDetails.toString()}
 
 **Stacktrace**:
 \`\`\`
