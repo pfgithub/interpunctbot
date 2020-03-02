@@ -657,6 +657,8 @@ client.on("messageUpdate", (from, msg) => {
 	perr(onMessageUpdate(from, msg), "message update");
 });
 
+// client.on("messageReactionAdd", (reaction, user) => {});
+
 // function getEmojiKey(emoji) {
 // 	return emoji.id ? `${emoji.name}:${emoji.id}` : emoji.name;
 // }

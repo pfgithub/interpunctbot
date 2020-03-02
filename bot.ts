@@ -4,7 +4,10 @@ import { TimedEvents } from "./src/TimedEvents";
 import { promises as fs } from "fs";
 import path from "path";
 import { durationFormat } from "./src/durationFormat";
-const client = new Discord.Client({ disableMentions: "everyone" }); // I don't know of any mention issues but just in case there is probably no reason for the bot to ever be saying @everyone
+const client = new Discord.Client({
+	disableMentions: "everyone",
+	partials: ["REACTION"],
+}); // I don't know of any mention issues but just in case there is probably no reason for the bot to ever be saying @everyone
 
 //eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
 function ignorePromise(_p: Promise<unknown>) {}

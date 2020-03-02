@@ -486,6 +486,9 @@ export default class Info {
 	async redirect(newcmd: string) {
 		throw new Error("NOT IMPLEMENTED YET " + newcmd); // TODO for example .wr is just .speedrun leaderboard 1, so it could res.redirect("speedrun leaderboard 1 "+arguments)
 	}
+	// async confirm(who: string): boolean{
+	//
+	// }
 	handleReactions(
 		msg: Discord.Message,
 		cb: (
