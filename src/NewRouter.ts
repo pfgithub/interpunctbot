@@ -1,4 +1,5 @@
 import Info from "./Info";
+import * as Discord from "discord.js";
 import {
 	Results,
 	List,
@@ -11,6 +12,7 @@ import { ilt, perr } from "..";
 import { confirmDocs } from "./parseDiscordDG";
 import { docsGenMode } from "../bot";
 import { DocsGen } from "./DocsGen";
+import { messages } from "../messages";
 export { list, a };
 
 export type CmdCb<APList extends APListAny> = (
@@ -190,6 +192,33 @@ export function globalAlias(original: string, aliasname: string) {
 	globalCommandNS[aliasname] = origcmd;
 }
 
+export function reportError(error: Error, info: Info) {
+	// TODO if discord api error no permission, say "interpunct does not have permission"
+	if (!info.message.deleted) {
+		if (error instanceof Discord.DiscordAPIError) {
+			perr(
+				info.error(
+					messages.failure.missing_permissions_internal_error(
+						info,
+						((error || "") as any).errorCode,
+					),
+				),
+				"erroring",
+			);
+		} else {
+			perr(
+				info.error(
+					messages.failure.generic_internal_error(
+						info,
+						((error || "") as any).errorCode,
+					),
+				),
+				"erroring",
+			);
+		}
+	}
+}
+
 export function globalCommand<APList extends APListAny>(
 	docsPath: string,
 	uniqueGlobalName: string,
@@ -223,14 +252,7 @@ export function globalCommand<APList extends APListAny>(
 			"running command " + uniqueGlobalName,
 		);
 		if (cbResult.error) {
-			// TODO if discord api error no permission, say "interpunct does not have permission"
-			if (!info.message.deleted) {
-				await info.error(
-					"An internal error occured while running this command. Error code: `" +
-						cbResult.error.errorCode +
-						"`.",
-				);
-			}
+			reportError(cbResult.error, info);
 		}
 	};
 

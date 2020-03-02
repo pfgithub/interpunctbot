@@ -1,6 +1,4 @@
-//@ts-ignore
-import PastebinAPI from "pastebin-js";
-const pastebin = new PastebinAPI();
+import fetch from "node-fetch";
 import { MessageEmbed } from "discord.js";
 import Info from "../Info";
 import { messages } from "../../messages";
@@ -51,15 +49,16 @@ export async function handleList(
 	searchString = normalizeSearchTerm(searchString.join(` `)).split(` `);
 
 	// Get the pastebin paste at the pastebin id, this might fail for many reason but one is used in catch(er)
-	let allQuotes;
-	try {
-		allQuotes = await pastebin.getPaste(pastebinId);
-	} catch (er) {
-		return await info.error(messages.lists.failed_to_get_list(info));
-	}
+	console.log("pbid: ", pastebinId); // Td5BZw7B
+	const allQuotesStr = await (
+		await fetch(
+			"https://pastebin.com/raw/" +
+				(encodeURIComponent(pastebinId) || "aaaa"),
+		)
+	).text();
 
 	// aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-	allQuotes = escapeMarkdown(allQuotes)
+	let allQuotesList = escapeMarkdown(allQuotesStr)
 		.split(`\r`)
 		.join(``)
 		.split(individual ? `\n` : /\n{2,}/)
@@ -67,32 +66,32 @@ export async function handleList(
 
 	// if there is a set search string, filter the quotes to only ones containing that search string
 	if (searchString) {
-		allQuotes = allQuotes.filter(q =>
+		allQuotesList = allQuotesList.filter((q: any) =>
 			searchString.every(z => normalizeSearchTerm(q).includes(z)),
 		);
 	}
 
 	// If there are no quotes, fake the list to actually saying No Quotes Found
-	if (allQuotes.length < 1) {
-		allQuotes = [
+	if (allQuotesList.length < 1) {
+		allQuotesList = [
 			messages.lists.nothing_found_for_search(info, searchString),
 		];
 	}
 
 	// Set the line number to a random line unless a forceline is set
-	let line = Math.floor(Math.random() * allQuotes.length); // why not forceLine || random, or with the stage 1 proposal, forceLine ?? random to have the exact same implementation
+	let line = Math.floor(Math.random() * allQuotesList.length); // why not forceLine || random, or with the stage 1 proposal, forceLine ?? random to have the exact same implementation
 	if (forceLine !== undefined) {
 		line = forceLine - 1;
 	}
 	if (line < 0) {
 		line = 0;
 	}
-	if (line > allQuotes.length - 1) {
-		line = allQuotes.length - 1;
+	if (line > allQuotesList.length - 1) {
+		line = allQuotesList.length - 1;
 	}
 
 	// Get information out of the chosen quote about the author and stuff
-	const quoteSplit = allQuotes[line].split(` - `);
+	const quoteSplit = allQuotesList[line].split(` - `);
 	const quoteAuthor = quoteSplit[1];
 	const quoteFull = quoteSplit[0];
 
@@ -105,7 +104,7 @@ export async function handleList(
 		} else {
 			quoteEmbed.setTitle("Quote");
 		}
-		quoteEmbed.setFooter(`${line + 1}/${allQuotes.length}`);
+		quoteEmbed.setFooter(`${line + 1}/${allQuotesList.length}`);
 		quoteEmbed.setColor(3092790);
 
 		// Return the result
@@ -116,7 +115,7 @@ ${quoteFull
 	.split("\n")
 	.map(l => `> *${l}*`)
 	.join("\n")}
-${line + 1}/${allQuotes.length}`);
+${line + 1}/${allQuotesList.length}`);
 }
 
 /*

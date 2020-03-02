@@ -1,4 +1,3 @@
-import Router from "commandrouter";
 import * as Discord from "discord.js";
 import { mkdirSync, promises as fs } from "fs";
 import moment from "moment";
@@ -31,8 +30,6 @@ try {
 } catch (e) {}
 
 export let serverStartTime = 0;
-
-const router = new Router<Info, Promise<any>>();
 
 const production = process.env.NODE_ENV === "production";
 
@@ -84,18 +81,28 @@ export function perr(
 	ignorePromise(ilt(v, reason));
 }
 
-router.add("spoiler", [], async (cmd, info) => {
-	perr(info.message.delete(), "Deleting original message for spoiler");
-	// if(er) send message...
-	await info.error(
-		messages.failure.command_removed(
-			info,
-			"spoiler",
-			"3.0",
-			"Discord has added official spoiler support by surrounding your message in `||vertical lines||`.",
-		),
-	);
-});
+nr.globalCommand(
+	"/help/depricated/spoiler",
+	"spoiler",
+	{
+		usage: "spoiler {Required|message}",
+		description: "depricated",
+		examples: [],
+	},
+	nr.list(...nr.a.words()),
+	async ([], info) => {
+		perr(info.message.delete(), "Deleting original message for spoiler");
+		// if(er) send message...
+		await info.error(
+			messages.failure.command_removed(
+				info,
+				"spoiler",
+				"3.0",
+				"Discord has added official spoiler support by surrounding your message in `||vertical lines||`.",
+			),
+		);
+	},
+);
 
 depricate("spaceChannels", "channels spacing", "2.0"); // 1.0 -> 2.0
 remove(
@@ -105,52 +112,55 @@ remove(
 
 // usage.add("channels", require("./src/commands/channelmanagement")); !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-reroute("invite", "about", "2.0");
-
 // router.add("help", [], async (cmd, info, next) => {
 // 	await info.result(
 // 		messages.help(info, info.db ? await info.db.getLists() : {}),
 // 	);
 // });
 
-reroute("downloadLog", "log download", "2.0");
-reroute("resetLog", "log reset", "2.0");
-reroute("listRoles", "settings listRoles", "2.0");
+nr.globalAlias("log download", "downloadLog");
+nr.globalAlias("log reset", "resetLog");
+remove("listRoles", "3.0");
 remove(
 	"settings listroles",
 	"Discord now has a builtin way for you to get the ID of roles by right clicking a role in the Roles section of settings. Also, most interpunct commands will now accept a role name instead of ID.",
 	"3.0",
 );
 
-router.add("crash", [], () => {
-	throw new Error("crash command used");
-});
-
 function depricate(oldcmd: string, newcmd: string, version = "3.0") {
-	router.add(oldcmd, [], async (cmd, info) => {
-		return await info.error(
-			`\`${oldcmd}\` has been renamed to \`${newcmd}\` as part of Interpunct Bot ${version}. See \`help\` for more information. Join the support server in \`about\` if you have any issues.`,
-			undefined,
-		);
-	});
-}
-
-function reroute(oldcmd: string, newcmd: string, version = "3.0") {
-	router.add(oldcmd, [], async (cmd, info) => {
-		await info.warn(
-			`\`${oldcmd}\` has been renamed to \`${newcmd}\` as part of Interpunct Bot ${version}. See \`help\` for more information. Join the support server in \`about\` if you have any issues.`,
-			undefined,
-		);
-		router.handle(newcmd, info);
-	});
+	nr.globalCommand(
+		"/help/depricated/" + oldcmd.toLowerCase().replace(" ", "/"),
+		oldcmd.toLowerCase(),
+		{
+			usage: oldcmd.toLowerCase(),
+			description: "depricated",
+			examples: [],
+		},
+		nr.list(),
+		async ([], info) => {
+			return await info.error(
+				`\`${oldcmd}\` has been renamed to \`${newcmd}\` as part of Interpunct Bot ${version}. See \`help\` for more information. Join the support server in \`about\` if you have any issues.`,
+			);
+		},
+	);
 }
 
 function remove(oldcmd: string, reason: string, version = "3.0") {
-	router.add(oldcmd, [], async (cmd, info) => {
-		return await info.error(
-			messages.failure.command_removed(info, oldcmd, version, reason),
-		);
-	});
+	nr.globalCommand(
+		"/help/removed/" + oldcmd.toLowerCase(),
+		oldcmd.toLowerCase(),
+		{
+			usage: oldcmd.toLowerCase(),
+			description: "removed",
+			examples: [],
+		},
+		nr.list(),
+		async ([], info) => {
+			return await info.error(
+				messages.failure.command_removed(info, oldcmd, version, reason),
+			);
+		},
+	);
 }
 
 depricate("settings prefix", "set prefix [new prefix]");
@@ -183,7 +193,6 @@ depricate(
 	"set show errors [always/admins/never]",
 );
 depricate("settings autospaceChannels", "space channels automatically");
-depricate("settings listRoles", "https://interpunct.info/role-id");
 depricate("settings", "help");
 
 /*
@@ -224,12 +233,18 @@ depricate("settings", "help");
 # ip!crash
 */
 
-router.add([], async (cmd, info) => {
+async function unknownCommandHandler(cmd: string, info: Info) {
 	if (info.db) {
 		const lists = await info.db.getLists(); // TODO info.db.lists
 		const listNames = Object.keys(lists);
 		for (const listName of listNames) {
-			if (cmd.toLowerCase().startsWith(listName)) {
+			console.log(listName);
+			if (
+				cmd.toLowerCase().startsWith(listName) &&
+				(cmd.substr(listName.length).trim() !==
+					cmd.substr(listName.length) ||
+					!cmd.substr(listName.length))
+			) {
 				await handleList(
 					listName,
 					lists[listName],
@@ -278,7 +293,7 @@ router.add([], async (cmd, info) => {
 			undefined,
 		);
 	} // else do nothing
-});
+}
 
 function updateActivity() {
 	const count = client.guilds.cache.size;
@@ -549,45 +564,51 @@ async function onMessage(msg: Discord.Message | Discord.PartialMessage) {
 	}
 
 	// await newInfo.setup(knex)
-	const messageRouter = new Router<Info, Promise<any>>();
-	const messageRouter2 = new Router<Info, Promise<any>>();
-	messageRouter.add(
-		info.db ? await info.db.getPrefix() : "",
-		[],
-		messageRouter2,
-	); // prefixCommand
-	messageRouter.add(client.user!.toString(), [], messageRouter2); // @botCommand
-	for (const possibleCommand of Object.keys(nr.globalCommandNS)
-		.sort()
-		.reverse()) {
-		messageRouter2.add(possibleCommand, [], async (cmd, info) => {
-			nr.globalCommandNS[possibleCommand].handler(cmd, info);
-		});
+
+	let commandText: string | undefined;
+	{
+		const lcCutContent = msg.content.toLowerCase();
+
+		const allPrefixes = [
+			"<@" + client.user!.id + ">",
+			"<@!" + client.user!.id + ">",
+			"ip!",
+			info.db ? await info.db.getPrefix() : "",
+		];
+		const matchingPrefix = allPrefixes.find(prefix =>
+			lcCutContent.startsWith(prefix),
+		);
+		if (matchingPrefix != null)
+			commandText = msg.content.substr(matchingPrefix.length).trim();
 	}
-	messageRouter2.add("", [], router);
 
-	const handleResult = messageRouter.handle(msg.content, info);
-	// if (!handleResult) {
-	// 	return await newInfo.error("Command not foundfjdaklsalknjdjkdls");
-	// }
-	if (!handleResult) return;
+	if (commandText) {
+		const lcCutContent = commandText.toLowerCase();
 
-	const commandHandleResult = await ilt(handleResult, "handling command");
-	if (commandHandleResult.error) {
-		const er = commandHandleResult.error;
-		const ewid = wrapErrorAddID(er);
-		logError(ewid);
-		if (er instanceof Discord.DiscordAPIError) {
-			await info.error(
-				messages.failure.missing_permissions_internal_error(
-					info,
-					ewid.errorCode,
-				),
+		const allCommands = Object.keys(nr.globalCommandNS)
+			.sort()
+			.reverse(); // so "ip!a b" comes before "ip!a"
+		const matchingCommand = allCommands.find(cmd =>
+			lcCutContent.startsWith(cmd),
+		);
+
+		if (
+			matchingCommand != null &&
+			(commandText.substr(matchingCommand.length).trim() !==
+				commandText.substr(matchingCommand.length) ||
+				!commandText.substr(matchingCommand.length))
+		) {
+			const matchingCommandData = nr.globalCommandNS[matchingCommand];
+			const matchingCommandArgs = commandText.substr(
+				matchingCommand.length,
 			);
+			matchingCommandData.handler(matchingCommandArgs, info);
 		} else {
-			await info.error(
-				messages.failure.generic_internal_error(info, ewid.errorCode),
-			);
+			ilt(unknownCommandHandler(commandText, info), "command handler")
+				.then(result => {
+					if (result.error) nr.reportError(result.error, info);
+				})
+				.catch(e => console.error(e));
 		}
 	}
 }
