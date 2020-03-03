@@ -16,6 +16,7 @@ import "./src/commands/quote";
 import "./src/commands/settings";
 import "./src/commands/speedrun";
 import "./src/commands/test";
+import "./src/commands/role";
 import { globalConfig } from "./src/config";
 import Database from "./src/Database";
 import Info from "./src/Info";

@@ -115,11 +115,17 @@ export const a = {
 	enum<T extends string>(...words: T[]) {
 		return EnumArgumentType(words);
 	},
+	enumNoSpace<T extends string>(...words: T[]) {
+		return EnumNoSpaceArgumentType(words);
+	},
 	words() {
 		return [WordsArgumentType()] as const;
 	},
 	role() {
 		return [RoleArgumentType(false) as ArgumentType<Discord.Role>] as const;
+	},
+	backtick() {
+		return BacktickArgumentType();
 	},
 	manyRoles() {
 		return [
@@ -348,6 +354,31 @@ function EnumArgumentType<T extends string>(options: T[]): ArgumentType<T> {
 	};
 }
 
+function EnumNoSpaceArgumentType<T extends string>(
+	options: T[],
+): ArgumentType<T> {
+	return async (info, arg, cmd, index, commandhelp, argpurpose) => {
+		if (!cmd.trim()) {
+			await info.error(
+				"not provided. must be one of:" + options.join(","),
+			);
+			return { result: "exit" };
+		}
+		const optionText = options.find(option =>
+			cmd.toLowerCase().startsWith(option.toLowerCase()),
+		);
+		if (!optionText) {
+			await info.error("must be one of:" + options.join(","));
+			return { result: "exit" };
+		}
+		return {
+			result: "continue",
+			value: optionText,
+			cmd: cmd.substr(optionText.length).trim(),
+		};
+	};
+}
+
 function NumberArgumentType(): ArgumentType<number> {
 	return async (info, arg, cmd, index, commandhelp, argpurpose) => {
 		if (!cmd.trim()) {
@@ -452,7 +483,6 @@ function DurationArgumentType(): ArgumentType<number> {
 			const inum = /^[0-9.\-]+/.exec(remainder);
 			// todo(/*check if makes sense as a number, eg remindme 1 day .hi! should not be a number. */);
 			if (!inum) break;
-			remainder = remainder.substr(inum[0].length).trim();
 
 			if (isNaN(+inum[0])) {
 				break; // parsing with ambiguity doesn't have a correct answer
@@ -460,9 +490,10 @@ function DurationArgumentType(): ArgumentType<number> {
 				// ip!remindme (2 days) do something
 				// but that looks bad and is weird, ip!remindme 2 days do something is better
 			}
+			const rmderTemp = remainder.substr(inum[0].length).trim();
 			const numberv = +inum[0];
 
-			const unitstr = /^[A-Za-z]+/.exec(remainder);
+			const unitstr = /^[A-Za-z]+/.exec(rmderTemp);
 			if (!unitstr) {
 				if (!anyfound) {
 					await info.docs("/errors/arg/duration/bad-unit", "error");
@@ -470,7 +501,7 @@ function DurationArgumentType(): ArgumentType<number> {
 				}
 				break;
 			}
-			remainder = remainder.substr(unitstr[0].length).trim();
+			remainder = rmderTemp;
 			const unitname = unitstr[0].toLowerCase();
 
 			if (names[unitname] === undefined) {
@@ -488,6 +519,7 @@ function DurationArgumentType(): ArgumentType<number> {
 				// maybe if anyfound is still false, it could display the unit error?
 				// sure
 			}
+			remainder = remainder.substr(unitstr[0].length).trim();
 			result += numberv * names[unitname];
 			anyfound = true;
 		}
@@ -516,6 +548,26 @@ function WordsArgumentType(): ArgumentType<string> {
 			return { result: "exit" };
 		}
 		return { result: "continue", value: cmd.trim(), cmd: "" };
+	};
+}
+
+function BacktickArgumentType(): ArgumentType<string> {
+	return async (info, arg, cmd, index, commandhelp, argpurpose) => {
+		if (!cmd.trim() && (false as true)) {
+			await info.docs(commandhelp, "usage");
+			return { result: "exit" };
+		}
+		const rgxMatch = /^\`(.+?)\`(.+)$/.exec(cmd);
+		if (!rgxMatch) {
+			await info.docs(commandhelp, "usage");
+			return { result: "exit" };
+		}
+		const [, backticked, final] = rgxMatch;
+		return {
+			result: "continue",
+			value: backticked.trim(),
+			cmd: final.trim(),
+		};
 	};
 }
 

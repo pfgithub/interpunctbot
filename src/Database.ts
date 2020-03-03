@@ -34,6 +34,12 @@ export type AutodeleteField = {
 	rules: AutodeleteRule[];
 	nextID: number;
 };
+export type QuickrankField = {
+	nameAlias: { [safeName: string]: { role: string } };
+	timeAlias: { ms: number; ltgt: "<" | ">"; role: string }[];
+	emojiAlias: { [key: string]: { role: string } };
+	managerRole?: string;
+};
 
 const cache: Map<string, GuildData> = new Map();
 const shouldCache: { [ey: string]: boolean | undefined } = {
@@ -73,12 +79,15 @@ type Fields = {
 	rankmojiChannel: string;
 	autodelete?: string;
 	autodelete_limit?: number;
+	quickrank?: string;
+	quickrank_limit?: number;
 };
 
 type JSONFields = {
 	searchablePastebins: ListsField;
 	nameScreening: NameScreeningField;
 	autodelete: AutodeleteField;
+	quickrank: QuickrankField;
 };
 type BooleanFields = {
 	logging: boolean;
@@ -252,6 +261,16 @@ class Database {
 		const autodelete = await this.getAutodelete();
 		autodelete.rules = autodelete.rules.filter(rule => rule.id !== id);
 		return await this._setJson("autodelete", autodelete);
+	}
+	async getQuickrank(): Promise<QuickrankField> {
+		return await this._getJson("quickrank", {
+			nameAlias: {},
+			timeAlias: [],
+			emojiAlias: {},
+		});
+	}
+	async setQuickrank(nv: QuickrankField): Promise<void> {
+		return await this._setJson("quickrank", nv);
 	}
 	// BOOL, these could probably be condensed
 	async getLogEnabled(): Promise<boolean> {
