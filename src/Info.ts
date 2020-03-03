@@ -321,12 +321,25 @@ export default class Info {
 	async _tryReply(
 		...values: MessageParametersType
 	): Promise<Discord.Message[] | undefined> {
+		const pingUser = this.message.author.toString();
+		const doNotPingUser = safe(
+			"@" +
+				(this.message.member?.displayName ||
+					this.message.author.username),
+		);
+		const pingOrNot =
+			new Date().getTime() - this.message.createdAt.getTime() > 3000
+				? pingUser
+				: this.message.channel.lastMessageID === this.message.id
+				? doNotPingUser
+				: pingUser;
+
 		const content = values[0];
 		const options = values[1];
 		// returns the message
 		const replyResult = await ilt(
 			this.message.channel.send(
-				safe`${raw(this.message.author.toString())}, ${raw(content)}`,
+				safe`${raw(pingOrNot)}, ${raw(content)}`,
 				{
 					...options,
 					split: true,
