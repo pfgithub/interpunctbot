@@ -599,9 +599,9 @@ async function onMessage(msg: Discord.Message | Discord.PartialMessage) {
 				!commandText.substr(matchingCommand.length))
 		) {
 			const matchingCommandData = nr.globalCommandNS[matchingCommand];
-			const matchingCommandArgs = commandText.substr(
-				matchingCommand.length,
-			);
+			const matchingCommandArgs = commandText
+				.substr(matchingCommand.length)
+				.trim();
 			matchingCommandData.handler(matchingCommandArgs, info);
 		} else {
 			ilt(unknownCommandHandler(commandText, info), "command handler")
