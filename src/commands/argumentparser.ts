@@ -1,7 +1,7 @@
 import * as Discord from "discord.js";
 
 import Info from "../Info";
-import { messages, safe } from "../../messages";
+import { messages } from "../../messages";
 
 import Fuse from "fuse.js";
 

@@ -219,6 +219,9 @@ export function reportError(error: Error, info: Info) {
 	}
 }
 
+export const noArgs = list();
+export const passthroughArgs = list(...a.words());
+
 export function globalCommand<APList extends APListAny>(
 	docsPath: string,
 	uniqueGlobalName: string,
