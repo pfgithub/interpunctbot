@@ -87,12 +87,18 @@ ip!rank @user gold pot
 		if (!(await permTheyCanManageRole(role, info))) return;
 		if (!(await permWeCanManageRole(role, info))) return;
 
+		if (name.includes(","))
+			return await info.docs(
+				"/errors/quickrank/name/comma-not-allowed",
+				"error",
+			);
+
 		const qr = await info.db.getQuickrank();
-		if (qr.nameAlias[name]) {
+		if (qr.nameAlias[name.toLowerCase()]) {
 			await info.docs("/errors/name/already/used/todo", "error");
 			return;
 		}
-		qr.nameAlias[name] = { role: role.id };
+		qr.nameAlias[name.toLowerCase()] = { name, role: role.id };
 		await info.db.setQuickrank(qr);
 		await info.success("Done!");
 	},
@@ -211,16 +217,33 @@ nr.globalCommand(
 
 		const qr = await info.db.getQuickrank();
 
+		let didrmve = false;
+
 		for (const [emoji, rule] of Object.entries(qr.emojiAlias)) {
-			if (rule.role === role.id) delete qr.emojiAlias[emoji];
+			if (rule.role === role.id) {
+				delete qr.emojiAlias[emoji];
+				didrmve = true;
+			}
 		}
 		for (const [safeName, rule] of Object.entries(qr.nameAlias)) {
-			if (rule.role === role.id) delete qr.emojiAlias[safeName];
+			if (rule.role === role.id) {
+				delete qr.nameAlias[safeName];
+				didrmve = true;
+			}
 		}
-		qr.timeAlias = qr.timeAlias.filter(ta => ta.role !== role.id);
+		qr.timeAlias = qr.timeAlias.filter(ta =>
+			ta.role !== role.id ? true : ((didrmve = true), false),
+		);
+
+		if (!didrmve) {
+			await info.error(
+				"not ok:( not gone " + messages.role(role) + " ):",
+			);
+			return;
+		}
 
 		await info.db.setQuickrank(qr);
-		await info.success("ok.");
+		await info.success("ok. (gone " + messages.role(role) + ")");
 	},
 );
 
@@ -289,11 +312,120 @@ nr.globalCommand(
 					rule.text,
 			};
 		});
+		const mngrrle = qr.managerRole
+			? info.guild!.roles.resolve(qr.managerRole)
+			: undefined;
 		await info.result(
-			allRules
-				.sort((a, b) => b.roleSort - a.roleSort)
-				.map(q => q.text)
-				.join("\n"),
+			"Users with permission to manage roles or users with the role " +
+				(mngrrle ? messages.role(mngrrle) : "*not set*") +
+				" are allowed to use quickrank\n" +
+				allRules
+					.sort((a, b) => b.roleSort - a.roleSort)
+					.map(q => q.text)
+					.join("\n"),
 		);
+	},
+);
+
+nr.globalCommand(
+	"/help/quickrank/rank",
+	"rank",
+	{
+		usage: "",
+		description: "rank",
+		examples: [],
+	},
+	nr.list(nr.a.user(), ...nr.a.words()),
+	async ([user, words], info) => {
+		// find all roles to give
+		// only give roles the giver has perms to
+		// UNLESS the giver has the quickrank manager role, then give all::
+
+		if (!info.db) {
+			await info.docs("/errors/pms", "error");
+			return;
+		}
+
+		const member = info.guild!.members.resolve(user);
+		if (!member) {
+			await info.docs("/errors/quickrank/invalid-member", "error");
+			return;
+		}
+
+		const splitIntoCommas = words
+			.split(",")
+			.map(w => w.trim())
+			.filter(w => w);
+		const qr = await info.db.getQuickrank();
+
+		const rolesToGive: Discord.Role[] = [];
+
+		for (const word of splitIntoCommas) {
+			// if word is a name
+			const nameAlias = qr.nameAlias[word.toLowerCase()];
+			if (nameAlias) {
+				const roleV = info.guild!.roles.resolve(nameAlias.role);
+				if (!roleV) {
+					return await info.docs(
+						"/errors/quickrank/role-not-found",
+						"error",
+					);
+				}
+				rolesToGive.push(roleV);
+				break;
+			}
+			// if word is a sub-
+			if (word.toLowerCase().startsWith("sub")) {
+				const timeMinutes = +word
+					.substr(3)
+					.replace("-", "")
+					.trim();
+				if (!timeMinutes) {
+					return await info.docs(
+						"/errors/quickrank/invalid-sub-time",
+						"error",
+					);
+				}
+				for (const ta of qr.timeAlias) {
+					if (ta.ltgt === "<" && timeMinutes * 1000 * 60 <= ta.ms) {
+						const roleV = info.guild!.roles.resolve(ta.role);
+						if (!roleV) {
+							return await info.docs(
+								"/errors/quickrank/role-not-found",
+								"error",
+							);
+						}
+						rolesToGive.push(roleV);
+					}
+				}
+				break;
+			}
+			// else error
+			return await info.docs("/errors/quickrank/invalid-role", "error"); // see ip!quickrank list for a list.
+		}
+
+		if (!rolesToGive.length) {
+			return await info.docs("/help/quickrank/rank", "usage");
+		}
+
+		for (const role of rolesToGive) {
+			if (!(await permTheyCanManageRole(role, info))) return;
+			if (!(await permWeCanManageRole(role, info))) return;
+		}
+
+		await info.startLoading();
+		await member.roles.add(rolesToGive);
+
+		await info.success(
+			"gave roles " +
+				rolesToGive
+					.sort((a, b) => b.position - a.position)
+					.map(r => messages.role(r))
+					.join(", "),
+		);
+
+		// for role of roles
+		//  // if user has permission | is manager
+		//  // else error "You don't have permission to give these roles"
 	},
 );

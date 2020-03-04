@@ -35,7 +35,7 @@ export type AutodeleteField = {
 	nextID: number;
 };
 export type QuickrankField = {
-	nameAlias: { [safeName: string]: { role: string } };
+	nameAlias: { [safeLCName: string]: { name: string; role: string } };
 	timeAlias: { ms: number; ltgt: "<" | ">"; role: string }[];
 	emojiAlias: { [key: string]: { role: string } };
 	managerRole?: string;
