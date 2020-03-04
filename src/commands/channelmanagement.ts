@@ -7,7 +7,7 @@ import Info from "../Info";
 import { a, AP } from "./argumentparser";
 import * as nr from "../NewRouter";
 
-const stripMentions = (msg: string) => {
+export const stripMentions = (msg: string) => {
 	return msg
 		.replace(/@(everyone|here)/g, "")
 		.replace(/<@.+?>/g, "")

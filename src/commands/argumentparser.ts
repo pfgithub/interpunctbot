@@ -1,7 +1,7 @@
 import * as Discord from "discord.js";
 
 import Info from "../Info";
-import { messages } from "../../messages";
+import { messages, safe } from "../../messages";
 
 import Fuse from "fuse.js";
 
@@ -563,6 +563,10 @@ function BacktickArgumentType(): ArgumentType<string> {
 			return { result: "exit" };
 		}
 		const [, backticked, final] = rgxMatch;
+		if (safe(backticked) !== backticked) {
+			await info.docs("/errors/arg/backtick/unsafe", "error");
+			return { result: "exit" };
+		}
 		return {
 			result: "continue",
 			value: backticked.trim(),

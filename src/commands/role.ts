@@ -86,8 +86,6 @@ ip!rank @user gold pot
 		if (!Info.theirPerm.manageBot(info)) return;
 		if (!(await permTheyCanManageRole(role, info))) return;
 		if (!(await permWeCanManageRole(role, info))) return;
-		if (safe(name) !== name)
-			return await info.docs("/errors/quickrank/unsafe-name", "error");
 
 		const qr = await info.db.getQuickrank();
 		if (qr.nameAlias[name]) {
@@ -159,7 +157,7 @@ nr.globalCommand(
 
 nr.globalCommand(
 	"/help/quickrank/role",
-	"quickrank role",
+	"quickrank set role",
 	{
 		usage: "",
 		description:
@@ -191,6 +189,38 @@ nr.globalCommand(
 		await info.success(
 			"Quickrank role set! Members with this role can give any user one of these roles/;123:!TODO",
 		);
+	},
+);
+
+nr.globalCommand(
+	"/help/quickrank/remove/role",
+	"quickrank remove role",
+	{
+		usage: "",
+		description: "",
+		examples: [],
+	},
+	nr.list(...nr.a.role()),
+	async ([role], info) => {
+		if (!info.db) {
+			await info.docs("/errors/pms", "error");
+			return;
+		}
+
+		if (!Info.theirPerm.manageBot(info)) return;
+
+		const qr = await info.db.getQuickrank();
+
+		for (const [emoji, rule] of Object.entries(qr.emojiAlias)) {
+			if (rule.role === role.id) delete qr.emojiAlias[emoji];
+		}
+		for (const [safeName, rule] of Object.entries(qr.nameAlias)) {
+			if (rule.role === role.id) delete qr.emojiAlias[safeName];
+		}
+		qr.timeAlias = qr.timeAlias.filter(ta => ta.role !== role.id);
+
+		await info.db.setQuickrank(qr);
+		await info.success("ok.");
 	},
 );
 
