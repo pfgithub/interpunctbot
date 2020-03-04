@@ -358,20 +358,13 @@ nr.globalCommand(
 			.filter(w => w);
 		const qr = await info.db.getQuickrank();
 
-		const rolesToGive: Discord.Role[] = [];
+		const rolesToGive: string[] = [];
 
 		for (const word of splitIntoCommas) {
 			// if word is a name
 			const nameAlias = qr.nameAlias[word.toLowerCase()];
 			if (nameAlias) {
-				const roleV = info.guild!.roles.resolve(nameAlias.role);
-				if (!roleV) {
-					return await info.docs(
-						"/errors/quickrank/role-not-found",
-						"error",
-					);
-				}
-				rolesToGive.push(roleV);
+				rolesToGive.push(nameAlias.role);
 				break;
 			}
 			// if word is a sub-
@@ -388,14 +381,7 @@ nr.globalCommand(
 				}
 				for (const ta of qr.timeAlias) {
 					if (ta.ltgt === "<" && timeMinutes * 1000 * 60 <= ta.ms) {
-						const roleV = info.guild!.roles.resolve(ta.role);
-						if (!roleV) {
-							return await info.docs(
-								"/errors/quickrank/role-not-found",
-								"error",
-							);
-						}
-						rolesToGive.push(roleV);
+						rolesToGive.push(ta.role);
 					}
 				}
 				break;
@@ -408,9 +394,23 @@ nr.globalCommand(
 			return await info.docs("/help/quickrank/rank", "usage");
 		}
 
-		for (const role of rolesToGive) {
+		const discordRolesToGive: Discord.Role[] = [];
+		const discordRolesAlreadyGiven: Discord.Role[] = [];
+
+		for (const roleID of rolesToGive) {
+			const role = info.guild!.roles.resolve(roleID);
+			if (!role)
+				return await info.docs(
+					"/errors/quickrank/deleted-role",
+					"error",
+				);
 			if (!(await permTheyCanManageRole(role, info))) return;
 			if (!(await permWeCanManageRole(role, info))) return;
+			if (member.roles.cache.has(roleID)) {
+				discordRolesAlreadyGiven.push(role);
+			} else {
+				discordRolesToGive.push(role);
+			}
 		}
 
 		await info.startLoading();
@@ -418,7 +418,13 @@ nr.globalCommand(
 
 		await info.success(
 			"gave roles " +
-				rolesToGive
+				discordRolesToGive
+					.sort((a, b) => b.position - a.position)
+					.map(r => messages.role(r))
+					.join(", ") +
+				"\n" +
+				"already gave " +
+				discordRolesAlreadyGiven
 					.sort((a, b) => b.position - a.position)
 					.map(r => messages.role(r))
 					.join(", "),
