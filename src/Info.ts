@@ -15,6 +15,48 @@ const result = {
 	success: "<:success:508840840416854026> Success: ", // Discord uses a gray ✔️ emoji for some reason. It could be backslashed but some other platforms do too
 };
 
+export function memberCanManageRole(
+	member: Discord.GuildMember,
+	role: Discord.Role,
+) {
+	if (!member) return false;
+	return (
+		member.hasPermission("MANAGE_ROLES") &&
+		(member.roles.highest.comparePositionTo(role) >= 0 ||
+			member.hasPermission("ADMINISTRATOR"))
+	);
+}
+
+export async function permTheyCanManageRole(role: Discord.Role, info: Info) {
+	if (!info.message.member!.hasPermission("MANAGE_ROLES")) {
+		await info.docs("/errors/perm/manage-roles", "error");
+		return false;
+	}
+	if (!memberCanManageRole(info.message.member!, role)) {
+		await info.docs(
+			"/errors/theirperms/manage-roles/not-high-enough",
+			"error",
+		);
+		return false;
+	}
+	return true;
+}
+
+export async function permWeCanManageRole(role: Discord.Role, info: Info) {
+	if (!info.myChannelPerms!.has("MANAGE_ROLES")) {
+		await info.docs("/errors/ourperms/manage-roles", "error");
+		return false;
+	}
+	if (!memberCanManageRole(info.guild!.me!, role)) {
+		await info.docs(
+			"/errors/ourperms/manage-roles/not-high-enough",
+			"error",
+		);
+		return false;
+	}
+	return true;
+}
+
 export const theirPerm = {
 	manageBot: (info: Info) => {
 		if (!theirPerm.pm(false)(info)) {

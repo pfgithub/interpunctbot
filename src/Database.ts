@@ -47,6 +47,7 @@ const shouldCache: { [ey: string]: boolean | undefined } = {
 	logging: true,
 	rankmojiChannel: true,
 	autodelete: true,
+	quickrank: true, // why can't we just cache everything for now
 };
 
 function tryParse<T>(json: string | undefined, defaultValue: T): T {

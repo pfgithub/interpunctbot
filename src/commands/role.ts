@@ -1,5 +1,5 @@
 import * as nr from "../NewRouter";
-import Info from "../Info";
+import Info, { permTheyCanManageRole, permWeCanManageRole } from "../Info";
 import * as Discord from "discord.js";
 import { messages, safe } from "../../messages";
 import { durationFormat } from "../durationFormat";
@@ -16,51 +16,6 @@ quickrank list
 
 !rank @user sub-15, gold pot
 */
-
-function memberCanManageRole(
-	member: Discord.GuildMember,
-	role: Discord.Role,
-	info: Info,
-) {
-	if (!info.message.member) return false;
-	return (
-		info.message.member.hasPermission("MANAGE_ROLES") &&
-		!(
-			info.message.member.roles.highest.comparePositionTo(role) >= 0 &&
-			!info.message.member.hasPermission("ADMINISTRATOR")
-		)
-	);
-}
-
-async function permTheyCanManageRole(role: Discord.Role, info: Info) {
-	if (!info.message.member!.hasPermission("MANAGE_ROLES")) {
-		await info.docs("/errors/perm/manage-roles", "error");
-		return false;
-	}
-	if (!memberCanManageRole(info.message.member!, role, info)) {
-		await info.docs(
-			"/errors/theirperms/manage-roles/not-high-enough",
-			"error",
-		);
-		return false;
-	}
-	return true;
-}
-
-async function permWeCanManageRole(role: Discord.Role, info: Info) {
-	if (!info.myChannelPerms!.has("MANAGE_ROLES")) {
-		await info.docs("/errors/ourperms/manage-roles", "error");
-		return false;
-	}
-	if (!memberCanManageRole(info.guild!.me!, role, info)) {
-		await info.docs(
-			"/errors/ourperms/manage-roles/not-high-enough",
-			"error",
-		);
-		return false;
-	}
-	return true;
-}
 
 nr.globalCommand(
 	"/help/quickrank/name",
@@ -269,10 +224,11 @@ nr.globalCommand(
 		const allRulesFirst: { roleID: string; text: string }[] = [];
 
 		for (const [emoji, rule] of Object.entries(qr.emojiAlias)) {
+			console.log("<:emoji:" + emoji + ">");
 			allRulesFirst.push({
 				roleID: rule.role,
 				text:
-					"React to any message with the emoji <:e:" +
+					"React to any message with the emoji <:emoji:" +
 					emoji +
 					"> and press check.",
 			});

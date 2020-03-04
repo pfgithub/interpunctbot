@@ -19,7 +19,7 @@ import "./src/commands/test";
 import "./src/commands/role";
 import { globalConfig } from "./src/config";
 import Database from "./src/Database";
-import Info from "./src/Info";
+import Info, { memberCanManageRole } from "./src/Info";
 import * as nr from "./src/NewRouter";
 import { dgToDiscord } from "./src/parseDiscordDG";
 import { handleList } from "./src/commands/quote";
@@ -658,7 +658,101 @@ client.on("messageUpdate", (from, msg) => {
 	perr(onMessageUpdate(from, msg), "message update");
 });
 
-// client.on("messageReactionAdd", (reaction, user) => {});
+async function onReactionAdd(
+	reaction: Discord.MessageReaction,
+	user: Discord.User,
+) {
+	const msg = reaction.message;
+	if (!msg.guild) {
+		return;
+	}
+	const reactor = msg.guild.members.resolve(user);
+	if (!reactor) {
+		return;
+	}
+	// now there needs to be some filtering system or something
+	// to ignore most reactions
+	if (reaction.emoji instanceof Discord.ReactionEmoji) {
+		return;
+	}
+
+	const db = new Database(msg.guild.id);
+
+	const arhandler = await db.getQuickrank();
+
+	const hndlr = arhandler.emojiAlias[reaction.emoji.id];
+	if (!hndlr) {
+		return;
+	}
+
+	const roleIDs = [hndlr.role];
+}
+
+async function giveRoles(
+	roleIDs: string[],
+	msg: Discord.Message,
+	guild: Discord.Guild,
+	role: Discord.Role,
+	reactor: Discord.GuildMember,
+) {
+	const rolesToGive: Discord.Role[] = [];
+	const rolesAlreadyGiven: Discord.Role[] = [];
+	for (const roleID of roleIDs) {
+		const role = guild.roles.resolve(roleID);
+		if (!role) {
+			return await msg.channel.send(
+				reactor.toString() + ", :x: Role not found.",
+			); // TODO simplified info things for sending successes and failures to channels but that can specify a user to reply to
+		}
+		if (msg.member!.roles.cache.has(roleID)) {
+			rolesAlreadyGiven.push(role);
+			continue;
+		}
+		rolesToGive.push(role);
+
+		if (!memberCanManageRole(reactor, role)) {
+			return await msg.channel.send(
+				reactor.toString() +
+					", :x: You do not have permission to manage " +
+					messages.role(role) +
+					".",
+			); // TODO info.docs^^
+		}
+
+		if (!memberCanManageRole(guild.me!, role)) {
+			return await msg.channel.send(
+				reactor.toString() +
+					", :x: I do not have permission to manage " +
+					messages.role(role) +
+					".",
+			); // TODO info.docs^^
+		}
+	}
+
+	// if (!(await permTheyCanManageRole(reactor, role))) return;
+	// if (!(await permWeCanManageRole(reactor, role))) return;
+
+	await msg.member!.roles.add(rolesToGive);
+
+	await msg.channel.send(
+		reactor.toString() +
+			", Gave roles " +
+			rolesToGive.map(r => messages.role(r)).join(", ") +
+			"\nAlready Gave" +
+			rolesAlreadyGiven.map(r => messages.role(r)).join(", "),
+	);
+}
+
+client.on("messageReactionAdd", (reaction, user) => {
+	perr(
+		(async () => {
+			const freaction = await reaction.fetch();
+			const fuser = await user.fetch();
+			await onReactionAdd(freaction, fuser);
+		})(),
+		"handle reactions",
+	);
+});
 
 // function getEmojiKey(emoji) {
 // 	return emoji.id ? `${emoji.name}:${emoji.id}` : emoji.name;
