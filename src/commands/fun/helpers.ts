@@ -1,21 +1,31 @@
-
 import { setEditInterval } from "../../editInterval";
 import { perr } from "../../..";
 import Info from "../../Info";
 
-export {setEditInterval};
+export { setEditInterval };
 
 export function createTimer(
 	...timerSpecs: [number, () => Promise<void>][]
-): { reset: () => void; end: () => void } {
+): { reset: () => void; end: () => void; over: () => Promise<void> } {
+	let overCB: (() => void) | undefined;
 	const timers: NodeJS.Timeout[] = [];
+	let timersCompleted = 0;
 	const endTimers = () => {
+		timersCompleted = 0;
 		timers.forEach(timer => clearTimeout(timer));
 	};
 	const updateTimers = () => {
 		endTimers();
 		timerSpecs.forEach(([time, cb]) => {
-			timers.push(setTimeout(() => perr(cb(), "timer"), time));
+			timers.push(
+				setTimeout(() => {
+					timersCompleted++;
+					perr(cb(), "timer");
+					if (timersCompleted == timerSpecs.length) {
+						overCB && overCB();
+					}
+				}, time),
+			);
 		});
 	};
 	updateTimers();
@@ -25,7 +35,17 @@ export function createTimer(
 		},
 		end: () => {
 			endTimers();
+			overCB && overCB();
 		},
+		over: () =>
+			new Promise(r => {
+				if (overCB)
+					throw new Error("multiple things waiting on timer end");
+				overCB = () => {
+					r();
+					overCB = undefined;
+				};
+			}),
 	};
 }
 

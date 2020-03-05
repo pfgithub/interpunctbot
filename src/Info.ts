@@ -544,37 +544,44 @@ export default class Info {
 	// async confirm(who: string): boolean{
 	//
 	// }
-	handleReactions(
-		msg: Discord.Message,
-		cb: (
-			reaction: Discord.MessageReaction,
-			user: Discord.User,
-		) => Promise<void>,
-	) {
-		const reactionCollector = new Discord.ReactionCollector(
-			msg,
-			() => {
-				return true;
-			},
-			{},
-		);
-		let errCb: (error: Error) => void = (error: Error) => {
-			throw error;
-		};
-		reactionCollector.on("collect", (reaction, user) => {
-			if (user.bot) {
-				return;
-			}
-			ilt(cb(reaction, user), false)
-				.then(v => (v.error ? errCb(v.error) : 0))
-				.catch(_ => _ as never);
-		});
-		return {
-			end: () => reactionCollector.stop(),
-			done: new Promise((resolve, reject) => {
-				errCb = reject;
-				reactionCollector.addListener("end", () => resolve());
-			}),
-		};
+	get handleReactions() {
+		return handleReactions;
 	}
+}
+
+export function handleReactions(
+	msg: Discord.Message,
+	cb: (
+		reaction: Discord.MessageReaction,
+		user: Discord.User,
+	) => Promise<void>,
+	// filter?: (reaction: Discord.MessageReaction, user: Discord.User) => boolean,
+) {
+	const reactionCollector = new Discord.ReactionCollector(
+		msg,
+		(rxn, usr) => {
+			// collectorfilter seems to need some updates in the type declarations
+			// return filter ? filter(rxn, usr) : true;
+			return true;
+		},
+		{},
+	);
+	let errCb: (error: Error) => void = (error: Error) => {
+		throw error;
+	};
+	reactionCollector.on("collect", (reaction, user) => {
+		if (user.bot) {
+			return;
+		}
+		ilt(cb(reaction, user), false)
+			.then(v => (v.error ? errCb(v.error) : 0))
+			.catch(_ => _ as never);
+	});
+	return {
+		end: () => reactionCollector.stop(),
+		done: new Promise((resolve, reject) => {
+			errCb = reject;
+			reactionCollector.addListener("end", () => resolve());
+		}),
+	};
 }

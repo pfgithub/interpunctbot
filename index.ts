@@ -19,10 +19,11 @@ import "./src/commands/test";
 import "./src/commands/role";
 import { globalConfig } from "./src/config";
 import Database from "./src/Database";
-import Info, { memberCanManageRole } from "./src/Info";
+import Info, { memberCanManageRole, handleReactions } from "./src/Info";
 import * as nr from "./src/NewRouter";
 import { dgToDiscord } from "./src/parseDiscordDG";
 import { handleList } from "./src/commands/quote";
+import { createTimer } from "./src/commands/fun/helpers";
 
 mdf(moment as any);
 
@@ -658,10 +659,14 @@ client.on("messageUpdate", (from, msg) => {
 	perr(onMessageUpdate(from, msg), "message update");
 });
 
+const ignoreReactionsOnFrom: { [key: string]: true } = {};
+
 async function onReactionAdd(
 	reaction: Discord.MessageReaction,
 	user: Discord.User,
 ) {
+	// defer would be really nice here, ignoreReactionsFrom[...] = ...; defer delete ignoreReactionsFrom[...]
+
 	const msg = reaction.message;
 	if (!msg.guild) {
 		return;
@@ -676,25 +681,81 @@ async function onReactionAdd(
 		return;
 	}
 
+	const irfKey = msg.guild.id + "|" + msg.id + "|" + user.id;
+	if (ignoreReactionsOnFrom[irfKey]) return;
+	ignoreReactionsOnFrom[irfKey] = true;
+
 	const db = new Database(msg.guild.id);
 
 	const arhandler = await db.getQuickrank();
 
+	const isManager =
+		arhandler.managerRole && reactor.roles.cache.has(arhandler.managerRole);
+	if (!(isManager || reactor.hasPermission("MANAGE_ROLES"))) {
+		delete ignoreReactionsOnFrom[irfKey];
+		return; // bad person
+	}
+
 	const hndlr = arhandler.emojiAlias[reaction.emoji.id];
 	if (!hndlr) {
+		delete ignoreReactionsOnFrom[irfKey];
 		return;
 	}
 
 	const roleIDs = [hndlr.role];
-}
+	let rank = false;
 
-async function giveRoles(
-	roleIDs: string[],
-	msg: Discord.Message,
-	guild: Discord.Guild,
-	role: Discord.Role,
-	reactor: Discord.GuildMember,
-) {
+	const timer = createTimer([
+		60 * 1000,
+		async () => {
+			// timer over.
+		},
+	]);
+
+	const huser = user;
+	const rxnh = handleReactions(msg, async (reaction, user) => {
+		if (huser.id !== user.id) return;
+		const msg = reaction.message;
+		if (!msg.guild) {
+			return;
+		}
+		const reactor = msg.guild.members.resolve(user);
+		if (!reactor) {
+			return;
+		}
+		// now there needs to be some filtering system or something
+		// to ignore most reactions
+		if (reaction.emoji instanceof Discord.ReactionEmoji) {
+			return;
+		}
+
+		if (reaction.emoji.id === "546938940389589002") {
+			rank = true;
+			timer.end();
+			return;
+		}
+
+		const hndlr = arhandler.emojiAlias[reaction.emoji.id];
+		if (!hndlr) {
+			return;
+		}
+
+		roleIDs.push(hndlr.role);
+	});
+
+	const myreaxn = await msg.react("546938940389589002");
+
+	await timer.over();
+
+	delete ignoreReactionsOnFrom[irfKey];
+
+	const guild = msg.guild;
+
+	if (!rank) {
+		await myreaxn.remove();
+		return;
+	}
+
 	const rolesToGive: Discord.Role[] = [];
 	const rolesAlreadyGiven: Discord.Role[] = [];
 	for (const roleID of roleIDs) {
@@ -710,7 +771,7 @@ async function giveRoles(
 		}
 		rolesToGive.push(role);
 
-		if (!memberCanManageRole(reactor, role)) {
+		if (!memberCanManageRole(reactor, role) && !isManager) {
 			return await msg.channel.send(
 				reactor.toString() +
 					", :x: You do not have permission to manage " +
@@ -741,6 +802,8 @@ async function giveRoles(
 			"\nAlready Gave" +
 			rolesAlreadyGiven.map(r => messages.role(r)).join(", "),
 	);
+
+	// if(msg.reactions.has("546938940389589002") && msg.reactions.get(546938940389589002).users.contains(user)) // incase they uncheck
 }
 
 client.on("messageReactionAdd", (reaction, user) => {
