@@ -524,8 +524,10 @@ function DurationArgumentType(): ArgumentType<number> {
 			anyfound = true;
 		}
 		if (remainder.startsWith(",")) remainder = remainder.substr(1).trim();
-		if (!anyfound)
+		if (!anyfound) {
 			await info.docs("/errors/arg/duration/no-duration", "error");
+			return { result: "exit" };
+		}
 
 		let nearestMS = Math.round(result);
 		if (nearestMS < 0) nearestMS = 0;
