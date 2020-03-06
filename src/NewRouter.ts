@@ -142,7 +142,7 @@ export function addHelpDocsPage(
 export function addErrorDocsPage(docsPath: string, error: ErrorData) {
 	addDocsPage(docsPath, {
 		body:
-			`${error.overview}\n\n${error.detail}` +
+			`{Title|Error}\n${error.overview}\n\n${error.detail}` +
 			"\n\n{Blockquote|More info: {LinkSummary|" +
 			error.mainPath +
 			"}}",

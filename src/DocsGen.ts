@@ -165,7 +165,7 @@ export async function DocsGen() {
 	const sidebarCont = JSON.parse(sidebarJSON);
 
 	for (const docItem of Object.values(globalDocs)) {
-		const html = dgToHTML(docItem.body);
+		const html = dgToHTML(docItem.body, docItem.path);
 
 		const sidebart = sidebar(docItem.path, sidebarCont);
 		const webfile = fDocs(docItem.path + ".html");

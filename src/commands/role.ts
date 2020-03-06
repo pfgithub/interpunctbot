@@ -20,6 +20,21 @@ quickrank list
 */
 
 nr.addDocsWebPage(
+	"/errors/quickrank",
+	"Quickrank Errors",
+	"errors",
+	`{Title|Errors}
+{LinkSummary|/errors/quickrank/invalid-role}`,
+);
+
+nr.addErrorDocsPage("/errors/quickrank/invalid-role", {
+	overview:
+		"I could not find that role. Make sure you spelled it right, and that it is configured with {LinkDocs|/help/quickrank} .",
+	detail: "",
+	mainPath: "/help/quickrank",
+});
+
+nr.addDocsWebPage(
 	"/help/quickrank",
 	"Quickrank",
 	"allow moderators to rank people quickly",
@@ -50,7 +65,10 @@ To add some roles to react with emojis for, they need to be given emojis.
 {CmdSummary|quickrank add reaction}
 {CmdSummary|quickrank add provides}
 {CmdSummary|quickrank remove role}
-{CmdSummary|quickrank set role}`,
+{CmdSummary|quickrank set role}
+
+{Heading|Errors}
+{LinkSummary|/errors/quickrank}`,
 );
 
 nr.addDocsWebPage(

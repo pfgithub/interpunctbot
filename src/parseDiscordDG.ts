@@ -49,7 +49,7 @@ type Args = { raw: string; safe: string }[];
 const commands: {
 	[cmd: string]: {
 		confirm: (args: Args) => never | void;
-		html: (args: Args) => string;
+		html: (args: Args, pageURL: string) => string;
 		discord: (args: Args, info: Info) => string;
 	};
 } = {
@@ -59,8 +59,23 @@ const commands: {
 		},
 		html: args => {
 			if (globalSummaryDepth > 0)
-				return rawhtml`<h3 class="heading">${args[0].safe}</h3>`;
+				return rawhtml`<h4 class="heading">${args[0].safe}</h4>`;
 			return rawhtml`<h2 class="heading">${args[0].safe}</h2>`;
+		},
+		discord: (args, info) => {
+			return `== **${args[0].safe}** ==`;
+		},
+	},
+	Title: {
+		confirm: args => {
+			assert.equal(args.length, 1);
+		},
+		html: (args, pageURL) => {
+			if (globalSummaryDepth > 0)
+				return rawhtml`<h3 class="title"><a href="${safehtml(
+					pageURL,
+				)}">${args[0].safe}</a></h3>`;
+			return rawhtml`<h1 class="title">${args[0].safe}</h1>`;
 		},
 		discord: (args, info) => {
 			return `==== **${args[0].safe}** ====`;
@@ -87,8 +102,11 @@ const commands: {
 		confirm: args => {
 			assert.equal(args.length, 0);
 		},
-		html: () =>
-			commands.Atmention.html([{ raw: "never", safe: "inter·punct" }]),
+		html: (_, pageURL) =>
+			commands.Atmention.html(
+				[{ raw: "never", safe: "inter·punct" }],
+				pageURL,
+			),
 		discord: (args, info) => info.atme,
 	},
 	Optional: {
@@ -154,9 +172,10 @@ const commands: {
 	},
 	Reaction: {
 		confirm: args => assert.equal(args.length, 2),
-		html: args =>
+		html: (args, pageURL) =>
 			rawhtml`<div class="reaction"><div class="reactionemoji">${commands.Emoji.html(
 				[args[0]],
+				pageURL,
 			)}</div><div class="reactioncount">${args[1].safe}</div></div>`,
 		discord: (args, info) =>
 			"[" +
@@ -224,13 +243,19 @@ const commands: {
 		confirm: args => {
 			assert.equal(args.length, 1);
 		},
-		html: args => {
-			const command = globalCommandNS[args[0].raw];
+		html: (args, truePageURL) => {
+			const pageURL = args[0].raw;
+			const command = globalCommandNS[pageURL];
 			if (!command)
-				return "" + commands.Command.html(args) + " — Error :(";
-			return commands.UsageSummary.html([
-				{ raw: command.docsPath, safe: "never" },
-			]);
+				return (
+					"" +
+					commands.Command.html(args, truePageURL) +
+					" — Error :("
+				);
+			return commands.UsageSummary.html(
+				[{ raw: command.docsPath, safe: "never" }],
+				pageURL,
+			);
 		},
 		discord: (args, info) => {
 			const command = globalCommandNS[args[0].raw];
@@ -248,20 +273,30 @@ const commands: {
 		confirm: args => {
 			assert.equal(args.length, 1);
 		},
-		html: args => {
+		html: (args, truePageURL) => {
+			const pageURL = args[0].raw;
 			const docs = globalDocs[args[0].raw];
-			if (!docs) return "" + commands.Command.html(args) + " — Error :(";
+			if (!docs)
+				return (
+					"" +
+					commands.Command.html(args, truePageURL) +
+					" — Error :("
+				);
 			if (globalSummaryDepth >= 1)
-				return rawhtml`${dgToHTML(docs.summaries.usage)} — ${dgToHTML(
-					docs.summaries.description,
-				)}`;
+				return rawhtml`${dgToHTML(
+					docs.summaries.usage,
+					truePageURL,
+				)} — ${dgToHTML(docs.summaries.description, truePageURL)}`;
 			globalSummaryDepth++;
-			const result = rawhtml`${commands.Blockquote.html([
-				{
-					raw: "no",
-					safe: rawhtml`${dgToHTML(docs.body)}`,
-				},
-			])}`;
+			const result = rawhtml`${commands.Blockquote.html(
+				[
+					{
+						raw: "no",
+						safe: rawhtml`${dgToHTML(docs.body, pageURL)}`,
+					},
+				],
+				pageURL,
+			)}`;
 			globalSummaryDepth--;
 			return result;
 		},
@@ -280,20 +315,30 @@ const commands: {
 		confirm: args => {
 			assert.equal(args.length, 1);
 		},
-		html: args => {
-			const docs = globalDocs[args[0].raw];
-			if (!docs) return "" + commands.Command.html(args) + " — Error :(";
+		html: (args, truePageURL) => {
+			const pageURL = args[0].raw;
+			const docs = globalDocs[pageURL];
+			if (!docs)
+				return (
+					"" +
+					commands.Command.html(args, truePageURL) +
+					" — Error :("
+				);
 			if (globalSummaryDepth >= 1)
 				return rawhtml`<a href="${safehtml(docs.path)}">${dgToHTML(
 					docs.summaries.title,
-				)}</a> — ${dgToHTML(docs.summaries.description)}`;
+					truePageURL,
+				)}</a> — ${dgToHTML(docs.summaries.description, truePageURL)}`;
 			globalSummaryDepth++;
-			const result = rawhtml`${commands.Blockquote.html([
-				{
-					raw: "no",
-					safe: rawhtml`${dgToHTML(docs.body)}`,
-				},
-			])}`;
+			const result = rawhtml`${commands.Blockquote.html(
+				[
+					{
+						raw: "no",
+						safe: rawhtml`${dgToHTML(docs.body, pageURL)}`,
+					},
+				],
+				pageURL,
+			)}`;
 			globalSummaryDepth--;
 			return result;
 		},
@@ -331,12 +376,13 @@ const commands: {
 		confirm: args => {
 			assert.equal(args.length, 1);
 		},
-		html: args => {
+		html: (args, pageURL) => {
 			const docs = globalDocs[args[0].raw];
 			if (!docs) return "Error :(";
 
 			return rawhtml`<a href="${safehtml(docs.path)}">${dgToHTML(
 				docs.summaries.title,
+				pageURL,
 			)}</a>`;
 		},
 		discord: (args, info) => {
@@ -417,7 +463,7 @@ export function dgToDiscord(text: string, info: Info) {
 	return res.safe.replace(/\n\n+/g, "\n\n");
 }
 
-export function dgToHTML(text: string) {
+export function dgToHTML(text: string, pageURL: string) {
 	const res = parseDG(
 		text.replace(/(\n\s*\n)|(\n)/g, (q, a, b) =>
 			a ? "\n" : b ? "\n" : "uh oh",
@@ -428,7 +474,7 @@ export function dgToHTML(text: string) {
 			if (!commands[fn]) {
 				return "Uh oh! " + messages.emoji.failure;
 			}
-			return commands[fn].html(args);
+			return commands[fn].html(args, pageURL);
 		},
 	);
 	return res.safe;
