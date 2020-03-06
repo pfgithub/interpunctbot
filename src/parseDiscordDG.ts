@@ -380,6 +380,11 @@ const commands: {
 				args[0].safe}</a>`,
 		discord: args => "<" + args[0].safe + ">",
 	},
+	Nothing: {
+		confirm: args => assert.equal(args.length, 0),
+		html: () => "",
+		discord: () => "",
+	},
 };
 
 export function confirmDocs(text: string) {

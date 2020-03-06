@@ -451,6 +451,10 @@ sup {
 	padding-bottom: 10px;
 }
 
+.message + .safetext > br {
+	display: none;
+}
+
 .profile {
 	width: 100%;
 	border-radius: 1000px;

@@ -130,7 +130,7 @@ export function addHelpDocsPage(
 					ex =>
 						`{ExampleUserMessage|${ex.in}}\n{ExampleBotMessage|${ex.out}}`,
 				)
-				.join("\n\n"),
+				.join("\n{Nothing}\n"),
 		summaries: {
 			title: docsPath.substr(docsPath.lastIndexOf("/")),
 			usage: "{Command|" + help.usage + "|" + docsPath + "}",
