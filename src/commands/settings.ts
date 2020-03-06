@@ -137,7 +137,7 @@ nr.globalCommand(
 			{
 				in: "autoban add\ntwitch.tv\ndiscord.dg",
 				out:
-					"{Emoji|success} Users with these words in their name (not case-sensitive) will be banned when they join the server:\n",
+					"{Emoji|success} Users with these words in their name (not case-sensitive) will be banned when they join the server:\n- twitch.tv\n- discord.dg",
 			},
 		],
 	},
@@ -157,6 +157,7 @@ nr.globalCommand(
 			return await info.docs("/errors/pms", "error");
 		}
 		const ad = await info.db.getAutoban(); // this isn't safe, if two people add to autodelete at once only one will actually save.
+		// ^ this is the point of using a database, you add columns instead of using a database as json storage per guild
 		ad.push(...nlsep);
 		// maybe ad should be a set so it doesn't have duplicates
 		await info.db.setAutoban(ad);
@@ -171,6 +172,51 @@ nr.globalCommand(
 					)
 					.join("\n"),
 		);
+	},
+);
+
+nr.globalCommand(
+	"/help/administration/autoban/list",
+	"autoban list",
+	{
+		usage: "autoban list",
+		description: "list all name parts",
+		examples: [],
+	},
+	nr.list(),
+	async ([], info) => {
+		if (!Info.theirPerm.banMembers(info)) return;
+		if (!Info.theirPerm.manageBot(info)) return;
+		if (!info.db) {
+			return await info.docs("/errors/pms", "error");
+		}
+		const ad = await info.db.getAutoban();
+		await info.success(
+			"Users with these words in their name (not case-sensitive) will be banned when they join the server:\n" +
+				(ad.length
+					? ad.map(q => "- " + safe(q)).join("\n")
+					: "*Autoban is not enabled on this server*"),
+		);
+	},
+);
+
+nr.globalCommand(
+	"/help/administration/autoban/clear",
+	"autoban clear",
+	{
+		usage: "autoban clear",
+		description: "disable autoban on the server",
+		examples: [],
+	},
+	nr.list(),
+	async ([], info) => {
+		if (!Info.theirPerm.banMembers(info)) return;
+		if (!Info.theirPerm.manageBot(info)) return;
+		if (!info.db) {
+			return await info.docs("/errors/pms", "error");
+		}
+		await info.db.setAutoban([]);
+		await info.success("Autoban is now disabled on this server");
 	},
 );
 
