@@ -27,7 +27,9 @@ nr.addDocsWebPage(
 {CmdSummary|autodelete add}
 {CmdSummary|autodelete list}
 {CmdSummary|autodelete remove}
-{CmdSummary|send}`,
+{CmdSummary|send}
+{CmdSummary|messages set welcome}
+{CmdSummary|messages set goodbye}`,
 );
 
 nr.globalCommand(
