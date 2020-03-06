@@ -241,15 +241,7 @@ function UserArgumentType(): ArgumentType<Discord.User> {
 function EmojiArgumentType(): ArgumentType<Discord.GuildEmoji> {
 	return async (info, arg, cmd, index, commandhelp, argpurpose) => {
 		if (!cmd.trim()) {
-			await info.error(
-				messages.arguments.emoji_arg_not_provided(
-					info,
-					cmd,
-					index,
-					commandhelp,
-					argpurpose,
-				),
-			);
+			await info.docs("/arg/emoji/not-provided", "error");
 			return { result: "exit" };
 		}
 		if (!info.guild) {
@@ -262,15 +254,7 @@ function EmojiArgumentType(): ArgumentType<Discord.GuildEmoji> {
 			cmd,
 		);
 		if (!match) {
-			await info.error(
-				messages.arguments.emoji_arg_not_provided(
-					info,
-					cmd,
-					index,
-					commandhelp,
-					argpurpose,
-				),
-			);
+			await info.docs("/arg/emoji/not-provided", "error"); // TODO give command usage too
 			return { result: "exit" };
 		}
 		const [, emojiID, remainingCmd] = match;

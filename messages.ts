@@ -61,7 +61,7 @@ Bot Info
 > [\`X\`] Automatically put spaces in channel names: \`ip!space channels automatically\` (Off by default)
 > [\`X\`] Stop putting spaces in channel names: \`ip!space channels disable\`
 > [\` \`] Pin Message: \`prefix!pin messagelink/id\` (Get a Message Link or ID by right clicking/long tapping a message and selecting Copy ...)
-> [\`X\`] Sending a message to multiple channels: \`ip!send: My message #channel-one #channel-two\``,
+> [\`X\`] Sending a message to multiple channels: \`ip!send My message #channel-one #channel-two\``,
 		logging: `Logging <https://interpunct.info/logging>
 > [\`X\`] Enable message logging: \`ip!logging enable\`
 > [\`X\`] Download message log: \`ip!log download\` (The log file will be attached in a reply.)
@@ -400,9 +400,7 @@ For help, ask on the support server with your error code \`${errorCode}\`
 			}${old}\` has been removed as part  of inter·punct bot version ${version}.${raw(
 				description ? `\n\n${description}` : "",
 			)}	
-> Join the support server to complain if this removal affects you: <https://interpunct.info/support>${raw(
-				info.prefix,
-			)}`,
+> Join the support server to complain if this removal affects you: <https://interpunct.info/support>`,
 	},
 	settings: {
 		autospace_enabled: (info: Info) =>
@@ -663,7 +661,7 @@ If you wanted spaces in these channels, check the channel settings to see if ${
 				`**No channels were tagged!**
 To send a message to multiple channels, tag every channel you want to send the message to, like this:
 \`\`\`
-${info.prefix}send: This is my great message! #rules #general
+${info.prefix}send This is my great message! #rules #general
 \`\`\`
 > More Info: <https://interpunct.info/sending-messages-to-multiple-channels>`,
 			succeeded_sending: (info: Info, channels: Discord.Channel[]) =>

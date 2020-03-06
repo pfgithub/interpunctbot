@@ -10,10 +10,10 @@ startBot
 myDefaultPerms
 
 watch
-	send #test_one: ip!send: my message #[test_one] #[test-two]
+	send #test_one: ip!send my message #[test_one] #[test-two]
 test
 !! [
-!! 	"MSG #test_one: testbot: ip!send: my message #test_one #test-two",
+!! 	"MSG #test_one: testbot: ip!send my message #test_one #test-two",
 !! 	"MSG #test_one: botdev: @testbot, ❌ You need permisison to `Manage Channels` to use this command"
 !! ]
 
@@ -38,10 +38,10 @@ test
 permission MANAGE_CHANNELS
 
 watch
-	send #test_one: ip!send: my message #[test_one] #[test-two]
+	send #test_one: ip!send my message #[test_one] #[test-two]
 test
 !! [
-!! 	"MSG #test_one: testbot: ip!send: my message #test_one #test-two",
+!! 	"MSG #test_one: testbot: ip!send my message #test_one #test-two",
 !! 	"MSG #test_one: botdev: my message",
 !! 	"MSG #test-two: botdev: my message",
 !! 	"MSG #test_one: botdev: @testbot, ✅ Your message was sent to #test_one, #test-two."

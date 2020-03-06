@@ -17,6 +17,7 @@ import "./src/commands/settings";
 import "./src/commands/speedrun";
 import "./src/commands/test";
 import "./src/commands/role";
+import "./src/commands/apdocs";
 import { globalConfig } from "./src/config";
 import Database, { Event } from "./src/Database";
 import Info, { memberCanManageRole, handleReactions } from "./src/Info";
@@ -112,6 +113,7 @@ remove(
 	"channels spacing",
 	"Unfortunately, discord has removed the ability for bots to put spaces in channel names.",
 );
+nr.globalAlias("send", "channels sendMany");
 
 // usage.add("channels", require("./src/commands/channelmanagement")); !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

@@ -140,8 +140,6 @@ export function addHelpDocsPage(
 }
 
 export function addErrorDocsPage(docsPath: string, error: ErrorData) {
-	if (!docsPath.startsWith("/errors/"))
-		throw new Error("Docs path must start with /errors/");
 	addDocsPage(docsPath, {
 		body:
 			`${error.overview}\n\n${error.detail}` +
