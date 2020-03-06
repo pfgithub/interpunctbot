@@ -24,7 +24,6 @@ Fun commands are enabled by default.
 {Heading|Games}
 {CmdSummary|minesweeper}
 {CmdSummary|connect4}
-{CmdSummary|checkers}
 {CmdSummary|trivia}
 
 {Heading|Misc}

@@ -75,10 +75,9 @@ nr.addDocsWebPage(
 {Interpunct} has a few commands for helping with administration
 
 {CmdSummary|purge}
-{CmdSummary|quickrank}
 {CmdSummary|autoban add}
 {CmdSummary|autoban list}
-{CmdSummary|autoban disable}`,
+{CmdSummary|autoban clear}`,
 );
 
 nr.addErrorDocsPage("/errors/help-path-not-found", {

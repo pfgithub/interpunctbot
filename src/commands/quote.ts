@@ -143,13 +143,21 @@ Output: {Translate|lists.list_lists|{"A"}|}
 */
 
 nr.addDocsWebPage(
-	"/customcommands/lists",
+	"/help/customcommands",
 	"Custom Commands",
-	"Custom Commands",
+	"custom commands config",
 	`{Heading|Custom Commands}
-Inter·punct allows you to make a few types of custom commands
+Currently, the only type of custom commands available in inter·punct are quote lists.
 
-{Heading|Quote Lists}
+{LinkSummary|/help/customcommands/quotes}
+`,
+);
+
+nr.addDocsWebPage(
+	"/help/customcommands/quotes",
+	"Quote Lists",
+	"create custom commands with a list of quotes",
+	`{Heading|Quote Lists}
 {CmdSummary|lists list}
 {CmdSummary|lists add}
 {CmdSummary|lists edit}
@@ -160,8 +168,8 @@ nr.globalCommand(
 	"/help/customcommands/quotes/list",
 	"lists list",
 	{
-		usage: "",
-		description: "",
+		usage: "lists list",
+		description: "list all quote lists on the server",
 		examples: [
 			{
 				in: "list lists",

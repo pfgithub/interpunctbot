@@ -13,8 +13,7 @@ nr.addDocsWebPage(
 
 {CmdSummary|emoji restrict}
 {CmdSummary|emoji unrestrict}
-{CmdSummary|emoji inspect}
-{CmdSummary|quickrank}`,
+{CmdSummary|emoji inspect}`,
 );
 
 function roleNameMatch(rolename: string, message: string) {
