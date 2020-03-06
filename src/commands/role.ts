@@ -476,8 +476,8 @@ nr.globalCommand(
 			return;
 		}
 
-		const member = info.guild!.members.resolve(user);
-		if (!member) {
+		const reciever = info.guild!.members.resolve(user);
+		if (!reciever) {
 			await info.docs("/errors/quickrank/invalid-member", "error");
 			return;
 		}
@@ -538,7 +538,7 @@ nr.globalCommand(
 				);
 			if (!(await permTheyCanManageRole(role, info))) return;
 			if (!(await permWeCanManageRole(role, info))) return;
-			if (member.roles.cache.has(roleID)) {
+			if (reciever.roles.cache.has(roleID)) {
 				discordRolesAlreadyGiven.push(role);
 			} else {
 				discordRolesToGive.push(role);
@@ -546,20 +546,17 @@ nr.globalCommand(
 		}
 
 		await info.startLoading();
-		await member.roles.add(rolesToGive);
+		await reciever.roles.add(discordRolesToGive);
 
-		await info.success(
-			"gave roles " +
-				discordRolesToGive
-					.sort((a, b) => b.position - a.position)
-					.map(r => messages.role(r))
-					.join(", ") +
-				"\n" +
-				"already gave " +
-				discordRolesAlreadyGiven
-					.sort((a, b) => b.position - a.position)
-					.map(r => messages.role(r))
-					.join(", "),
+		await info.message.channel.send(
+			getRankSuccessMessage(
+				info.message.member!,
+				reciever,
+
+				discordRolesToGive,
+				discordRolesAlreadyGiven,
+				rolesToGive,
+			),
 		);
 
 		// for role of roles
@@ -567,3 +564,46 @@ nr.globalCommand(
 		//  // else error "You don't have permission to give these roles"
 	},
 );
+
+export function getRankSuccessMessage(
+	giver: Discord.GuildMember,
+	reciever: Discord.GuildMember,
+	rolesToGive: Discord.Role[],
+	preExistingRoles: Discord.Role[],
+	explicitRolesToGive: string[],
+) {
+	if (rolesToGive.length === 0) {
+		return (
+			giver.toString() +
+			", No roles were given. " +
+			safe(reciever.displayName) +
+			" already has all of these roles: " +
+			preExistingRoles
+				.sort((a, b) => b.position - a.position)
+				.map(r => messages.role(r))
+				.join(", ")
+		);
+	}
+	const explicitRolesNotGiven = preExistingRoles.filter(r =>
+		explicitRolesToGive.includes(r.id),
+	);
+	return (
+		reciever.toString() +
+		", You were given the roles " +
+		rolesToGive
+			.sort((a, b) => b.position - a.position)
+			.map(r => messages.role(r))
+			.join(", ") +
+		" by " +
+		giver.toString() +
+		"" +
+		(explicitRolesNotGiven.length > 0
+			? "\n> The roles " +
+			  explicitRolesNotGiven
+					.sort((a, b) => b.position - a.position)
+					.map(r => messages.role(r))
+					.join(", ") +
+			  " were not given because you already have them."
+			: "")
+	);
+}

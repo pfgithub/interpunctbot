@@ -25,7 +25,10 @@ import * as nr from "./src/NewRouter";
 import { dgToDiscord } from "./src/parseDiscordDG";
 import { handleList } from "./src/commands/quote";
 import { createTimer } from "./src/commands/fun/helpers";
-import { findAllProvidedRoles } from "./src/commands/role";
+import {
+	findAllProvidedRoles,
+	getRankSuccessMessage,
+} from "./src/commands/role";
 
 mdf(moment as any);
 
@@ -833,11 +836,13 @@ async function onReactionAdd(
 	await msg.member!.roles.add(rolesToGive);
 
 	await msg.channel.send(
-		reactor.toString() +
-			", Gave roles " +
-			rolesToGive.map(r => messages.role(r)).join(", ") +
-			"\nAlready Gave" +
-			rolesAlreadyGiven.map(r => messages.role(r)).join(", "),
+		getRankSuccessMessage(
+			reactor,
+			msg.member!,
+			rolesToGive,
+			rolesAlreadyGiven,
+			roleIDs,
+		),
 	);
 
 	// if(msg.reactions.has("546938940389589002") && msg.reactions.get(546938940389589002).users.contains(user)) // incase they uncheck
