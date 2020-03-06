@@ -91,7 +91,7 @@ nr.globalCommand(
 	"/help/settings/show-unknown-command",
 	"set show unknown command",
 	{
-		usage: "set show errors {Required|{Enum|always|admins|never}}",
+		usage: "set show unknown command {Required|{Enum|always|admins|never}}",
 		description: "choose who unknown command errors are shown to",
 		examples: [],
 	},

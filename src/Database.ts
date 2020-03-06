@@ -41,6 +41,19 @@ export type QuickrankField = {
 	providesAlias: { [roleID: string]: { role: string }[] };
 	managerRole?: string;
 };
+export type Event =
+	| {
+			action: "none";
+	  }
+	| {
+			action: "message";
+			message: string;
+			channel: string;
+	  };
+export type Events = {
+	userJoin?: Event;
+	userLeave?: Event;
+};
 
 const cache: Map<string, GuildData> = new Map();
 const shouldCache: { [ey: string]: boolean | undefined } = {
@@ -83,6 +96,7 @@ type Fields = {
 	autodelete_limit?: number;
 	quickrank?: string;
 	quickrank_limit?: number;
+	events?: string;
 };
 
 type JSONFields = {
@@ -90,6 +104,7 @@ type JSONFields = {
 	nameScreening: NameScreeningField;
 	autodelete: AutodeleteField;
 	quickrank: QuickrankField;
+	events: Events;
 };
 type BooleanFields = {
 	logging: boolean;
@@ -363,18 +378,49 @@ class Database {
 	async setAutospaceChannels(bool: boolean) {
 		return await this._set("channel_spacing", bool.toString());
 	}
-	// tbd
-	async getWelcomeMessage() {
-		return await this._get("welcome");
+	async getEvents() {
+		const events = await this._getJson("events", {
+			userJoin: undefined,
+			userLeave: undefined,
+		});
+		if (!events.userLeave) {
+			const goodbyeMessage = await this._get("goodbye");
+			if (goodbyeMessage) {
+				const updmessage = goodbyeMessage
+					.split("%s")
+					.join("{Username}")
+					.split("@s")
+					.join("{Mention}");
+				events.userLeave = {
+					action: "message",
+					message: updmessage,
+					channel: "{SystemMessagesChannel}",
+				};
+			} else {
+				events.userLeave = { action: "none" }; // to prevent future refetching after events is re-saved.
+			}
+		}
+		if (!events.userJoin) {
+			const welcomeMessage = await this._get("welcome");
+			if (welcomeMessage) {
+				const updmessage = welcomeMessage
+					.split("%s")
+					.join("{Name}")
+					.split("@s")
+					.join("{Mention}");
+				events.userJoin = {
+					action: "message",
+					message: updmessage,
+					channel: "{SystemMessagesChannelID}",
+				};
+			} else {
+				events.userJoin = { action: "none" };
+			}
+		}
+		return events;
 	}
-	async setWelcomeMessage(newMessage: string) {
-		return await this._set("welcome", newMessage);
-	}
-	async getGoodbyeMessage() {
-		return await this._get("goodbye");
-	}
-	async setGoodbyeMessage(newMessage: string) {
-		return await this._set("goodbye", newMessage);
+	async setEvents(newEvents: Events) {
+		return await this._setJson("events", newEvents);
 	}
 	async getFunEnabled() {
 		return await this._getBool("funEnabled", true);

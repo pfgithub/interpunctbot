@@ -18,7 +18,7 @@ import "./src/commands/speedrun";
 import "./src/commands/test";
 import "./src/commands/role";
 import { globalConfig } from "./src/config";
-import Database from "./src/Database";
+import Database, { Event } from "./src/Database";
 import Info, { memberCanManageRole, handleReactions } from "./src/Info";
 import * as nr from "./src/NewRouter";
 import { dgToDiscord } from "./src/parseDiscordDG";
@@ -373,21 +373,13 @@ async function guildMemberAdd(
 			);
 		}
 	}
-	const welcomeMessage = await db.getWelcomeMessage();
-	if (welcomeMessage) {
-		if (member.guild.systemChannel) {
-			await member.guild.systemChannel.send(
-				streplace(welcomeMessage, {
-					"@s": member.toString(),
-					"%s": member.displayName,
-				}),
-			);
-		} else {
-			await db.addError(
-				`Unable to send welcome message because this server does not have a System Channel set. Set one in the server settings for this server.`,
-				"welcome message",
-			);
-		}
+
+	const events = await db.getEvents();
+	if (events.userLeave) {
+		await runEvent(events.userLeave, db, member.guild, {
+			"{Name}": member.toString(),
+			"{Mention}": safe(member.displayName),
+		}); // should (usually) not error
 	}
 }
 
@@ -397,6 +389,48 @@ client.on("guildMemberAdd", member => {
 
 function tsAssert<V>(a: any): a is V {
 	return !!a || true;
+}
+
+export function assertNever(value: never): never {
+	console.log(value);
+	throw new Error("Never!");
+}
+
+async function runEvent(
+	event: Event,
+	db: Database,
+	guild: Discord.Guild,
+	vars: { [key: string]: string },
+) {
+	if (event.action === "none") {
+		return;
+	} else if (event.action === "message") {
+		let channel = event.channel;
+		if (channel === "{SystemMessagesChannel}") {
+			if (!guild.systemChannel)
+				return await db.addError(
+					"/errors/ipscript/system-channel-not-set",
+					"unused",
+				);
+			channel = guild.systemChannel.id;
+		}
+		const channelDiscord = guild.channels.resolve(channel);
+		if (!channelDiscord) {
+			return await db.addError(
+				"/errors/ipscript/channel-id-not-found",
+				"",
+			);
+		}
+		if (!(channelDiscord instanceof Discord.TextChannel)) {
+			return await db.addError(
+				"/errors/ipscript/channel-not-text-channel",
+				"",
+			);
+		}
+		return await channelDiscord.send(streplace(event.message, vars));
+	} else {
+		return assertNever(event);
+	}
 }
 
 client.on("guildMemberRemove", member => {
@@ -413,21 +447,12 @@ client.on("guildMemberRemove", member => {
 				if (!tsAssert<Discord.GuildMember>(member)) return;
 			}
 			const db = new Database(member.guild.id); // it seems bad creating these objects just to forget them immediately
-			const goodbyeMessage = await db.getGoodbyeMessage();
-			if (goodbyeMessage) {
-				if (member.guild.systemChannel) {
-					await member.guild.systemChannel.send(
-						streplace(goodbyeMessage, {
-							"@s": member.toString(),
-							"%s": member.displayName,
-						}),
-					);
-				} else {
-					await db.addError(
-						`Unable to send welcome message because this server does not have a System Channel set. Set one in the server settings for this server.`,
-						"welcome message",
-					);
-				}
+			const events = await db.getEvents();
+			if (events.userLeave) {
+				await runEvent(events.userLeave, db, member.guild, {
+					"{Name}": member.toString(),
+					"{Mention}": safe(member.displayName),
+				}); // should (usually) not error
 			}
 		})(),
 		"member left.",
@@ -746,6 +771,7 @@ async function onReactionAdd(
 	const myreaxn = await msg.react("546938940389589002");
 
 	await timer.over();
+	rxnh.end();
 
 	delete ignoreReactionsOnFrom[irfKey];
 
