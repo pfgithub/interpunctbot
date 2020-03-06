@@ -121,6 +121,8 @@ remove(
 // 	);
 // });
 
+nr.globalAlias("messages set welcome", "settings events welcome");
+nr.globalAlias("messages set goodbye", "settings events goodbye");
 nr.globalAlias("log download", "downloadLog");
 nr.globalAlias("log reset", "resetLog");
 remove("listRoles", "3.0");
@@ -327,8 +329,13 @@ client.on("ready", () => {
 setInterval(updateActivity, 1 * 1000); // update every 1 min
 
 function streplace(str: string, eplace: { [key: string]: string }) {
+	const uids: { [key: string]: string } = {};
 	Object.keys(eplace).forEach(key => {
-		str = str.split(key).join(eplace[key]);
+		uids[key] = "!!!{{<>::}}" + Math.random().toString(36);
+		str = str.split(key).join(uids[key]);
+	});
+	Object.keys(eplace).forEach(key => {
+		str = str.split(uids[key]).join(eplace[key]);
 	});
 	return str;
 }

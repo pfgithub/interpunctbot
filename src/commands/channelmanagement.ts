@@ -487,4 +487,130 @@ nr.globalCommand(
 	},
 );
 
+nr.globalCommand(
+	"/help/messages/set-goodbye",
+	"messages set goodbye",
+	{
+		usage:
+			"messagess set goodbye {Required|{Channel|#channel}} {Required|message...}",
+		description:
+			"set a message to show when someone leaves the server. use \\{Name\\} and \\{Mention\\} to include people's usernames/mentions",
+		examples: [
+			{
+				in:
+					"messages set goodbye {Channel|#welcome}\nGoodbye \\{Name\\} (\\{Mention\\}), we will miss you!",
+				out:
+					"{Atmention|you}, {Emoji|success} Goodbye message set. Here is an example of what might be sent to {Channel|#welcome} when someone leaves:\n\nGoodbye person leaving ({Atmention|person leaving}), we will miss you!",
+			},
+		],
+	},
+	nr.list(nr.a.channel(), ...nr.a.words()),
+	async ([channel, message], info) => {
+		if (!info.db) {
+			return await info.docs("/errors/pms", "error");
+		}
+		if (!Info.theirPerm.manageBot) return;
+		const theyCanMention = info.message.member!.hasPermission(
+			"MENTION_EVERYONE",
+		);
+
+		if (!theyCanMention) {
+			const nmsg = stripMentions(message);
+			if (nmsg !== message)
+				await info.warn(
+					"To include arbitrary mentions in the goodbye message, you must have permission to MENTION_EVERYONE.",
+				);
+			message = nmsg;
+		}
+		message = message.trim();
+		if (!message.includes("{Mention}") && !message.includes("{Name}")) {
+			await info.warn(
+				"To include the username or mention the user who left, put `{Mention}` or `{Name}` in your message.",
+			);
+		}
+
+		const events = await info.db.getEvents();
+		events.userLeave = {
+			action: "message",
+			message: message,
+			channel: channel.id,
+		};
+		await info.db.setEvents(events);
+
+		await info.success(
+			"Goodbye message set. Here is an example of what might be sent to <#" +
+				channel.id +
+				"> when someone leaves:\n\n" +
+				message
+					.split("{Name}")
+					.join("inter·punct")
+					.split("{Mention}")
+					.join(info.atme),
+		);
+	},
+);
+
+nr.globalCommand(
+	"/help/messages/set-welcome",
+	"messages set welcome",
+	{
+		usage:
+			"messagess set welcome {Required|{Channel|channel}} {Required|message...}",
+		description:
+			"set a message to show when someone joins the server. use \\{Name\\} and \\{Mention\\} to include people's usernames/mentions",
+		examples: [
+			{
+				in:
+					"messages set goodbye {Channel|welcome}\nWelcome to the server \\{Mention\\} (\\{Name\\})!!! Make sure to check out the {Channel|rules}!",
+				out:
+					"{Atmention|you}, {Emoji|success} Welcome message set. Here is an example of what might be sent to {Channel|#welcome} when someone joins:\n\nWelcome {Atmention|person joining} (person joining)!!! Make sure to check out the {Channel|rules}!",
+			},
+		],
+	},
+	nr.list(nr.a.channel(), ...nr.a.words()),
+	async ([channel, message], info) => {
+		if (!info.db) {
+			return await info.docs("/errors/pms", "error");
+		}
+		if (!Info.theirPerm.manageBot) return;
+		const theyCanMention = info.message.member!.hasPermission(
+			"MENTION_EVERYONE",
+		);
+
+		if (!theyCanMention) {
+			const nmsg = stripMentions(message);
+			if (nmsg !== message)
+				await info.warn(
+					"To include arbitrary mentions in the welcome message, you must have permission to MENTION_EVERYONE.",
+				);
+			message = nmsg;
+		}
+		message = message.trim();
+		if (!message.includes("{Mention}") && !message.includes("{Name}")) {
+			await info.warn(
+				"To include the username or mention the user who joined, put `{Mention}` or `{Name}` in your message.",
+			);
+		}
+
+		const events = await info.db.getEvents();
+		events.userJoin = {
+			action: "message",
+			message: message,
+			channel: channel.id,
+		};
+		await info.db.setEvents(events);
+
+		await info.success(
+			"Goodbye message set. Here is an example of what might be sent to <#" +
+				channel.id +
+				"> when someone joins:\n\n" +
+				message
+					.split("{Name}")
+					.join("inter·punct")
+					.split("{Mention}")
+					.join(info.atme),
+		);
+	},
+);
+
 // !!!!!!!!!!!!!!! router.add("pin message")

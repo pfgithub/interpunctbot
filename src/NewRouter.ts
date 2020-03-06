@@ -183,6 +183,10 @@ export function addDocsWebPage(
 // });
 
 export function globalAlias(original: string, aliasname: string) {
+	if (original.toLowerCase() !== original)
+		throw new Error("original name must be lowercase");
+	aliasname = aliasname.toLowerCase();
+
 	const origcmd = globalCommandNS[original];
 	if (!origcmd)
 		throw new Error("Alias original not found `" + original + "'");
