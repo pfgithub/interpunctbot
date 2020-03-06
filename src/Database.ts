@@ -38,6 +38,7 @@ export type QuickrankField = {
 	nameAlias: { [safeLCName: string]: { name: string; role: string } };
 	timeAlias: { ms: number; ltgt: "<" | ">"; role: string }[];
 	emojiAlias: { [key: string]: { role: string } };
+	providesAlias: { [roleID: string]: { role: string }[] };
 	managerRole?: string;
 };
 
@@ -264,11 +265,14 @@ class Database {
 		return await this._setJson("autodelete", autodelete);
 	}
 	async getQuickrank(): Promise<QuickrankField> {
-		return await this._getJson("quickrank", {
+		const res = await this._getJson("quickrank", {
 			nameAlias: {},
 			timeAlias: [],
 			emojiAlias: {},
+			providesAlias: {},
 		});
+		if (!res.providesAlias) res.providesAlias = {};
+		return res;
 	}
 	async setQuickrank(nv: QuickrankField): Promise<void> {
 		return await this._setJson("quickrank", nv);

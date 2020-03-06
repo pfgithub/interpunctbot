@@ -10,7 +10,8 @@
 		"resolveJsonModule": true,
 		"declaration": true,
 		"strict": true,
-		"esModuleInterop": true
+		"esModuleInterop": true,
+		"inlineSourceMap": true
 	},
 	"include": ["src/**/*", "test/**/*", "index.ts"]
 }

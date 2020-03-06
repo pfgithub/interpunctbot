@@ -3,6 +3,8 @@ import Info, { permTheyCanManageRole, permWeCanManageRole } from "../Info";
 import * as Discord from "discord.js";
 import { messages, safe } from "../../messages";
 import { durationFormat } from "../durationFormat";
+import { AP } from "./argumentparser";
+import { QuickrankField } from "../Database";
 
 /*
 
@@ -140,6 +142,7 @@ nr.globalCommand(
 			...Object.values(qr.emojiAlias).map(r => r.role),
 			...Object.values(qr.nameAlias).map(r => r.role),
 			...qr.timeAlias.map(r => r.role),
+			...Object.keys(qr.providesAlias),
 		]) {
 			const r = info.guild!.roles.resolve(roleID);
 			if (r) if (!(await permTheyCanManageRole(r, info))) return;
@@ -172,22 +175,28 @@ nr.globalCommand(
 
 		const qr = await info.db.getQuickrank();
 
-		let didrmve = false;
+		let didrmve = 0;
 
 		for (const [emoji, rule] of Object.entries(qr.emojiAlias)) {
 			if (rule.role === role.id) {
 				delete qr.emojiAlias[emoji];
-				didrmve = true;
+				didrmve++;
 			}
 		}
 		for (const [safeName, rule] of Object.entries(qr.nameAlias)) {
 			if (rule.role === role.id) {
 				delete qr.nameAlias[safeName];
-				didrmve = true;
+				didrmve++;
+			}
+		}
+		for (const [roleID, rule] of Object.entries(qr.providesAlias)) {
+			if (roleID === role.id) {
+				delete qr.providesAlias[roleID];
+				didrmve++;
 			}
 		}
 		qr.timeAlias = qr.timeAlias.filter(ta =>
-			ta.role !== role.id ? true : ((didrmve = true), false),
+			ta.role !== role.id ? true : (didrmve++, false),
 		);
 
 		if (!didrmve) {
@@ -198,7 +207,72 @@ nr.globalCommand(
 		}
 
 		await info.db.setQuickrank(qr);
-		await info.success("ok. (gone " + messages.role(role) + ")");
+		await info.success(
+			"ok. (gone " +
+				messages.role(role) +
+				") (removed " +
+				didrmve +
+				" roles.)",
+		);
+	},
+);
+
+nr.globalCommand(
+	"/help/quickrank/provides",
+	"quickrank add provides",
+	{
+		usage: "quickrank add provides {Required|role} -> {Required|role}",
+		description: "when ranking users with role 1, also give them role 2.",
+		examples: [],
+	},
+	nr.passthroughArgs,
+	async ([cmd], info) => {
+		if (!info.db) {
+			await info.docs("/errors/pms", "error");
+			return;
+		}
+
+		if (!Info.theirPerm.manageBot(info)) return;
+
+		const arrowSplit = cmd.split("->");
+		if (arrowSplit.length !== 2) {
+			await info.error("missing -> thing or something");
+			return;
+		}
+		const [role1cmd, role2cmd] = arrowSplit;
+
+		const r1ap = await AP(
+			{ info, cmd: role1cmd.trim(), help: "/help/quickrank/provides" },
+			...nr.a.role(),
+		);
+		if (!r1ap) return;
+		const r2ap = await AP(
+			{ info, cmd: role2cmd.trim(), help: "/help/quickrank/provides" },
+			...nr.a.role(),
+		);
+		if (!r2ap) return;
+
+		const [[roleFrom], [roleTo]] = [r1ap.result, r2ap.result];
+
+		if (!(await permTheyCanManageRole(roleTo, info))) return;
+		if (!(await permWeCanManageRole(roleFrom, info))) return;
+		if (!(await permWeCanManageRole(roleTo, info))) return;
+
+		const qr = await info.db.getQuickrank();
+
+		if (!qr.providesAlias[roleFrom.id]) {
+			qr.providesAlias[roleFrom.id] = [];
+		}
+		const prova = qr.providesAlias[roleFrom.id];
+		if (prova.find(el => el.role === roleTo.id)) {
+			return await info.error("already provides :x: bad.");
+		}
+
+		prova.push({ role: roleTo.id });
+
+		await info.db.setQuickrank(qr);
+
+		return await info.success("done");
 	},
 );
 
@@ -252,6 +326,12 @@ nr.globalCommand(
 					durationFormat(rule.ms),
 			});
 		}
+		for (const [fromRoleID, rule] of Object.entries(qr.providesAlias)) {
+			allRulesFirst.push({
+				roleID: fromRoleID,
+				text: "This role provides: " + rule.map(r => r.role).join(", "),
+			});
+		}
 
 		if (!allRulesFirst.length)
 			await info.error(
@@ -282,6 +362,26 @@ nr.globalCommand(
 		);
 	},
 );
+
+export function findAllProvidedRoles(
+	roleIDs: string[],
+	quickrank: QuickrankField,
+): string[] {
+	const finalIDs = new Set(roleIDs);
+
+	for (const id of finalIDs.values()) {
+		// zig: while(it.next()) |v| {}, no special syntax required
+		if (quickrank.providesAlias[id]) {
+			const alias = quickrank.providesAlias[id];
+			// ^zig skips that line because if(quickrank.providesAlias[id]) |alias| {
+			for (const itm of alias) {
+				finalIDs.add(itm.role);
+			}
+		}
+	}
+
+	return [...finalIDs];
+}
 
 nr.globalCommand(
 	"/help/quickrank/rank",
@@ -353,7 +453,9 @@ nr.globalCommand(
 		const discordRolesToGive: Discord.Role[] = [];
 		const discordRolesAlreadyGiven: Discord.Role[] = [];
 
-		for (const roleID of rolesToGive) {
+		const allRolesToGive = findAllProvidedRoles(rolesToGive, qr);
+
+		for (const roleID of allRolesToGive) {
 			const role = info.guild!.roles.resolve(roleID);
 			if (!role)
 				return await info.docs(

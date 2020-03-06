@@ -24,6 +24,7 @@ import * as nr from "./src/NewRouter";
 import { dgToDiscord } from "./src/parseDiscordDG";
 import { handleList } from "./src/commands/quote";
 import { createTimer } from "./src/commands/fun/helpers";
+import { findAllProvidedRoles } from "./src/commands/role";
 
 mdf(moment as any);
 
@@ -687,16 +688,15 @@ async function onReactionAdd(
 
 	const db = new Database(msg.guild.id);
 
-	const arhandler = await db.getQuickrank();
+	const qr = await db.getQuickrank();
 
-	const isManager =
-		arhandler.managerRole && reactor.roles.cache.has(arhandler.managerRole);
+	const isManager = qr.managerRole && reactor.roles.cache.has(qr.managerRole);
 	if (!(isManager || reactor.hasPermission("MANAGE_ROLES"))) {
 		delete ignoreReactionsOnFrom[irfKey];
 		return; // bad person
 	}
 
-	const hndlr = arhandler.emojiAlias[reaction.emoji.id];
+	const hndlr = qr.emojiAlias[reaction.emoji.id];
 	if (!hndlr) {
 		delete ignoreReactionsOnFrom[irfKey];
 		return;
@@ -735,7 +735,7 @@ async function onReactionAdd(
 			return;
 		}
 
-		const hndlr = arhandler.emojiAlias[reaction.emoji.id];
+		const hndlr = qr.emojiAlias[reaction.emoji.id];
 		if (!hndlr) {
 			return;
 		}
@@ -758,7 +758,9 @@ async function onReactionAdd(
 
 	const rolesToGive: Discord.Role[] = [];
 	const rolesAlreadyGiven: Discord.Role[] = [];
-	for (const roleID of roleIDs) {
+
+	const allRoleIDsToGive = findAllProvidedRoles(roleIDs, qr);
+	for (const roleID of allRoleIDsToGive) {
 		const role = guild.roles.resolve(roleID);
 		if (!role) {
 			return await msg.channel.send(
