@@ -19,11 +19,78 @@ quickrank list
 !rank @user sub-15, gold pot
 */
 
+nr.addDocsWebPage(
+	"/help/quickrank",
+	"Quickrank",
+	"allow moderators to rank people quickly",
+	`{Heading|Quickrank}
+Quickrank can be set up to allow admins to rank people quickly on a server.
+
+After setup, you can run commands like this:
+{ExampleUserMessage|rank {Atmention|person} sub-10}
+or react like this:
+{Reaction|sub10|1} {Reaction|success|1}
+to give a user one or more roles
+{ExampleBotMessage|{Atmention|person}, {Atmention|admin} gave you the roles @🕐︎ SUB-10, @🕐︎ SUB-15, @🕐︎ SUB-20}
+
+{Comment|
+{Heading|Basic Setup}
+To add some roles to be used with the {Command|rank} command, they need to be given names.
+
+To add some roles to react with emojis for, they need to be given emojis.
+}
+
+{LinkSummary|/help/quickrank/setup}
+
+{Heading|Relevant Commands}
+{CmdSummary|rank}
+{CmdSummary|quickrank list}
+{CmdSummary|quickrank add named}
+{CmdSummary|quickrank add time}
+{CmdSummary|quickrank add reaction}
+{CmdSummary|quickrank add provides}
+{CmdSummary|quickrank remove role}
+{CmdSummary|quickrank set role}`,
+);
+
+nr.addDocsWebPage(
+	"/help/quickrank/setup",
+	"Quickrank Setup",
+	"setup quickrank commands",
+	`{Heading|Advanced Setup}
+To set up a system like the example above, first each role must be given either a name,  emoji, or both, and then a chain of provides must be set up.
+
+{Bold|Names}:
+{Blockquote|{ExampleUserMessage|quickrank add named {Code|sub-10} @🕐︎ SUB-10}
+{ExampleUserMessage|quickrank add named {Code|sub-15} @🕐︎ SUB-15}
+{ExampleUserMessage|quickrank add named {Code|sub-20} @🕐︎ SUB-20}
+Note that the name must be surrounded in \`backticks\` in order to set it.}
+
+{Bold|Reactions}:
+{Blockquote|{ExampleUserMessage|quickrank add reaction {Emoji|sub10} @🕐︎ SUB-10}
+{ExampleUserMessage|quickrank add reaction {Emoji|sub15} @🕐︎ SUB-15}
+{ExampleUserMessage|quickrank add reaction {Emoji|sub20} @🕐︎ SUB-20}
+You might also want to make it so these emojis are given to people as rewards for getting these roles, for more about that see {LinkDocs|/help/emoji}. Make sure you give your admin roles access to the emoji too though!}
+
+{Bold|Provides}:
+{Blockquote|If you give someone one role, provides will automatically add any other roles they need too. For example, if I rank someone sub-10 I also want to give them sub-15 and sub-20. Also, if I rank someone sub-15, I also want to give them sub-20. To do this, I can set up a provides chain so sub-10 provides sub-15 and sub-15 provides sub-20.
+{ExampleUserMessage|quickrank add provides @🕐︎ SUB-10 -> @🕐︎ SUB-15}
+{ExampleUserMessage|quickrank add provides @🕐︎ SUB-20 -> @🕐︎ SUB-20}
+Now you can use the {Command|rank} command to give people the roles sub-10, 15, or 20, and you can also react to messages and click check mark to give people these roles quickly.}
+
+If you make any mistakes, remove a role with
+{CmdSummary|quickrank remove role}
+
+To view the entire quickrank configuration, use
+{CmdSummary|quickrank list}`,
+);
+
 nr.globalCommand(
 	"/help/quickrank/name",
 	"quickrank add named",
 	{
-		usage: "",
+		usage:
+			"quickrank add named {Required|backtick surrounded name} {Required|@role}",
 		description: "add a rank name to be used in the {Command|rank} command",
 		examples: [
 			/*
@@ -65,7 +132,8 @@ nr.globalCommand(
 	"/help/quickrank/time",
 	"quickrank add time",
 	{
-		usage: "",
+		usage:
+			"quickrank add time {Required|{Duration|duration}} {Required|@role}",
 		description:
 			"add a rank time to be unsed in the {Command|rank} command",
 		examples: [],
@@ -92,8 +160,10 @@ nr.globalCommand(
 	"/help/quickrank/reaction",
 	"quickrank add reaction",
 	{
-		usage: "",
-		description: "add a reaction to react to messages with to rank people",
+		usage:
+			"quickrank add reaction {Required|{Emoji|emoji}} {Required|@role}",
+		description:
+			"add a reaction to react to messages and click check with to rank people",
 		examples: [],
 	},
 	nr.list(nr.a.emoji(), ...nr.a.role()),
@@ -122,9 +192,9 @@ nr.globalCommand(
 	"/help/quickrank/role",
 	"quickrank set role",
 	{
-		usage: "",
+		usage: "quickrank set role {Required|role}",
 		description:
-			"set a role that allows members to quickrank even if they do not have permissions to manage roles.",
+			"set a role that allows members to quickrank even if they do not have permissions to manage roles. Keep in mind that this will allow people with this role to give people any of the roles configured in quickrank. If you don't want them giving away admin roles, make sure not to put those in quickrank.",
 		examples: [],
 	},
 	nr.list(...nr.a.role()),
@@ -160,8 +230,9 @@ nr.globalCommand(
 	"/help/quickrank/remove/role",
 	"quickrank remove role",
 	{
-		usage: "",
-		description: "",
+		usage: "quickrank remove role {Required|@role}",
+		description:
+			"Remove a role from quickrank entirely (reaction, named, time, provides)",
 		examples: [],
 	},
 	nr.list(...nr.a.role()),
@@ -221,7 +292,8 @@ nr.globalCommand(
 	"/help/quickrank/provides",
 	"quickrank add provides",
 	{
-		usage: "quickrank add provides {Required|role} -> {Required|role}",
+		usage:
+			"quickrank add provides {Required|@role 1} -> {Required|@role 2}",
 		description: "when ranking users with role 1, also give them role 2.",
 		examples: [],
 	},
@@ -280,8 +352,8 @@ nr.globalCommand(
 	"/help/quickrank/list",
 	"quickrank list",
 	{
-		usage: "",
-		description: "list all quickrank aliases.",
+		usage: "quickrank list",
+		description: "list all quickrank configuration.",
 		examples: [],
 	},
 	nr.list(),
@@ -387,8 +459,10 @@ nr.globalCommand(
 	"/help/quickrank/rank",
 	"rank",
 	{
-		usage: "",
-		description: "rank",
+		usage:
+			"rank {Required|user} {Required|comma, separated, list, of, role, names}",
+		description:
+			"rank someone with a given list of roles. role names must be configured with quickrank.",
 		examples: [],
 	},
 	nr.list(nr.a.user(), ...nr.a.words()),

@@ -241,6 +241,11 @@ code {
 	color: var(--interactive-active);
 }
 
+.channel:focus {
+	background-color: var(--background-modifier-selected);
+	color: var(--interactive-active);
+}
+
 .channel-icon {
 	color: var(--text-muted);
 	display: block;

@@ -29,6 +29,9 @@ export const emoji: { [key: string]: [string, string, string?] } = {
 	admins: [":gear~1:", "646624018643943425"],
 	upvote: [":upvote:", "674675568993894412"],
 	downvote: [":downvote:", "674675569404674059"],
+	sub10: [":sub10:", "443555771972845568"],
+	sub15: [":sub15:", "443555772031434763"],
+	sub20: [":sub20:", "443555771783839747"],
 };
 
 let globalSummaryDepth = 0;
@@ -187,7 +190,7 @@ const commands: {
 			];
 			return rawhtml`<img class="emoji" src="https://cdn.discordapp.com/emojis/${emojiid}.png" title="${safehtml(
 				emojiname,
-			)}" aria-label="${emojiname}" alt="${emojiname}" draggable="false" />`;
+			)}" aria-label="${emojiname}" alt="${emojiname}" draggable="false">`;
 		},
 		discord: args => {
 			const [emojiname, emojiid, surround] = emoji[args[0].raw] || [
@@ -382,6 +385,11 @@ const commands: {
 	},
 	Nothing: {
 		confirm: args => assert.equal(args.length, 0),
+		html: () => "",
+		discord: () => "",
+	},
+	Comment: {
+		confirm: () => {},
 		html: () => "",
 		discord: () => "",
 	},

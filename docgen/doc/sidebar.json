@@ -10,5 +10,6 @@
 	["channel", "/help/administration"],
 	["channel", "/help/customcommands", "custom commands"],
 	["channel", "/help/log", "logging"],
-	["channel", "/help/speedrun", "speedrun.com"]
+	["channel", "/help/speedrun", "speedrun.com"],
+	["channel", "/help/quickrank"]
 ]

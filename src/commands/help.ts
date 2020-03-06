@@ -14,7 +14,8 @@ nr.addDocsWebPage(
 {LinkSummary|/help/administration}
 {LinkSummary|/help/customcommands}
 {LinkSummary|/help/log}
-{LinkSummary|/help/speedrun}`,
+{LinkSummary|/help/speedrun}
+{LinkSummary|/help/quickrank}`,
 );
 
 nr.addDocsWebPage(
@@ -23,6 +24,41 @@ nr.addDocsWebPage(
 	"Website homepage",
 	"{Heading|Inter·punct Bot}\n\nThis website is for version 3 of {Interpunct} which is currently in development. For version 2, see https://top.gg/bot/433078185555656705\n\n{Screenshot|https://top.gg/api/widget/433078185555656705.png}",
 );
+
+nr.addDocsWebPage(
+	"/updates",
+	"Updates",
+	"bot updates",
+	"{Heading|Bot Updates}\n\n{LinkSummary|/updates/ipv3}",
+);
+
+nr.addDocsWebPage(
+	"/updates/ipv3",
+	"ipv3 update",
+	"ipv3 update",
+	`{Heading|2020-03-07, Interpunct version 3}
+
+Adds many new things and improves the experience of some old things. There are still lots of messages that haven't been written yet or are slightly confusing, if you have any issues, ask on the {Link|https://interpunct.info/support|Support Server}.
+
+{Heading|New Commands}
+{LinkSummary|/help/quickrank}
+{LinkSummary|/help/channels/autodelete}
+{CmdSummary|connect4}
+{CmdSummary|remindme}
+{CmdSummary|trivia}
+{CmdSummary|minesweeper}
+{CmdSummary|vote}
+{CmdSummary|members}
+{CmdSummary|slowmode set}
+{CmdSummary|wr}
+{CmdSummary|stats}
+
+{Heading|Other Things}
+The purge command is now significantly faster
+This website is completely new.
+Also there are lots of other minor changes.`,
+);
+
 nr.addDocsWebPage(
 	"/404",
 	"404",

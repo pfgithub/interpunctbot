@@ -141,8 +141,23 @@ Output: {Translate|lists.list_lists|{"A"}|}
 @/Example
 
 */
+
+nr.addDocsWebPage(
+	"/customcommands/lists",
+	"Custom Commands",
+	"Custom Commands",
+	`{Heading|Custom Commands}
+Inter·punct allows you to make a few types of custom commands
+
+{Heading|Quote Lists}
+{CmdSummary|lists list}
+{CmdSummary|lists add}
+{CmdSummary|lists edit}
+{CmdSummary|lists remove}`,
+);
+
 nr.globalCommand(
-	"/help/lists/list",
+	"/help/customcommands/quotes/list",
 	"lists list",
 	{
 		usage: "",
@@ -238,7 +253,7 @@ async function addOrEditList(add: boolean, cmd: string, info: Info) {
 }
 
 nr.globalCommand(
-	"/help/lists/add",
+	"/help/customcommands/quotes/add",
 	"lists add",
 	{
 		usage:
@@ -262,7 +277,7 @@ nr.globalCommand(
 );
 
 nr.globalCommand(
-	"/help/lists/edit",
+	"/help/customcommands/quotes/edit",
 	"lists edit",
 	{
 		usage:
@@ -287,7 +302,7 @@ nr.globalCommand(
 );
 
 nr.globalCommand(
-	"/help/lists/remove",
+	"/help/customcommands/quotes/remove",
 	"lists remove",
 	{
 		usage: "lists remove {Required|list name}",
