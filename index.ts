@@ -384,8 +384,8 @@ async function guildMemberAdd(
 	const events = await db.getEvents();
 	if (events.userJoin) {
 		await runEvent(events.userJoin, db, member.guild, {
-			"{Name}": member.toString(),
-			"{Mention}": safe(member.displayName),
+			"{Mention}": member.toString(),
+			"{Name}": safe(member.displayName),
 		}); // should (usually) not error
 	}
 }
@@ -457,8 +457,8 @@ client.on("guildMemberRemove", member => {
 			const events = await db.getEvents();
 			if (events.userLeave) {
 				await runEvent(events.userLeave, db, member.guild, {
-					"{Name}": member.toString(),
-					"{Mention}": safe(member.displayName),
+					"{Mention}": member.toString(),
+					"{Name}": safe(member.displayName),
 				}); // should (usually) not error
 			}
 		})(),
