@@ -446,7 +446,7 @@ nr.globalCommand(
 		description: "displays various statistics about the bot",
 		examples: [
 			{
-				in: "ip!stats",
+				in: "stats",
 				out:
 					"{Atmention|you}, Statistics:\n{Blockquote|{Bold|Servers}: 1834 servers\n{Bold|Uptime}: 39m:37.128s\nTook 8ms, handling -1 db requests per second}",
 			},

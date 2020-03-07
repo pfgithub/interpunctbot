@@ -339,13 +339,12 @@ nr.globalCommand(
 
 nr.addHelpDocsPage("/help/autodelete/add/prefix", {
 	title: "autodelete prefix",
-	usage:
-		"ip!autodelete add {Required|{Duration}} prefix {Required|the prefix}",
+	usage: "autodelete add {Required|{Duration}} prefix {Required|the prefix}",
 	description:
 		"create an autodelete rule to remove all messages that start with a specified prefix",
 	examples: [
 		{
-			in: "ip!autodelete add 1s prefix https://tenor.com/",
+			in: "autodelete add 1s prefix https://tenor.com/",
 			out:
 				"{Atmention|you}, {Emoji|success} These types of messages will be automatically deleted after 1 second.\nNIY\nExample of a message that will be removed: {Code|https://tenor.com/}",
 		},
@@ -357,7 +356,7 @@ nr.addHelpDocsPage("/help/autodelete/add/prefix", {
 nr.addHelpDocsPage("/help/autodelete/add/channel", {
 	title: "autodelete channel",
 	usage:
-		"ip!autodelete add {Required|{Duration}} channel {Required|{Channel|the-channel}}",
+		"autodelete add {Required|{Duration}} channel {Required|{Channel|the-channel}}",
 	description:
 		"create an autodelete rule to remove all messages in a certain channel",
 	examples: [],
@@ -366,7 +365,7 @@ nr.addHelpDocsPage("/help/autodelete/add/channel", {
 nr.addHelpDocsPage("/help/autodelete/add/user", {
 	title: "autodelete user",
 	usage:
-		"ip!autodelete add {Required|{Duration}} user {Required|{Atmention|the-user}}",
+		"autodelete add {Required|{Duration}} user {Required|{Atmention|the-user}}",
 	description:
 		"create an autodelete rule to remove all messages from a certain user or bot",
 	examples: [],
@@ -375,7 +374,7 @@ nr.addHelpDocsPage("/help/autodelete/add/user", {
 nr.addHelpDocsPage("/help/autodelete/add/role", {
 	title: "autodelete role",
 	usage:
-		"ip!autodelete add {Required|{Duration}} role {Required|{Role|the role}}",
+		"autodelete add {Required|{Duration}} role {Required|{Role|the role}}",
 	description:
 		"create an autodelete rule to remove all messages from people with a certain role",
 	examples: [],

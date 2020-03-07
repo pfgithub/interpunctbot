@@ -175,8 +175,8 @@ const commands: {
 	},
 	Duration: {
 		confirm: () => {},
-		html: () => "duration, NIY",
-		discord: () => "duration",
+		html: () => "duration eg. 10h 5min",
+		discord: () => "duration eg. 10h 5min",
 	},
 	Bold: {
 		confirm: args => assert.equal(args.length, 1),
