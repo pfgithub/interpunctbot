@@ -44,7 +44,7 @@ client.on("ready", () => {
 				".",
 		);
 		await message.delete();
-	})().catch(e => {});
+	})().catch(() => {});
 
 	timedEvents = new TimedEvents(client);
 	timedEvents.setHandler("pmuser", async event => {

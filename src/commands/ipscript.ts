@@ -1,6 +1,4 @@
 import * as Discord from "discord.js";
-import MB from "../MessageBuilder";
-import Info from "../Info";
 
 type UserJSON =
 	| { [key: string]: UserJSON }

@@ -224,7 +224,7 @@ export const checkers = g.newGame<Checkers>({
 				: mode.s === "winner"
 				? `<@${mode.winner.id}> won! (${mode.reason})`
 				: "never.";
-		const boardRender = state.board.render((tile, x, y) => {
+		const boardRender = state.board.render(tile => {
 			if (tile.overlay) {
 				if (tile.overlay.type === "move")
 					return tileset.tiles.board.arrows[tile.overlay.direction];

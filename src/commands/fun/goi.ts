@@ -1,10 +1,9 @@
-import yaml from "js-yaml";
 import fs from "fs";
+import yaml from "js-yaml";
 import path from "path";
-import * as nr from "../../NewRouter";
-import { perr, ilt } from "../../..";
+import { ilt, perr } from "../../..";
 import { messages } from "../../../messages";
-import Info from "../../Info";
+import * as nr from "../../NewRouter";
 import { createTimer } from "./helpers";
 
 type GoDirectionSpec = (

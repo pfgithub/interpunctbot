@@ -1002,7 +1002,7 @@ export function logError(
 
 **Stacktrace**:
 \`\`\`
-${additionalDetails.stack}
+${additionalDetails.stack || "errno"}
 \`\`\``
 					: ""
 			}
@@ -1016,7 +1016,7 @@ ${mostRecentCommands
 
 **Stacktrace**:
 \`\`\`
-${message.stack}
+${message.stack || "errno"}
 \`\`\`
 `;
 			await sendMessageToErrorReportingChannel(finalMsg);
@@ -1037,7 +1037,7 @@ export async function sendMessageToErrorReportingChannel(message: string) {
 	// !!!! SHARDING: this does not work with sharding
 	console.log(message);
 
-	const serverID = globalConfig.errorReporting?.server; // this could be used to make sure this is the right shard. right now error reporting will not yet work across shards. or it could just be unused and channelid could be used for shards.
+	// const serverID = globalConfig.errorReporting?.server; // this could be used to make sure this is the right shard. right now error reporting will not yet work across shards. or it could just be unused and channelid could be used for shards.
 	const channelID = globalConfig.errorReporting?.channel;
 
 	if (!channelID) {

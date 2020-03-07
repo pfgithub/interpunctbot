@@ -141,7 +141,7 @@ export const connect4 = newGame<Connect4>({
 				: state.status.s === "winner"
 				? `<@${state.status.winner.id}> won! (${state.status.reason})`
 				: "never.";
-		const renderedBoard = state.board.render((tile, x, y) => {
+		const renderedBoard = state.board.render(tile => {
 			if (tile.color) return tileset.tiles[tile.color];
 			return tileset.tiles.empty;
 		});

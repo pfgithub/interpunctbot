@@ -1,15 +1,15 @@
 import moment from "moment";
-import { serverStartTime, perr } from "../..";
+import { serverStartTime } from "../..";
 import { messages, safe } from "../../messages";
-import Info from "../Info";
-import { a, AP } from "./argumentparser";
-import { createTimer } from "./fun/helpers";
-import "./fun/gamelibgames";
-import "./fun/goi";
-import "./fun/trivia";
-import * as nr from "../NewRouter";
 import { durationFormat } from "../durationFormat";
 import { setEditInterval } from "../editInterval";
+import Info from "../Info";
+import * as nr from "../NewRouter";
+import { a, AP } from "./argumentparser";
+import "./fun/gamelibgames";
+import "./fun/goi";
+import { createTimer } from "./fun/helpers";
+import "./fun/trivia";
 
 nr.addDocsWebPage(
 	"/help/fun",
@@ -427,11 +427,11 @@ nr.globalCommand(
 
 		const rxnh = info.handleReactions(
 			msg,
-			async (rxn, usr) => countdown.reset(),
+			async () => countdown.reset(),
 			// if downvote && user upvoted, remove upvote
 			// if upvote && user downvoted, remove downvote
 		);
-		await new Promise((resolve, reject) => (endhandler = resolve));
+		await new Promise(resolve => (endhandler = resolve));
 		msgEditInterval.end();
 		rxnh.end();
 		await editMessage(true);

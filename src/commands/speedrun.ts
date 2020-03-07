@@ -184,9 +184,9 @@ async function displayLeaderboard(
 	const runPlayer = getPlayer(run.players[0].id);
 	mb.setAuthor(
 		runPlayer.names.international,
-		`https://www.speedrun.com/images/flags/${runPlayer.location &&
+		`https://www.speedrun.com/images/flags/${(runPlayer.location &&
 			runPlayer.location.country &&
-			runPlayer.location.country.code}.png`,
+			runPlayer.location.country.code) as string}.png`,
 		runPlayer.weblink,
 	);
 	const duration = moment.duration(run.times.primary_t, "seconds");

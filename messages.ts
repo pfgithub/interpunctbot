@@ -2,7 +2,7 @@ import Info from "./src/Info";
 import * as Discord from "discord.js";
 
 export function raw(string: TemplateStringsArray | string) {
-	return { __raw: `${string}` };
+	return { __raw: `${string.toString()}` };
 }
 
 export function templateGenerator<InType>(helper: (str: InType) => string) {

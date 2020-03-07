@@ -13,7 +13,7 @@
 		"build-watch": "tsc --watch",
 		"run-slow": "ts-node .",
 		"run-built": "node built",
-		"lint": "eslint index.ts bot.ts messages.ts shardmanager.ts test/**/*.ts src/**/*.ts",
+		"lint": "eslint index.ts bot.ts shardmanager.ts test/**/*.ts src/**/*.ts",
 		"format": "prettier --write index.ts bot.ts messages.ts shardmanager.ts test/**/*.ts src/**/*.ts"
 	},
 	"dependencies": {

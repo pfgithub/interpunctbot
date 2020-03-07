@@ -33,7 +33,7 @@ nr.globalCommand(
 		],
 	},
 	nr.list(),
-	async ([], info) => {
+	async ([]) => {
 		throw new Error("Crash command used");
 	},
 );

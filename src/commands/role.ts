@@ -278,7 +278,7 @@ nr.globalCommand(
 				didrmve++;
 			}
 		}
-		for (const [roleID, rule] of Object.entries(qr.providesAlias)) {
+		for (const [roleID] of Object.entries(qr.providesAlias)) {
 			if (roleID === role.id) {
 				delete qr.providesAlias[roleID];
 				didrmve++;

@@ -1,11 +1,9 @@
 import * as Discord from "discord.js";
 import he from "he";
-import { perr } from "../../..";
 import { messages, raw, safe } from "../../../messages";
-import Info from "../../Info";
-import { getURL } from "../speedrun";
 import { setEditInterval } from "../../editInterval";
 import * as nr from "../../NewRouter";
+import { getURL } from "../speedrun";
 
 declare namespace OpenTDB {
 	type Difficulty = "easy" | "medium" | "hard";
