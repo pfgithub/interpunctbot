@@ -1078,7 +1078,7 @@ export async function sendMessageToErrorReportingChannel(message: string) {
 		)! as Discord.TextChannel;
 		await channel.send(message);
 	} catch (e) {
-		console.log("Failed to report. Exiting.");
-		process.exit(1); // if an error message failed to report, it is likely the bot can no longer reach discord or something else bad happened
+		console.log("Failed to report. Not Exiting.");
+		// process.exit(1); // if an error message failed to report, it is likely the bot can no longer reach discord or something else bad happened
 	}
 }
