@@ -15,7 +15,8 @@ nr.addDocsWebPage(
 {LinkSummary|/help/customcommands}
 {LinkSummary|/help/log}
 {LinkSummary|/help/speedrun}
-{LinkSummary|/help/quickrank}`,
+{LinkSummary|/help/quickrank}
+{LinkSummary|/help/autodelete}`,
 );
 
 nr.addDocsWebPage(
@@ -42,7 +43,7 @@ Adds many new things and improves the experience of some old things. There are s
 
 {Heading|New Commands}
 {LinkSummary|/help/quickrank}
-{LinkSummary|/help/channels/autodelete}
+{LinkSummary|/help/autodelete}
 {CmdSummary|connect4}
 {CmdSummary|remindme}
 {CmdSummary|trivia}

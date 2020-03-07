@@ -134,6 +134,19 @@ const commands: {
 		discord: (args, info) =>
 			`**you**: ${inlineOrBlockQuote(safe(info.prefix) + args[0].safe)}`,
 	},
+	ExampleUserMessageNoPfx: {
+		confirm: args => assert.equal(args.length, 1),
+		html: args => rawhtml`
+			<div class="message">
+				<img
+					class="profile"
+					src="https://cdn.discordapp.com/embed/avatars/0.png"
+				/>
+				<div class="author you">you</div>
+				<div class="msgcontent">${args[0].safe}</div>
+			</div>`,
+		discord: args => `**you**: ${inlineOrBlockQuote(args[0].safe)}`,
+	},
 	ExampleBotMessage: {
 		confirm: args => assert.equal(args.length, 1),
 		html: args => rawhtml`<div class="message">

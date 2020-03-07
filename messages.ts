@@ -30,7 +30,7 @@ export function templateGenerator<InType>(helper: (str: InType) => string) {
 
 export const safe = templateGenerator((str: string) =>
 	str
-		.replace(/(\*|_|`|~|\\|<|>|\[|\]"|'|\(|\))/g, "\\$1")
+		.replace(/(\*|_|`|~|\\|<|>|\[|\]"|'|\(|\)|\/)/g, "\\$1")
 		.replace(/everyone/g, "every\u200bone")
 		.replace(/here/g, "he\u200bre"),
 );
