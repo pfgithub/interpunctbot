@@ -416,7 +416,7 @@ nr.globalCommand(
 								maximumSignificantDigits: 3,
 							},
 					  )
-					: "50%") +
+					: "No Votes") +
 				(over ? ", Voting ended." : "") +
 				")";
 			if (msg.content !== content) await msg.edit(content);
