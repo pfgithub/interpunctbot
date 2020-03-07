@@ -253,10 +253,15 @@ class Database {
 		await this._setJson("searchablePastebins", newLists); // otherlists.quote overrides quote therefore we don't need to parse out and set quote
 	}
 	async getAutoban(): Promise<NameScreeningField> {
-		return await this._getJson("nameScreening", []);
+		return await this._getJson(
+			"nameScreening2",
+			((await this._get("nameScreening")) || "")
+				.split(",")
+				.filter(q => q.trim()),
+		);
 	}
 	async setAutoban(newAutoban: NameScreeningField) {
-		return await this._setJson("nameScreening", newAutoban);
+		return await this._setJson("nameScreening2", newAutoban);
 	}
 	async getAutodeleteLimit(): Promise<number> {
 		return (await this._get("autodelete_limit")) || 10;
