@@ -29,7 +29,9 @@ nr.addDocsWebPage(
 {CmdSummary|autodelete remove}
 {CmdSummary|send}
 {CmdSummary|messages set welcome}
-{CmdSummary|messages set goodbye}`,
+{CmdSummary|messages remove welcome}
+{CmdSummary|messages set goodbye}
+{CmdSummary|messages remove goodbye}`,
 );
 
 // nr.globalCommand(
@@ -553,6 +555,56 @@ nr.globalCommand(
 );
 
 nr.globalCommand(
+	"/help/messages/remove-welcome",
+	"messages remove welcome",
+	{
+		usage: "messages remove welcome",
+		description: "disable the welcome message",
+		examples: [],
+	},
+	nr.list(),
+	async ([], info) => {
+		if (!info.db) {
+			return await info.docs("/errors/pms", "error");
+		}
+		if (!Info.theirPerm.manageBot) return;
+
+		const events = await info.db.getEvents();
+		events.userJoin = {
+			action: "none",
+		};
+		await info.db.setEvents(events);
+
+		await info.success("Welcome message removed.");
+	},
+);
+
+nr.globalCommand(
+	"/help/messages/remove-goodbye",
+	"messages remove goodbye",
+	{
+		usage: "messages remove goodbye",
+		description: "disable the goodbye message",
+		examples: [],
+	},
+	nr.list(),
+	async ([], info) => {
+		if (!info.db) {
+			return await info.docs("/errors/pms", "error");
+		}
+		if (!Info.theirPerm.manageBot) return;
+
+		const events = await info.db.getEvents();
+		events.userLeave = {
+			action: "none",
+		};
+		await info.db.setEvents(events);
+
+		await info.success("Goodbye message removed.");
+	},
+);
+
+nr.globalCommand(
 	"/help/messages/set-welcome",
 	"messages set welcome",
 	{
@@ -603,7 +655,7 @@ nr.globalCommand(
 		await info.db.setEvents(events);
 
 		await info.success(
-			"Goodbye message set. Here is an example of what might be sent to <#" +
+			"Welcome message set. Here is an example of what might be sent to <#" +
 				channel.id +
 				"> when someone joins:\n\n" +
 				message
