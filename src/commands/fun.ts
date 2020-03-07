@@ -117,7 +117,7 @@ nr.globalCommand(
 	"load",
 	{
 		usage: "load",
-		description: "Load",
+		description: "Fetch results",
 		examples: [],
 	},
 	nr.list(),

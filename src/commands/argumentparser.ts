@@ -1,9 +1,11 @@
 import * as Discord from "discord.js";
 
 import Info from "../Info";
+import * as nr from "../NewRouter";
 import { messages, safe } from "../../messages";
 
 import Fuse from "fuse.js";
+import { dgToDiscord } from "../parseDiscordDG";
 
 export type BaseArgType<S, T> = {
 	type: S;
@@ -88,9 +90,12 @@ type ArgumentType<T> = (
 	info: Info,
 	arg: undefined,
 	cmd: string,
-	index: number,
-	commandhelp: string,
-	argpurpose: string,
+	error: (
+		docsPage: string,
+		opts?: {
+			safeDetails?: string;
+		},
+	) => Promise<{ result: "exit" }>,
 ) => ArgumentParserResult<T>;
 
 export const a = {
@@ -154,18 +159,9 @@ export type ArgumentParserResult<T> = Promise<
 >;
 
 function ChannelArgumentType(): ArgumentType<Discord.GuildChannel> {
-	return async (info, arg, cmd, index, commandhelp, argpurpose) => {
+	return async (info, arg, cmd, error) => {
 		if (!cmd.trim()) {
-			await info.error(
-				messages.arguments.channel_arg_not_provided(
-					info,
-					cmd,
-					index,
-					commandhelp,
-					argpurpose,
-				),
-			);
-			return { result: "exit" };
+			return await error("/arg/channel/not-found");
 		}
 		if (!info.guild) {
 			await info.error(
@@ -175,29 +171,12 @@ function ChannelArgumentType(): ArgumentType<Discord.GuildChannel> {
 		}
 		const match = /^[\S\s]*?([0-9]{14,})[^\s]*\s*([\S\s]*)$/.exec(cmd);
 		if (!match) {
-			await info.error(
-				messages.arguments.channel_arg_not_provided(
-					info,
-					cmd,
-					index,
-					commandhelp,
-					argpurpose,
-				),
-			);
-			return { result: "exit" };
+			return await error("/arg/channel/not-found");
 		}
 		const [, channelID, remainingCmd] = match;
 		const channel = info.guild.channels.resolve(channelID);
 		if (!channel) {
-			await info.error(
-				messages.arguments.channel_not_found(
-					info,
-					channelID,
-					index,
-					commandhelp,
-				),
-			);
-			return { result: "exit" };
+			return await error("/arg/channel/not-found");
 		}
 		return {
 			result: "continue",
@@ -208,10 +187,9 @@ function ChannelArgumentType(): ArgumentType<Discord.GuildChannel> {
 }
 
 function UserArgumentType(): ArgumentType<Discord.User> {
-	return async (info, arg, cmd, index, commandhelp, argpurpose) => {
+	return async (info, arg, cmd, error) => {
 		if (!cmd.trim()) {
-			await info.error("user arg not provided");
-			return { result: "exit" };
+			return error("/arg/user/not-found");
 		}
 		if (!info.guild) {
 			await info.error(
@@ -221,14 +199,12 @@ function UserArgumentType(): ArgumentType<Discord.User> {
 		}
 		const match = /^[\S\s]*?([0-9]{14,})[^\s]*\s*([\S\s]*)$/.exec(cmd);
 		if (!match) {
-			await info.error("user arg not provided");
-			return { result: "exit" };
+			return error("/arg/user/not-found");
 		}
 		const [, userID, remainingCmd] = match;
 		const channel = info.message.client.users.resolve(userID);
 		if (!channel) {
-			await info.error("user not found");
-			return { result: "exit" };
+			return error("/arg/user/not-found");
 		}
 		return {
 			result: "continue",
@@ -239,10 +215,9 @@ function UserArgumentType(): ArgumentType<Discord.User> {
 }
 
 function EmojiArgumentType(): ArgumentType<Discord.GuildEmoji> {
-	return async (info, arg, cmd, index, commandhelp, argpurpose) => {
+	return async (info, arg, cmd, error) => {
 		if (!cmd.trim()) {
-			await info.docs("/arg/emoji/not-provided", "error");
-			return { result: "exit" };
+			return error("/arg/emoji/not-found");
 		}
 		if (!info.guild) {
 			await info.error(
@@ -254,22 +229,12 @@ function EmojiArgumentType(): ArgumentType<Discord.GuildEmoji> {
 			cmd,
 		);
 		if (!match) {
-			await info.docs("/arg/emoji/not-provided", "error"); // TODO give command usage too
-			return { result: "exit" };
+			return error("/arg/emoji/not-found");
 		}
 		const [, emojiID, remainingCmd] = match;
 		const emoji = info.guild.emojis.resolve(emojiID);
 		if (!emoji) {
-			await info.error(
-				messages.arguments.emoji_not_found(
-					info,
-					emojiID,
-					index,
-					commandhelp,
-					argpurpose,
-				),
-			);
-			return { result: "exit" };
+			return error("/arg/emoji/not-found");
 		}
 		return {
 			result: "continue",
@@ -280,31 +245,13 @@ function EmojiArgumentType(): ArgumentType<Discord.GuildEmoji> {
 }
 
 function WordArgumentType(): ArgumentType<string> {
-	return async (info, arg, cmd, index, commandhelp, argpurpose) => {
+	return async (info, arg, cmd, error) => {
 		if (!cmd.trim()) {
-			await info.error(
-				messages.arguments.word_arg_not_provided(
-					info,
-					cmd,
-					index,
-					commandhelp,
-					argpurpose,
-				),
-			);
-			return { result: "exit" };
+			return error("/arg/word/not-found");
 		}
 		const word = /^([\S]+)\s*([\S\s]*)/m.exec(cmd);
 		if (!word) {
-			await info.error(
-				messages.arguments.word_arg_not_provided(
-					info,
-					cmd,
-					index,
-					commandhelp,
-					argpurpose,
-				),
-			);
-			return { result: "exit" };
+			return error("/arg/word/not-found");
 		}
 		const [, result, newCmd] = word;
 		return { result: "continue", value: result, cmd: newCmd };
@@ -312,27 +259,33 @@ function WordArgumentType(): ArgumentType<string> {
 }
 
 function EnumArgumentType<T extends string>(options: T[]): ArgumentType<T> {
-	return async (info, arg, cmd, index, commandhelp, argpurpose) => {
+	return async (info, arg, cmd, error) => {
 		if (!cmd.trim()) {
-			await info.error(
-				"not provided. must be one of:" + options.join(","),
-			);
-			return { result: "exit" };
+			return error("/arg/enum/not-found", {
+				safeDetails:
+					"Expected " + options.map(o => safe(o)).join(" | ") + "",
+			});
 		}
 		const word = /^([\S]+)\s*([\S\s]*)/m.exec(cmd);
 		if (!word) {
-			await info.error(
-				"not provided. must be one of:" + options.join(","),
-			);
-			return { result: "exit" };
+			return error("/arg/enum/not-found", {
+				safeDetails:
+					"Expected " + options.map(o => safe(o)).join(" | ") + "",
+			});
 		}
 		const [, result, newCmd] = word;
 		const optionText = options.find(
 			option => result.toLowerCase() === option.toLowerCase(),
 		);
 		if (!optionText) {
-			await info.error("must be one of:" + options.join(","));
-			return { result: "exit" };
+			return error("/arg/enum/not-found", {
+				safeDetails:
+					"Expected " +
+					options.map(o => safe(o)).join(" | ") +
+					", got " +
+					safe(result) +
+					"",
+			});
 		}
 		return { result: "continue", value: optionText, cmd: newCmd };
 	};
@@ -341,19 +294,21 @@ function EnumArgumentType<T extends string>(options: T[]): ArgumentType<T> {
 function EnumNoSpaceArgumentType<T extends string>(
 	options: T[],
 ): ArgumentType<T> {
-	return async (info, arg, cmd, index, commandhelp, argpurpose) => {
+	return async (info, arg, cmd, error) => {
 		if (!cmd.trim()) {
-			await info.error(
-				"not provided. must be one of:" + options.join(","),
-			);
-			return { result: "exit" };
+			return error("/arg/enum/not-found", {
+				safeDetails:
+					"Expected " + options.map(o => safe(o)).join(" | ") + "",
+			});
 		}
 		const optionText = options.find(option =>
 			cmd.toLowerCase().startsWith(option.toLowerCase()),
 		);
 		if (!optionText) {
-			await info.error("must be one of:" + options.join(","));
-			return { result: "exit" };
+			return error("/arg/enum/not-found", {
+				safeDetails:
+					"Expected " + options.map(o => safe(o)).join(" | ") + "",
+			});
 		}
 		return {
 			result: "continue",
@@ -364,43 +319,17 @@ function EnumNoSpaceArgumentType<T extends string>(
 }
 
 function NumberArgumentType(): ArgumentType<number> {
-	return async (info, arg, cmd, index, commandhelp, argpurpose) => {
+	return async (info, arg, cmd, error) => {
 		if (!cmd.trim()) {
-			await info.error(
-				messages.arguments.num_arg_not_provided(
-					info,
-					cmd,
-					index,
-					commandhelp,
-					argpurpose,
-				),
-			);
-			return { result: "exit" };
+			return await error("/arg/number/not-found");
 		}
 		const wordval = /^([\S]+)\s*([\S\s]*)/m.exec(cmd);
 		if (!wordval) {
-			await info.error(
-				messages.arguments.num_arg_not_provided(
-					info,
-					cmd,
-					index,
-					commandhelp,
-					argpurpose,
-				),
-			);
-			return { result: "exit" };
+			return await error("/arg/number/not-found");
 		}
 		const [, num, newCmd] = wordval;
 		if (Number.isNaN(+num)) {
-			await info.error(
-				messages.arguments.num_is_nan(
-					info,
-					cmd,
-					index,
-					commandhelp,
-					argpurpose,
-				),
-			);
+			return await error("/arg/number/not-found");
 		}
 		return { result: "continue", value: +num, cmd: newCmd };
 	};
@@ -439,6 +368,7 @@ function DurationArgumentType(): ArgumentType<number> {
 		d: unit.day,
 		day: unit.day,
 		days: unit.day,
+		mo: unit.month,
 		month: unit.month,
 		months: unit.month,
 		y: unit.year,
@@ -451,7 +381,7 @@ function DurationArgumentType(): ArgumentType<number> {
 		qm: unit.qm,
 	};
 
-	return async (info, arg, cmd, index, commandhelp, argpurpose) => {
+	return async (info, arg, cmd, error) => {
 		if (!cmd.trim()) {
 			await info.docs("/errors/arg/duration/no-duration", "error");
 			return { result: "exit" };
@@ -480,8 +410,7 @@ function DurationArgumentType(): ArgumentType<number> {
 			const unitstr = /^[A-Za-z]+/.exec(rmderTemp);
 			if (!unitstr) {
 				if (!anyfound) {
-					await info.docs("/errors/arg/duration/bad-unit", "error");
-					return { result: "exit" };
+					return await error("/arg/duration/bad-unit");
 				}
 				break;
 			}
@@ -490,8 +419,7 @@ function DurationArgumentType(): ArgumentType<number> {
 
 			if (names[unitname] === undefined) {
 				if (!anyfound) {
-					await info.docs("/errors/arg/duration/bad-unit", "error");
-					return { result: "exit" };
+					return await error("/arg/duration/bad-unit");
 				}
 				break; // once again,
 				// ip!remindme 2 test
@@ -509,8 +437,7 @@ function DurationArgumentType(): ArgumentType<number> {
 		}
 		if (remainder.startsWith(",")) remainder = remainder.substr(1).trim();
 		if (!anyfound) {
-			await info.docs("/errors/arg/duration/no-duration", "error");
-			return { result: "exit" };
+			return await error("/arg/duration/not-found");
 		}
 
 		let nearestMS = Math.round(result);
@@ -520,38 +447,23 @@ function DurationArgumentType(): ArgumentType<number> {
 }
 
 function WordsArgumentType(): ArgumentType<string> {
-	return async (info, arg, cmd, index, commandhelp, argpurpose) => {
-		if (!cmd.trim() && (false as true)) {
-			await info.error(
-				messages.arguments.words_arg_not_provided(
-					info,
-					cmd,
-					index,
-					commandhelp,
-					argpurpose,
-				),
-			);
-			return { result: "exit" };
-		}
+	return async (info, arg, cmd, error) => {
 		return { result: "continue", value: cmd.trim(), cmd: "" };
 	};
 }
 
 function BacktickArgumentType(): ArgumentType<string> {
-	return async (info, arg, cmd, index, commandhelp, argpurpose) => {
-		if (!cmd.trim() && (false as true)) {
-			await info.docs(commandhelp, "usage");
-			return { result: "exit" };
+	return async (info, arg, cmd, error) => {
+		if (!cmd.trim()) {
+			return await error("/arg/backtick/not-found");
 		}
 		const rgxMatch = /^\`(.+?)\`(.+)$/.exec(cmd);
 		if (!rgxMatch) {
-			await info.docs(commandhelp, "usage");
-			return { result: "exit" };
+			return await error("/arg/backtick/not-found");
 		}
 		const [, backticked, final] = rgxMatch;
 		if (safe(backticked) !== backticked) {
-			await info.docs("/errors/arg/backtick/unsafe", "error");
-			return { result: "exit" };
+			return await error("/arg/backtick/unsafe");
 		}
 		return {
 			result: "continue",
@@ -564,18 +476,9 @@ function BacktickArgumentType(): ArgumentType<string> {
 function RoleArgumentType(
 	allowMultiple: boolean,
 ): ArgumentType<Discord.Role | Discord.Role[]> {
-	return async (info, arg, cmd, index, commandhelp, argpurpose) => {
+	return async (info, arg, cmd, error) => {
 		if (!cmd.trim()) {
-			await info.error(
-				messages.arguments.role_arg_not_provided(
-					info,
-					cmd,
-					index,
-					commandhelp,
-					argpurpose,
-				),
-			);
-			return { result: "exit" };
+			return await error("/arg/role/not-found");
 		}
 		if (!info.guild) {
 			await info.error(
@@ -585,16 +488,7 @@ function RoleArgumentType(
 		}
 		const rolename = cmd.trim();
 		if (!rolename) {
-			await info.error(
-				messages.arguments.role_arg_not_provided(
-					info,
-					cmd,
-					index,
-					commandhelp,
-					argpurpose,
-				),
-			);
-			return { result: "exit" };
+			return await error("/arg/role/not-found");
 		}
 		//eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
 		const roleID = (rolename
@@ -604,15 +498,7 @@ function RoleArgumentType(
 		if (roleID) {
 			const foundRole = info.guild.roles.resolve(roleID);
 			if (!foundRole) {
-				await info.error(
-					messages.arguments.role_name_not_provided(
-						info,
-						roleID,
-						index,
-						commandhelp,
-					),
-				);
-				return { result: "exit" };
+				return await error("/arg/role/not-found");
 			}
 			role = foundRole;
 		} else {
@@ -627,15 +513,12 @@ function RoleArgumentType(
 						cmd: "",
 					};
 				}
-				await info.error(
-					messages.arguments.multiple_roles_found(
-						info,
+				return await error("/arg/role/multiple-found", {
+					safeDetails: messages.arguments.multiple_roles_found(
 						rolename,
 						exactMatches,
-						commandhelp,
 					),
-				);
-				return { result: "exit" };
+				});
 			}
 			if (exactMatches.length === 0) {
 				const roleNameList = info.guild.roles.cache
@@ -652,15 +535,7 @@ function RoleArgumentType(
 				});
 				const results = fuse.search(rolename);
 				if (results.length === 0) {
-					await info.error(
-						messages.arguments.no_roles_found(
-							info,
-							rolename,
-							index,
-							commandhelp,
-						),
-					);
-					return { result: "exit" };
+					return await error("/arg/role/not-found");
 				} else if (results.length > 1) {
 					if (allowMultiple) {
 						return {
@@ -669,15 +544,12 @@ function RoleArgumentType(
 							cmd: "",
 						};
 					}
-					await info.error(
-						messages.arguments.multiple_roles_found_fuzzy(
-							info,
+					return await error("/arg/role/multiple-found", {
+						safeDetails: messages.arguments.multiple_roles_found_fuzzy(
 							rolename,
 							results,
-							commandhelp,
 						),
-					);
-					return { result: "exit" };
+					});
 				} else {
 					role = results[0];
 				}
@@ -686,7 +558,7 @@ function RoleArgumentType(
 			}
 		}
 		if (!role) {
-			throw new Error("This should never happen."); // should give people an error id and stuff
+			throw new Error("This should never happen."); // should give people an error id and stuff // just kidding! it doesn't because it happens in the argument parser.
 		}
 		return {
 			result: "continue",
@@ -729,9 +601,30 @@ export async function ArgumentParser<
 			info,
 			undefined,
 			cmd,
-			index,
-			help || "",
-			"", // not implemented yet :(
+			async (docs, other) => {
+				const docsPage = nr.globalDocs[docs];
+				if (!docsPage) {
+					await info.docs(docs, "error");
+					return { result: "exit" };
+				}
+
+				const pfx = other
+					? other.safeDetails
+						? other.safeDetails + "\n"
+						: ""
+					: "";
+				await info.error(
+					pfx +
+						dgToDiscord(docsPage.body, info) +
+						"\n" +
+						"> Command Help: <https://interpunct.info" +
+						help +
+						">\n> Error Details: <https://interpunct.info" +
+						docsPage.path +
+						">",
+				);
+				return { result: "exit" };
+			},
 		);
 		if (parseResult.result === "exit") {
 			return undefined;

@@ -132,7 +132,7 @@ export function addHelpDocsPage(
 				)
 				.join("\n{Nothing}\n"),
 		summaries: {
-			title: docsPath.substr(docsPath.lastIndexOf("/")),
+			title: docsPath.substr(docsPath.lastIndexOf("/") + 1),
 			usage: "{Command|" + help.usage + "|" + docsPath + "}",
 			description: help.description,
 		},
@@ -143,17 +143,17 @@ export function addErrorDocsPage(docsPath: string, error: ErrorData) {
 	addDocsPage(docsPath, {
 		body:
 			`{Title|Error}\n${error.overview}\n\n${error.detail}` +
-			"\n\n{Blockquote|More info: {LinkSummary|" +
+			"\n\nMore info: {LinkSummary|" +
 			error.mainPath +
-			"}}",
+			"}",
 		summaries: {
-			title: docsPath.substr(docsPath.lastIndexOf("/")),
+			title: docsPath.substr(docsPath.lastIndexOf("/") + 1),
 			usage: "no usage **error**?¿",
 			description:
-				error.overview +
-				"\n{Blockquote|More info: {LinkSummary|" +
+				error.overview.trim() +
+				"\n\nMore info: {LinkSummary|" +
 				error.mainPath +
-				"}}",
+				"}",
 		},
 	});
 }
