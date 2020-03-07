@@ -656,7 +656,7 @@ async function onMessage(msg: Discord.Message | Discord.PartialMessage) {
 
 let handlingCount = 0;
 client.on("message", msg => {
-	if (handlingCount > 10)
+	if (handlingCount > 100)
 		return console.log("Handling too many messages, skipping one.");
 	perr(
 		(async () => {

@@ -477,19 +477,25 @@ nr.globalCommand(
 		if (info.db ? !(await info.db.getFunEnabled()) : false) {
 			return await info.error(messages.fun.fun_disabled(info));
 		}
-		return await info.result(
-			`**Statistics**:
+		const now = new Date().getTime();
+		const msg = `**Statistics**:
 > **Servers**: ${info.message.client.guilds.cache.size} servers
 > **Uptime**: ${moment
-				.duration(new Date().getTime() - serverStartTime)
-				.format(
-					"y [years] M [months] w [weeks] d [days,] h[h]:mm[m]:s.SSS[s]",
-				)}
+			.duration(now - serverStartTime)
+			.format(
+				"y [years] M [months] w [weeks] d [days,] h[h]:mm[m]:s.SSS[s]",
+			)}
 > Took ${new Date().getTime() - info.other!.startTime}ms, handling ${
-				info.other!.infoPerSecond
-			} db requests per second`,
-			undefined,
-		);
+			info.other!.infoPerSecond
+		} db requests per second`;
+		const msgs = await info.result(msg, undefined);
+		if (msgs && msgs[0])
+			await msgs[0].edit(
+				msg +
+					"\n> **Took**: " +
+					durationFormat(msgs[0].createdAt.getTime() - now) +
+					" to send this message.",
+			);
 	},
 );
 
