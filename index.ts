@@ -306,8 +306,12 @@ async function unknownCommandHandler(cmd: string, info: Info) {
 }
 
 function updateActivity() {
-	const count = client.guilds.cache.size;
-	client.user && client.user.setActivity(`ip!help on ${count} servers`);
+	if (client.shard) {
+		client.user && client.user.setActivity(`ip!help on ??? servers`);
+	} else {
+		const count = client.guilds.cache.size;
+		client.user && client.user.setActivity(`ip!help on ${count} servers`);
+	}
 	// if(process.env.NODE_ENV !== "production") return; // only production should post
 	// let options = {
 	// 	url: `https://bots.discord.pw/api/bots/${config.bdpid}/stats`,
