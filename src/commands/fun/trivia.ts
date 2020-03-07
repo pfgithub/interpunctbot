@@ -200,11 +200,11 @@ nr.globalCommand(
 				}
 			}
 			const triviaMessageHeader = safe`Trivia questions from <https://opentdb.com/>
-		**Category**: ${decodeHTML(triviaQuestion.category)}
-		**Difficulty**: ${decodeHTML(triviaQuestion.difficulty)}`;
+**Category**: ${decodeHTML(triviaQuestion.category)}
+**Difficulty**: ${decodeHTML(triviaQuestion.difficulty)}`;
 			const gameMessage = await info.channel.send(
 				`${triviaMessageHeader}
-		> When the question appears, react with the correct answer before the time runs out.`,
+> When the question appears, react with the correct answer before the time runs out.`,
 			);
 
 			const playerResponses: {
@@ -254,32 +254,32 @@ nr.globalCommand(
 				gameMessage.edit(
 					triviaMessageHeader +
 						safe`
-		**Question**: ${decodeHTML(triviaQuestion.question)}
-		**Answers**:
-		${raw(
-			triviaChoices
-				.map(({ name, emoji }) => {
-					return `> ${emoji} - ${safe`${decodeHTML(name)}`}`;
-				})
-				.join("\n"),
-		)}
-		${raw(
-			state.state === "running"
-				? `**Time Left**: ${(
-						(startTime + 20000 - new Date().getTime()) /
-						1000
-				  ).toFixed(0)}s`
-				: `**Correct Answer**: ${
-						triviaChoices.find(
-							cd => cd.name === triviaQuestion.correct_answer,
-						)!.emoji
-				  } - ${safe`${decodeHTML(triviaQuestion.correct_answer)}`}
-		**Winners**: ${
-			state.winners.length === 0
-				? "*No one won*"
-				: state.winners.map(w => `<@${w}>`).join(", ")
-		}`,
-		)}`,
+**Question**: ${decodeHTML(triviaQuestion.question)}
+**Answers**:
+${raw(
+	triviaChoices
+		.map(({ name, emoji }) => {
+			return `> ${emoji} - ${safe`${decodeHTML(name)}`}`;
+		})
+		.join("\n"),
+)}
+${raw(
+	state.state === "running"
+		? `**Time Left**: ${(
+				(startTime + 20000 - new Date().getTime()) /
+				1000
+		  ).toFixed(0)}s`
+		: `**Correct Answer**: ${
+				triviaChoices.find(
+					cd => cd.name === triviaQuestion.correct_answer,
+				)!.emoji
+		  } - ${safe`${decodeHTML(triviaQuestion.correct_answer)}`}
+**Winners**: ${
+				state.winners.length === 0
+					? "*No one won*"
+					: state.winners.map(w => `<@${w}>`).join(", ")
+		  }`,
+)}`,
 				);
 
 			await updateResultMessage();
