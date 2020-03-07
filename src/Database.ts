@@ -388,7 +388,7 @@ class Database {
 			if (goodbyeMessage) {
 				const updmessage = goodbyeMessage
 					.split("%s")
-					.join("{Username}")
+					.join("{Name}")
 					.split("@s")
 					.join("{Mention}");
 				events.userLeave = {
