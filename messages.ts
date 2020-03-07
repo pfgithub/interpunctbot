@@ -68,14 +68,14 @@ Bot Info
 > [\`X\`] Clear log: \`ip!log reset\`
 > [\`X\`] Disable logging: \`ip!log disable\` (Any existing logs will be deleted)`,
 		emoji: `Emojis <https://interpunct.info/emojis>
-> [\`X\`] Restrict Emoji by Role: \`ip!emoji restrict \`<:emoji:629134046332583946>\` Role\` (Role name, id, or mention)
-> [\`X\`] Remove all restrictions from emoji: \`ip!emoji unrestrict \`<:emoji:629134046332583946>
-> [\`X\`] Remove one restriction from emoji: \`ip!emoji unrestrict \`<:emoji:629134046332583946>\` Role\`
-> [\`X\`] Inspect emoji: \`ip!emoji inspect \`<:emoji:629134046332583946>
+> [\`X\`] Restrict Emoji by Role: \`ip!emoji restrict \`<:emoji:685668888842993833>\` Role\` (Role name, id, or mention)
+> [\`X\`] Remove all restrictions from emoji: \`ip!emoji unrestrict \`<:emoji:685668888842993833>
+> [\`X\`] Remove one restriction from emoji: \`ip!emoji unrestrict \`<:emoji:685668888842993833>\` Role\`
+> [\`X\`] Inspect emoji: \`ip!emoji inspect \`<:emoji:685668888842993833>
 > [\` \`] Set channel for emoji ranking: \`ip!emojirank channel #channel\`
 > [\` \`] Disable emoji ranking: \`ip!emojirank disable\`
-> [\` \`] Add an emoji for emoji ranking: \`ip!emojirank add for=everyone|admins \`<:emoji:629134046332583946>\` Role\`
-> [\` \`] Remove an emoji for emoji ranking: \`ip!emojirank remove \`<:emoji:629134046332583946>`,
+> [\` \`] Add an emoji for emoji ranking: \`ip!emojirank add for=everyone|admins \`<:emoji:685668888842993833>\` Role\`
+> [\` \`] Remove an emoji for emoji ranking: \`ip!emojirank remove \`<:emoji:685668888842993833>`,
 		fun: `Fun <https://interpunct.info/fun>
 > [\`X\`] Disable fun: \`ip!fun disable\`
 > [\`X\`] Enable fun: \`ip!fun enable\` (Enabled by default)
@@ -290,7 +290,7 @@ ${Object.keys("lists")
 	emoji: {
 		failure: "<:failure_2:547081084710682643>",
 		restrict_usage: (info: Info) =>
-			`Usage: \`${info.prefix}emoji restrict\`<:emoji:629134046332583946>\` Role\`
+			`Usage: \`${info.prefix}emoji restrict\`<:emoji:685668888842993833>\` Role\`
 > Role can be a role name, id, or mention.
 > **More Info**: <https://interpunct.info/emoji>`,
 		could_not_find_emoji: (
