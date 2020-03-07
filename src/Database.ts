@@ -417,7 +417,7 @@ class Database {
 				events.userJoin = {
 					action: "message",
 					message: updmessage,
-					channel: "{SystemMessagesChannelID}",
+					channel: "{SystemMessagesChannel}",
 				};
 			} else {
 				events.userJoin = { action: "none" };
