@@ -80,3 +80,19 @@ node built
 ```
 
 and restart that to restart the bot
+
+## autoreloading docs
+
+run the build watcher
+
+```bash
+yarn build-watch
+```
+
+and this onchange script
+
+```bash
+onchange -k built/\*\*/\*.js -- fish -c "node built --gen-docs && serve docs -p 3001"
+```
+
+will restart the docs server every time a file is saved and the code rebuilds

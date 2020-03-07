@@ -19,5 +19,5 @@ nr.globalCommand(
 	nr.list(nr.a.backtick(), ...nr.a.words()),
 	async ([safecmdname, restext], info) => {
 		const safetext = stripMentions(restext);
-	}
+	},
 );
