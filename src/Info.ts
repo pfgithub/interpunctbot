@@ -440,12 +440,21 @@ export default class Info {
 		return this.errorAlways(...msg);
 	}
 	async errorAlways(...msg: MessageParametersType) {
-		const reactResult = await ilt(
-			this.message.react("508841130503438356"),
-			false,
-		);
-		if (reactResult.error) {
-			await ilt(this.message.react("❌"), false); // may fail, not a problem
+		const reactOrNot =
+			new Date().getTime() - this.message.createdAt.getTime() > 3000
+				? true
+				: this.message.channel.lastMessageID === this.message.id
+				? false
+				: true;
+
+		if (reactOrNot) {
+			const reactResult = await ilt(
+				this.message.react("508841130503438356"),
+				false,
+			);
+			if (reactResult.error) {
+				await ilt(this.message.react("❌"), false); // may fail, not a problem
+			}
 		}
 		let res;
 		if (
@@ -460,12 +469,20 @@ export default class Info {
 		return res;
 	}
 	async warn(...msg: MessageParametersType) {
-		const reactResult = await ilt(
-			this.message.react("508842207089000468"),
-			false,
-		);
-		if (reactResult.error) {
-			await ilt(this.message.react("⚠"), false); // may fail
+		const reactOrNot =
+			new Date().getTime() - this.message.createdAt.getTime() > 3000
+				? true
+				: this.message.channel.lastMessageID === this.message.id
+				? false
+				: true;
+		if (reactOrNot) {
+			const reactResult = await ilt(
+				this.message.react("508842207089000468"),
+				false,
+			);
+			if (reactResult.error) {
+				await ilt(this.message.react("⚠"), false); // may fail
+			}
 		}
 		let res;
 		if (
@@ -480,12 +497,20 @@ export default class Info {
 		return res;
 	}
 	async success(...msg: MessageParametersType) {
-		const reactResult = await ilt(
-			this.message.react("508840840416854026"),
-			false,
-		);
-		if (reactResult.error) {
-			await ilt(this.message.react("✅"), false); // may fail
+		const reactOrNot =
+			new Date().getTime() - this.message.createdAt.getTime() > 3000
+				? true
+				: this.message.channel.lastMessageID === this.message.id
+				? false
+				: true;
+		if (reactOrNot) {
+			const reactResult = await ilt(
+				this.message.react("508840840416854026"),
+				false,
+			);
+			if (reactResult.error) {
+				await ilt(this.message.react("✅"), false); // may fail
+			}
 		}
 		let res;
 		if (
