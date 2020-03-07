@@ -654,6 +654,10 @@ async function onMessage(msg: Discord.Message | Discord.PartialMessage) {
 	}
 }
 
+client.on("disconnect", () => {
+	console.log("Bot disconnected!");
+});
+
 let handlingCount = 0;
 client.on("message", msg => {
 	if (handlingCount > 100)
