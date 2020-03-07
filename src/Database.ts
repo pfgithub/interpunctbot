@@ -97,11 +97,12 @@ type Fields = {
 	quickrank?: string;
 	quickrank_limit?: number;
 	events?: string;
+	nameScreening2?: string;
 };
 
 type JSONFields = {
 	searchablePastebins: ListsField;
-	nameScreening: NameScreeningField;
+	nameScreening2: NameScreeningField;
 	autodelete: AutodeleteField;
 	quickrank: QuickrankField;
 	events: Events;
