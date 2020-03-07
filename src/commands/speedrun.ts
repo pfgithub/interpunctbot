@@ -39,7 +39,7 @@ nr.addDocsWebPage(
 	"/help/speedrun",
 	"Speedrun",
 	"speedrun.com integrations",
-	`{Heading|Speedrun}
+	`{Title|Speedrun}
 
 {Interpunct} has support for showing rules and times from {Link|https://speedrun.com}.
 

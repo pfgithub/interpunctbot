@@ -146,7 +146,7 @@ nr.addDocsWebPage(
 	"/help/customcommands",
 	"Custom Commands",
 	"custom commands config",
-	`{Heading|Custom Commands}
+	`{Title|Custom Commands}
 Currently, the only type of custom commands available in inter·punct are quote lists.
 
 {LinkSummary|/help/customcommands/quotes}
@@ -157,7 +157,7 @@ nr.addDocsWebPage(
 	"/help/customcommands/quotes",
 	"Quote Lists",
 	"create custom commands with a list of quotes",
-	`{Heading|Quote Lists}
+	`{Title|Quote Lists}
 {CmdSummary|lists list}
 {CmdSummary|lists add}
 {CmdSummary|lists edit}

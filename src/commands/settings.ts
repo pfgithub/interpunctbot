@@ -7,7 +7,7 @@ nr.addDocsWebPage(
 	"/help/configuration",
 	"Configuration",
 	"settings for some parts of inter·punct",
-	`{Heading|Configuration}
+	`{Title|Configuration}
 
 Some parts of {Interpunct} can be configured
 

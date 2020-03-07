@@ -4,7 +4,7 @@ nr.addDocsWebPage(
 	"/arg/emoji",
 	"Emoji Arg",
 	"Using Emojis in Commands",
-	`{Heading|Using Emojis in Commands}
+	`{Title|Using Emojis in Commands}
 Emojis can be used in commands by either using the emoji directly or by providing the emoji ID.
 
 {Heading|Examples}

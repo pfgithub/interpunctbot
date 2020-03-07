@@ -38,7 +38,7 @@ nr.addDocsWebPage(
 	"/help/quickrank",
 	"Quickrank",
 	"allow moderators to rank people quickly",
-	`{Heading|Quickrank}
+	`{Title|Quickrank}
 Quickrank can be set up to allow admins to rank people quickly on a server.
 
 After setup, you can run commands like this:
@@ -75,7 +75,7 @@ nr.addDocsWebPage(
 	"/help/quickrank/setup",
 	"Quickrank Setup",
 	"setup quickrank commands",
-	`{Heading|Advanced Setup}
+	`{Title|Advanced Setup}
 To set up a system like the example above, first each role must be given either a name,  emoji, or both, and then a chain of provides must be set up.
 
 {Bold|Names}:

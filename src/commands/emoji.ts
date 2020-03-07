@@ -7,7 +7,7 @@ nr.addDocsWebPage(
 	"/help/emoji",
 	"Emoji",
 	"commands for managing emoji",
-	`{Heading|Emoji}
+	`{Title|Emoji}
 
 {Interpunct} has the ability to restrict emojis so only people with certain roles can use them.
 

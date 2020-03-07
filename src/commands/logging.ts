@@ -10,7 +10,7 @@ nr.addDocsWebPage(
 	"/help/log",
 	"Logging",
 	"commands to manage a server message log (disabled by default)",
-	`{Heading|Logging}
+	`{Title|Logging}
 
 {Interpunct} has the ability to log all messages sent and edited in your server.
 

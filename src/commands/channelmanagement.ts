@@ -18,7 +18,7 @@ nr.addDocsWebPage(
 	"/help/channels",
 	"Channels",
 	"channel management",
-	`{Heading|Channels}
+	`{Title|Channels}
 
 {Interpunct} has a variety of channel management commands.
 

@@ -5,7 +5,7 @@ nr.addDocsWebPage(
 	"/help",
 	"Help",
 	"interpunct bot commands",
-	`{Heading|inter·punct bot}
+	`{Title|inter·punct bot}
 
 {LinkSummary|/help/configuration}
 {LinkSummary|/help/fun}
@@ -36,7 +36,7 @@ nr.addDocsWebPage(
 	"/updates/ipv3",
 	"ipv3 update",
 	"ipv3 update",
-	`{Heading|2020-03-07, Interpunct version 3}
+	`{Title|2020-03-07, Interpunct version 3}
 
 Adds many new things and improves the experience of some old things. There are still lots of messages that haven't been written yet or are slightly confusing, if you have any issues, ask on the {Link|https://interpunct.info/support|Support Server}.
 
@@ -70,7 +70,7 @@ nr.addDocsWebPage(
 	"/help/administration",
 	"Administration",
 	"commands to help administration",
-	`{Heading|Administration}
+	`{Title|Administration}
 
 {Interpunct} has a few commands for helping with administration
 

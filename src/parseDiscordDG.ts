@@ -72,10 +72,10 @@ const commands: {
 		},
 		html: (args, pageURL) => {
 			if (globalSummaryDepth > 0)
-				return rawhtml`<h3 class="title"><a href="${safehtml(
+				return rawhtml`<h3 class="heading"><a href="${safehtml(
 					pageURL,
 				)}">${args[0].safe}</a></h3>`;
-			return rawhtml`<h1 class="title">${args[0].safe}</h1>`;
+			return rawhtml`<h1 class="heading">${args[0].safe}</h1>`;
 		},
 		discord: (args, info) => {
 			return `==== **${args[0].safe}** ====`;
