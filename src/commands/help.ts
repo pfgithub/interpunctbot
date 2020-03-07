@@ -66,6 +66,13 @@ nr.addDocsWebPage(
 	"{Heading|Uh oh!}\n\n404 not found.",
 );
 
+nr.addErrorDocsPage("/errors/perm/manage-roles", {
+	overview: "You need permission to Manage Roles to use this command.",
+	detail:
+		"This command requires that you have the Manage Roles permission to use it.",
+	mainPath: "/errors/perm",
+});
+
 nr.addDocsWebPage(
 	"/help/administration",
 	"Administration",
