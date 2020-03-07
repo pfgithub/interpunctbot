@@ -198,6 +198,24 @@ nr.globalCommand(
 );
 
 nr.globalCommand(
+	"/help/fun/accept-all",
+	"accept all",
+	{
+		usage: "accept all",
+		description: "You made the right choice!",
+		examples: [],
+	},
+	nr.list(),
+	async ([], info) => {
+		if (info.db ? !(await info.db.getFunEnabled()) : false) {
+			return await info.error(messages.fun.fun_disabled(info));
+		}
+
+		await info.success("You made the right choice!");
+	},
+);
+
+nr.globalCommand(
 	"/help/fun/vdb",
 	"vdb",
 	{
@@ -378,16 +396,27 @@ nr.globalCommand(
 		]);
 
 		async function editMessage(over?: boolean) {
-			const upvotes = msg.reactions.resolve("674675568993894412")?.count;
-			const downvotes = msg.reactions.resolve("674675569404674059")
-				?.count;
-			const voteCount = (upvotes || 0) - (downvotes || 0);
+			const upvotes =
+				(msg.reactions.resolve("674675568993894412")?.count || 1) - 1;
+			const downvotes =
+				(msg.reactions.resolve("674675569404674059")?.count || 1) - 1;
+			const voteCount = upvotes - downvotes;
 			const content =
 				"VOTE: " +
 				safe`${cmd}` +
 				" (Votes: " +
 				(voteCount > 0 ? "+" : "") +
 				voteCount.toLocaleString("en-US") +
+				", " +
+				(upvotes + downvotes > 0
+					? (upvotes / (upvotes + downvotes)).toLocaleString(
+							"en-US",
+							{
+								style: "percent",
+								maximumSignificantDigits: 3,
+							},
+					  )
+					: "50%") +
 				(over ? ", Voting ended." : "") +
 				")";
 			if (msg.content !== content) await msg.edit(content);

@@ -612,7 +612,7 @@ async function onMessage(msg: Discord.Message | Discord.PartialMessage) {
 		const allPrefixes = [
 			"<@" + client.user!.id + ">",
 			"<@!" + client.user!.id + ">",
-			"ip!",
+			...(!info.db ? ["ip!"] : ""),
 			info.db ? await info.db.getPrefix() : "",
 		];
 		const matchingPrefix = allPrefixes.find(prefix =>
