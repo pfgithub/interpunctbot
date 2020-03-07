@@ -516,7 +516,7 @@ async function guildLog(id: string, log: string) {
 
 let msgid = 0;
 async function onMessage(msg: Discord.Message | Discord.PartialMessage) {
-	let myid = msgid++;
+	const myid = msgid++;
 	console.log(myid + " start");
 
 	if (msg.partial) {
@@ -658,8 +658,20 @@ async function onMessage(msg: Discord.Message | Discord.PartialMessage) {
 	console.log(myid + " done");
 }
 
+let handlingCount = 0;
 client.on("message", msg => {
-	perr(onMessage(msg), "on message");
+	if (handlingCount > 10)
+		return console.log("Handling too many messages, skipping one.");
+	perr(
+		(async () => {
+			handlingCount++;
+			try {
+				await onMessage(msg);
+			} catch (e) {}
+			handlingCount--;
+		})(),
+		"on message",
+	);
 });
 
 async function onMessageUpdate(
