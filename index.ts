@@ -670,12 +670,12 @@ client.on("message", msg => {
 		(async () => {
 			const myid = msgid++;
 			handlingCount++;
-			console.log(myid + " start (handling " + handlingCount + ")");
+			// console.log(myid + " start (handling " + handlingCount + ")");
 			try {
 				await onMessage(msg);
 			} catch (e) {}
 			handlingCount--;
-			console.log(myid + " done (handling " + handlingCount + ")");
+			// console.log(myid + " done (handling " + handlingCount + ")");
 		})(),
 		"on message",
 	);
