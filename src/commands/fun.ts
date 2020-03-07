@@ -439,6 +439,26 @@ nr.globalCommand(
 );
 
 nr.globalCommand(
+	"/help/fun/snek",
+	"snek",
+	{
+		usage: "snek",
+		description: "snek",
+		examples: [],
+	},
+	nr.list(),
+	async ([], info) => {
+		if (info.db ? !(await info.db.getFunEnabled()) : false) {
+			return await info.error(messages.fun.fun_disabled(info));
+		}
+
+		return await info.result(
+			"<:snakehead:417047491062661134> <:donotridesnake:413753981186342923>",
+		);
+	},
+);
+
+nr.globalCommand(
 	"/help/fun/stats",
 	"stats",
 	{
