@@ -497,7 +497,7 @@ nr.globalCommand(
 			await msgs[0].edit(
 				msg +
 					"\n> **Took**: " +
-					durationFormat(msgs[0].createdAt.getTime() - now) +
+					durationFormat(now - msgs[0].createdAt.getTime()) +
 					" to send this message.",
 			);
 	},
