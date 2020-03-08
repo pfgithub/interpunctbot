@@ -29,6 +29,7 @@ import {
 	findAllProvidedRoles,
 	getRankSuccessMessage,
 } from "./src/commands/role";
+import { getGuilds } from "./src/ShardHelper";
 
 mdf(moment as any);
 
@@ -305,13 +306,9 @@ async function unknownCommandHandler(cmd: string, info: Info) {
 	} // else do nothing
 }
 
-function updateActivity() {
-	if (client.shard) {
-		client.user && client.user.setActivity(`ip!help on ??? servers`);
-	} else {
-		const count = client.guilds.cache.size;
-		client.user && client.user.setActivity(`ip!help on ${count} servers`);
-	}
+async function updateActivity() {
+	const count = await getGuilds(client);
+	client.user && client.user.setActivity(`ip!help on ${count} servers`);
 	// if(process.env.NODE_ENV !== "production") return; // only production should post
 	// let options = {
 	// 	url: `https://bots.discord.pw/api/bots/${config.bdpid}/stats`,
@@ -332,10 +329,10 @@ export function shouldIgnore(user: Discord.User) {
 client.on("ready", () => {
 	global.console.log("Ready");
 	serverStartTime = new Date().getTime();
-	updateActivity();
+	perr(updateActivity(), "activity update");
 });
 
-setInterval(updateActivity, 1 * 1000); // update every 1 min
+setInterval(() => perr(updateActivity(), "activity update"), 2 * 1000); // update every 2 min
 
 function streplace(str: string, eplace: { [key: string]: string }) {
 	const uids: { [key: string]: string } = {};
@@ -518,7 +515,7 @@ async function guildLog(id: string, log: string) {
 	);
 }
 
-let msgid = 0;
+const msgid = 0;
 async function onMessage(msg: Discord.Message | Discord.PartialMessage) {
 	if (msg.partial) {
 		// partial is not supported
@@ -668,7 +665,7 @@ client.on("message", msg => {
 		return console.log("Handling too many messages, skipping one.");
 	perr(
 		(async () => {
-			const myid = msgid++;
+			// const myid = msgid++;
 			handlingCount++;
 			// console.log(myid + " start (handling " + handlingCount + ")");
 			try {

@@ -43,7 +43,7 @@ nr.globalCommand(
 	"restart",
 	{
 		usage: "restart",
-		description: "restart the bot",
+		description: "restart the shard",
 		examples: [],
 	},
 	nr.list(),

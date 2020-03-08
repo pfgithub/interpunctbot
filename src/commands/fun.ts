@@ -10,6 +10,7 @@ import "./fun/gamelibgames";
 import "./fun/goi";
 import { createTimer } from "./fun/helpers";
 import "./fun/trivia";
+import { getGuilds } from "../ShardHelper";
 
 nr.addDocsWebPage(
 	"/help/fun",
@@ -477,9 +478,12 @@ nr.globalCommand(
 		if (info.db ? !(await info.db.getFunEnabled()) : false) {
 			return await info.error(messages.fun.fun_disabled(info));
 		}
+		const totalServers = await getGuilds(info.message.client);
 		const now = new Date().getTime();
 		const msg = `**Statistics**:
-> **Servers**: ${info.message.client.guilds.cache.size} servers
+> **Servers**: ${totalServers} total, ${
+			info.message.client.guilds.cache.size
+		} on this shard.
 > **Uptime**: ${moment
 			.duration(now - serverStartTime)
 			.format(

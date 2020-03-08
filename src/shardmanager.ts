@@ -7,16 +7,11 @@ if (!globalConfig.token)
 	);
 const manager = new ShardingManager("built/index.js", {
 	token: globalConfig.token,
-	totalShards: 10,
+	totalShards: 5,
 });
 
 manager.spawn().catch(e => console.log("spawn error", e));
-manager.on("shardCreate", shard => console.log(`Launched shard ${shard.id}`));
-
-// bot script
-// ^ todo bundle files into a single js file? maybe?
-
-// .broadcast
-// .fetchClientValues
-
-// what if sharding is over multiple servers? it isn't so that doesn't matter
+manager.on("shardCreate", shard => {
+	console.log(`Launched shard ${shard.id}`);
+	// shard.
+});
