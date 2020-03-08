@@ -4,6 +4,7 @@ import { TimedEvents } from "./src/TimedEvents";
 import { promises as fs } from "fs";
 import path from "path";
 import { durationFormat } from "./src/durationFormat";
+import { initHelper } from "./src/ShardHelper";
 const client = new Discord.Client({
 	disableMentions: "everyone",
 	partials: ["REACTION"],
@@ -87,6 +88,10 @@ client.on("ready", () => {
 		await channel.send(event.message);
 		return "handled";
 	});
+
+	if (client.shard) {
+		initHelper(client.shard, timedEvents);
+	}
 });
 
 export default client;

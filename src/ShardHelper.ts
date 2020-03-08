@@ -1,4 +1,5 @@
 import * as Discord from "discord.js";
+import { TimedEvents } from "./TimedEvents";
 
 export async function getGuilds(client: Discord.Client) {
 	if (!client.shard) return client.guilds.cache.size;
@@ -15,6 +16,9 @@ async function sendPM(userID: number, message: string) {}
 
 async function sendError(message: string) {}
 
-function initHelper(shard: Discord.ShardClientUtil) {
-	// shard.
+export function initHelper(
+	shard: Discord.ShardClientUtil,
+	timedEvents: TimedEvents,
+) {
+	// shard‽ ⨹
 }

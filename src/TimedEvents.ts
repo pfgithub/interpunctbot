@@ -56,6 +56,7 @@ export class TimedEvents {
 		await this.startNext();
 	}
 	async queue(event: EventData | EventData[], time: number) {
+		if (time > Number.MAX_SAFE_INTEGER) return; // no need to waste time on these.
 		// add to db
 		const eventfixed = Array.isArray(event) ? event : [event];
 		const insertedResult = await globalKnex!<SqlEvent>(
@@ -70,7 +71,7 @@ export class TimedEvents {
 			await this.client.shard.send({
 				action: "queueEvent",
 				event: { event: eventfixed, time, id },
-			});
+			}); // huh interesting
 		this._queueNoAdd({
 			event: eventfixed,
 			time,
