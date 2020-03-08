@@ -53,6 +53,9 @@ export class TextBuilder {
 				output += str;
 			}
 		});
+		if (output.length > 2000) {
+			output = `${output.substring(0, 2000 - 3)}...`;
+		}
 		return output;
 	}
 }
@@ -159,9 +162,9 @@ ${field.description.build()}`;
 		if (this._fields.length > 25) {
 			useEmbed = false;
 		}
-		if (msg.length > 2000) {
-			msg = `${msg.substring(0, 2000 - 3)}...`;
-		}
+		// if (msg.length > 2000) {
+		// 	msg = `${msg.substring(0, 2000 - 3)}...`;
+		// }
 
 		// if we handled sending the message we could auto retry with no embed
 
