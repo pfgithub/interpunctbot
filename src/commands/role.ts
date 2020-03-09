@@ -563,7 +563,7 @@ nr.globalCommand(
 			}
 		}
 
-		await info.startLoading();
+		// await info.startLoading();
 		await reciever.roles.add(discordRolesToGive);
 
 		await info.message.channel.send(
