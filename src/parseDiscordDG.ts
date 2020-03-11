@@ -206,7 +206,7 @@ const commands: {
 		confirm: args => assert.equal(args.length, 1),
 		html: args =>
 			rawhtml`<img src="${safehtml(args[0].raw)}" class="sizimg" />`,
-		discord: args => `screenshot: <${args[0].safe}>`,
+		discord: args => `screenshot: <${encodeURI(args[0].raw)}>`,
 	},
 	Emoji: {
 		confirm: args => {

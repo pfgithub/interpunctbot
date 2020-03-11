@@ -329,6 +329,72 @@ nr.globalCommand(
 	},
 );
 
+nr.addDocsWebPage(
+	"/help/tutorial",
+	"tutorials",
+	"tutorials",
+	`{Title|Tutorials}
+{LinkSummary|/help/tutorial/cube}`,
+);
+
+nr.addDocsWebPage(
+	"/help/tutorial/cube",
+	"cube",
+	"making a cube in blender",
+	`{Title|Making a cube in blender}
+Making cubes in blender is easy and fun!
+
+{Screenshot|https://i.imgur.com/HXoUOPN.png}
+
+Start by downloading and installing blender (any version above 2.8). Open blender and create a new project. Next, switch to the cycles renderer.
+
+{Screenshot|https://i.imgur.com/ukrXL1F.png}
+
+Now it's time to modify your cube. Select your cube and navigate to the materials tab.
+
+{Screenshot|https://i.imgur.com/0qMb8cO.png}
+
+Try changing around some of the settings. You will notice that nothing changes. This is because your cube is being rendered in solid mode. To view the real material, switch to rendered mode.
+
+{Screenshot|https://i.imgur.com/VLMgLkF.png}
+
+Now you can see the cube and material changes, but everything will be noisy. If you get tired of the noise, you can switch back to solid mode.
+
+It's time to make a floor. Click the add button and select mesh > cube to add another cube or plane.
+
+{Screenshot|https://i.imgur.com/bmkiRGL.png}
+
+Move and resize this cube into a floor using the tools on the side.
+
+{Screenshot|https://i.imgur.com/5ouoDNF.png}
+
+Congratulations, you have completed the tutorial. All that is left now is to render your cube by pressing F12. To preview how it will look before rendering, press Numpad0.
+
+{Screenshot|https://i.imgur.com/KnYCPJW.png}
+
+Looking a bit noisy? Enable denoise in the Layer Properties tab. Taking too long? Decrease the resolution in the Output Properties tab.`,
+);
+
+nr.globalCommand(
+	"/help/fun/cube",
+	"cube",
+	{
+		usage: "cube",
+		description: "cube",
+		examples: [],
+	},
+	nr.list(),
+	async ([], info) => {
+		if (info.db ? !(await info.db.getFunEnabled()) : false) {
+			return await info.error(messages.fun.fun_disabled(info));
+		}
+
+		await info.result(
+			"https://i.imgur.com/HXoUOPN.png\n\n> For more info on making cubes, ip!tutorial cube",
+		);
+	},
+);
+
 nr.globalCommand(
 	"/help/fun/vote2",
 	"vote2",
