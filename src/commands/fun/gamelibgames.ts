@@ -15,6 +15,6 @@ nr.globalCommand(
 			},
 		],
 	},
-	nr.list(...nr.a.words()),
+	nr.passthroughArgs,
 	connect4,
 );

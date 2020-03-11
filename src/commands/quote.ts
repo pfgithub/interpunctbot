@@ -277,7 +277,7 @@ nr.globalCommand(
 			},
 		],
 	},
-	nr.list(...nr.a.words()),
+	nr.passthroughArgs,
 	async ([cmd], info) => {
 		if (!Info.theirPerm.manageBot(info)) return;
 		return await addOrEditList(true, cmd, info);
@@ -302,7 +302,7 @@ nr.globalCommand(
 			},
 		],
 	},
-	nr.list(...nr.a.words()),
+	nr.passthroughArgs,
 	async ([cmd], info) => {
 		if (!Info.theirPerm.manageBot(info)) return;
 		return await addOrEditList(false, cmd, info);
@@ -322,7 +322,7 @@ nr.globalCommand(
 			},
 		],
 	},
-	nr.list(...nr.a.words()),
+	nr.passthroughArgs,
 	async ([listName], info) => {
 		// there's not much purpose to a distinction between add and edit...
 		if (!info.db) {

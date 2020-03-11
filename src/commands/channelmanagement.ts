@@ -47,7 +47,7 @@ nr.addDocsWebPage(
 // 			},
 // 		],
 // 	},
-// 	nr.list(...nr.a.words()),
+// 	nr.passthroughArgs,
 // 	async ([messageLink], info) => {
 // 		// fetch message from the link
 // 		// confirm("are you sure")
@@ -283,7 +283,7 @@ nr.globalCommand(
 		description: "list all autodelete rules on this server",
 		examples: [],
 	},
-	nr.list(...nr.a.words()),
+	nr.passthroughArgs,
 	async ([cmd], info) => {
 		if (!Info.theirPerm.manageChannels(info)) return;
 		if (!info.db) {
@@ -321,7 +321,7 @@ nr.globalCommand(
 			"remove an autodelete rule. use {Command|autodelete list} to list.",
 		examples: [],
 	},
-	nr.list(...nr.a.words()),
+	nr.passthroughArgs,
 	async ([cmd], info) => {
 		if (!Info.theirPerm.manageChannels(info)) return;
 		if (!info.db) {
@@ -394,7 +394,7 @@ nr.globalCommand(
 {UsageSummary|/help/autodelete/add/role}`,
 		examples: [],
 	},
-	nr.list(...nr.a.words()),
+	nr.passthroughArgs,
 	async ([cmd], info) => {
 		if (!Info.theirPerm.manageChannels(info)) return;
 		if (!Info.ourPerm.manageMessages(info)) return;
@@ -469,7 +469,7 @@ nr.globalCommand(
 			},
 		],
 	},
-	nr.list(...nr.a.words()),
+	nr.passthroughArgs,
 	async ([cmd], info) => {
 		if (!Info.theirPerm.manageChannels(info)) return;
 

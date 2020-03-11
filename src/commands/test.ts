@@ -74,7 +74,7 @@ nr.globalCommand(
 			},
 		],
 	},
-	nr.list(...nr.a.words()),
+	nr.passthroughArgs,
 	async ([cmd], info) => {
 		cmd = cmd.replace(/(^\`|\`$)/g, "").trim();
 		if (cmd === "client.guilds.cache.size")

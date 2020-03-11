@@ -163,7 +163,7 @@ nr.globalCommand(
 		description: "unrestrict an emoji so anyone can use it",
 		examples: [],
 	},
-	nr.list(...nr.a.words()),
+	nr.passthroughArgs,
 	async ([cmd], info) => {
 		if (!Info.theirPerm.manageEmoji(info)) return;
 		if (!Info.ourPerm.manageEmoji(info)) return;

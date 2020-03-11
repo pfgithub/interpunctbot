@@ -183,7 +183,7 @@ nr.globalCommand(
 		description: "Plays a song in a fake music player",
 		examples: [],
 	},
-	nr.list(...nr.a.words()),
+	nr.passthroughArgs,
 	async ([cmd], info) => {
 		if (info.db ? !(await info.db.getFunEnabled()) : false) {
 			return await info.error(messages.fun.fun_disabled(info));
@@ -224,7 +224,7 @@ nr.globalCommand(
 		description: "runs a command in the vdb debugger",
 		examples: [],
 	},
-	nr.list(...nr.a.words()),
+	nr.passthroughArgs,
 	async ([cmd], info) => {
 		if (info.db ? !(await info.db.getFunEnabled()) : false) {
 			return await info.error(messages.fun.fun_disabled(info));
@@ -280,7 +280,7 @@ nr.globalCommand(
 			},
 		],
 	},
-	nr.list(...nr.a.words()),
+	nr.passthroughArgs,
 	async ([cmd], info) => {
 		if (info.db ? !(await info.db.getFunEnabled()) : false) {
 			return await info.error(messages.fun.fun_disabled(info));
@@ -337,7 +337,7 @@ nr.globalCommand(
 		description: "allows other people to vote on your message",
 		examples: [],
 	},
-	nr.list(...nr.a.words()),
+	nr.passthroughArgs,
 	async ([cmd], info) => {
 		if (info.db ? !(await info.db.getFunEnabled()) : false) {
 			return await info.error(messages.fun.fun_disabled(info));
@@ -374,7 +374,7 @@ nr.globalCommand(
 			},
 		],
 	},
-	nr.list(...nr.a.words()),
+	nr.passthroughArgs,
 	async ([cmd], info) => {
 		if (info.db ? !(await info.db.getFunEnabled()) : false) {
 			return await info.error(messages.fun.fun_disabled(info));
@@ -517,7 +517,7 @@ nr.globalCommand(
 			},
 		],
 	},
-	nr.list(...nr.a.words()),
+	nr.passthroughArgs,
 	async ([cmd], info) => {
 		if (info.db ? !(await info.db.getFunEnabled()) : false) {
 			return await info.error(messages.fun.fun_disabled(info));
@@ -611,7 +611,7 @@ nr.globalCommand(
 			},
 		],
 	},
-	nr.list(...nr.a.words()),
+	nr.passthroughArgs,
 	async ([cmd], info) => {
 		if (info.db ? !(await info.db.getFunEnabled()) : false) {
 			return await info.error(messages.fun.fun_disabled(info));

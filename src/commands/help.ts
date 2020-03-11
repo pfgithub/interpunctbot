@@ -134,7 +134,7 @@ nr.globalCommand(
 		description: "Bot help",
 		examples: [],
 	},
-	nr.list(...nr.a.words()),
+	nr.passthroughArgs,
 	async ([cmd], info) => {
 		const autoResolution = "/help/" + (cmd || "").split(" ").join("/");
 

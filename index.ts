@@ -97,7 +97,7 @@ nr.globalCommand(
 		description: "depricated",
 		examples: [],
 	},
-	nr.list(...nr.a.words()),
+	nr.passthroughArgs,
 	async ([], info) => {
 		perr(info.message.delete(), "Deleting original message for spoiler");
 		// if(er) send message...

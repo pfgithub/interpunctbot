@@ -31,7 +31,7 @@ nr.globalCommand(
 			},
 		],
 	},
-	nr.list(...nr.a.words()),
+	nr.passthroughArgs,
 	async ([cmd], info) => {
 		if (!Info.theirPerm.manageBot(info)) return;
 
@@ -141,7 +141,7 @@ nr.globalCommand(
 			},
 		],
 	},
-	nr.list(...nr.a.words()),
+	nr.passthroughArgs,
 	async ([words], info) => {
 		if (!Info.theirPerm.banMembers(info)) return;
 		if (!Info.theirPerm.manageBot(info)) return;

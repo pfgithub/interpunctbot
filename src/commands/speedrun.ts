@@ -223,7 +223,7 @@ nr.globalCommand(
 		description: "Get the current speedrun world record holder",
 		examples: [],
 	},
-	nr.list(...nr.a.words()),
+	nr.passthroughArgs,
 	async ([cmd], info) => {
 		await info.startLoading();
 		await displayLeaderboard(1, cmd, info);
@@ -260,7 +260,7 @@ nr.globalCommand(
 		description: "Get the speedrun rules",
 		examples: [],
 	},
-	nr.list(...nr.a.words()),
+	nr.passthroughArgs,
 	async ([cmd], info) => {
 		const startTime = ctime();
 		await info.startLoading();
