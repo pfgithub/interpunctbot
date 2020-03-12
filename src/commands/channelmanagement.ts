@@ -291,7 +291,12 @@ nr.globalCommand(
 				messages.failure.command_cannot_be_used_in_pms(info),
 			);
 		}
-		const ap = await AP({ info, cmd, partial: true });
+		const ap = await AP({
+			info,
+			cmd,
+			partial: true,
+			help: "/help/autodelete/list",
+		});
 		if (!ap) return;
 		const autodelete = await info.db.getAutodelete();
 		return await info.result(
@@ -329,7 +334,10 @@ nr.globalCommand(
 				messages.failure.command_cannot_be_used_in_pms(info),
 			);
 		}
-		const ap = await AP({ info, cmd, partial: true }, a.number());
+		const ap = await AP(
+			{ info, cmd, partial: true, help: "/help/autodelete/remove" },
+			a.number(),
+		);
 		if (!ap) return;
 		const [id] = ap.result;
 		await info.db.removeAutodelete(id);
@@ -404,7 +412,7 @@ nr.globalCommand(
 			);
 		}
 		const ap = await AP(
-			{ info, cmd, partial: true },
+			{ info, cmd, partial: true, help: "/help/autodelete/add" },
 			a.duration(),
 			a.enum("prefix", "user", "channel", "role"),
 		);
@@ -418,17 +426,26 @@ nr.globalCommand(
 			if (!prefix) return await info.error("Expected prefix bad");
 			autodeleteInfo = { type: "prefix", prefix, duration };
 		} else if (mode === "user") {
-			const ap = await AP({ info, cmd }, a.user());
+			const ap = await AP(
+				{ info, cmd, help: "/help/autodelete/add/user" },
+				a.user(),
+			);
 			if (!ap) return;
 			const [user] = ap.result;
 			autodeleteInfo = { type: "user", user: user.id, duration };
 		} else if (mode === "channel") {
-			const ap = await AP({ info, cmd }, a.channel());
+			const ap = await AP(
+				{ info, cmd, help: "/help/autodelete/add/channel" },
+				a.channel(),
+			);
 			if (!ap) return;
 			const [channel] = ap.result;
 			autodeleteInfo = { type: "channel", channel: channel.id, duration };
 		} else if (mode === "role") {
-			const ap = await AP({ info, cmd }, ...a.role());
+			const ap = await AP(
+				{ info, cmd, help: "/help/autodelete/add/role" },
+				...a.role(),
+			);
 			if (!ap) return;
 			const [role] = ap.result;
 			autodeleteInfo = { type: "role", role: role.id, duration };

@@ -637,7 +637,11 @@ nr.globalCommand(
 		if (info.db ? !(await info.db.getFunEnabled()) : false) {
 			return await info.error(messages.fun.fun_disabled(info));
 		}
-		const ap = await AP({ cmd, info }, a.duration(), ...a.words());
+		const ap = await AP(
+			{ cmd, info, help: "/help/fun/remindme" },
+			a.duration(),
+			...a.words(),
+		);
 		if (!ap) return;
 		const [delay, message] = ap.result;
 		const restime = new Date().getTime() + delay;

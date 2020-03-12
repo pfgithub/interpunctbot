@@ -589,7 +589,7 @@ export async function ArgumentParser<
 		cmd,
 		help,
 		partial,
-	}: { info: Info; cmd: string; help?: string; partial?: boolean },
+	}: { info: Info; cmd: string; help: string; partial?: boolean },
 	...schema: ArgTypes
 ): Promise<
 	| { result: ArgTypeArrayToReturnType<ArgTypes>; remaining: string }
