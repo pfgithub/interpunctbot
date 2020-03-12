@@ -92,10 +92,10 @@ nr.globalCommand(
 			return await info.error(messages.fun.fun_disabled(info));
 		}
 
-		const item = Math.floor(Math.random() * 200);
+		const item = Math.floor(Math.random() * 190);
 		await info.result(
 			"Find the needle (|):\n" +
-				new Array(200)
+				new Array(190)
 					.fill("")
 					.map((_, i) => (i === item ? "|||||" : "|| ||"))
 					.join(""),
