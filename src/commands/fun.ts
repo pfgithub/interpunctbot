@@ -124,9 +124,9 @@ nr.globalCommand(
 **=============== 🥇 =================**
   Congratulations ${user.toString()},
                You have been granted the award:
-${" ".repeat(Math.max(39 - award.length, 0))}**${safe(award)}**
+${" ".repeat(Math.max(43 - award.length, 0))}**${safe(award)}**
             for all your dedication and hard work!
-**==================================**`,
+**===================================**`,
 		);
 	},
 );
