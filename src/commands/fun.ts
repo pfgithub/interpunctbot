@@ -412,10 +412,7 @@ nr.globalCommand(
 		if (!cmd) {
 			return await info.docs("/help/fun/vote2", "usage");
 		}
-		await Promise.all([
-			info.message.react("674675568993894412"),
-			info.message.react("674675569404674059"),
-		]);
+		await Promise.all([info.message.react("👍"), info.message.react("👎")]);
 	},
 );
 
@@ -447,10 +444,7 @@ nr.globalCommand(
 		}
 
 		const msg = await info.channel.send("VOTE: " + safe`${cmd}`);
-		await Promise.all([
-			msg.react("674675568993894412"),
-			msg.react("674675569404674059"),
-		]);
+		await Promise.all([msg.react("👍"), msg.react("👎")]);
 
 		let endhandler: () => void = () => {
 			throw new Error("end not handled");
@@ -463,10 +457,8 @@ nr.globalCommand(
 		]);
 
 		async function editMessage(over?: boolean) {
-			const upvotes =
-				(msg.reactions.resolve("674675568993894412")?.count || 1) - 1;
-			const downvotes =
-				(msg.reactions.resolve("674675569404674059")?.count || 1) - 1;
+			const upvotes = (msg.reactions.resolve("👍")?.count || 1) - 1;
+			const downvotes = (msg.reactions.resolve("👎")?.count || 1) - 1;
 			const voteCount = upvotes - downvotes;
 			const content =
 				"VOTE: " +
@@ -494,7 +486,10 @@ nr.globalCommand(
 
 		const rxnh = info.handleReactions(
 			msg,
-			async () => countdown.reset(),
+			async () => {
+				countdown.reset();
+				//adviseMessageUpdate();
+			},
 			// if downvote && user upvoted, remove upvote
 			// if upvote && user downvoted, remove downvote
 		);

@@ -20,6 +20,65 @@ nr.globalCommand(
 );
 
 nr.globalCommand(
+	"/help/test/success",
+	"success",
+	{
+		usage: "success",
+		description:
+			"{Emoji|success} succeed. Note that success may return failure if it is passed any arguments.",
+		examples: [],
+	},
+	nr.list(),
+	async ([], info) => {
+		await info.success(`success`);
+	},
+);
+
+nr.globalCommand(
+	"/help/test/error",
+	"error",
+	{
+		usage: "error",
+		description: "{Emoji|failure} Error :(",
+		examples: [],
+	},
+	nr.list(),
+	async ([], info) => {
+		await info.error(`failure`);
+	},
+);
+
+nr.globalCommand(
+	"/help/test/warn",
+	"warn",
+	{
+		usage: "warn",
+		description: "{Emoji|warning} warn :(",
+		examples: [],
+	},
+	nr.list(),
+	async ([], info) => {
+		await info.warn(`warning`);
+	},
+);
+
+nr.globalCommand(
+	"/help/test/warn/eventually",
+	"warn eventually",
+	{
+		usage: "warn eventually",
+		description: "{Emoji|warning} warn :(",
+		examples: [],
+	},
+	nr.list(),
+	async ([], info) => {
+		await info.startLoading();
+		await new Promise(r => setTimeout(r, 5000));
+		await info.warn(`warning`);
+	},
+);
+
+nr.globalCommand(
 	"/help/test/crash",
 	"crash",
 	{

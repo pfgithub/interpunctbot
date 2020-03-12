@@ -781,15 +781,12 @@ async function onReactionAdd(
 		if (!reactor) {
 			return;
 		}
-		// now there needs to be some filtering system or something
-		// to ignore most reactions
 		if (reaction.emoji instanceof Discord.ReactionEmoji) {
-			return;
-		}
-
-		if (reaction.emoji.id === "546938940389589002") {
-			rank = true;
-			timer.end();
+			if (reaction.emoji.name === "✅") {
+				rank = true;
+				timer.end();
+				return;
+			}
 			return;
 		}
 
@@ -801,7 +798,7 @@ async function onReactionAdd(
 		roleIDs.push(hndlr.role);
 	});
 
-	const myreaxn = await msg.react("546938940389589002");
+	const myreaxn = await msg.react("✅");
 
 	await timer.over();
 	rxnh.end();

@@ -360,6 +360,13 @@ export default class Info {
 		// In the future maybe adjust richembeds maybe probably not
 		return [`${type} ${values[0]}`, values[1]];
 	}
+	shouldAlert(): boolean {
+		return new Date().getTime() - this.message.createdAt.getTime() > 3000
+			? true
+			: this.message.channel.lastMessageID === this.message.id
+			? false
+			: true;
+	}
 	async _tryReply(
 		...values: MessageParametersType
 	): Promise<Discord.Message[] | undefined> {
@@ -369,12 +376,7 @@ export default class Info {
 				(this.message.member?.displayName ||
 					this.message.author.username),
 		);
-		const pingOrNot =
-			new Date().getTime() - this.message.createdAt.getTime() > 3000
-				? pingUser
-				: this.message.channel.lastMessageID === this.message.id
-				? doNotPingUser
-				: pingUser;
+		const pingOrNot = this.shouldAlert() ? pingUser : doNotPingUser;
 
 		const content = values[0];
 		const options = values[1];
@@ -440,21 +442,10 @@ export default class Info {
 		return this.errorAlways(...msg);
 	}
 	async errorAlways(...msg: MessageParametersType) {
-		const reactOrNot =
-			new Date().getTime() - this.message.createdAt.getTime() > 3000
-				? true
-				: this.message.channel.lastMessageID === this.message.id
-				? false
-				: true;
+		const reactOrNot = this.shouldAlert();
 
 		if (reactOrNot) {
-			const reactResult = await ilt(
-				this.message.react("508841130503438356"),
-				false,
-			);
-			if (reactResult.error) {
-				await ilt(this.message.react("❌"), false); // may fail, not a problem
-			}
+			await ilt(this.message.react("❌"), false);
 		}
 		let res;
 		if (
@@ -469,20 +460,9 @@ export default class Info {
 		return res;
 	}
 	async warn(...msg: MessageParametersType) {
-		const reactOrNot =
-			new Date().getTime() - this.message.createdAt.getTime() > 3000
-				? true
-				: this.message.channel.lastMessageID === this.message.id
-				? false
-				: true;
+		const reactOrNot = this.shouldAlert();
 		if (reactOrNot) {
-			const reactResult = await ilt(
-				this.message.react("508842207089000468"),
-				false,
-			);
-			if (reactResult.error) {
-				await ilt(this.message.react("⚠"), false); // may fail
-			}
+			await ilt(this.message.react("⚠"), false);
 		}
 		let res;
 		if (
@@ -497,20 +477,9 @@ export default class Info {
 		return res;
 	}
 	async success(...msg: MessageParametersType) {
-		const reactOrNot =
-			new Date().getTime() - this.message.createdAt.getTime() > 3000
-				? true
-				: this.message.channel.lastMessageID === this.message.id
-				? false
-				: true;
+		const reactOrNot = this.shouldAlert();
 		if (reactOrNot) {
-			const reactResult = await ilt(
-				this.message.react("508840840416854026"),
-				false,
-			);
-			if (reactResult.error) {
-				await ilt(this.message.react("✅"), false); // may fail
-			}
+			await ilt(this.message.react("✅"), false);
 		}
 		let res;
 		if (

@@ -174,7 +174,9 @@ export const newGame = <State>(conf: GameConfig<State>) => async (
 			emojiPromises.push(
 				(async () => {
 					for (const emoji of confItem.actions) {
-						await message.react(/:([0-9]+)>/.exec(emoji)![1]);
+						if (/:([0-9]+)>/.exec(emoji)!)
+							throw new Error("Reaction emojis must be builtin");
+						await message.react(emoji);
 					}
 				})(),
 			);
@@ -203,12 +205,18 @@ export const newGame = <State>(conf: GameConfig<State>) => async (
 	let availableActions: MoveSet<State> | undefined; // to prevent constant recalculations. probably not a terrible performance issue but idk
 
 	let toRemoveOnNextReset: Discord.Message[] = [];
+
+	async function doRemoveMessages() {
+		const nr = toRemoveOnNextReset;
+		toRemoveOnNextReset = [];
+		for (const msg of nr) {
+			await msg.delete();
+		}
+	}
+
 	const resetTimer = () => {
 		gameTimer.reset();
-		for (const msg of toRemoveOnNextReset) {
-			perr(msg.delete(), "removing message in game");
-		}
-		toRemoveOnNextReset = [];
+		perr(doRemoveMessages(), "removing message in game");
 	};
 
 	async function onReactionHoisted(
@@ -219,40 +227,27 @@ export const newGame = <State>(conf: GameConfig<State>) => async (
 
 		perr(reaction.users.remove(user), false);
 		if (!gameStarted) return;
-		if (!reaction.emoji.id) return;
+		if (!reaction.emoji.name) return;
 		resetTimer();
 		if (!availableActions) availableActions = conf.getMoves(state);
-		console.log(availableActions);
+		// console.log(availableActions);
 		if (availableActions.length === 0) {
 			throw new Error("There are no available moves!");
 		}
 		const action = availableActions.find(
 			action =>
 				action.player.id === user.id &&
-				action.button.includes(reaction.emoji.id!),
+				action.button.includes(reaction.emoji.name),
 		);
 		if (!action) return; // maybe log "no" or something
 		// copy state
 		const stateCopy = copyState(state);
 		setState(action.apply(stateCopy));
 		availableActions = undefined;
-		////////////// here's an idea                       \\\\\\\\\\\\\\
-		///////////// update available actions now           \\\\\\\\\\\\\
-		//////////// huh                                      \\\\\\\\\\\\
-		/////////// what if this is checkers and it needs to   \\\\\\\\\\\
-		////////// know how many moves there are?               \\\\\\\\\\
-		///////// that should be done by the availableactions    \\\\\\\\\
-		//////// handler, not here. too bad.                      \\\\\\\\
-		/////// it's already finding all of them so its easy       \\\\\\\
-		////// what if availableActions was passed to the renderer? \\\\\\
-		///// that way                                               \\\\\
-		//// what if availableActions could modify state?             \\\\
-		/// then it would have to run after every state update         \\\
-		//\ that seems reasonable                                      /\\
-		///\ the idea is that checkers doesn't need to know that      /\\\
-		////\ state is just the action the previous player took      /\\\\
 		rerender();
 	}
+
+	const initialLatestMessage = info.message.channel.lastMessage;
 
 	const gameTimer = createTimer(
 		...(conf.timers.map(timer => [
@@ -261,7 +256,13 @@ export const newGame = <State>(conf: GameConfig<State>) => async (
 				if (timer.message) {
 					// auto delete this message on next timer reset
 					toRemoveOnNextReset.push(
-						await info.channel.send(timer.message(state)),
+						await info.channel.send(
+							timer.message(state) +
+								(info.message.channel.lastMessage !==
+								initialLatestMessage
+									? "\n> <" + messages[0].msg?.url + ">"
+									: ""),
+						),
 					);
 				}
 				if (timer.update) {
@@ -286,10 +287,7 @@ export const newGame = <State>(conf: GameConfig<State>) => async (
 		message.rxnh.end();
 		perr(message.msg.reactions.removeAll(), false);
 	}
-	for (const msg of toRemoveOnNextReset) {
-		perr(msg.delete(), "removing message in game");
-	}
-	toRemoveOnNextReset = [];
+	await doRemoveMessages();
 };
 
 export type Tileset<T> = { tiles: T };

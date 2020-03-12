@@ -78,7 +78,7 @@ export async function getPlayers(
 		const handleReactions = info.handleReactions(
 			joinRequestMessage,
 			async (reaction, user) => {
-				if (reaction.emoji.id !== "455896379210989568") {
+				if (reaction.emoji.name !== "➕") {
 					await reaction.users.remove(user);
 				}
 				if (playersInGame.length < playerLimit) {
@@ -93,7 +93,7 @@ export async function getPlayers(
 			},
 		);
 
-		await joinRequestMessage.react("455896379210989568");
+		await joinRequestMessage.react("➕");
 
 		const editInterval = setEditInterval(async () => {
 			await updateMessage();
