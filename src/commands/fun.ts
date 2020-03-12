@@ -104,6 +104,34 @@ nr.globalCommand(
 );
 
 nr.globalCommand(
+	"/help/fun/award",
+	"award",
+	{
+		usage: "award",
+		description: "Give someone an award.",
+		examples: [],
+	},
+	nr.list(nr.a.user(), ...nr.a.words()),
+	async ([user, award], info) => {
+		if (info.db ? !(await info.db.getFunEnabled()) : false) {
+			return await info.error(messages.fun.fun_disabled(info));
+		}
+
+		if (!award) return await info.error("/help/fun/award/no-award");
+
+		await info.result(
+			`
+=============== 🥇 =================
+Congratulations ${user.toString()},
+You have been granted the award:
+**${safe(award)}**
+for all your dedication and hard work!
+===================================`,
+		);
+	},
+);
+
+nr.globalCommand(
 	"/help/fun/botdev",
 	"botdev",
 	{ usage: "botdev", description: "Get help", examples: [] },
