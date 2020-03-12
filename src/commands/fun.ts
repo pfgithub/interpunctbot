@@ -23,15 +23,16 @@ Fun commands are enabled by default.
 {CmdSummary|fun}
 
 {Heading|Games}
-{CmdSummary|minesweeper}
-{CmdSummary|connect4}
 {CmdSummary|trivia}
+{CmdSummary|connect4}
+{CmdSummary|minesweeper}
 
 {Heading|Misc}
 {CmdSummary|ping}
 {CmdSummary|stats}
 {CmdSummary|members}
 {CmdSummary|remindme}
+{CmdSummary|needle}
 {CmdSummary|vote}`,
 );
 
@@ -74,6 +75,31 @@ nr.globalCommand(
 			return await info.result("\\*misses\\*");
 		}
 		return await info.result("Ping!");
+	},
+);
+
+nr.globalCommand(
+	"/help/fun/needle",
+	"needle",
+	{
+		usage: "needle",
+		description: "Find the needle in the haystack.",
+		examples: [],
+	},
+	nr.list(),
+	async ([], info) => {
+		if (info.db ? !(await info.db.getFunEnabled()) : false) {
+			return await info.error(messages.fun.fun_disabled(info));
+		}
+
+		const item = Math.floor(Math.random() * 200);
+		await info.result(
+			"Find the needle (|):\n" +
+				new Array(200)
+					.fill("")
+					.map((_, i) => (i === item ? "|||||" : "|| ||"))
+					.join(""),
+		);
 	},
 );
 
