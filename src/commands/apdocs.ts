@@ -120,6 +120,7 @@ Durations can be used formatted like 10 seconds or 5 years.
 
 {Heading|Errors}
 {LinkSummary|/arg/duration/not-found}
+{LinkSummary|/arg/duration/in-the-past}
 {LinkSummary|/arg/duration/bad-unit}
 `,
 );
@@ -127,6 +128,13 @@ Durations can be used formatted like 10 seconds or 5 years.
 nr.addErrorDocsPage("/arg/duration/not-found", {
 	overview: "This command requires a duration, like 10 seconds or 1 hour.",
 	detail: "In order to use this command, you need to provide a duration.",
+	mainPath: "/arg/duration",
+});
+
+nr.addErrorDocsPage("/arg/duration/in-the-past", {
+	overview: "That time is in the past!",
+	detail:
+		"In order to use this command, you need to provide a positive duration.",
 	mainPath: "/arg/duration",
 });
 

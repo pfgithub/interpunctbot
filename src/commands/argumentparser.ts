@@ -439,8 +439,10 @@ function DurationArgumentType(): ArgumentType<number> {
 			return await error("/arg/duration/not-found");
 		}
 
-		let nearestMS = Math.round(result);
-		if (nearestMS < 0) nearestMS = 0;
+		const nearestMS = Math.round(result);
+		if (nearestMS < 0) {
+			return await error("/arg/duration/in-the-past");
+		}
 		return { result: "continue", value: nearestMS, cmd: remainder };
 	};
 }
