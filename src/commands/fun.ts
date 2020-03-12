@@ -121,12 +121,12 @@ nr.globalCommand(
 
 		await info.result(
 			`
-=============== 🥇 =================
-Congratulations ${user.toString()},
-You have been granted the award:
-**${safe(award)}**
-for all your dedication and hard work!
-===================================`,
+**=============== 🥇 =================**
+  Congratulations ${user.toString()},
+               You have been granted the award:
+${" ".repeat(Math.max(39 - award.length, 0))}**${safe(award)}**
+            for all your dedication and hard work!
+**==================================**`,
 		);
 	},
 );
