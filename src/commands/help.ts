@@ -95,12 +95,6 @@ nr.addErrorDocsPage("/errors/help-path-not-found", {
 	mainPath: "/help/help/help",
 });
 
-nr.addErrorDocsPage("/errors/arg/duration/no-duration", {
-	overview: "This command requires a duration like 10s or 25 minutes.",
-	detail: "",
-	mainPath: "/args/duration",
-});
-
 /*
 errors should look like this:
 
@@ -120,11 +114,6 @@ Error!
 footer: For more help, join the support server. https://interpunct.info/support
 
 */
-nr.addErrorDocsPage("/errors/arg/duration/bad-unit", {
-	overview: "I don't understand the unit you provided.",
-	detail: "",
-	mainPath: "/args/duration",
-});
 
 nr.globalCommand(
 	"/help/help/help", // hmm

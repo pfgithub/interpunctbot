@@ -383,7 +383,7 @@ function DurationArgumentType(): ArgumentType<number> {
 
 	return async (info, arg, cmd, error) => {
 		if (!cmd.trim()) {
-			await info.docs("/errors/arg/duration/no-duration", "error");
+			await info.docs("/arg/duration/not-found", "error");
 			return { result: "exit" };
 		}
 
@@ -437,7 +437,7 @@ function DurationArgumentType(): ArgumentType<number> {
 		}
 		if (remainder.startsWith(",")) remainder = remainder.substr(1).trim();
 		if (!anyfound) {
-			return await error("/arg/duration/not-found");
+			await info.docs("/arg/duration/not-found", "error");
 		}
 
 		let nearestMS = Math.round(result);
