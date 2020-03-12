@@ -605,8 +605,11 @@ export async function ArgumentParser<
 			async (docs, other) => {
 				const docsPage = nr.globalDocs[docs];
 				if (!docsPage) {
-					await info.docs(docs, "error");
-					return { result: "exit" };
+					throw new Error("docs page not found");
+				}
+				const cmdPage = nr.globalDocs[help];
+				if (!cmdPage) {
+					throw new Error("cmd page not found");
 				}
 
 				const pfx = other
@@ -616,7 +619,10 @@ export async function ArgumentParser<
 					: "";
 				await info.error(
 					pfx +
-						dgToDiscord(docsPage.body, info) +
+						"Usage: " +
+						dgToDiscord(cmdPage.summaries.usage, info) +
+						"\n" +
+						dgToDiscord(docsPage.summaries.description, info) +
 						"\n" +
 						"> Command Help: <https://interpunct.info" +
 						help +
