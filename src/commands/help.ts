@@ -30,7 +30,20 @@ nr.addDocsWebPage(
 	"/updates",
 	"Updates",
 	"bot updates",
-	"{Heading|Bot Updates}\n\n{LinkSummary|/updates/ipv3}",
+	`{Heading|Bot Updates}
+
+{LinkSummary|/updates/2020-03-12}
+{LinkSummary|/updates/ipv3}`,
+);
+
+nr.addDocsWebPage(
+	"/updates/2020-03-12",
+	"update 2020-03-12",
+	"update 2020-03-12",
+	`{Title|Update 2020-03-12}
+
+Adds a new two-player game
+{CmdSummary|circlegame}`,
 );
 
 nr.addDocsWebPage(
