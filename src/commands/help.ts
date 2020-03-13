@@ -43,7 +43,10 @@ nr.addDocsWebPage(
 	`{Title|Update 2020-03-12}
 
 Adds a new two-player game
-{CmdSummary|circlegame}`,
+{CmdSummary|circlegame}
+
+Adds a new fun command
+{CmdSummary|award}`,
 );
 
 nr.addDocsWebPage(
