@@ -272,6 +272,11 @@ function printrule(rule: AutodeleteRule, info: Info) {
 			role ? messages.role(role) : "@deleted-role",
 		)}> after ${durationFormat(rule.duration)}`;
 	}
+	if (rule.type === "counting") {
+		return safe`Remove messages in <#${
+			rule.channel
+		}> that do not count after ${durationFormat(rule.duration)}`;
+	}
 	return assertNever(rule);
 }
 
@@ -388,18 +393,28 @@ nr.addHelpDocsPage("/help/autodelete/add/role", {
 	examples: [],
 });
 
+nr.addHelpDocsPage("/help/autodelete/add/counting", {
+	title: "autodelete counting",
+	usage:
+		"autodelete add {Required|{Duration}} counting {Required|{Channel|the channel}}",
+	description:
+		"create an autodelete rule to remove all messages from people not counting sequentially",
+	examples: [],
+});
+
 nr.globalCommand(
 	"/help/autodelete/add",
 	"autodelete add",
 	{
 		usage:
-			"autodelete add {Required|{Duration}} {Required|{Enum|prefix|user|channel|role}}",
+			"autodelete add {Required|{Duration}} {Required|{Enum|prefix|user|channel|role|counting}}",
 		description:
 			"create an autodelete rule. autodelete rules will delete messages that match a certain rule, such as those from a specific user or in a specific channel.",
 		extendedDescription: `{UsageSummary|/help/autodelete/add/prefix}
 {UsageSummary|/help/autodelete/add/user}
 {UsageSummary|/help/autodelete/add/channel}
-{UsageSummary|/help/autodelete/add/role}`,
+{UsageSummary|/help/autodelete/add/role}
+{UsageSummary|/help/autodelete/add/counting}`,
 		examples: [],
 	},
 	nr.passthroughArgs,
@@ -414,7 +429,7 @@ nr.globalCommand(
 		const ap = await AP(
 			{ info, cmd, partial: true, help: "/help/autodelete/add" },
 			a.duration(),
-			a.enum("prefix", "user", "channel", "role"),
+			a.enum("prefix", "user", "channel", "role", "counting"),
 		);
 		if (!ap) return;
 		const [duration, mode] = ap.result;
@@ -449,8 +464,20 @@ nr.globalCommand(
 			if (!ap) return;
 			const [role] = ap.result;
 			autodeleteInfo = { type: "role", role: role.id, duration };
+		} else if (mode === "counting") {
+			const ap = await AP(
+				{ info, cmd, help: "/help/autodelete/add/counting" },
+				a.channel(),
+			);
+			if (!ap) return;
+			const [channel] = ap.result;
+			autodeleteInfo = {
+				type: "counting",
+				channel: channel.id,
+				duration,
+			};
 		} else {
-			throw new Error("this should never happen");
+			assertNever(mode);
 		}
 
 		const autodeleteLimit = await info.db.getAutodeleteLimit();

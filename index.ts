@@ -569,6 +569,48 @@ async function onMessage(msg: Discord.Message | Discord.PartialMessage) {
 				msg.member!.roles.cache.has(rule.role)
 			) {
 				deleteMsg = true;
+			} else if (
+				rule.type === "counting" &&
+				msg.channel.id === rule.channel
+			) {
+				const findNumber = (txt: string) => {
+					const chars = txt.match(/[0-9]/g);
+					if (!chars) return undefined;
+					if (chars.length > 10) return undefined;
+					const number = +chars.join("");
+					if (isNaN(number)) return undefined;
+					return number;
+				};
+				const pma = msg.channel.messages.cache.array();
+				const pmsg = pma[pma.length - 2];
+				let i = 2;
+				const thisnum = findNumber(msg.content);
+				if (thisnum === undefined) {
+					deleteMsg = true;
+				} else {
+					let cnum = thisnum - 1;
+					while (true) {
+						const it = pma[pma.length - i];
+						if (!it) break;
+						if ((it as any)._____ignoreNumber____) break;
+						if (i > 100) break;
+						const number = findNumber(it.content);
+						if (number === undefined) i++;
+						else {
+							cnum = number;
+							break;
+						}
+					}
+					if (cnum + 1 !== thisnum) {
+						deleteMsg = true;
+						msg.reply("" + (cnum + 1)).catch(e => {});
+					}
+				}
+				if (deleteMsg) {
+					(msg as any)._____ignoreNumber____ = true;
+				}
+			} else {
+				// assertNever(rule);
 			}
 			if (deleteMsg) {
 				await info.timedEvents.queue(

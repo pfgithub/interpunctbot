@@ -14,6 +14,7 @@ type AutodeleteInfo = {
 	user: { user: string };
 	channel: { channel: string };
 	role: { role: string };
+	counting: { channel: string };
 };
 export type AutodeleteRule = {
 	[key in keyof AutodeleteInfo]: AutodeleteInfo[key] & {
