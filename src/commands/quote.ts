@@ -1,7 +1,7 @@
 import fetch from "node-fetch";
 import { MessageEmbed } from "discord.js";
 import Info from "../Info";
-import { messages } from "../../messages";
+import { messages, safe } from "../../messages";
 import * as nr from "../NewRouter";
 
 function escapeMarkdown(text: string) {
@@ -143,17 +143,6 @@ Output: {Translate|lists.list_lists|{"A"}|}
 */
 
 nr.addDocsWebPage(
-	"/help/customcommands",
-	"Custom Commands",
-	"custom commands config",
-	`{Title|Custom Commands}
-Currently, the only type of custom commands available in inter·punct are quote lists.
-
-{LinkSummary|/help/customcommands/quotes}
-`,
-);
-
-nr.addDocsWebPage(
 	"/help/customcommands/quotes",
 	"Quote Lists",
 	"create custom commands with a list of quotes",
@@ -161,7 +150,7 @@ nr.addDocsWebPage(
 {CmdSummary|lists list}
 {CmdSummary|lists add}
 {CmdSummary|lists edit}
-{CmdSummary|lists remove}`,
+{CmdSummary|command remove}`,
 );
 
 nr.globalCommand(
@@ -185,7 +174,7 @@ nr.globalCommand(
 				messages.failure.command_cannot_be_used_in_pms(info),
 			);
 		}
-		const lists = await info.db.getLists();
+		const lists = await info.db.getCustomCommands();
 		return await info.result(messages.lists.list_lists(info, lists));
 	},
 );
@@ -212,15 +201,19 @@ async function addOrEditList(add: boolean, cmd: string, info: Info) {
 	const splitCmd = cmd.split(` `);
 
 	// Extract the list name and pastebin URL from the first two items in the command. let [listName, ...pastebinUrl] = splitCmd;?
-	const listName = splitCmd.shift();
+	let listName = splitCmd.shift();
 	const pastebinUrl = splitCmd.join(` `).trim();
 
 	if (!listName) {
 		return await info.error(messages.lists.no_list_name_provided(info));
 	}
+	if (safe(listName) !== listName) {
+		return await info.error("List name must be safe");
+	}
+	listName = listName.toLowerCase();
 
 	// Get the lists from the database
-	const lists = await info.db.getLists();
+	const lists = await info.db.getCustomCommands();
 
 	// If the list should be added but it already exists, error. If the list should be edited but doesn't exist, error. Basically there's no point to doing this at all
 	if (!!lists[listName] === add) {
@@ -246,8 +239,8 @@ async function addOrEditList(add: boolean, cmd: string, info: Info) {
 	}
 
 	// Update the list and save it to the database
-	lists[listName] = pastebinID;
-	await info.db.setLists(lists);
+	lists[listName] = { type: "list", pastebin: pastebinID };
+	await info.db.setCustomCommands(lists);
 
 	// Return the right success message depending on if the list is being added or edited
 	if (add) {
@@ -311,35 +304,37 @@ nr.globalCommand(
 
 nr.globalCommand(
 	"/help/customcommands/quotes/remove",
-	"lists remove",
+	"command remove",
 	{
-		usage: "lists remove {Required|list name}",
-		description: "Remove a list",
+		usage: "command remove {Required|command name}",
+		description: "Remove a command",
 		examples: [
 			{
-				in: "lists remove motivation",
-				out: "{Emoji|success} List removed",
+				in: "command remove motivation",
+				out: "{Emoji|success} Command removed",
 			},
 		],
 	},
 	nr.passthroughArgs,
 	async ([listName], info) => {
-		// there's not much purpose to a distinction between add and edit...
+		if (!Info.theirPerm.manageBot(info)) return;
 		if (!info.db) {
 			return await info.error(
 				messages.failure.command_cannot_be_used_in_pms(info),
 			);
 		}
-		const lists = await info.db.getLists();
+		const lists = await info.db.getCustomCommands();
 		if (!lists[listName]) {
 			return await info.error(
 				messages.lists.remove_list_that_does_not_exist(info, listName),
 			);
 		}
 		delete lists[listName];
-		await info.db.setLists(lists);
+		await info.db.setCustomCommands(lists);
 		return await info.success(
 			messages.lists.remove_list_succesful(info, listName),
 		);
 	},
 );
+nr.globalAlias("command remove", "lists remove");
+nr.globalAlias("command remove", "list remove");

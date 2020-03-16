@@ -18,6 +18,7 @@ import "./src/commands/speedrun";
 import "./src/commands/test";
 import "./src/commands/role";
 import "./src/commands/apdocs";
+import "./src/commands/customcommands";
 import { globalConfig } from "./src/config";
 import Database, { Event } from "./src/Database";
 import Info, { memberCanManageRole, handleReactions } from "./src/Info";
@@ -246,23 +247,28 @@ depricate("settings", "help");
 
 async function unknownCommandHandler(cmd: string, info: Info) {
 	if (info.db) {
-		const lists = await info.db.getLists(); // TODO info.db.lists
+		const lists = await info.db.getCustomCommands(); // TODO info.db.lists
 		const listNames = Object.keys(lists);
 		for (const listName of listNames) {
 			console.log(listName);
 			if (
-				cmd.toLowerCase().startsWith(listName) &&
+				cmd.toLowerCase().startsWith(listName.toLowerCase()) &&
 				(cmd.substr(listName.length).trim() !==
 					cmd.substr(listName.length) ||
 					!cmd.substr(listName.length))
 			) {
-				await handleList(
-					listName,
-					lists[listName],
-					cmd.substr(listName.length).trim(),
-					info,
-				);
-				return;
+				const args = cmd.substr(listName.length).trim();
+				const ll = lists[listName];
+				if (ll.type === "list") {
+					await handleList(listName, ll.pastebin, args, info);
+					return;
+				}
+				if (ll.type === "command") {
+					if (args) await info.error("No args.");
+					await info.result(ll.text);
+					return;
+				}
+				assertNever(ll);
 			}
 		}
 	}

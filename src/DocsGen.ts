@@ -206,6 +206,7 @@ export async function DocsGen() {
 			"utf-8",
 		);
 
-		console.log("  Generated HTML " + docItem.path);
+		// console.log("  Generated HTML " + docItem.path);
 	}
+	console.log("Done");
 }

@@ -30,6 +30,12 @@ export type AutodeleteRuleNoID = {
 	};
 }[keyof AutodeleteInfo];
 
+export type CustomCommand =
+	| { type: "list"; pastebin: string }
+	| { type: "command"; text: string };
+type CustomCommandsFieldRaw = { [key: string]: string | CustomCommand };
+export type CustomCommandsField = { [key: string]: CustomCommand };
+
 export type AutodeleteField = {
 	rules: AutodeleteRule[];
 	nextID: number;
@@ -101,7 +107,7 @@ type Fields = {
 };
 
 type JSONFields = {
-	searchablePastebins: ListsField;
+	searchablePastebins: CustomCommandsFieldRaw;
 	nameScreening2: NameScreeningField;
 	autodelete: AutodeleteField;
 	quickrank: QuickrankField;
@@ -112,8 +118,6 @@ type BooleanFields = {
 	channel_spacing: boolean;
 	funEnabled: boolean;
 };
-
-type ListsField = { [key: string]: string };
 type NameScreeningField = string[];
 // type SpeedrunField = { gameID: string; categoryID: string };
 
@@ -242,15 +246,23 @@ class Database {
 	async setEmojiRankChannel(newChannel: string) {
 		await this._set("rankmojiChannel", newChannel);
 	}
-	async getLists(): Promise<ListsField> {
+	async getCustomCommands(): Promise<CustomCommandsField> {
 		const quoteList = await this._get(`quotes`);
 		const otherLists = await this._getJson("searchablePastebins", {}); // here is where we could actually update the database to store everything in searchablepastebins instead of quotes... maybe later
 		if (quoteList && !otherLists.quote) {
 			otherLists.quote = quoteList;
 		} // otherlists.quote OVERRIDES QUOTE!!!
-		return otherLists;
+		const finalres: CustomCommandsField = {};
+		for (const [k, v] of Object.entries(otherLists)) {
+			if (typeof v === "string") {
+				finalres[k] = { type: "list", pastebin: v };
+			} else {
+				finalres[k] = v;
+			}
+		}
+		return finalres;
 	}
-	async setLists(newLists: ListsField) {
+	async setCustomCommands(newLists: CustomCommandsField) {
 		await this._setJson("searchablePastebins", newLists); // otherlists.quote overrides quote therefore we don't need to parse out and set quote
 	}
 	async getAutoban(): Promise<NameScreeningField> {

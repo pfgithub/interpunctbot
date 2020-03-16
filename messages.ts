@@ -1,5 +1,6 @@
 import Info from "./src/Info";
 import * as Discord from "discord.js";
+import { CustomCommandsField } from "./src/Database";
 
 export function raw(string: TemplateStringsArray | string) {
 	return { __raw: `${string.toString()}` };
@@ -554,10 +555,15 @@ ${info.prefix}space channels disable
 > More Info: <https://interpunct.info/lists>`,
 		nothing_found_for_search: (info: Info, searchString: string[]) =>
 			`No results for ${searchString.join(" ")}.`,
-		list_lists: (info: Info, lists: { [key: string]: string }) =>
+		list_lists: (info: Info, lists: CustomCommandsField) =>
 			`**Lists**:
-${Object.keys(lists)
-	.map(key => `> ${key}: <https://pastebin.com/${lists[key]}>`)
+${Object.entries(lists)
+	.map(([key, value]) =>
+		value.type === "list"
+			? `> ${key}: <https://pastebin.com/${value.pastebin}>`
+			: `> ${key}: ${value.text.substr(0, 50) +
+					(value.text.length > 50 ? "..." : "")}`,
+	)
 	.join(`\n`) || "> *No lists yet. Create some with {Command|lists add}*"}`,
 		no_list_name_provided: (
 			info: Info,

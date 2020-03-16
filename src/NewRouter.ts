@@ -103,7 +103,7 @@ export function addDocsPage(docsPath: string, page: PageData) {
 
 	globalDocs[docsPath] = { ...page, path: docsPath };
 
-	process.stdout.write("  Loaded docs: " + docsPath + "");
+	// process.stdout.write("  Loaded docs: " + docsPath + "");
 }
 
 export function addHelpDocsPage(
@@ -272,7 +272,7 @@ export function globalCommand<APList extends APListAny>(
 		},
 	};
 
-	console.log("  Loaded command:", "ip!" + uniqueGlobalName);
+	// console.log("  Loaded command:", "ip!" + uniqueGlobalName);
 }
 
 // export function nsCommand<APList>(ns: CommandNS) // eg ip!quote, the help page has to be for lists in general not just the specific quote one
