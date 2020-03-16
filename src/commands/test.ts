@@ -2,6 +2,8 @@ import * as nr from "../NewRouter";
 import Info from "../Info";
 import { promises as fs } from "fs";
 import * as path from "path";
+import { stripMentions } from "./channelmanagement";
+import { safe } from "../../messages";
 
 nr.globalCommand(
 	"/help/test/test",
@@ -141,6 +143,27 @@ nr.globalCommand(
 				"" + info.message.client.guilds.cache.size,
 			);
 		if (cmd === "client.token") return await info.error("no");
+		if (cmd.startsWith('message.reply("') && cmd.endsWith('")')) {
+			const origmsg = await info.result(
+				'<a:loading:682804438783492139> Promise { <state>: "pending" }',
+			);
+			const armsg = await info.message.reply(
+				stripMentions(cmd.substring(15, cmd.length - 2)),
+			);
+			if (origmsg && origmsg[0])
+				await origmsg[0].edit(
+					"Message { author: " +
+						info.atme +
+						', content: "' +
+						safe(armsg.content.substr(0, 50)) +
+						'", createdAt: ' +
+						armsg.createdAt.toString() +
+						", ..." +
+						(Object.keys(origmsg[0]).length - 3) +
+						" more }",
+				);
+			return;
+		}
 		await info.error(
 			"```diff\n- SyntaxError: expected expression, got ')'\n```",
 		);
