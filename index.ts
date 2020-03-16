@@ -308,7 +308,12 @@ async function unknownCommandHandler(cmd: string, info: Info) {
 
 async function updateActivity() {
 	const count = await getGuilds(client);
-	client.user && client.user.setActivity(`ip!help on ${count} servers`);
+	client.user &&
+		client.user.setActivity(
+			count === -1
+				? "ip!help on a bunch of servers"
+				: `ip!help on ${count} servers`,
+		);
 	// if(process.env.NODE_ENV !== "production") return; // only production should post
 	// let options = {
 	// 	url: `https://bots.discord.pw/api/bots/${config.bdpid}/stats`,
