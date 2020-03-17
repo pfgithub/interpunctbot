@@ -272,7 +272,7 @@ nr.globalCommand(
 	},
 	nr.passthroughArgs,
 	async ([cmd], info) => {
-		if (!Info.theirPerm.manageBot(info)) return;
+		if (!(await Info.theirPerm.manageBot(info))) return;
 		return await addOrEditList(true, cmd, info);
 	},
 );
@@ -297,7 +297,7 @@ nr.globalCommand(
 	},
 	nr.passthroughArgs,
 	async ([cmd], info) => {
-		if (!Info.theirPerm.manageBot(info)) return;
+		if (!(await Info.theirPerm.manageBot(info))) return;
 		return await addOrEditList(false, cmd, info);
 	},
 );
@@ -317,7 +317,7 @@ nr.globalCommand(
 	},
 	nr.passthroughArgs,
 	async ([listName], info) => {
-		if (!Info.theirPerm.manageBot(info)) return;
+		if (!(await Info.theirPerm.manageBot(info))) return;
 		if (!info.db) {
 			return await info.error(
 				messages.failure.command_cannot_be_used_in_pms(info),

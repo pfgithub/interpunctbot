@@ -692,7 +692,7 @@ nr.globalCommand(
 	},
 	nr.list(nr.a.enum("enable", "disable")),
 	async ([mode], info) => {
-		if (!Info.theirPerm.manageBot(info)) return;
+		if (!(await Info.theirPerm.manageBot(info))) return;
 		if (!info.db) {
 			return await info.error(
 				messages.failure.command_cannot_be_used_in_pms(info),

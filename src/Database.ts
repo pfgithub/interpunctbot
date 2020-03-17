@@ -69,6 +69,7 @@ const shouldCache: { [ey: string]: boolean | undefined } = {
 	rankmojiChannel: true,
 	autodelete: true,
 	quickrank: true, // why can't we just cache everything for now
+	managebotrole: true,
 };
 
 function tryParse<T>(json: string | undefined, defaultValue: T): T {
@@ -105,6 +106,7 @@ type Fields = {
 	quickrank_limit?: number;
 	events?: string;
 	nameScreening2?: string;
+	managebotrole: string;
 };
 
 type JSONFields = {
@@ -113,6 +115,7 @@ type JSONFields = {
 	autodelete: AutodeleteField;
 	quickrank: QuickrankField;
 	events: Events;
+	managebotrole: { role: string };
 };
 type BooleanFields = {
 	logging: boolean;
@@ -276,6 +279,12 @@ class Database {
 	}
 	async setAutoban(newAutoban: NameScreeningField) {
 		return await this._setJson("nameScreening2", newAutoban);
+	}
+	async getManageBotRole(): Promise<{ role: string }> {
+		return await this._getJson("managebotrole", { role: "" });
+	}
+	async setManageBotRole(nmbr: string): Promise<void> {
+		await this._setJson("managebotrole", { role: nmbr });
 	}
 	async getAutodeleteLimit(): Promise<number> {
 		return (await this._get("autodelete_limit")) || 10;

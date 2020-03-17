@@ -315,7 +315,7 @@ nr.globalCommand(
 	},
 	nr.list(),
 	async ([], info) => {
-		if (!Info.theirPerm.manageBot(info)) return;
+		if (!(await Info.theirPerm.manageBot(info))) return;
 
 		if (!info.db) {
 			return await info.error(
@@ -339,7 +339,7 @@ nr.globalCommand(
 	},
 	nr.list(nr.a.word(), ...nr.a.words()),
 	async ([speedrunpage, categoryName], info) => {
-		if (!Info.theirPerm.manageBot(info)) return;
+		if (!(await Info.theirPerm.manageBot(info))) return;
 
 		const startTime = ctime();
 		// extract the abbreviation from the command

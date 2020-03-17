@@ -12,8 +12,32 @@ nr.addDocsWebPage(
 Some parts of {Interpunct} can be configured
 
 {CmdSummary|set prefix}
-{CmdSummary|set show errors}
-{CmdSummary|set show unknown command}`,
+{CmdSummary|set ShowErrors}
+{CmdSummary|set ShowUnknownCommand}
+{CmdSummary|set ManageBotRole}`,
+);
+
+nr.globalCommand(
+	"/help/settings/managebotrole",
+	"set managebotrole",
+	{
+		description: "Set a role in which users can manage the bot settings.",
+		usage: "set prefix {Required|{Role|role}}",
+		examples: [],
+	},
+	nr.list(...nr.a.role()),
+	async ([role], info) => {
+		if (!(await Info.theirPerm.manageBot(info))) return;
+
+		if (!info.db) {
+			return await info.error(
+				messages.failure.command_cannot_be_used_in_pms(info),
+			);
+		}
+
+		await info.db.setManageBotRole(role.id);
+		await info.success("set " + messages.role(role));
+	},
 );
 
 nr.globalCommand(
@@ -33,7 +57,7 @@ nr.globalCommand(
 	},
 	nr.passthroughArgs,
 	async ([cmd], info) => {
-		if (!Info.theirPerm.manageBot(info)) return;
+		if (!(await Info.theirPerm.manageBot(info))) return;
 
 		if (!info.db) {
 			return await info.error(
@@ -54,7 +78,7 @@ nr.globalCommand(
 
 nr.globalCommand(
 	"/help/settings/show-errors",
-	"set show errors",
+	"set showerrors",
 	{
 		usage: "set show errors {Required|{Enum|always|admins|never}}",
 		description: "choose who command errors are shown to",
@@ -62,7 +86,7 @@ nr.globalCommand(
 	},
 	nr.list(nr.a.enum("always", "admins", "never")),
 	async ([cmd], info) => {
-		if (!Info.theirPerm.manageBot(info)) return;
+		if (!(await Info.theirPerm.manageBot(info))) return;
 		if (!info.db) {
 			return await info.error(
 				messages.failure.command_cannot_be_used_in_pms(info),
@@ -86,10 +110,11 @@ nr.globalCommand(
 		);
 	},
 );
+nr.globalAlias("set showerrors", "set show errors");
 
 nr.globalCommand(
 	"/help/settings/show-unknown-command",
-	"set show unknown command",
+	"set showunknowncommand",
 	{
 		usage: "set show unknown command {Required|{Enum|always|admins|never}}",
 		description: "choose who unknown command errors are shown to",
@@ -97,7 +122,7 @@ nr.globalCommand(
 	},
 	nr.list(nr.a.enum("always", "admins", "never")),
 	async ([cmd], info) => {
-		if (!Info.theirPerm.manageBot(info)) return;
+		if (!(await Info.theirPerm.manageBot(info))) return;
 		if (!info.db) {
 			return await info.error(
 				messages.failure.command_cannot_be_used_in_pms(info),
@@ -121,6 +146,7 @@ nr.globalCommand(
 		);
 	},
 );
+nr.globalAlias("set showunknowncommand", "set show unknown command");
 
 // nr.alias("highway", "autoban")
 
@@ -144,7 +170,7 @@ nr.globalCommand(
 	nr.passthroughArgs,
 	async ([words], info) => {
 		if (!Info.theirPerm.banMembers(info)) return;
-		if (!Info.theirPerm.manageBot(info)) return;
+		if (!(await Info.theirPerm.manageBot(info))) return;
 		if (!Info.ourPerm.banMembers(info)) return;
 		const nlsep = words
 			.split("\n")
@@ -186,7 +212,7 @@ nr.globalCommand(
 	nr.list(),
 	async ([], info) => {
 		if (!Info.theirPerm.banMembers(info)) return;
-		if (!Info.theirPerm.manageBot(info)) return;
+		if (!(await Info.theirPerm.manageBot(info))) return;
 		if (!info.db) {
 			return await info.docs("/errors/pms", "error");
 		}
@@ -211,7 +237,7 @@ nr.globalCommand(
 	nr.list(),
 	async ([], info) => {
 		if (!Info.theirPerm.banMembers(info)) return;
-		if (!Info.theirPerm.manageBot(info)) return;
+		if (!(await Info.theirPerm.manageBot(info))) return;
 		if (!info.db) {
 			return await info.docs("/errors/pms", "error");
 		}

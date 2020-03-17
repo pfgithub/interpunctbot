@@ -55,7 +55,7 @@ nr.globalCommand(
 	},
 	nr.list(nr.a.backtick(), ...nr.a.words()),
 	async ([safecmdname, unsaferestext], info) => {
-		if (!Info.theirPerm.manageBot(info)) return;
+		if (!(await Info.theirPerm.manageBot(info))) return;
 		if (!info.db) return await info.docs("/errors/pms", "error");
 		const safetext = await restrictTextToPerms(
 			info.message.member!,
@@ -66,7 +66,7 @@ nr.globalCommand(
 		const lists = await info.db.getCustomCommands();
 		if (lists[safecmdname.toLowerCase()])
 			return await info.error(
-				"That command already exists. Remove it with {Command|customcommands remove " +
+				"That command already exists. Remove it with {Command|command remove " +
 					safecmdname +
 					"}",
 			);

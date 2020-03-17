@@ -2,7 +2,7 @@ import * as Discord from "discord.js";
 import { MessageBuilder } from "./MessageBuilder";
 import Database from "./Database";
 import { ilt, perr } from "..";
-import { safe, raw } from "../messages";
+import { safe, raw, messages } from "../messages";
 import { TimedEvents } from "./TimedEvents";
 import { globalConfig } from "./config";
 import { globalDocs } from "./NewRouter";
@@ -58,16 +58,23 @@ export async function permWeCanManageRole(role: Discord.Role, info: Info) {
 }
 
 export const theirPerm = {
-	manageBot: (info: Info) => {
+	manageBot: async (info: Info) => {
 		if (!theirPerm.pm(false)(info)) {
 			return false;
 		}
 		if (info.authorPerms.manageBot) {
 			return true;
 		}
+		const mngbotrol = await info.db!.getManageBotRole();
+		if (info.message.member!.roles.cache.has(mngbotrol.role)) {
+			return true;
+		}
+		const frol = info.guild!.roles.resolve(mngbotrol.role);
 		perr(
 			info.error(
-				"You need permisison to `Manage Server` to use this command",
+				"You need permisison to `Manage Server`" +
+					(frol ? " or the role " + messages.role(frol) : "") +
+					" to use this command",
 			),
 			"manage bot theirperm error",
 		);

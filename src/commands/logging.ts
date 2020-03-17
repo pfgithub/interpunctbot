@@ -37,7 +37,7 @@ nr.globalCommand(
 	},
 	nr.list(),
 	async ([], info) => {
-		if (!Info.theirPerm.manageBot(info)) return;
+		if (!(await Info.theirPerm.manageBot(info))) return;
 		if (!info.db || !info.guild) {
 			return await info.error("This command cannot be used in PMs");
 		}
@@ -90,7 +90,7 @@ nr.globalCommand(
 	},
 	nr.list(),
 	async ([], info) => {
-		if (!Info.theirPerm.manageBot(info)) return;
+		if (!(await Info.theirPerm.manageBot(info))) return;
 		if (!info.db || !info.guild) {
 			return await info.error("This command cannot be used in PMs");
 		}
@@ -119,7 +119,7 @@ nr.globalCommand(
 	},
 	nr.list(),
 	async ([], info) => {
-		if (!Info.theirPerm.manageBot(info)) return;
+		if (!(await Info.theirPerm.manageBot(info))) return;
 		if (!info.db || !info.guild) {
 			return await info.error("This command cannot be used in PMs");
 		}
@@ -146,7 +146,7 @@ nr.globalCommand(
 	},
 	nr.list(),
 	async ([], info) => {
-		if (!Info.theirPerm.manageBot(info)) return;
+		if (!(await Info.theirPerm.manageBot(info))) return;
 		if (!info.db || !info.guild) {
 			return await info.error("This command cannot be used in PMs");
 		}

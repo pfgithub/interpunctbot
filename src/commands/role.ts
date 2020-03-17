@@ -125,7 +125,7 @@ ip!rank @user gold pot
 			return;
 		}
 
-		if (!Info.theirPerm.manageBot(info)) return;
+		if (!(await Info.theirPerm.manageBot(info))) return;
 		if (!(await permTheyCanManageRole(role, info))) return;
 		if (!(await permWeCanManageRole(role, info))) return;
 
@@ -163,7 +163,7 @@ nr.globalCommand(
 			return;
 		}
 
-		if (!Info.theirPerm.manageBot(info)) return;
+		if (!(await Info.theirPerm.manageBot(info))) return;
 		if (!(await permTheyCanManageRole(role, info))) return;
 		if (!(await permWeCanManageRole(role, info))) return;
 
@@ -191,7 +191,7 @@ nr.globalCommand(
 			return;
 		}
 
-		if (!Info.theirPerm.manageBot(info)) return;
+		if (!(await Info.theirPerm.manageBot(info))) return;
 		if (!(await permTheyCanManageRole(role, info))) return;
 		if (!(await permWeCanManageRole(role, info))) return;
 
@@ -222,7 +222,7 @@ nr.globalCommand(
 			return;
 		}
 
-		if (!Info.theirPerm.manageBot(info)) return;
+		if (!(await Info.theirPerm.manageBot(info))) return;
 
 		const qr = await info.db.getQuickrank();
 
@@ -260,7 +260,7 @@ nr.globalCommand(
 			return;
 		}
 
-		if (!Info.theirPerm.manageBot(info)) return;
+		if (!(await Info.theirPerm.manageBot(info))) return;
 
 		const qr = await info.db.getQuickrank();
 
@@ -322,7 +322,7 @@ nr.globalCommand(
 			return;
 		}
 
-		if (!Info.theirPerm.manageBot(info)) return;
+		if (!(await Info.theirPerm.manageBot(info))) return;
 
 		const arrowSplit = cmd.split("->");
 		if (arrowSplit.length !== 2) {
@@ -381,7 +381,7 @@ nr.globalCommand(
 			return;
 		}
 
-		if (!Info.theirPerm.manageBot(info)) return;
+		if (!(await Info.theirPerm.manageBot(info))) return;
 
 		const qr = await info.db.getQuickrank();
 
