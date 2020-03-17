@@ -35,10 +35,15 @@ export async function handleList(
 
 	let forceLine;
 	let individual: string | boolean = false;
+	let quickread: string | boolean = false;
 
 	// parse out [single] and [quote number], then condense the remaining command into a search string
 	if (searchString.length > 0 && searchString[0] === "single") {
 		individual = searchString.shift() || true;
+	}
+	if (searchString.includes("quickread")) {
+		searchString = searchString.filter(ss => ss !== "quickread");
+		quickread = true;
 	}
 	if (
 		searchString.length > 0 &&
@@ -108,14 +113,28 @@ export async function handleList(
 		quoteEmbed.setColor(3092790);
 
 		// Return the result
-		return await info.result("", { embed: quoteEmbed });
+		const resm = await info.result("", { embed: quoteEmbed });
+		await new Promise(r => setTimeout(r, 1000));
+		if (quickread && resm) {
+			for (const m of resm) {
+				await m.delete();
+			}
+		}
+		return;
 	}
-	return await info.result(`${quoteAuthor || "Quote"}
+	const resm = await info.result(`${quoteAuthor || "Quote"}
 ${quoteFull
 	.split("\n")
 	.map(l => `> *${l}*`)
 	.join("\n")}
 ${line + 1}/${allQuotesList.length}`);
+	await new Promise(r => setTimeout(r, 1000));
+	if (quickread && resm) {
+		for (const m of resm) {
+			await m.delete();
+		}
+	}
+	return;
 }
 
 /*

@@ -30,11 +30,11 @@ Fun commands are enabled by default.
 
 {Heading|Misc}
 {CmdSummary|ping}
+{CmdSummary|vote}
 {CmdSummary|stats}
-{CmdSummary|members}
-{CmdSummary|remindme}
 {CmdSummary|needle}
-{CmdSummary|vote}`,
+{CmdSummary|members}
+{CmdSummary|remindme}`,
 );
 
 nr.globalCommand(
