@@ -11,6 +11,7 @@ import "./fun/goi";
 import { createTimer } from "./fun/helpers";
 import "./fun/trivia";
 import { getGuilds } from "../ShardHelper";
+import { restrictTextToPerms } from "./customcommands";
 
 nr.addDocsWebPage(
 	"/help/fun",
@@ -171,19 +172,26 @@ nr.globalCommand(
 	"/help/fun/load",
 	"load",
 	{
-		usage: "load",
+		usage: "load {Optional|final message}",
 		description: "Fetch results",
 		examples: [],
 	},
-	nr.list(),
-	async ([], info) => {
+	nr.list(...nr.a.words()),
+	async ([finalresunsafe], info) => {
 		if (info.db ? !(await info.db.getFunEnabled()) : false) {
 			return await info.error(messages.fun.fun_disabled(info));
 		}
 
+		const finalressafe = await restrictTextToPerms(
+			info.message.member!,
+			finalresunsafe,
+			info,
+		);
+
 		const prefix =
 			"<@" + info.message.author.id + ">, <a:loading:682804438783492139>";
 		const msg = await info.channel.send(prefix);
+		info.message.delete().catch(e => {});
 		await ms(3000);
 		await msg.edit(prefix + " Just one moment...");
 		await ms(6000);
@@ -200,8 +208,9 @@ nr.globalCommand(
 		await msg.edit(
 			info.message.author.toString() +
 				", " +
-				messages.emoji.failure +
-				"Huh, it seems something went wrong.",
+				(messages.emoji.success + " " + finalressafe.trim() ||
+					messages.emoji.failure +
+						" Huh, it seems something went wrong."),
 		);
 	},
 );

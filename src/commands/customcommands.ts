@@ -23,7 +23,7 @@ inter·punct has the ability to create custom commands and quote lists.
 `,
 );
 
-async function restrictTextToPerms(
+export async function restrictTextToPerms(
 	member: Discord.GuildMember,
 	text: string,
 	info: Info,

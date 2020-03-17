@@ -287,7 +287,8 @@ ${Object.keys("lists")
 		}`,
 	},
 	emoji: {
-		failure: "<:failure_2:547081084710682643>",
+		failure: "<:failure_2:508841130503438356>",
+		success: "<:success_2:508840840416854026>",
 		restrict_usage: (info: Info) =>
 			`Usage: \`${info.prefix}emoji restrict\`<:emoji:685668888842993833>\` Role\`
 > Role can be a role name, id, or mention.
