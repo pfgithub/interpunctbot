@@ -575,7 +575,7 @@ ${Object.entries(lists)
 			listName: string,
 			pastebinUrl: string,
 		) =>
-			`List ${listName} already exists, edit it with \`${info.prefix}lists edit ${listName} ${pastebinUrl}\` or delete it with \`${info.prefix}lists delete ${listName}\`
+			`Command ${listName} already exists, edit it with \`${info.prefix}lists edit ${listName} ${pastebinUrl}\` or delete it with \`${info.prefix}lists delete ${listName}\`
 > More Info: <https://interpunct.info/lists>`,
 		list_does_not_exist: (
 			info: Info,
