@@ -497,12 +497,18 @@ nr.globalCommand(
 		],
 	},
 	nr.passthroughArgs,
-	async ([cmd], info) => {
+	async ([unsafemessage], info) => {
 		if (info.db ? !(await info.db.getFunEnabled()) : false) {
 			return await info.error(messages.fun.fun_disabled(info));
 		}
 
-		const msg = await info.channel.send("VOTE: " + safe`${cmd}`);
+		const safemessage = await restrictTextToPerms(
+			info.message.member!,
+			unsafemessage,
+			info,
+		);
+
+		const msg = await info.channel.send("VOTE: " + safemessage);
 		await Promise.all([msg.react("👍"), msg.react("👎")]);
 
 		let endhandler: () => void = () => {
@@ -521,7 +527,7 @@ nr.globalCommand(
 			const voteCount = upvotes - downvotes;
 			const content =
 				"VOTE: " +
-				safe`${cmd}` +
+				safemessage +
 				" (Votes: " +
 				(voteCount > 0 ? "+" : "") +
 				voteCount.toLocaleString("en-US") +
