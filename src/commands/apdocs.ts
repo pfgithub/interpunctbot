@@ -79,7 +79,7 @@ Backticks must be surrounded in \`backticks\`.
 );
 
 nr.addErrorDocsPage("/arg/backtick/not-found", {
-	overview: "This command requires a duration, like 10 seconds or 1 hour.",
+	overview: "This command requires a backtick, \\`like this\\`.",
 	detail:
 		"In order to use this command, you need to provide a message surrounded in backticks.",
 	mainPath: "/arg/backtick",

@@ -460,7 +460,12 @@ function BacktickArgumentType(): ArgumentType<string> {
 		}
 		const rgxMatch = /^\`(.+?)\`(.+)$/.exec(cmd);
 		if (!rgxMatch) {
-			return await error("/arg/backtick/not-found");
+			const word = /^([\S]+)\s*([\S\s]*)/m.exec(cmd);
+			if (!word) {
+				return await error("/arg/backtick/not-found");
+			}
+			const [, result, newCmd] = word;
+			return { result: "continue", value: result, cmd: newCmd };
 		}
 		const [, backticked, final] = rgxMatch;
 		if (safe(backticked) !== backticked) {
