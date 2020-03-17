@@ -140,7 +140,10 @@ nr.globalCommand(
 		cmd = cmd.replace(/(^\`|\`$)/g, "").trim();
 		if (cmd === "client.guilds.cache.size")
 			return await info.result(
-				"" + info.message.client.guilds.cache.size,
+				"" +
+					info.message.client.guilds.cache.size.toLocaleString(
+						"en-US",
+					),
 			);
 		if (cmd === "client.token") return await info.error("no");
 		if (cmd.startsWith('message.reply("') && cmd.endsWith('")')) {
