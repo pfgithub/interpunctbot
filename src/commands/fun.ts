@@ -201,10 +201,6 @@ nr.globalCommand(
 		await ms(9000);
 		await msg.edit(prefix + " Please wait, fetching results...");
 		await ms(12000);
-		await msg.edit(prefix + " This should be over shortly...");
-		await ms(24000);
-		await msg.edit(prefix + " Please hold...");
-		await ms(48000);
 		await msg.edit(
 			info.message.author.toString() +
 				", " +
