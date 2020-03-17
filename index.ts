@@ -264,7 +264,7 @@ async function unknownCommandHandler(cmd: string, info: Info) {
 					return;
 				}
 				if (ll.type === "command") {
-					if (args) await info.error("No args.");
+					if (args) return await info.error("No args.");
 					await info.result(ll.text);
 					return;
 				}

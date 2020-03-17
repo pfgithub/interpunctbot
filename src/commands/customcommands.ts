@@ -70,6 +70,10 @@ nr.globalCommand(
 					safecmdname +
 					"}",
 			);
+		if (nr.globalCommandNS[safecmdname.toLowerCase()])
+			return await info.error(
+				"That command is already built into interpunct bot. Pick a different name.",
+			);
 		lists[safecmdname.toLowerCase()] = {
 			type: "command",
 			text: safetext.trim(),
