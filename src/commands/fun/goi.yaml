@@ -268,3 +268,24 @@ levels:
         text: |
             - ":normalpot~1:This level is not implemented yet!:normalpot~1:
 Add it yourself: https://github.com/pfgithub/interpunctbot/blob/master/src/commands/fun/goi.yaml"
+        left:
+            - msg:
+                  "*You go to the left and fall back down to the tube*"
+              goto: barrels
+              reroll: 0%
+            - msg:
+                  "*You pogo to the left and fall down to the house*"
+              goto: vanrock
+              reroll: 5%
+            - msg:
+                  "*You pogo to the left and fall back down to the log*"
+              goto: house
+              reroll: 15%
+            - msg:
+                  "*You pogo to the left and fall back to the basin*"
+              goto: basin
+              reroll: 40%
+        up:
+            - "*You go up*"
+        right:
+            - "*You go right*"
