@@ -222,7 +222,7 @@ levels:
             "*You run into a wall*" 
     barrels:
         text: |
-            {sky}{sky}{sky}{sky       }{sky}
+            {sky}{sky}{sky}{sky     }{vwall}
             {sky}{sky}{sky}{barrels }{vwall}
             {sky}{sky}{sky}{player  }{vwall}
             {sky}{sky}{sky}{tube    }{vwall}
