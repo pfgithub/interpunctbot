@@ -1,6 +1,6 @@
 ---
 emojis:
-    sky: "<:skyreen:650520232355692544>"
+    sky: "<:skygreen:650520232355692544>"
     sand: "<:Sand:650519965950279684>"
     normalcharacter: "<:normalpot:407696469722791937>"
     goldpot: "<:goldpot:407697013493334036>"
@@ -14,6 +14,9 @@ emojis:
     vwall: "<:VWall:650522702612004898>"
     paddle: "<:Paddle:650523021609795616>"
     prock: "<:PRock:650523309125009429>"
+    log: "<:Log:689608404783988890>"
+    house: "<:House:689609174073606245>"
+    vanrock: "<:Vanrock:689622162323275784>"
 start: tree
 levels:
     tree:
@@ -82,14 +85,59 @@ levels:
             - "*You run into the wall*"
     paddle:
         text: |
+            {sky}{sky}{sky}{house}{vwall}
+            {sky}{sky}{sky}{log}{vwall}
+            {rock}{sky}{player}{sky}{vwall}
+            {sand}{sky}{paddle}{sky}{vwall}
+        left:
+            - msg: 
+                  "*You fall back down to the basin*
+              goto: basin
+        up:
+            - "*You pogo up and grab the log but fall back down to the paddle*"
+            - "*You pogo up but miss the log*"
+            - msg:
+                  "*You pogo up and grab the log*"
+              goto: house
+              reroll: 5%
+        right:
+            - "*you run into a wall*"
+    house:
+        text: |
+            {sky}{sky}{sky}{vanrock}{vwall}
+            {sky}{sky}{sky}{house  }{vwall}
+            {sky}{sky}{player }{sky}{vwall}
+            {rock}{sky}{log }{vwall}{vwall}
+        left:
+            - msg:
+                  "*You fall back to the paddle*"
+              goto: paddle
+              reroll: 70%
+            - msg:
+                  "*You fall back to the basin*"
+              goto: basin
+              reroll: 15%
+        up:
+            - "*You pogo up but miss the house*"
+            - "*You pogo up and grab the house but fall back down to the log*"
+            - msg:
+                  "*You pogo up, grab the house and pull yourself onto the house*"
+                  goto: vanrock
+                  reroll: 20%
+            - msg:
+                  "*You pogo up and try to grab the house but you accidentally fling yourself back to the rock*"
+                  goto: rock
+                  reroll: 85%
+    vanrock:
+        text: |
             {player}This level is not implemented yet!{player}
             Add it yourself: <https://github.com/pfgithub/interpunctbot/blob/master/src/commands/fun/goi.yaml>
         left:
             - msg: You fall back down to the basin
               reroll: 0%
               goto: basin
-            - msg: You fling yourself off the paddle with great force
-              reroll: 90%
+            - msg: You fling yourself off the house with great force
+              reroll: 80%
               goto: rock
         up:
             - "*you go up*"
