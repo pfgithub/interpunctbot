@@ -222,10 +222,10 @@ levels:
             "*You run into a wall*" 
     barrels:
         text: |
-            {sky}{sky}{sky}{sky     }{sky}
-            {sky}{sky}{sky}{sky }{barrels}
-            {sky}{sky}{sky}{player}{vwall}
-            {sky}{sky}{sky}{tube  }{vwall}
+            {sky}{sky}{sky}{sky       }{sky}
+            {sky}{sky}{sky}{barrels }{vwall}
+            {sky}{sky}{sky}{player  }{vwall}
+            {sky}{sky}{sky}{tube    }{vwall}
         left:
             - msg:
                   "*You go to the left and fall back down to the van*"
@@ -266,8 +266,8 @@ levels:
             - "*You run into a wall*"
     barrelsII:
         text: |
-            - "{player}This level is not implemented yet!{player}
-               Add it yourself: https://github.com/pfgithub/interpunctbot/blob/master/src/commands/fun/goi.yaml"
+              {player}This level is not implemented yet!{player}
+               Add it yourself: https://github.com/pfgithub/interpunctbot/blob/master/src/commands/fun/goi.yaml
         left:
             - msg:
                   "*You go to the left and fall back down to the tube*"
