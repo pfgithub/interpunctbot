@@ -119,7 +119,7 @@ levels:
             - msg:
                   "*You fall back to the basin*"
               goto: basin
-              reroll: 15%
+              reroll: 20%
         up:
             - "*You pogo up but miss the house*"
             - "*You pogo up and grab the house but fall back down to the log*"
@@ -130,7 +130,7 @@ levels:
             - msg:
                   "*You pogo up, grab the house and pull yourself onto the house*"
               goto: vanrock
-              reroll: 10%
+              reroll: 1%
             - msg:
                   "*You pogo up and try to grab the house but you accidentally fling yourself back to the rock*"
               goto: rock
@@ -162,7 +162,7 @@ levels:
             - msg:
                   "*You grab the rock and pull yourself up*"
               goto: tube
-              reroll: 15%
+              reroll: 0%
             - msg:
                   "*You grab the rock and pull yourself up to the tube with great force*"
               goto: barrels
@@ -213,7 +213,7 @@ levels:
             - msg:
                   "*You grab the tube and pull yourself up*"
               goto: barrels
-              reroll: 10%
+              reroll: 5%
             - msg:
                   "*You grab the tube and pull yourself up with great force*"
               goto: barrelsII
@@ -222,6 +222,10 @@ levels:
             "*You run into a wall*" 
     barrels:
         text: |
+            {sky}{sky}{sky}{sky     }{sky}
+            {sky}{sky}{sky}{sky }{barrels}
+            {sky}{sky}{sky}{player}{vwall}
+            {sky}{sky}{sky}{tube  }{vwall}
         left:
             - msg:
                   "*You go to the left and fall back down to the van*"
