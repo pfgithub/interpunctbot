@@ -8,7 +8,7 @@ import { createTimer } from "./helpers";
 
 type GoDirectionSpec = (
 	| string
-	| { msg: string; goto?: string; reroll?: string }
+	| { msg: string; goto?: string; weight?: string }
 )[];
 
 type LevelSpec = {
@@ -105,15 +105,33 @@ ${
 			}
 		};
 		const doAction = (actions: GoDirectionSpec, depth = 0): void => {
-			const action = actions[Math.floor(Math.random() * actions.length)];
+			const actionChances: { i: number; chance: number }[] = [];
+			let total = 0;
+			let i = 0;
+			for (const action of actions) {
+				let current = -1;
+				// in zig, let current = if(...) ... else ...
+				if (typeof action === "string") {
+					current = 1;
+				} else if (action.weight !== undefined) {
+					current = +action.weight;
+				} else {
+					current = 1;
+				}
+				total += current;
+				actionChances.push({ i, chance: total });
+				i++;
+			}
+
+			const pickNum = Math.random() * total;
+			const actionIndex = actionChances
+				.reverse()
+				.filter(m => pickNum < m.chance)
+				.pop()!;
+			const action = actions[actionIndex.i];
+
 			if (typeof action === "string") {
 				return addEvent(action);
-			}
-			if (
-				Math.random() < parseInt(action.reroll || "0", 10) / 100 &&
-				depth < 100
-			) {
-				return doAction(actions, depth + 1);
 			}
 			addEvent(action.msg);
 			if (action.goto) {
