@@ -85,7 +85,7 @@ levels:
             - "*You run into the wall*"
     paddle:
         text: |
-            {sky}{sky}{sky}{house}{vwall}
+            {sky}{sky}{sky}{sky}{house}
             {sky}{sky}{sky}{log}{vwall}
             {rock}{sky}{sky}{player}{vwall}
             {sand}{sky}{sky}{paddle}{vwall}
@@ -104,8 +104,8 @@ levels:
             - "*you run into a wall*"
     house:
         text: |
+            {sky}{sky}{sky}{sky       }{sky}
             {sky}{sky}{sky}{sky   }{vanrock}
-            {sky}{sky}{sky}{sky     }{vwall}
             {sky}{sky}{player}{house}{vwall}
             {rock}{sky}{log  }{vwall}{vwall}
         left:
