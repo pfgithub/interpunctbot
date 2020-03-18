@@ -266,7 +266,7 @@ levels:
             - "*You run into a wall*"
     barrelsII:
         text: |
-            - ":normalpot~1:This level is not implemented yet!:normalpot~1:
+            - "{player}This level is not implemented yet!{player}
                Add it yourself: https://github.com/pfgithub/interpunctbot/blob/master/src/commands/fun/goi.yaml"
         left:
             - msg:
