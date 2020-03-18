@@ -221,6 +221,7 @@ levels:
         right:
             "*You run into a wall*" 
     barrels:
+        text: |
         left:
             - msg:
                   "*You go to the left and fall back down to the van*"
