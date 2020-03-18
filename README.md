@@ -49,14 +49,14 @@ invite the bot to a server.
 go to the bot tab and get the token (click to reveal token or press the copy
 button).
 
-copy `config/knexfile.example.json` to `config/knexfile.json`. you probably
-don't need to make any changes.
-
 create `config/config.json` and fill it with
 
 ```json
 { "token": "your bot token goes here" }
 ```
+
+copy `config/knexfile.example.json` to `config/knexfile.json`. you probably
+don't need to make any changes.
 
 there are other configuration options available which you can see in
 `config/config.example.json`
