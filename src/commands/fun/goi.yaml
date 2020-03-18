@@ -87,8 +87,8 @@ levels:
         text: |
             {sky}{sky}{sky}{house}{vwall}
             {sky}{sky}{sky}{log}{vwall}
-            {rock}{sky}{player}{sky}{vwall}
-            {sand}{sky}{paddle}{sky}{vwall}
+            {rock}{sky}{sky}{player}{vwall}
+            {sand}{sky}{sky}{paddle}{vwall}
         left:
             - msg: 
                   "*You fall back down to the basin*"
@@ -104,10 +104,10 @@ levels:
             - "*you run into a wall*"
     house:
         text: |
-            {sky}{sky}{sky}{vanrock}{vwall}
-            {sky}{sky}{sky}{house  }{vwall}
-            {sky}{sky}{player }{sky}{vwall}
-            {rock}{sky}{log }{vwall}{vwall}
+            {sky}{sky}{sky}{sky   }{vanrock}
+            {sky}{sky}{sky}{sky     }{vwall}
+            {sky}{sky}{player}{house}{vwall}
+            {rock}{sky}{log  }{vwall}{vwall}
         left:
             - msg:
                   "*You fall back to the paddle*"
