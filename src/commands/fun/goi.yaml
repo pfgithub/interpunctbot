@@ -17,6 +17,9 @@ emojis:
     log: "<:Log:689608404783988890>"
     house: "<:House:689609174073606245>"
     vanrock: "<:Vanrock:689622162323275784>"
+    tube: "<:Tube:689773685095137292>"
+    barrels: "<:Barrels:689773987219374172>"
+    van: "<:Van:689779554184986629>"
 start: tree
 levels:
     tree:
@@ -128,18 +131,131 @@ levels:
                   "*You pogo up and try to grab the house but you accidentally fling yourself back to the rock*"
               goto: rock
               reroll: 85%
+        right:
+            - "*You run into the house*"
     vanrock:
         text: |
-            {player}This level is not implemented yet!{player}
-            Add it yourself: <https://github.com/pfgithub/interpunctbot/blob/master/src/commands/fun/goi.yaml>
+            {sky}{sky}{sky}{sky      }{tube}
+            {sky}{sky}{sky}{vanrock }{vwall}
+            {sky}{sky}{player}{vwall}{vwall}
+            {sky}{sky}{house }{vwall}{vwall}
         left:
-            - msg: You fall back down to the basin
-              reroll: 0%
+            - msg:
+                  "*You fall back down to the basin*"
               goto: basin
-            - msg: You fling yourself off the house with great force
-              reroll: 80%
-              goto: rock
+              reroll: 40%
+            - msg:
+                  "*You fall back to the paddle*"
+              goto: paddle
+              reroll: 20%
+            - msg:
+                  "*You fall back down to the log*"
+              goto:  house
+              reroll: 65%
         up:
-            - "*you go up*"
+            - "*You try to grab the rock but fail*"
+            - "*You grab the rock but fall back down to the house*"
+            - msg:
+                  "*You grab the rock and pull yourself up*"
+              goto: tube
+              reroll: 15%
+            - msg:
+                  "*You grab the rock and pull yourself up to the tube with great force*"
+              goto: barrels
+              reroll: 95%
+            - msg:
+                  "*You try grabbing the rock but accidentally fling yourself back down to the log*"
+              goto: house
+              reroll: 85%
+    tube:
+        text: |
+            {sky}{sky}{sky}{sky  }{barrels}
+            {sky}{sky}{sky}{sky     }{tube}
+            {sky}{sky}{sky}{player }{vwall}
+            {sky}{sky}{vanrock}{van}{vwall}
+        left:
+            - "*You try going back down but get stuck on the rock*"
+            - msg:
+                  "*You pogo to the left with great force*"
+              goto: rock
+              reroll: 70%
+            - msg:
+                  "*You pogo to the left and fall back down to the basin*"
+              goto: basin
+              reroll: 50%
+            - msg:
+                  "*You pogo to the left and fall back down to the house*"
+              goto: vanrock
+              reroll: 15%
+            - msg:
+                  "*You pogo to the left and fall back down to the log*"
+              goto: house
+              reroll: 20%
+        up:
+            - "*You try grabbing the tube but you fail*"
+            - "*You grab the tube but fall back down to the van*"
+            - msg:
+                  "*You try grabbing the tube but accidentally push yourself back down to the house*"
+              goto: vanrock
+              reroll: 10%
+            - msg:
+                  "*You try grabbing the tube but accidentally push yourself to the left with great force*"
+              goto: rock
+              reroll: 75%
+            - msg:
+                  "*You try grabbing the tube but you accidentally push yourself to the left and fall back down to the basin*"
+              goto: basin
+              reroll: 20%
+            - msg:
+                  "*You grab the tube and pull yourself up*"
+              goto: barrels
+              reroll: 45%
+            - msg:
+                  "*You grab the tube and pull yourself up with great force*"
+              goto: barrelsII
+              reroll: 60%
         right:
-            - "*you go right*"
+            "*You run into a wall*" 
+    barrels:
+        left:
+            - msg:
+                  "*You go to the left and fall back down to the van*"
+              goto: tube
+              reroll: 5%
+            - msg:
+                  "*You pogo to the left and fall back down to the basin*"
+              goto: basin
+              reroll: 15%
+            - msg:
+                  "*You pogo to the left with great force*"
+              goto: rock
+              reroll: 65%
+        up:
+            - "*You try grabbing the barrels but fail*"
+            - "*You grab the barrels but fall back down to the tube*"
+            - msg:
+                  "*You grab the barrels and pull yourself up*"
+              goto: barrelsII
+              reroll: 30%
+            - msg:
+                  "*You try grabbing the barrels but fall back down to the van*"
+              goto: tube
+              reroll: 20%
+            - msg:
+                  "*You try grabbing the barrels but fall back down to the house*"
+              goto: vanrock
+              reroll: 25%
+            - msg:
+                  "*You try grabbing the barrels but fall back down to the log*"
+              goto: house
+              reroll: 33%
+            - msg:
+                  "*You try grabbing the barrels but accidentally push yourself down to the left with great force*"
+              goto: basin
+              reroll: 40%
+        right:
+            - "*You run into a wall*"
+    barrelsII:
+        text: |
+            - ":normalpot~1:This level is not implemented yet!:normalpot~1:
+Add it yourself: https://github.com/pfgithub/interpunctbot/blob/master/src/commands/fun/goi.yaml"
