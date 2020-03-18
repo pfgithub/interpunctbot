@@ -122,8 +122,8 @@ levels:
             - "*You pogo up and grab the house but fall back down to the log*"
             - msg:
                   "*You pogo up, grab the house and pull yourself onto the house*"
-                  goto: vanrock
-                  reroll: 20%
+              goto: vanrock
+              reroll: 20%
             - msg:
                   "*You pogo up and try to grab the house but you accidentally fling yourself back to the rock*"
               goto: rock
