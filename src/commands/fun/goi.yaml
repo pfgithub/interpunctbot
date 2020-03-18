@@ -91,7 +91,7 @@ levels:
             {sand}{sky}{paddle}{sky}{vwall}
         left:
             - msg: 
-                  "*You fall back down to the basin*
+                  "*You fall back down to the basin*"
               goto: basin
         up:
             - "*You pogo up and grab the log but fall back down to the paddle*"
@@ -126,8 +126,8 @@ levels:
                   reroll: 20%
             - msg:
                   "*You pogo up and try to grab the house but you accidentally fling yourself back to the rock*"
-                  goto: rock
-                  reroll: 85%
+              goto: rock
+              reroll: 85%
     vanrock:
         text: |
             {player}This level is not implemented yet!{player}
