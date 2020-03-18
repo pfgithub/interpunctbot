@@ -42,10 +42,10 @@ levels:
                   down*"
             - msg: "*You pull yourself up over the tree*"
               goto: rock
-              reroll: 25%
+              chance: 1
             - msg: "*You fling yourself over the tree with great force*"
               goto: basin
-              reroll: 90%
+              chance: 0.4
     rock:
         text: |
             {sky }{sky   }{sky }{sky}
@@ -54,16 +54,16 @@ levels:
         left:
             - msg: "*You make your way back over the tree.*"
               goto: tree
-              reroll: 0%
+              chance: 1
         up:
             - "*You pogo up and fall back down*"
         right:
             - msg: "*You climb over the rock and fall into the basin*"
               goto: basin
-              reroll: 0%
+              chance: 0.9
             - msg: "*You fling yourself over the rock with great force*"
               goto: paddle
-              reroll: 75%
+              chance: 0.1
     basin:
         text: |
             {rock}{sky}{sky}{paddle}{vwall}
@@ -75,7 +75,7 @@ levels:
             - "*You make it half way up the left side, but fall off*"
             - msg: You climb your way back out of the basin
               goto: rock
-              reroll: 99%
+              chance: 0.01
         up:
             - "*You pogo up but miss the rock and paddle*"
             - "*You pogo up and grab the rock, but fall off*"
@@ -83,7 +83,7 @@ levels:
                   "*You pogo and grab the rock and use it to fling yourself onto
                   the paddle*"
               goto: paddle
-              reroll: 75%
+              chance: 0.5
         right:
             - "*You run into the wall*"
     paddle:
@@ -102,7 +102,7 @@ levels:
             - msg:
                   "*You pogo up and grab the log*"
               goto: house
-              reroll: 5%
+              chance: 0.8
         right:
             - "*you run into a wall*"
     house:
@@ -115,26 +115,26 @@ levels:
             - msg:
                   "*You fall back to the paddle*"
               goto: paddle
-              reroll: 70%
+              chance: 0.7
             - msg:
                   "*You fall back to the basin*"
               goto: basin
-              reroll: 20%
+              chance: 0.2
         up:
             - "*You pogo up but miss the house*"
             - "*You pogo up and grab the house but fall back down to the log*"
             - msg:
                   "*You pogo up and try to grab the house but you push yourself down to the basin*"
               goto: basin
-              reroll: 45%
+              chance: 0.3
             - msg:
                   "*You pogo up, grab the house and pull yourself onto the house*"
               goto: vanrock
-              reroll: 1%
+              chance: 1
             - msg:
                   "*You pogo up and try to grab the house but you accidentally fling yourself back to the rock*"
               goto: rock
-              reroll: 85%
+              chance: 0.4
         right:
             - "*You run into the house*"
     vanrock:
@@ -147,30 +147,30 @@ levels:
             - msg:
                   "*You fall back down to the basin*"
               goto: basin
-              reroll: 40%
+              chance: 0.4
             - msg:
                   "*You fall back to the paddle*"
               goto: paddle
-              reroll: 20%
+              chance: 0.5
             - msg:
                   "*You fall back down to the log*"
               goto:  house
-              reroll: 65%
+              chance: 0.6
         up:
             - "*You try to grab the rock but fail*"
             - "*You grab the rock but fall back down to the house*"
             - msg:
                   "*You grab the rock and pull yourself up*"
               goto: tube
-              reroll: 0%
+              chance: 1
             - msg:
                   "*You grab the rock and pull yourself up to the tube with great force*"
               goto: barrels
-              reroll: 95%
+              chance: 0.2
             - msg:
                   "*You try grabbing the rock but accidentally fling yourself back down to the log*"
               goto: house
-              reroll: 85%
+              chance: 0.3
     tube:
         text: |
             {sky}{sky}{sky}{sky  }{barrels}
@@ -182,42 +182,42 @@ levels:
             - msg:
                   "*You pogo to the left with great force*"
               goto: rock
-              reroll: 70%
+              chance: 0.2
             - msg:
                   "*You pogo to the left and fall back down to the basin*"
               goto: basin
-              reroll: 60%
+              chance: 0.3
             - msg:
                   "*You pogo to the left and fall back down to the house*"
               goto: vanrock
-              reroll: 50%
+              chance: 0.2
             - msg:
                   "*You pogo to the left and fall back down to the log*"
               goto: house
-              reroll: 20%
+              chance: 0.2
         up:
             - "*You try grabbing the tube but you fail*"
             - "*You grab the tube but fall back down to the van*"
             - msg:
                   "*You try grabbing the tube but accidentally push yourself back down to the house*"
               goto: vanrock
-              reroll: 60%
+              chance: 0.2
             - msg:
                   "*You try grabbing the tube but accidentally push yourself to the left with great force*"
               goto: rock
-              reroll: 90%
+              chance: 0.2
             - msg:
                   "*You try grabbing the tube but you accidentally push yourself to the left and fall back down to the basin*"
               goto: basin
-              reroll: 50%
+              chance: 0.2
             - msg:
                   "*You grab the tube and pull yourself up*"
               goto: barrels
-              reroll: 5%
+              chance: 0.9
             - msg:
                   "*You grab the tube and pull yourself up with great force*"
               goto: barrelsII
-              reroll: 42%
+              chance: 0.3
         right:
             "*You run into a wall*" 
     barrels:
@@ -230,38 +230,38 @@ levels:
             - msg:
                   "*You go to the left and fall back down to the van*"
               goto: tube
-              reroll: 5%
+              chance: 0.1
             - msg:
                   "*You pogo to the left and fall back down to the basin*"
               goto: basin
-              reroll: 15%
+              chance: 0.3
             - msg:
                   "*You pogo to the left with great force*"
               goto: rock
-              reroll: 65%
+              chance: 0.3
         up:
             - "*You try grabbing the barrels but fail*"
             - "*You grab the barrels but fall back down to the tube*"
             - msg:
                   "*You grab the barrels and pull yourself up*"
               goto: barrelsII
-              reroll: 30%
+              chance: 0.8
             - msg:
                   "*You try grabbing the barrels but fall back down to the van*"
               goto: tube
-              reroll: 20%
+              chance: 0.2
             - msg:
                   "*You try grabbing the barrels but fall back down to the house*"
               goto: vanrock
-              reroll: 25%
+              chance: 0.2
             - msg:
                   "*You try grabbing the barrels but fall back down to the log*"
               goto: house
-              reroll: 33%
+              chance: 0.2
             - msg:
                   "*You try grabbing the barrels but accidentally push yourself down to the left with great force*"
               goto: basin
-              reroll: 40%
+              chance: 0.4
         right:
             - "*You run into a wall*"
     barrelsII:
@@ -272,19 +272,19 @@ levels:
             - msg:
                   "*You go to the left and fall back down to the tube*"
               goto: barrels
-              reroll: 0%
+              chance: 1
             - msg:
                   "*You pogo to the left and fall down to the house*"
               goto: vanrock
-              reroll: 5%
+              chance: 0.5
             - msg:
                   "*You pogo to the left and fall back down to the log*"
               goto: house
-              reroll: 15%
+              chance: 0.5
             - msg:
                   "*You pogo to the left and fall back to the basin*"
               goto: basin
-              reroll: 40%
+              chance: 0.3
         up:
             - "*You go up*"
         right:
