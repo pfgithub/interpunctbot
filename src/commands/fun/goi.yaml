@@ -24,7 +24,7 @@ emojis:
     barrelsrock: "<:Barrelsrock:690183384344952861>"
     barrelsrock2: "<:Barrelsrock2:690184106369351701>"
     barrelsrock3: "<:Barrelsrock3:690184337559388177>"
-start: barrels
+start: barrelsII
 levels:
     tree:
         text: |
@@ -270,25 +270,70 @@ levels:
             - "*You run into a wall*"
     barrelsII:
         text: |
-              {player}This level is not implemented yet!{player}
-               Add it yourself: https://github.com/pfgithub/interpunctbot/blob/master/src/commands/fun/goi.yaml
+              {sky}{sky}{sky}{sky}{barrelrock2}
+              {sky}{sky}{sky}{sky}{barrelrock}
+              {sky}{sky}{sky}{player}{vwall
+              {sky}{sky}{sky}{barrels  }{vwall}
         left:
             - msg:
-                  "*You go to the left and fall back down to the tube*"
+                  "*You fall back to the tube*"
               goto: barrels
-              chance: 1
+              chance: 0.9
             - msg:
-                  "*You pogo to the left and fall down to the house*"
-              goto: vanrock
-              chance: 0.5
+                  "*You fall back down to the van*"
+              goto: tube
+              chance: 0.4
             - msg:
-                  "*You pogo to the left and fall back down to the log*"
-              goto: house
-              chance: 0.5
+                 "*You pogo to the left and fall back down to the house*"
+             goto: vanrock
+             chance: 0.2
             - msg:
-                  "*You pogo to the left and fall back to the basin*"
+                  "*You pogo to the left and fall back down to the basin*"
               goto: basin
-              chance: 0.3
+              chance: 0.4
+        up:
+            - "*You try to grab the rock but fail*"
+            - "*You grab the rock but fall back down to the barrels*"
+            - msg:
+                  "*You grab the rock and pull yourself up*"
+              goto: barrelsrock
+              chance: 1.8
+            - msg:
+                  "*You try to grab the rock but accidentally push yourself down to the van*"
+              goto: tube
+              chance: 0.2
+            - msg:
+                  "*You try to grab the rock but accidentally push yourself down to the house*"
+              goto: vanrock
+              chance: 0.4
+            - msg:
+                  "*You try to grab the rock but accidentally push yourself back down to the basin*"
+              goto: basin
+              chance: 0.1
+        right:
+            - "*You run into a wall*"
+    barrelsrock:
+        text: |
+            {player} This level is not implemented yet! {player}
+            Add it yourself:
+            https://github.com/pfgithub/interpunctbot/blob/master/src/commands/fun/goi.yaml
+        left:
+            - msg:
+                  "*You put yourself on the barrels*"
+              goto: barrelsII
+              chance: 2
+            - msg:
+                  "*You pogo to the left and fall back down to the van
+              goto: tube
+              chance: 0.4
+            - msg: 
+                  "*You pogo to the left and fall back down to the house*"
+              goto: vanrock
+              chance: 0.6
+            - msg:
+                  "*You pogo to the left and fall back down to the basin*"
+              goto: basin
+              chance: 0.4
         up:
             - "*You go up*"
         right:
