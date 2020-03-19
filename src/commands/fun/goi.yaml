@@ -270,9 +270,9 @@ levels:
             - "*You run into a wall*"
     barrelsII:
         text: |
-              {sky}{sky}{sky}{sky}{barrelrock2}
-              {sky}{sky}{sky}{sky}{barrelrock}
-              {sky}{sky}{sky}{player}{vwall
+              {sky}{sky}{sky}{sky}{barrelsrock2}
+              {sky}{sky}{sky}{sky}{barrelsrock}
+              {sky}{sky}{sky}{player}{vwall}
               {sky}{sky}{sky}{barrels  }{vwall}
         left:
             - msg:
