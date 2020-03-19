@@ -321,7 +321,7 @@ levels:
             - msg:
                   "*You put yourself on the barrels*"
               goto: barrelsII
-              chance: 2
+              chance: 1
             - msg:
                   "*You pogo to the left and fall back down to the van
               goto: tube
