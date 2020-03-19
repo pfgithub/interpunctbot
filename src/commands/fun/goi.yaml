@@ -285,8 +285,8 @@ levels:
               chance: 0.4
             - msg:
                  "*You pogo to the left and fall back down to the house*"
-             goto: vanrock
-             chance: 0.2
+              goto: vanrock
+              chance: 0.2
             - msg:
                   "*You pogo to the left and fall back down to the basin*"
               goto: basin
