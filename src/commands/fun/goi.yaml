@@ -323,7 +323,7 @@ levels:
               goto: barrelsII
               chance: 1
             - msg:
-                  "*You pogo to the left and fall back down to the van
+                  "*You pogo to the left and fall back down to the van*"
               goto: tube
               chance: 0.4
             - msg: 
