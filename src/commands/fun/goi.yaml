@@ -20,7 +20,11 @@ emojis:
     tube: "<:Tube:689773685095137292>"
     barrels: "<:Barrels:689773987219374172>"
     van: "<:Van:689779554184986629>"
-start: tree
+    barrels2: "<:barrels2:690182389133344821>"
+    barrelsrock: "<:Barrelsrock:690183384344952861>"
+    barrelsrock2: "<:Barrelsrock2:690184106369351701>"
+    barrelsrock3: "<:Barrelsrock3:690184337559388177>"
+start: barrels
 levels:
     tree:
         text: |
@@ -222,10 +226,10 @@ levels:
             "*You run into a wall*" 
     barrels:
         text: |
-            {sky}{sky}{sky}{sky     }{vwall}
-            {sky}{sky}{sky}{barrels }{vwall}
-            {sky}{sky}{sky}{player  }{vwall}
-            {sky}{sky}{sky}{tube    }{vwall}
+            {sky}{sky}{sky}{sky}{barrelsrock}
+            {sky}{sky}{sky}{barrels  }{vwall}
+            {sky}{sky}{sky}{player   }{vwall}
+            {sky}{sky}{sky}{tube     }{vwall}
         left:
             - msg:
                   "*You go to the left and fall back down to the van*"
