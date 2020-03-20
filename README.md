@@ -1,18 +1,21 @@
 # inter·punct bot
 
-[![List icon](https://cdn.discordapp.com/emojis/476514785106591744.png?v=1&size=32) discordbots.org (please vote)](https://discordbots.org/bot/433078185555656705)
-[![List icon](https://cdn.discordapp.com/emojis/476514785106591744.png?v=1&size=32) bots.discord.pw](https://bots.discord.pw/bots/433078185555656705)
-[![Node.js icon](https://cdn.discordapp.com/emojis/476513336490721290.png?v=1&size=32) source code](https://gitlab.com/pfgitlab/interpunctbot)
-[![Documentation icon](https://cdn.discordapp.com/emojis/476514294075490306.png?v=1&size=32) documentation](https://gitlab.com/pfgitlab/interpunctbot/blob/master/README.md)
-[![Discord icon](https://cdn.discordapp.com/emojis/478701038447230996.png?v=1&size=32) support server](https://discord.gg/j7qpZdE)
-
-<!-- [![Discuss](https://img.shields.io/discord/446481361692524545.svg)](https://discord.gg/j7qpZdE) -->
-
-# todo before ipv3
-
--   migrate to newrouter (+documentation)
--   remove ability to put no space in commands like `ip!votewhat happened`
--   rankmoji
+-   [Configuration](https://interpunct.info/help/configuration): settings for
+    some parts of inter·punct
+-   [Fun](https://interpunct.info/help/fun): games and other fun commands
+-   [Emoji](https://interpunct.info/help/emoji): commands for managing emoji
+-   [Channels](https://interpunct.info/help/channels): channel management
+-   [Administration](https://interpunct.info/help/administration): commands to
+    help administration
+-   [Custom Commands](https://interpunct.info/help/customcommands): custom
+    commands config
+-   [Logging](https://interpunct.info/help/log): commands to manage a server
+    message log \(disabled by default\)
+-   [Speedrun](https://interpunct.info/help/speedrun): speedrun.com integrations
+-   [Quickrank](https://interpunct.info/help/quickrank): allow moderators to
+    rank people quickly
+-   [Autodelete](https://interpunct.info/help/autodelete): have inter·punct
+    remove certain messages automatically
 
 # running
 
