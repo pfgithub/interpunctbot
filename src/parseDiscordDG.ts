@@ -280,7 +280,7 @@ const commands: {
 			assert.equal(args.length, 1);
 		},
 		html: (args, truePageURL) => {
-			const pageURL = args[0].raw;
+			const pageURL = args[0].raw.toLowerCase();
 			const command = globalCommandNS[pageURL];
 			if (!command)
 				return (
@@ -294,7 +294,7 @@ const commands: {
 			);
 		},
 		discord: (args, info) => {
-			const command = globalCommandNS[args[0].raw];
+			const command = globalCommandNS[args[0].raw.toLowerCase()];
 			if (!command)
 				return (
 					"- " + commands.Command.discord!(args, info) + " — Error :("
@@ -305,7 +305,7 @@ const commands: {
 			);
 		},
 		md: args => {
-			const command = globalCommandNS[args[0].raw];
+			const command = globalCommandNS[args[0].raw.toLowerCase()];
 			if (!command)
 				return "- " + commands.Command.md(args) + " — Error :(";
 			return commands.UsageSummary.md([

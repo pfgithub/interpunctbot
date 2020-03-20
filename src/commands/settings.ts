@@ -22,7 +22,7 @@ nr.globalCommand(
 	"set managebotrole",
 	{
 		description: "Set a role in which users can manage the bot settings.",
-		usage: "set prefix {Required|{Role|role}}",
+		usage: "set ManageBotRole {Required|{Role|role}}",
 		examples: [],
 	},
 	nr.list(...nr.a.role()),
@@ -80,7 +80,7 @@ nr.globalCommand(
 	"/help/settings/show-errors",
 	"set showerrors",
 	{
-		usage: "set show errors {Required|{Enum|always|admins|never}}",
+		usage: "set ShowErrors {Required|{Enum|always|admins|never}}",
 		description: "choose who command errors are shown to",
 		examples: [],
 	},
@@ -116,7 +116,7 @@ nr.globalCommand(
 	"/help/settings/show-unknown-command",
 	"set showunknowncommand",
 	{
-		usage: "set show unknown command {Required|{Enum|always|admins|never}}",
+		usage: "set ShowUnknownCommand {Required|{Enum|always|admins|never}}",
 		description: "choose who unknown command errors are shown to",
 		examples: [],
 	},
