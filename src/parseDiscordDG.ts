@@ -50,7 +50,8 @@ const commands: {
 	[cmd: string]: {
 		confirm: (args: Args) => never | void;
 		html: (args: Args, pageURL: string) => string;
-		discord: (args: Args, info: Info) => string;
+		discord?: (args: Args, info: Info) => string;
+		md: (args: Args) => string;
 	};
 } = {
 	Heading: {
@@ -62,9 +63,10 @@ const commands: {
 				return rawhtml`<h4 class="heading">${args[0].safe}</h4>`;
 			return rawhtml`<h2 class="heading">${args[0].safe}</h2>`;
 		},
-		discord: (args, info) => {
+		discord: args => {
 			return `== **${args[0].safe}** ==`;
 		},
+		md: args => `## ${args[0].safe}`,
 	},
 	Title: {
 		confirm: args => {
@@ -77,9 +79,10 @@ const commands: {
 				)}">${args[0].safe}</a></h3>`;
 			return rawhtml`<h1 class="heading">${args[0].safe}</h1>`;
 		},
-		discord: (args, info) => {
+		discord: args => {
 			return `==== **${args[0].safe}** ====`;
 		},
+		md: args => `# ${args[0].safe}`,
 	},
 	Command: {
 		confirm: args => {
@@ -97,6 +100,9 @@ const commands: {
 				/[a-zA-Z]$/.exec(info.prefix) ? " " : ""
 			}${raw(args[0].safe)}\``;
 		},
+		md: args => {
+			return safe`\`ip!${raw(args[0].safe)}\``;
+		},
 	},
 	Interpunct: {
 		confirm: args => {
@@ -107,18 +113,19 @@ const commands: {
 				[{ raw: "never", safe: "inter·punct" }],
 				pageURL,
 			),
-		discord: (args, info) => info.atme,
+		discord: (_, info) => info.atme,
+		md: () => `@inter·punct`,
 	},
 	Optional: {
 		confirm: args => assert.equal(args.length, 1),
 		html: args =>
 			rawhtml`<span class="optional"><span class="optionallabel">Optional</span> ${args[0].safe}</span>`,
-		discord: args => "[" + args[0].safe + "]",
+		md: args => "[" + args[0].safe + "]",
 	},
 	Required: {
 		confirm: args => assert.equal(args.length, 1),
 		html: args => rawhtml`<span class="required">${args[0].safe}</span>`,
-		discord: args => "<" + args[0].safe + ">",
+		md: args => "<" + args[0].safe + ">",
 	},
 	ExampleUserMessage: {
 		confirm: args => assert.equal(args.length, 1),
@@ -133,6 +140,7 @@ const commands: {
 			</div>`,
 		discord: (args, info) =>
 			`**you**: ${inlineOrBlockQuote(safe(info.prefix) + args[0].safe)}`,
+		md: args => `**you**: ${inlineOrBlockQuote("ip!" + args[0].safe)}`,
 	},
 	ExampleUserMessageNoPfx: {
 		confirm: args => assert.equal(args.length, 1),
@@ -145,7 +153,7 @@ const commands: {
 				<div class="author you">you</div>
 				<div class="msgcontent">${args[0].safe}</div>
 			</div>`,
-		discord: args => `**you**: ${inlineOrBlockQuote(args[0].safe)}`,
+		md: args => `**you**: ${inlineOrBlockQuote(args[0].safe)}`,
 	},
 	ExampleBotMessage: {
 		confirm: args => assert.equal(args.length, 1),
@@ -160,28 +168,28 @@ const commands: {
 			</div>
 			<div class="msgcontent">${args[0].safe}</div>
 		</div>`,
-		discord: args =>
+		md: args =>
 			`**inter·punct** [BOT]: ${inlineOrBlockQuote(args[0].safe)}`,
 	},
 	Role: {
 		confirm: args => assert.equal(args.length, 1),
 		html: args => "@" + args[0].safe,
-		discord: args => "@​" + args[0].safe, // OK because everyone => every[ZWSP]one
+		md: args => "@​" + args[0].safe, // OK because everyone => every[ZWSP]one
 	},
 	Channel: {
 		confirm: args => assert.equal(args.length, 1),
 		html: args => rawhtml`<span class="tag">#${args[0].safe}</span>`,
-		discord: args => "#" + args[0].safe,
+		md: args => "#" + args[0].safe,
 	},
 	Duration: {
 		confirm: () => {},
 		html: () => "duration eg. 10h 5min",
-		discord: () => "duration eg. 10h 5min",
+		md: () => "duration eg. 10h 5min",
 	},
 	Bold: {
 		confirm: args => assert.equal(args.length, 1),
 		html: args => rawhtml`<b>${args[0].safe}</b>`,
-		discord: args => "**" + (args[0].safe || "\u200B") + "**",
+		md: args => "**" + (args[0].safe || "\u200B") + "**",
 	},
 	Reaction: {
 		confirm: args => assert.equal(args.length, 2),
@@ -192,21 +200,26 @@ const commands: {
 			)}</div><div class="reactioncount">${args[1].safe}</div></div>`,
 		discord: (args, info) =>
 			"[" +
-			commands.Emoji.discord([args[0]], info) +
+			commands.Emoji.discord!([args[0]], info) +
 			" " +
 			args[1].safe +
 			"] ",
+		md: args =>
+			"[" + commands.Emoji.md([args[0]]) + " " + args[1].safe + "] ",
 	},
 	Atmention: {
 		confirm: args => assert.equal(args.length, 1),
 		html: args => rawhtml`<span class="tag">@${args[0].safe}</span>`,
-		discord: args => "@" + args[0].safe,
+		md: args => "@" + args[0].safe,
 	},
 	Screenshot: {
 		confirm: args => assert.equal(args.length, 1),
 		html: args =>
-			rawhtml`<img src="${safehtml(args[0].raw)}" class="sizimg" />`,
+			rawhtml`<img src="${safehtml(
+				args[0].raw,
+			)}" alt="screenshot" class="sizimg" />`,
 		discord: args => `screenshot: <${encodeURI(args[0].raw)}>`,
+		md: args => `![screenshot](${encodeURI(args[0].raw)})`,
 	},
 	Emoji: {
 		confirm: args => {
@@ -234,19 +247,29 @@ const commands: {
 			}
 			return `<${emojiname}${emojiid}>`;
 		},
+		md: args => {
+			const [emojiname, emojiid, surround] = emoji[args[0].raw] || [
+				":err_no_emoji:",
+				"err_no_emoji",
+			];
+			if (surround) {
+				return `\`![${emojiname}](${emojiid})\``;
+			}
+			return `![${emojiname}](${emojiid})`;
+		},
 	},
 	Code: {
 		confirm: args => {
 			assert.equal(args.length, 1);
 		},
 		html: args => "<code>" + args[0].safe + "</code>",
-		discord: args => "`" + (args[0].safe || "\u200B") + "`",
+		md: args => "`" + (args[0].safe || "\u200B") + "`",
 	},
 	Blockquote: {
 		confirm: args => assert.equal(args.length, 1),
 		html: args =>
 			rawhtml`<div class="blockquote-container"><div class="blockquote-divider"></div><blockquote>${args[0].safe}</blockquote></div>`,
-		discord: args =>
+		md: args =>
 			args[0].safe
 				.split("\n")
 				.map(l => "> " + l)
@@ -274,12 +297,20 @@ const commands: {
 			const command = globalCommandNS[args[0].raw];
 			if (!command)
 				return (
-					"- " + commands.Command.discord(args, info) + " — Error :("
+					"- " + commands.Command.discord!(args, info) + " — Error :("
 				);
-			return commands.UsageSummary.discord(
+			return commands.UsageSummary.discord!(
 				[{ raw: command.docsPath, safe: "never" }],
 				info,
 			);
+		},
+		md: args => {
+			const command = globalCommandNS[args[0].raw];
+			if (!command)
+				return "- " + commands.Command.md(args) + " — Error :(";
+			return commands.UsageSummary.md([
+				{ raw: command.docsPath, safe: "never" },
+			]);
 		},
 	},
 	UsageSummary: {
@@ -323,6 +354,16 @@ const commands: {
 				dgToDiscord(docs.summaries.description, info)
 			);
 		},
+		md: args => {
+			const docs = globalDocs[args[0].raw];
+			if (!docs) return "- " + args[0].safe + " — Error :(";
+			return (
+				"- " +
+				dgToMD(docs.summaries.usage) +
+				" — " +
+				dgToMD(docs.summaries.description)
+			);
+		},
 	},
 	LinkSummary: {
 		confirm: args => {
@@ -363,7 +404,7 @@ const commands: {
 				dgToDiscord(docs.summaries.title, info) +
 				": " +
 				// renderdiscord`{Command|${docs.path.split("/").join(" ")}}` would be nice
-				commands.Command.discord(
+				commands.Command.discord!(
 					[
 						{
 							safe:
@@ -382,6 +423,18 @@ const commands: {
 				) +
 				" — " +
 				dgToDiscord(docs.summaries.description, info)
+			);
+		},
+		md: args => {
+			const docs = globalDocs[args[0].raw];
+			if (!docs) return "- " + args[0].safe + " — Error :(";
+			return (
+				"- [" +
+				dgToMD(docs.summaries.title) +
+				"](https://interpunct.info" +
+				docs.path +
+				"): " +
+				dgToMD(docs.summaries.description)
 			);
 		},
 	},
@@ -403,7 +456,7 @@ const commands: {
 			if (!docs) return "- " + args[0].safe + " — Error :(";
 			return (
 				// renderdiscord`{Command|${docs.path.split("/").join(" ")}}` would be nice
-				commands.Command.discord(
+				commands.Command.discord!(
 					[
 						{
 							safe:
@@ -422,16 +475,24 @@ const commands: {
 				)
 			);
 		},
+		md: args => {
+			const docs = globalDocs[args[0].raw];
+			if (!docs) return "Error :(";
+
+			return `[${dgToMD(docs.summaries.title)}](https://interpunct.info${
+				docs.path
+			})`;
+		},
 	},
 	Enum: {
 		confirm: args => assert.ok(args.length > 0),
 		html: args => args.map(a => a.safe).join("|"),
-		discord: args => args.map(a => a.safe).join("|"),
+		md: args => args.map(a => a.safe).join("|"),
 	},
 	Divider: {
 		confirm: args => assert.equal(args.length, 1),
 		html: args => rawhtml`<span class="divider">${args[0].safe}</span>`,
-		discord: args => "--- " + args[0].safe + " ---",
+		md: args => "--- " + args[0].safe + " ---",
 	},
 	Link: {
 		confirm: args => {
@@ -441,16 +502,18 @@ const commands: {
 			rawhtml`<a href="${safehtml(args[0].raw)}">${args[1]?.safe ||
 				args[0].safe}</a>`,
 		discord: args => "<" + args[0].safe + ">",
+		md: args =>
+			"[" + (args[1]?.safe || args[0].safe) + "](" + args[0].safe + ")",
 	},
 	Nothing: {
 		confirm: args => assert.equal(args.length, 0),
 		html: () => "",
-		discord: () => "",
+		md: () => "",
 	},
 	Comment: {
 		confirm: () => {},
 		html: () => "",
-		discord: () => "",
+		md: () => "",
 	},
 };
 
@@ -468,17 +531,31 @@ export function confirmDocs(text: string) {
 export function dgToDiscord(text: string, info: Info) {
 	const res = parseDG(text, (fn, args) => {
 		if (!fn) return safe(args[0].raw);
-		if (!commands[fn]) {
+		const cmd = commands[fn];
+		if (!cmd) {
 			return "Uh oh! " + messages.emoji.failure;
 		}
-		return commands[fn].discord(args, info);
+		if (!cmd.discord) return cmd.md(args);
+		return cmd.discord(args, info);
+	});
+	return res.safe.replace(/\n\n+/g, "\n\n");
+}
+
+export function dgToMD(text: string) {
+	const res = parseDG(text, (fn, args) => {
+		if (!fn) return safe(args[0].raw);
+		const cmd = commands[fn];
+		if (!cmd) {
+			return "Uh oh! " + messages.emoji.failure;
+		}
+		return cmd.md(args);
 	});
 	return res.safe.replace(/\n\n+/g, "\n\n");
 }
 
 export function dgToHTML(text: string, pageURL: string) {
 	const res = parseDG(
-		text.replace(/(\n\s*\n)|(\n)/g, (q, a, b) =>
+		text.replace(/(\n\s*\n)|(\n)/g, (_, a, b) =>
 			a ? "\n" : b ? "\n" : "uh oh",
 		),
 		(fn, args) => {

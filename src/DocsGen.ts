@@ -1,7 +1,7 @@
 import { globalDocs } from "./NewRouter";
 import { promises as fs } from "fs";
 import path from "path";
-import { dgToHTML, safehtml } from "./parseDiscordDG";
+import { dgToHTML, safehtml, dgToMD } from "./parseDiscordDG";
 import { raw } from "../messages";
 import htmlMinifier from "html-minifier";
 
@@ -163,6 +163,17 @@ export async function DocsGen() {
 
 	const sidebarJSON = await fs.readFile(fDoc("sidebar.json"), "utf-8");
 	const sidebarCont = JSON.parse(sidebarJSON);
+
+	{
+		const topggEntry = globalDocs["/help"];
+		const tggText = dgToMD(topggEntry.body);
+		if (tggText.length < 300)
+			throw new Error(
+				"Top.gg text must be at least 300 characters in length",
+			);
+		const file = fDocs("topgg.md");
+		await fs.writeFile(file, tggText, "utf-8");
+	}
 
 	for (const docItem of Object.values(globalDocs)) {
 		const html = dgToHTML(docItem.body, docItem.path);
