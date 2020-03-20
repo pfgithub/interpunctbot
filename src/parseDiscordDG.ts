@@ -501,9 +501,13 @@ const commands: {
 		html: args =>
 			rawhtml`<a href="${safehtml(args[0].raw)}">${args[1]?.safe ||
 				args[0].safe}</a>`,
-		discord: args => "<" + args[0].safe + ">",
+		discord: args => "<" + encodeURI(args[0].raw) + ">",
 		md: args =>
-			"[" + (args[1]?.safe || args[0].safe) + "](" + args[0].safe + ")",
+			"[" +
+			(args[1]?.safe || args[0].safe) +
+			"](" +
+			encodeURI(args[0].safe) +
+			")",
 	},
 	Nothing: {
 		confirm: args => assert.equal(args.length, 0),
