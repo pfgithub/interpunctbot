@@ -151,10 +151,7 @@ export const theirPerm = {
 		return false;
 	}, // I want an r.load() that calls startloading and awaits for it
 	owner: (info: Info) => {
-		if (
-			globalConfig.owner && // just in case
-			info.message.author.id === globalConfig.owner
-		) {
+		if (globalConfig.owners.includes(info.message.author.id)) {
 			return true;
 		}
 		perr(

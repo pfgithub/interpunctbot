@@ -1,6 +1,6 @@
 {
 	"token": "The token to run the bot. If this is not provided, the bot cannot be run",
-	"owner": "Optional, the id of the owner of the bot",
+	"owners": ["Optional, the id(s) of the owner(s) of the bot"],
 	"errorReporting": {
 		"server": "Optional, a guild id to report errors to",
 		"channel": "Optional, the channel in that guild to report errors to"
