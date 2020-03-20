@@ -31,6 +31,7 @@ import {
 	getRankSuccessMessage,
 } from "./src/commands/role";
 import { getGuilds } from "./src/ShardHelper";
+import fetch from "node-fetch";
 
 mdf(moment as any);
 
@@ -313,13 +314,57 @@ async function unknownCommandHandler(cmd: string, info: Info) {
 }
 
 async function updateActivity() {
-	const count = await getGuilds(client);
-	client.user &&
-		client.user.setActivity(
+	console.log("Posting activity...");
+	if (client.user) {
+		const count = await getGuilds(client);
+		await client.user.setActivity(
 			count === -1
 				? "ip!help on a bunch of servers"
 				: `ip!help on ${count} servers`,
 		);
+		const dbgToken = globalConfig.listings?.["discord.bots.gg"];
+		if (count !== -1 && dbgToken) {
+			const fres = await fetch(
+				"https://discord.bots.gg/api/v1/bots/" +
+					client.user.id +
+					"/stats",
+				{
+					method: "POST",
+					headers: {
+						Accept: "application/json",
+						"Content-Type": "application/json",
+						Authorization: dbgToken,
+					},
+					body: JSON.stringify({
+						guildCount: count, //client.guilds.cache.size,
+						// shardCount: client.shard ? client.shard.count : 1,
+						// shardId: client.shard ? client.shard.ids[0] : 1,
+					}),
+					// ^ or, post {guildCount: count on this shard, shardCount: count, shardId: number}
+				},
+			);
+			console.log("dbgg post success", await fres.text());
+		}
+		const tggToken = globalConfig.listings?.["top.gg"];
+		if (count !== -1 && tggToken) {
+			const fres = await fetch(
+				"https://top.gg/api/bots/" + client.user.id + "/stats",
+				{
+					method: "POST",
+					headers: {
+						Accept: "application/json",
+						"Content-Type": "application/json",
+						Authorization: tggToken,
+					},
+					body: JSON.stringify({
+						server_count: count,
+					}),
+				},
+			);
+			console.log("topgg post success", await fres.json());
+		}
+	}
+	console.log("Post succesful!");
 	// if(process.env.NODE_ENV !== "production") return; // only production should post
 	// let options = {
 	// 	url: `https://bots.discord.pw/api/bots/${config.bdpid}/stats`,
@@ -343,7 +388,7 @@ client.on("ready", () => {
 	perr(updateActivity(), "activity update");
 });
 
-setInterval(() => perr(updateActivity(), "activity update"), 2 * 1000); // update every 2 min
+setInterval(() => perr(updateActivity(), "activity update"), 5 * 60 * 1000); // update every 5 min
 
 function streplace(str: string, eplace: { [key: string]: string }) {
 	const uids: { [key: string]: string } = {};

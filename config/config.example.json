@@ -6,7 +6,8 @@
 		"channel": "Optional, the channel in that guild to report errors to"
 	},
 	"listings": {
-		"bots.discord.pw": "Optional: A token to use for publishing statistics to bots.discord.pw. Interpunct will run even if you don't provide this token."
+		"discord.bots.gg": "Optional: A token to use for publishing statistics to discord.bots.gg. Interpunct will run even if you don't provide this token.",
+		"top.gg": "Optional: A token to use for publishing statistics to top.gg. Interpunct will run even if you don't provide this token."
 	},
 	"testing": {
 		"users": [

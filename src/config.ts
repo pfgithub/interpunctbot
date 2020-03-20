@@ -11,7 +11,8 @@ type Config = {
 		channel: string;
 	};
 	listings?: {
-		"bots.discord.pw"?: string;
+		"discord.bots.gg"?: string;
+		"top.gg"?: string;
 	};
 	testing?: {
 		users?: string[];
