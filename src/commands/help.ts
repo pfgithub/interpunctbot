@@ -23,7 +23,16 @@ nr.addDocsWebPage(
 	"/index",
 	"Home",
 	"Website homepage",
-	"{Heading|Inter·punct Bot}\n\nThis website is for version 3 of {Interpunct} which is currently in development. For version 2, see https://top.gg/bot/433078185555656705\n\n{Screenshot|https://top.gg/api/widget/433078185555656705.png}",
+	`{Title|Inter·punct Bot}
+Interpunct is a discord bot developed by {Atmention|pfg#4865}
+
+{LinkSummary|/help}
+
+{Heading|Links}
+{Link|https://top.gg/bot/433078185555656705}
+{Link|https://discord.bots.gg/bots/433078185555656705}
+
+{Screenshot|https://top.gg/api/widget/433078185555656705.png}`,
 );
 
 nr.addDocsWebPage(
