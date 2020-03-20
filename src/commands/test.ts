@@ -9,7 +9,7 @@ nr.globalCommand(
 	"/help/test/test",
 	"test",
 	{
-		usage: "test {Emoji|emoji} {Role|role}",
+		usage: "test",
 		description: "Test the bot",
 		examples: [],
 	},
