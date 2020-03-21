@@ -310,7 +310,11 @@ export type Board<TileData> = {
 	): { tile: TileData; x: number; y: number }[];
 	search(
 		startingPosition: Pos,
-		cb: (tile: TileData, x: number, y: number) => Pos | true | false,
+		cb: (
+			tile: TileData,
+			x: number,
+			y: number,
+		) => Pos | "current" | "previous",
 	): { x: number; y: number; distance: number } | undefined;
 };
 export type Pos = [number, number];
@@ -371,14 +375,14 @@ export function newBoard<TileData>(
 					throw new Error("Potentially infinite find!:(passed 1000)");
 				const result = // in zig this could be a normal if statement instead of a ternary thing. that is the obvious way to do it, why doesn't every language do it that way
 					cx >= w || cx < 0 || cy >= h || cy < 0
-						? false // search will now automatically fail when off board
+						? "previous" // search will now automatically fail when off board
 						: cb(tiles[cy][cx], cx, cy);
-				if (result === false)
+				if (result === "previous")
 					if (i === 0) return undefined;
 					else return { x, y, distance: i };
 				[x, y] = [cx, cy];
 				i++;
-				if (result === true) return { x, y, distance: i };
+				if (result === "current") return { x, y, distance: i };
 				[cx, cy] = result;
 			}
 		},

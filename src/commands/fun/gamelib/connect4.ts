@@ -50,7 +50,7 @@ function checkWin(gameState: Connect4, [placedX, placedY]: [number, number]) {
 		const downmost = gameState.board.search(
 			[placedX, placedY],
 			(tileh, x, y) => {
-				if (tileh.color !== tile.color) return false;
+				if (tileh.color !== tile.color) return "previous";
 				return [x + check[0], y + check[1]];
 			},
 		);
@@ -58,7 +58,7 @@ function checkWin(gameState: Connect4, [placedX, placedY]: [number, number]) {
 		const upmost = gameState.board.search(
 			[downmost.x, downmost.y],
 			(tileh, x, y) => {
-				if (tileh.color !== tile.color) return false;
+				if (tileh.color !== tile.color) return "previous";
 				return [x - check[0], y - check[1]];
 			},
 		);
@@ -86,7 +86,7 @@ export const connect4 = newGame<Connect4>({
 		const resmoves: MoveSet<Connect4> = [];
 		for (let x = 0; x < 7; x++) {
 			const found = state.board.search([x, 0], (tile, x, y) => {
-				return tile.color ? (y === 0 ? true : false) : [x, y + 1];
+				return tile.color ? "previous" : [x, y + 1];
 			});
 			if (found) {
 				const [x, y] = [found.x, found.y];
