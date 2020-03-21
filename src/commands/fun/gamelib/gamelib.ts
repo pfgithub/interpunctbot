@@ -2,7 +2,7 @@ import * as Discord from "discord.js";
 
 import Info from "../../../Info";
 import { perr } from "../../../..";
-import { getPlayers, createTimer } from "../helpers";
+import { getTwoPlayers, createTimer } from "../helpers";
 
 /// pass data async
 /// stream.write()
@@ -126,9 +126,8 @@ export const newGame = <State>(conf: GameConfig<State>) => async (
 	const gameOverListener = oneway<boolean>();
 	let gameOver = false;
 
-	const players = await getPlayers(
+	const players = await getTwoPlayers(
 		[info.message.author.id],
-		2,
 		conf.title,
 		info,
 	);

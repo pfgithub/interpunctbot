@@ -575,6 +575,11 @@ export function handleReactions(
 			.then(v => (v.error ? errCb(v.error) : 0))
 			.catch(_ => _ as never);
 	});
+	reactionCollector.on("remove", (reaction, user) => {
+		if (user.bot) {
+			return;
+		}
+	});
 	return {
 		end: () => reactionCollector.stop(),
 		done: new Promise((resolve, reject) => {

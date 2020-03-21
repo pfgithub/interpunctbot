@@ -49,9 +49,8 @@ export function createTimer(
 	};
 }
 
-export async function getPlayers(
+export async function getTwoPlayers(
 	initial: string[],
-	playerLimit: number,
 	gameName: string,
 	/*requireApprobalBeforeStart*/ info: Info,
 ) {
@@ -60,7 +59,7 @@ export async function getPlayers(
 		const startTime = new Date().getTime();
 		const getJoinMessageText = () =>
 			`${info.message.author.toString()} has started a game of ${gameName}.
-> (${`${playersInGame.length}`}/${playerLimit}) ${playersInGame
+> (${`${playersInGame.length}`}/2) ${playersInGame
 				.map(pl => `<@${pl}>`)
 				.join(", ")}
 > React <:j:455896379210989568> to join. (${`${60 -
@@ -81,10 +80,10 @@ export async function getPlayers(
 				if (reaction.emoji.name !== "➕") {
 					await reaction.users.remove(user);
 				}
-				if (playersInGame.length < playerLimit) {
+				if (playersInGame.length < 2) {
 					if (!playersInGame.includes(user.id)) {
 						playersInGame.push(user.id);
-						if (playersInGame.length === playerLimit) {
+						if (playersInGame.length === 2) {
 							// start game
 							handleReactions.end();
 						}
@@ -108,7 +107,7 @@ export async function getPlayers(
 		editInterval.end();
 		await joinRequestMessage.delete();
 
-		if (playersInGame.length !== playerLimit) {
+		if (playersInGame.length !== 2) {
 			await info.error(`Not enough players to start game.`);
 			return;
 		}
