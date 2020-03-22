@@ -101,14 +101,14 @@ React ➕ to join. ${info.message.author.toString()}, React ✅ to start game.`;
 			},
 		);
 
-		// const updateInterval = setInterval(() => editMessage(), 10 * 1000);
+		const updateInterval = setInterval(() => editMessage(), 10 * 1000);
 		const finalTimeout = setTimeout(() => {
 			rxnh.end();
 		}, 5 * 60 * 1000); // 5 minutes for players to join
 
 		await rxnh.done;
 
-		// clearInterval(updateInterval);
+		clearInterval(updateInterval);
 		clearTimeout(finalTimeout);
 		perr(inviteMessage.delete(), false);
 
