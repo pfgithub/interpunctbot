@@ -553,7 +553,10 @@ export function handleReactions(
 		reaction: Discord.MessageReaction,
 		user: Discord.User,
 	) => Promise<void>,
-	// filter?: (reaction: Discord.MessageReaction, user: Discord.User) => boolean,
+	rxnRemove?: (
+		reaction: Discord.MessageReaction,
+		user: Discord.User,
+	) => Promise<void>,
 ) {
 	const reactionCollector = new Discord.ReactionCollector(
 		msg,
@@ -575,11 +578,15 @@ export function handleReactions(
 			.then(v => (v.error ? errCb(v.error) : 0))
 			.catch(_ => _ as never);
 	});
-	reactionCollector.on("remove", (reaction, user) => {
-		if (user.bot) {
-			return;
-		}
-	});
+	rxnRemove &&
+		reactionCollector.on("remove", (reaction, user) => {
+			if (user.bot) {
+				return;
+			}
+			ilt(rxnRemove(reaction, user), false)
+				.then(v => (v.error ? errCb(v.error) : 0))
+				.catch(_ => _ as never);
+		});
 	return {
 		end: () => reactionCollector.stop(),
 		done: new Promise((resolve, reject) => {

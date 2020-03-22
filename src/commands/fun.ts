@@ -10,6 +10,7 @@ import "./fun/gamelibgames";
 import "./fun/goi";
 import { createTimer } from "./fun/helpers";
 import "./fun/trivia";
+import "./fun/spyfall";
 import { getGuilds } from "../ShardHelper";
 import { restrictTextToPerms } from "./customcommands";
 
@@ -27,6 +28,7 @@ Fun commands are enabled by default.
 {CmdSummary|trivia}
 {CmdSummary|connect4}
 {CmdSummary|minesweeper}
+{CmdSummary|circlegame}
 
 {Heading|Misc}
 {CmdSummary|ping}

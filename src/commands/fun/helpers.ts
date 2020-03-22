@@ -78,7 +78,7 @@ export async function getTwoPlayers(
 			joinRequestMessage,
 			async (reaction, user) => {
 				if (reaction.emoji.name !== "➕") {
-					await reaction.users.remove(user);
+					return;
 				}
 				if (playersInGame.length < 2) {
 					if (!playersInGame.includes(user.id)) {
