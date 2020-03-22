@@ -161,7 +161,7 @@ React ➕ to join. ${info.message.author.toString()}, React ✅ to start game.`;
 			} else {
 				// if shard 0
 				await playerDiscord.send(
-					`=== **Spyfall** ===\nLocation: **${data.location}** \nRole: *${data.role}*`,
+					`=== Spyfall ===\nLocation: **${data.location}** \nRole: *${data.role}*`,
 				);
 			}
 
