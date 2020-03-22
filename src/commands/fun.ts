@@ -34,6 +34,7 @@ Fun commands are enabled by default.
 {CmdSummary|ping}
 {CmdSummary|vote}
 {CmdSummary|stats}
+{CmdSummary|timer}
 {CmdSummary|needle}
 {CmdSummary|members}
 {CmdSummary|remindme}`,
@@ -193,7 +194,7 @@ nr.globalCommand(
 		const prefix =
 			"<@" + info.message.author.id + ">, <a:loading:682804438783492139>";
 		const msg = await info.channel.send(prefix);
-		info.message.delete().catch(e => {});
+		info.message.delete().catch(() => {});
 		await ms(3000);
 		await msg.edit(prefix + " Just one moment...");
 		await ms(6000);
@@ -321,6 +322,83 @@ Type "apropos word" to search for commands related to "word".
 \`\`\``);
 	},
 );
+
+nr.addErrorDocsPage("/help/fun/timer/too-long", {
+	overview:
+		"That timer is too long. If you need a time longer than 1 hour, use {Command|remindme}.",
+	detail: "",
+	mainPath: "/help/fun/timer",
+});
+
+// nr.globalCommand(
+// 	"/help/fun/timer",
+// 	"timer",
+// 	{
+// 		usage: "timer {Required|{Duration}}",
+// 		description:
+// 			"set a short timer. use {Command|remindme} for long times.",
+// 		examples: [],
+// 	},
+// 	nr.list(nr.a.duration()),
+// 	async ([tms], info) => {
+// 		if (tms > 1 * 60 * 60 * 1000)
+// 			// 1hr
+// 			return await info.docs("/help/fun/timer/too-long", "error");
+//
+// 		const message = await info.channel.send(
+// 			"<a:loading:682804438783492139> Starting timer...",
+// 		);
+//
+// 		const time = () => new Date().getTime();
+// 		let start = 0;
+// 		let paused: undefined | { ms: number };
+//
+// 		const rxnh = info.handleReactions(
+// 			message,
+// 			async (rx, ur) => {
+// 				if (info.message.author.id !== ur.id) return;
+// 				if (rx.emoji.name === "⏹️") {
+// 					return rxnh.end();
+// 				}
+// 				if (rx.emoji.name === "⏸️") {
+// 					if (!paused) paused = { ms: time() - start };
+// 					return;
+// 				}
+// 			},
+// 			async (rx, ur) => {
+// 				if (info.message.author.id !== ur.id) return;
+// 				if (rx.emoji.name === "⏸️") {
+// 					if (paused) {
+// 						start = time() - paused.ms;
+// 						paused = undefined;
+// 					}
+// 					return;
+// 				}
+// 			},
+// 		);
+//
+// 		await message.react("⏸️");
+// 		await message.react("⏹️");
+//
+// 		start = time();
+// 		const ei = setEditInterval(async () => {
+// 			const nmc =
+// 				(paused ? "**Paused**. " : "") +
+// 				durationFormat(
+// 					paused ? tms - paused.ms : tms - (time() - start),
+// 				) +
+// 				" remaining.";
+// 			if (message.content === nmc) return;
+// 			await message.edit(nmc);
+// 		});
+//
+// 		await rxnh.done;
+// 		ei.end();
+// 		await message.edit("Timer over.");
+// 		await info.success("Time up.");
+//      // todo is: timer unpausing, update immediately after clicking reaction (with ratelimit), alert when timer is over (with settimeout that gets stopped and resumed on pause), don't allow infinite pause
+// 	},
+// );
 
 nr.globalCommand(
 	"/help/fun/members",

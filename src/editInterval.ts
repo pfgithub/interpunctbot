@@ -1,10 +1,10 @@
 import { perr } from "..";
 
-export function setEditInterval(cb: () => Promise<void>) {
+export function setEditInterval(cb: () => Promise<void>, ms = 3000) {
 	const makeTimeout = () => () => (
 		(async () => {
 			await cb();
-			nextTimeout = setTimeout(makeTimeout(), 2000);
+			nextTimeout = setTimeout(makeTimeout(), ms);
 		})().catch(e => {
 			console.log("edit message perr (this will stop message editing)");
 			nextTimeout = undefined;
