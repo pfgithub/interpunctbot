@@ -20,7 +20,22 @@ emojis:
     tube: "<:Tube:689773685095137292>"
     barrels: "<:Barrels:689773987219374172>"
     van: "<:Van:689779554184986629>"
-start: tree
+    barrels2: "<:barrels2:690182389133344821>"
+    barrelsrock: "<:Barrelsrock:690183384344952861>"
+    barrelsrock2: "<:Barrelsrock2:690184106369351701>"
+    barrelsrock3: "<:Barrelsrock3:690184337559388177>"
+    chimneyplatform: "<:Chimneyplatform:690923455889145898>"
+    trashrockbelow: "<:Trashrockbelow:690923965266395188>"
+    leaves: "<:Leaves:690924827908898866>"
+    chimneyrock: "<:Chimneyrock:690925337197936640>"
+    trashrockabove: "<:Trashrockabove:690934064336732180>"
+    chimneyskiprock: "<:Chimneyskiprock1:691640381141418008>"
+    trash: "<:Trash:691640659936936037>"
+    chimneyskiprock2: "<:Chimneyskiprock2:691641260582109275>"
+    grider: "<:Grider:691641487925968916>"
+    rockroof: "<:rockroof:691655352478859294>"
+    chimneyrock2: "<:chimneyrock2:691656565966766202>"
+start: chimneystart
 levels:
     tree:
         text: |
@@ -83,7 +98,7 @@ levels:
                   "*You pogo and grab the rock and use it to fling yourself onto
                   the paddle*"
               goto: paddle
-              chance: 0.5
+              chance: 0.7
         right:
             - "*You run into the wall*"
     paddle:
@@ -115,7 +130,7 @@ levels:
             - msg:
                   "*You fall back to the paddle*"
               goto: paddle
-              chance: 0.7
+              chance: 0.5
             - msg:
                   "*You fall back to the basin*"
               goto: basin
@@ -126,7 +141,7 @@ levels:
             - msg:
                   "*You pogo up and try to grab the house but you push yourself down to the basin*"
               goto: basin
-              chance: 0.3
+              chance: 0.1
             - msg:
                   "*You pogo up, grab the house and pull yourself onto the house*"
               goto: vanrock
@@ -134,7 +149,7 @@ levels:
             - msg:
                   "*You pogo up and try to grab the house but you accidentally fling yourself back to the rock*"
               goto: rock
-              chance: 0.4
+              chance: 0.01
         right:
             - "*You run into the house*"
     vanrock:
@@ -162,7 +177,7 @@ levels:
             - msg:
                   "*You grab the rock and pull yourself up*"
               goto: tube
-              chance: 1
+              chance: 2
             - msg:
                   "*You grab the rock and pull yourself up to the tube with great force*"
               goto: barrels
@@ -170,7 +185,7 @@ levels:
             - msg:
                   "*You try grabbing the rock but accidentally fling yourself back down to the log*"
               goto: house
-              chance: 0.3
+              chance: 0.2
     tube:
         text: |
             {sky}{sky}{sky}{sky  }{barrels}
@@ -222,10 +237,10 @@ levels:
             "*You run into a wall*" 
     barrels:
         text: |
-            {sky}{sky}{sky}{sky     }{vwall}
-            {sky}{sky}{sky}{barrels }{vwall}
-            {sky}{sky}{sky}{player  }{vwall}
-            {sky}{sky}{sky}{tube    }{vwall}
+            {sky}{sky}{sky}{sky}{barrelsrock}
+            {sky}{sky}{sky}{barrels  }{vwall}
+            {sky}{sky}{sky}{player   }{vwall}
+            {sky}{sky}{sky}{tube     }{vwall}
         left:
             - msg:
                   "*You go to the left and fall back down to the van*"
@@ -266,26 +281,115 @@ levels:
             - "*You run into a wall*"
     barrelsII:
         text: |
-              {player}This level is not implemented yet!{player}
-               Add it yourself: https://github.com/pfgithub/interpunctbot/blob/master/src/commands/fun/goi.yaml
+              {sky}{sky}{sky}{sky}{barrelsrock3}
+              {sky}{sky}{sky}{sky}{barrelsrock2}
+              {sky}{sky}{sky}{player}{barrelsrock}
+              {sky}{sky}{sky}{barrels  }{vwall}
         left:
             - msg:
-                  "*You go to the left and fall back down to the tube*"
+                  "*You fall back to the tube*"
               goto: barrels
-              chance: 1
+              chance: 0.9
             - msg:
-                  "*You pogo to the left and fall down to the house*"
+                  "*You fall back down to the van*"
+              goto: tube
+              chance: 0.4
+            - msg:
+                 "*You pogo to the left and fall back down to the house*"
               goto: vanrock
-              chance: 0.5
+              chance: 0.2
             - msg:
-                  "*You pogo to the left and fall back down to the log*"
-              goto: house
-              chance: 0.5
-            - msg:
-                  "*You pogo to the left and fall back to the basin*"
+                  "*You pogo to the left and fall back down to the basin*"
               goto: basin
+              chance: 0.1
+        up:
+            - "*You try to grab the rock but fail*"
+            - "*You grab the rock but fall back down to the barrels*"
+            - msg:
+                  "*You grab the rock and pull yourself up*"
+              goto: chimneystart
+              chance: 0.8
+            - msg:
+                  "*You try to grab the rock but accidentally push yourself down to the van*"
+              goto: tube
+              chance: 0.2
+            - msg:
+                  "*You try to grab the rock but accidentally push yourself down to the house*"
+              goto: vanrock
               chance: 0.3
+            - msg:
+                  "*You try to grab the rock but accidentally push yourself back down to the basin*"
+              goto: basin
+              chance: 0.1
+        right:
+            - "*You run into a wall*"
+    chimneystart:
+        text: |
+            {vwall}{chimneyrock   }{leaves}{leaves}{trashrockabove}
+            {vwall}{vwall}{chimneyplatform}{player}{trashrockbelow}
+            {sky}{leaves}{leaves}{barrelsrock3             }{vwall}
+            {sky}{leaves}{leaves}{barrelsrock2             }{vwall}
+        left:
+            - msg:
+                  "*You go down to the barrels*"
+              goto: barrelsII
+              chance: 0.6
+            - msg:
+                  "*You fall back down to the van*"
+              goto: tube
+              chance: 0.4
+            - msg:
+                  "*You fall back down to the basin*"
+              goto: basin
+              chance:  0.1
+        up:
+            - msg:
+                  "*You pull yourself onto the rock*"
+              goto: chimneyplatform
+              chance: 0.9
+            - msg:
+                  "*You pull yourself onto the rock with great force*"
+              goto: chimneyrock
+              chance: 0.4
+        right:
+            - "*You run into a wall*"
+    chimneyplatform:
+        text: |
+            {chimneyskiprock2      }{sky}{rockroof}{rockroof}{rockroof}
+            {chimneyskiprock}{chimneyrock      }{leaves}{leaves}{trash}
+            {vwall}{chimneyrock2      }{player}{leaves}{trashrockabove}
+            {vwall}{vwall    }{chimneyplatform}{leaves}{trashrockbelow}
+        left:
+            - "*You run into a wall*"
+        up:
+            - "*You pogo up but miss the rock*"
+            - msg:
+                  "*You pogo up and grab the rock*"
+              goto: chimneyrock
+              chance: 0.7
+            - msg:
+                  "*You pogo up and try grabbing the rock but fall back to the right*"
+              goto: chimneystart
+              chance: 0.1
+        right:
+            - msg:
+                  "*You go back to the rock*"
+              goto: chimneystart
+    chimneyrock:
+        text: |
+            {player} This level is not implimented yet! {player}
+            Add it yourself:
+            https://github.com/pfgithub/interpunctbot/blob/master/src/commands/fun/goi.yaml
+        left:
+            - "*You go left*"
         up:
             - "*You go up*"
         right:
-            - "*You go right*"
+            - msg:
+                  "*You go back to the start of chimney*"
+              goto: chimneystart
+              chance: 0.5
+            - msg:
+                  "*You go back down to the rock*"
+              goto: chimneyplatform
+              chance: 0.5
