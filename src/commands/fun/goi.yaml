@@ -35,7 +35,7 @@ emojis:
     grider: "<:Grider:691641487925968916>"
     rockroof: "<:rockroof:691655352478859294>"
     chimneyrock2: "<:chimneyrock2:691656565966766202>"
-start: chimneystart
+start: tree
 levels:
     tree:
         text: |
@@ -108,14 +108,12 @@ levels:
             {rock}{sky}{sky}{player}{vwall}
             {sand}{sky}{sky}{paddle}{vwall}
         left:
-            - msg: 
-                  "*You fall back down to the basin*"
+            - msg: "*You fall back down to the basin*"
               goto: basin
         up:
             - "*You pogo up and grab the log but fall back down to the paddle*"
             - "*You pogo up but miss the log*"
-            - msg:
-                  "*You pogo up and grab the log*"
+            - msg: "*You pogo up and grab the log*"
               goto: house
               chance: 0.8
         right:
@@ -127,27 +125,28 @@ levels:
             {sky}{sky}{player}{house}{vwall}
             {rock}{sky}{log  }{vwall}{vwall}
         left:
-            - msg:
-                  "*You fall back to the paddle*"
+            - msg: "*You fall back to the paddle*"
               goto: paddle
               chance: 0.5
-            - msg:
-                  "*You fall back to the basin*"
+            - msg: "*You fall back to the basin*"
               goto: basin
               chance: 0.2
         up:
             - "*You pogo up but miss the house*"
             - "*You pogo up and grab the house but fall back down to the log*"
             - msg:
-                  "*You pogo up and try to grab the house but you push yourself down to the basin*"
+                  "*You pogo up and try to grab the house but you push yourself
+                  down to the basin*"
               goto: basin
               chance: 0.1
             - msg:
-                  "*You pogo up, grab the house and pull yourself onto the house*"
+                  "*You pogo up, grab the house and pull yourself onto the
+                  house*"
               goto: vanrock
               chance: 1
             - msg:
-                  "*You pogo up and try to grab the house but you accidentally fling yourself back to the rock*"
+                  "*You pogo up and try to grab the house but you accidentally
+                  fling yourself back to the rock*"
               goto: rock
               chance: 0.01
         right:
@@ -159,31 +158,29 @@ levels:
             {sky}{sky}{player}{vwall}{vwall}
             {sky}{sky}{house }{vwall}{vwall}
         left:
-            - msg:
-                  "*You fall back down to the basin*"
+            - msg: "*You fall back down to the basin*"
               goto: basin
               chance: 0.4
-            - msg:
-                  "*You fall back to the paddle*"
+            - msg: "*You fall back to the paddle*"
               goto: paddle
               chance: 0.5
-            - msg:
-                  "*You fall back down to the log*"
-              goto:  house
+            - msg: "*You fall back down to the log*"
+              goto: house
               chance: 0.6
         up:
             - "*You try to grab the rock but fail*"
             - "*You grab the rock but fall back down to the house*"
-            - msg:
-                  "*You grab the rock and pull yourself up*"
+            - msg: "*You grab the rock and pull yourself up*"
               goto: tube
               chance: 2
             - msg:
-                  "*You grab the rock and pull yourself up to the tube with great force*"
+                  "*You grab the rock and pull yourself up to the tube with
+                  great force*"
               goto: barrels
               chance: 0.2
             - msg:
-                  "*You try grabbing the rock but accidentally fling yourself back down to the log*"
+                  "*You try grabbing the rock but accidentally fling yourself
+                  back down to the log*"
               goto: house
               chance: 0.2
     tube:
@@ -194,47 +191,43 @@ levels:
             {sky}{sky}{vanrock}{van}{vwall}
         left:
             - "*You try going back down but get stuck on the rock*"
-            - msg:
-                  "*You pogo to the left with great force*"
+            - msg: "*You pogo to the left with great force*"
               goto: rock
               chance: 0.2
-            - msg:
-                  "*You pogo to the left and fall back down to the basin*"
+            - msg: "*You pogo to the left and fall back down to the basin*"
               goto: basin
               chance: 0.3
-            - msg:
-                  "*You pogo to the left and fall back down to the house*"
+            - msg: "*You pogo to the left and fall back down to the house*"
               goto: vanrock
               chance: 0.2
-            - msg:
-                  "*You pogo to the left and fall back down to the log*"
+            - msg: "*You pogo to the left and fall back down to the log*"
               goto: house
               chance: 0.2
         up:
             - "*You try grabbing the tube but you fail*"
             - "*You grab the tube but fall back down to the van*"
             - msg:
-                  "*You try grabbing the tube but accidentally push yourself back down to the house*"
+                  "*You try grabbing the tube but accidentally push yourself
+                  back down to the house*"
               goto: vanrock
               chance: 0.2
             - msg:
-                  "*You try grabbing the tube but accidentally push yourself to the left with great force*"
+                  "*You try grabbing the tube but accidentally push yourself to
+                  the left with great force*"
               goto: rock
               chance: 0.2
             - msg:
-                  "*You try grabbing the tube but you accidentally push yourself to the left and fall back down to the basin*"
+                  "*You try grabbing the tube but you accidentally push yourself
+                  to the left and fall back down to the basin*"
               goto: basin
               chance: 0.2
-            - msg:
-                  "*You grab the tube and pull yourself up*"
+            - msg: "*You grab the tube and pull yourself up*"
               goto: barrels
               chance: 0.9
-            - msg:
-                  "*You grab the tube and pull yourself up with great force*"
+            - msg: "*You grab the tube and pull yourself up with great force*"
               goto: barrelsII
               chance: 0.3
-        right:
-            "*You run into a wall*" 
+        right: "*You run into a wall*"
     barrels:
         text: |
             {sky}{sky}{sky}{sky}{barrelsrock}
@@ -242,23 +235,19 @@ levels:
             {sky}{sky}{sky}{player   }{vwall}
             {sky}{sky}{sky}{tube     }{vwall}
         left:
-            - msg:
-                  "*You go to the left and fall back down to the van*"
+            - msg: "*You go to the left and fall back down to the van*"
               goto: tube
               chance: 0.1
-            - msg:
-                  "*You pogo to the left and fall back down to the basin*"
+            - msg: "*You pogo to the left and fall back down to the basin*"
               goto: basin
               chance: 0.3
-            - msg:
-                  "*You pogo to the left with great force*"
+            - msg: "*You pogo to the left with great force*"
               goto: rock
               chance: 0.3
         up:
             - "*You try grabbing the barrels but fail*"
             - "*You grab the barrels but fall back down to the tube*"
-            - msg:
-                  "*You grab the barrels and pull yourself up*"
+            - msg: "*You grab the barrels and pull yourself up*"
               goto: barrelsII
               chance: 0.8
             - msg:
@@ -266,7 +255,8 @@ levels:
               goto: tube
               chance: 0.2
             - msg:
-                  "*You try grabbing the barrels but fall back down to the house*"
+                  "*You try grabbing the barrels but fall back down to the
+                  house*"
               goto: vanrock
               chance: 0.2
             - msg:
@@ -274,51 +264,50 @@ levels:
               goto: house
               chance: 0.2
             - msg:
-                  "*You try grabbing the barrels but accidentally push yourself down to the left with great force*"
+                  "*You try grabbing the barrels but accidentally push yourself
+                  down to the left with great force*"
               goto: basin
               chance: 0.4
         right:
             - "*You run into a wall*"
     barrelsII:
         text: |
-              {sky}{sky}{sky}{sky}{barrelsrock3}
-              {sky}{sky}{sky}{sky}{barrelsrock2}
-              {sky}{sky}{sky}{player}{barrelsrock}
-              {sky}{sky}{sky}{barrels  }{vwall}
+            {sky}{sky}{sky}{sky}{barrelsrock3}
+            {sky}{sky}{sky}{sky}{barrelsrock2}
+            {sky}{sky}{sky}{player}{barrelsrock}
+            {sky}{sky}{sky}{barrels  }{vwall}
         left:
-            - msg:
-                  "*You fall back to the tube*"
+            - msg: "*You fall back to the tube*"
               goto: barrels
               chance: 0.9
-            - msg:
-                  "*You fall back down to the van*"
+            - msg: "*You fall back down to the van*"
               goto: tube
               chance: 0.4
-            - msg:
-                 "*You pogo to the left and fall back down to the house*"
+            - msg: "*You pogo to the left and fall back down to the house*"
               goto: vanrock
               chance: 0.2
-            - msg:
-                  "*You pogo to the left and fall back down to the basin*"
+            - msg: "*You pogo to the left and fall back down to the basin*"
               goto: basin
               chance: 0.1
         up:
             - "*You try to grab the rock but fail*"
             - "*You grab the rock but fall back down to the barrels*"
-            - msg:
-                  "*You grab the rock and pull yourself up*"
+            - msg: "*You grab the rock and pull yourself up*"
               goto: chimneystart
               chance: 0.8
             - msg:
-                  "*You try to grab the rock but accidentally push yourself down to the van*"
+                  "*You try to grab the rock but accidentally push yourself down
+                  to the van*"
               goto: tube
               chance: 0.2
             - msg:
-                  "*You try to grab the rock but accidentally push yourself down to the house*"
+                  "*You try to grab the rock but accidentally push yourself down
+                  to the house*"
               goto: vanrock
               chance: 0.3
             - msg:
-                  "*You try to grab the rock but accidentally push yourself back down to the basin*"
+                  "*You try to grab the rock but accidentally push yourself back
+                  down to the basin*"
               goto: basin
               chance: 0.1
         right:
@@ -330,25 +319,20 @@ levels:
             {sky}{leaves}{leaves}{barrelsrock3             }{vwall}
             {sky}{leaves}{leaves}{barrelsrock2             }{vwall}
         left:
-            - msg:
-                  "*You go down to the barrels*"
+            - msg: "*You go down to the barrels*"
               goto: barrelsII
               chance: 0.6
-            - msg:
-                  "*You fall back down to the van*"
+            - msg: "*You fall back down to the van*"
               goto: tube
               chance: 0.4
-            - msg:
-                  "*You fall back down to the basin*"
+            - msg: "*You fall back down to the basin*"
               goto: basin
-              chance:  0.1
+              chance: 0.1
         up:
-            - msg:
-                  "*You pull yourself onto the rock*"
+            - msg: "*You pull yourself onto the rock*"
               goto: chimneyplatform
               chance: 0.9
-            - msg:
-                  "*You pull yourself onto the rock with great force*"
+            - msg: "*You pull yourself onto the rock with great force*"
               goto: chimneyrock
               chance: 0.4
         right:
@@ -363,17 +347,16 @@ levels:
             - "*You run into a wall*"
         up:
             - "*You pogo up but miss the rock*"
-            - msg:
-                  "*You pogo up and grab the rock*"
+            - msg: "*You pogo up and grab the rock*"
               goto: chimneyrock
               chance: 0.7
             - msg:
-                  "*You pogo up and try grabbing the rock but fall back to the right*"
+                  "*You pogo up and try grabbing the rock but fall back to the
+                  right*"
               goto: chimneystart
               chance: 0.1
         right:
-            - msg:
-                  "*You go back to the rock*"
+            - msg: "*You go back to the rock*"
               goto: chimneystart
     chimneyrock:
         text: |
@@ -385,11 +368,9 @@ levels:
         up:
             - "*You go up*"
         right:
-            - msg:
-                  "*You go back to the start of chimney*"
+            - msg: "*You go back to the start of chimney*"
               goto: chimneystart
               chance: 0.5
-            - msg:
-                  "*You go back down to the rock*"
+            - msg: "*You go back down to the rock*"
               goto: chimneyplatform
               chance: 0.5
