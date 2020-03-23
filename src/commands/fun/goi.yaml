@@ -33,7 +33,9 @@ emojis:
     trash: "<:Trash:691640659936936037>"
     chimneyskiprock2: "<:Chimneyskiprock2:691641260582109275>"
     grider: "<:Grider:691641487925968916>"
-start: tree
+    rockroof: "<:rockroof:691655352478859294>"
+    chimneyrock2: "<:chimneyrock2:691656565966766202>"
+start: chimneystart
 levels:
     tree:
         text: |
@@ -353,10 +355,10 @@ levels:
             - "*You run into a wall*"
     chimneyplatform:
         text: |
-            {chimneyskiprock      }{sky}{sky}{sky}{sky}
-            {vwall}{chimneyrock}{leaves}{leaves}{trash}
-            {vwall}{vwall}{player}{leaves}{trashrockabove}
-            {vwall}{vwall}{chimneyplatform}{leaves}{trashrockbelow}
+            {chimneyskiprock2      }{sky}{rockroof}{rockroof}{rockroof}
+            {chimneyskiprock}{chimneyrock      }{leaves}{leaves}{trash}
+            {vwall}{chimneyrock2      }{player}{leaves}{trashrockabove}
+            {vwall}{vwall    }{chimneyplatform}{leaves}{trashrockbelow}
         left:
             - "*You run into a wall*"
         up:
