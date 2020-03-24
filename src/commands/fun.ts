@@ -215,6 +215,21 @@ nr.globalCommand(
 );
 
 nr.globalCommand(
+	"/help/time",
+	"time",
+	{
+		usage: "time {Optional|timezone}",
+		description: "time",
+		examples: [],
+	},
+	nr.list(...nr.a.words()),
+	async ([cmd], info) => {
+		if (cmd.trim()) return await info.error("timezone not supported :(");
+		return await info.result(new Date().toUTCString());
+	},
+);
+
+nr.globalCommand(
 	"/help/fun/color",
 	"color",
 	{
