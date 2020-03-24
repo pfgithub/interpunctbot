@@ -32,6 +32,7 @@ Fun commands are enabled by default.
 
 {Heading|Misc}
 {CmdSummary|ping}
+{CmdSummary|time}
 {CmdSummary|vote}
 {CmdSummary|stats}
 {CmdSummary|timer}
