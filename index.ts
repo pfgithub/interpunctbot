@@ -167,7 +167,7 @@ function remove(oldcmd: string, reason: string, version = "3.0") {
 			description: "removed",
 			examples: [],
 		},
-		nr.list(),
+		nr.passthroughArgs,
 		async ([], info) => {
 			return await info.error(
 				messages.failure.command_removed(info, oldcmd, version, reason),
