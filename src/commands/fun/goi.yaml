@@ -360,7 +360,7 @@ levels:
               goto: chimneystart
     chimneyrock:
         text: |
-            {player} This level is not implimented yet! {player}
+            {player} This level is not implemented yet! {player}
             Add it yourself:
             https://github.com/pfgithub/interpunctbot/blob/master/src/commands/fun/goi.yaml
         left:
