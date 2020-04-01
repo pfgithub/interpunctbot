@@ -4,7 +4,7 @@ import path from "path";
 import { ilt, perr } from "../../..";
 import { messages } from "../../../messages";
 import * as nr from "../../NewRouter";
-import { createTimer } from "./helpers";
+import { createTimer, setEditInterval } from "./helpers";
 
 type GoDirectionSpec = (
 	| string
@@ -71,20 +71,9 @@ nr.globalCommand(
 		const events: string[] = [];
 		let eventIndex = 1;
 
-		let isUpdating = false;
-		let postUpdate: ((q: boolean) => void)[] = [];
-		const updateMessage = async () => {
-			if (isUpdating) {
-				postUpdate.forEach(v => v(false));
-				postUpdate = [];
-				const v = await new Promise(r => postUpdate.push(r));
-				if (!v) {
-					return;
-				}
-			}
-			//eslint-disable-next-line require-atomic-updates
-			isUpdating = true;
-			await gamemsg.edit(`**Getting Over It with Bennett Foddy**
+		const editInterval = setEditInterval(
+			async () => {
+				await gamemsg.edit(`**Getting Over It with Bennett Foddy**
 ${
 	goilevels[level]
 		? goilevels[level].text.replace(/{(.+?)}/g, (_, v) => {
@@ -94,10 +83,10 @@ ${
 		  })
 		: `404! Level \`${level}\` not found!`
 }${events.map(ev => `\n${ev}`).join("")}`);
-			//eslint-disable-next-line require-atomic-updates
-			isUpdating = false;
-			postUpdate.forEach(v => v(true));
-		};
+			},
+			undefined,
+			true,
+		);
 		const addEvent = (event: string) => {
 			events.push(`${eventIndex++} - ${event}`);
 			if (events.length > 5) {
@@ -168,15 +157,23 @@ ${
 			}
 			if (!action) {
 				console.log(level, action, emov);
-				throw new Error("!action for left/up/right");
+				addEvent(
+					"*Uh oh! No one wrote the events for level `" +
+						level +
+						"` in the direction " +
+						emov +
+						"*",
+				);
+				editInterval.trigger();
+				return;
 			}
 			doAction(action);
-			await updateMessage();
+			editInterval.trigger();
 		});
-		await updateMessage();
 		await rh.done;
 		addEvent("Game over :(");
-		await updateMessage();
+		editInterval.trigger();
+		// endInterval does not need to be ended because it does not auto requeue in manual mode
 		await ilt(gamemsg.reactions.removeAll(), "goi reactions removeall"); // potential perms error
 	},
 );
