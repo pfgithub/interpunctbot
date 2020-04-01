@@ -2,7 +2,7 @@ import * as Discord from "discord.js";
 import { MessageBuilder } from "./MessageBuilder";
 import Database from "./Database";
 import { ilt, perr } from "..";
-import { safe, raw, messages } from "../messages";
+import { safe, raw, messages, templateGenerator } from "../messages";
 import { TimedEvents } from "./TimedEvents";
 import { globalConfig } from "./config";
 import { globalDocs } from "./NewRouter";
@@ -532,6 +532,13 @@ export default class Info {
 			);
 		}
 		throw new Error("bad help :{ !! }:");
+	}
+	tag(str: TemplateStringsArray, ...values: string[]) {
+		const s = templateGenerator((q: string) =>
+			q.replace(/[\\{|}]/g, "\\$1"),
+		);
+		return s(str, ...values);
+		// return await info.error(info.tag`{Command|test} is {Reaction|${user input}}`)
 	}
 	async result(...msg: MessageParametersType) {
 		return await this.reply(result.result, ...msg);

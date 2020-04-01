@@ -132,6 +132,206 @@ const tileset = g.newTileset({
 // 	title: string;
 // };
 
+function getMoves(state: Checkers): g.MoveSet<Checkers> {
+	if (state.status.s === "winner") {
+		return []; // never hopefully
+	}
+
+	const st = state.status;
+	const jumpMoves: {
+		number: number;
+		from: [number, number];
+		take: [number, number];
+		to: [number, number];
+		direction: [number, number];
+	}[] = [];
+	const normalMoves: {
+		number: number;
+		from: [number, number];
+		to: [number, number];
+		direction: [number, number];
+	}[] = [];
+	const piecesWithJumpMoves: typeof jumpMoves[] = [];
+	const piecesWithNormalMoves: typeof normalMoves[] = [];
+	const pieces = state.board.filter(t => t.piece?.color === st.turn);
+	for (const piece of pieces) {
+		for (const [dx, dy] of [
+			[-1, -1],
+			[-1, 1],
+			[1, -1],
+			[1, 1],
+		]) {
+			const [nx, ny] = [piece.x + dx, piece.y + dy];
+			const normal = state.board.get(nx, ny);
+			if (!normal) {
+				continue;
+			}
+			if (normal.piece) {
+				const [jx, jy] = [piece.x + 2 * dx, piece.y + 2 * dy];
+				const jump = state.board.get(jx, jy);
+				const pce = piece.tile.piece!;
+				if (jump?.piece?.color !== st.turn) {
+					const it: typeof jumpMoves[number] = {
+						number: pce.number,
+						from: [piece.x, piece.y],
+						take: [nx, ny],
+						to: [jx, jy],
+						direction: [dx, dy],
+					};
+					jumpMoves.push(it);
+					if (!piecesWithJumpMoves[pce.number])
+						piecesWithJumpMoves[pce.number] = [];
+					piecesWithJumpMoves[pce.number]!.push(it);
+					continue;
+				}
+				const it: typeof normalMoves[number] = {
+					number: piece.tile.piece!.number,
+					from: [piece.x, piece.y],
+					to: [nx, ny],
+					direction: [dx, dy],
+				};
+				normalMoves.push(it);
+				if (!piecesWithNormalMoves[pce.number])
+					piecesWithNormalMoves[pce.number] = [];
+				piecesWithNormalMoves[pce.number]!.push(it);
+				continue;
+			}
+			continue;
+		}
+	}
+	const clearOverlay = (state: Checkers) => {
+		state.board.forEach(tile => {
+			tile.overlay = undefined;
+		});
+	};
+	const results: g.MoveSet<Checkers> = [];
+
+	const getMovesOfType = (type: "jump" | "move"): g.MoveSet<Checkers> => {
+		const pieces =
+			type === "jump" ? piecesWithJumpMoves : piecesWithNormalMoves; // const pieces = switch(type) {.jump => piecesWithJumpMoves, .normal => piecesWithNormalMoves}
+		const resMoves: g.MoveSet<Checkers> = [];
+		for (const pwm of pieces) {
+			resMoves.push({
+				button: tileset.tiles.interaction.pieces[pwm[0].number],
+				player: state.players[st.turn],
+				apply: state => {
+					if (
+						state.status.s === "jump" ||
+						state.status.s === "winner"
+					)
+						throw new Error("Invalid checkers state");
+
+					clearOverlay(state);
+					const initialTurn = state.status.turn;
+					for (const nm of pwm) {
+						const tile = state.board.get(nm.to[0], nm.to[1])!;
+						const dirst = directionToDirectionString([
+							Math.sign(nm.to[0] - nm.from[0]),
+							Math.sign(nm.to[1] - nm.from[1]),
+						]);
+						tile.overlay = {
+							type: "move",
+							direction: dirst,
+						};
+					}
+
+					const player = state.board.get(...pwm[0].from)!;
+					player.overlay = {
+						type: "selpiece",
+						color: player.piece!.color,
+					};
+
+					state.status = {
+						s: type === "jump" ? "jump" : "moveany",
+						turn: initialTurn,
+						piece: pwm[0].number,
+					};
+
+					return state;
+				},
+			});
+		}
+		return resMoves;
+	};
+	if (state.status.s === "turn" || state.status.s === "moveany") {
+		if (piecesWithJumpMoves.length >= 1) {
+			results.push(
+				...getMovesOfType("jump")
+			);
+		} else {
+			results.push(
+				...getMovesOfType("move")
+			);
+		}
+	}
+	if (state.status.s === "moveany" || state.status.s === "jump") {
+		const st = state.status;
+		if (jumpMoves.length >= 1 || state.status.s === "jump") {
+			const activePieces = jumpMoves.filter(
+				move => move.number === st.piece,
+			);
+			if (!activePieces.length) throw new Error("never");
+			results.push(
+				...activePieces.map(
+					(actv): g.Move<Checkers> => ({
+						button:
+							tileset.tiles.interaction.arrows[
+								directionToDirectionString(actv.direction)
+							],
+						apply: state => {
+							// clear overlay obviously
+							clearOverlay(state);
+							// perform jump
+							const checker = state.board.get(...actv.from)!;
+							const jumped = state.board.get(...actv.to)!;
+							jumped.overlay = {
+								type: "ghost",
+								color: jumped.piece!.color,
+							};
+							jumped.piece = undefined;
+							// set next status
+							// if at end of line, end immediately
+							// else set status to continue jumping
+							todo;
+							return state;
+						},
+						player: state.players[st.turn],
+					}),
+				),
+			);
+		} else {
+			const activePieces = normalMoves.filter(
+				move => move.number === st.piece,
+			);
+			if (!activePieces.length) throw new Error("never");
+			results.push(
+				...activePieces.map(
+					(actv): g.Move<Checkers> => ({
+						button:
+							tileset.tiles.interaction.arrows[
+								directionToDirectionString(actv.direction)
+							],
+						apply: state => {
+							// perform move
+							// set next status
+							todo;
+							return state;
+						},
+						player: state.players[st.turn],
+					}),
+				),
+			);
+		}
+	}
+	// IF CANNOT MOVE
+	// if moveany|jump
+	//  re-update
+	// else-if turn
+	//  request pass
+	todo;
+	return results;
+}
+
 function directionToDirectionString(
 	direction: [number, number],
 ): "ul" | "ur" | "dl" | "dr" {
@@ -262,251 +462,7 @@ ${boardRender}
 		];
 	},
 	getMoves(state) {
-		// once again this could be a tagged union switch in zig
-		if (state.status.s === "winner") {
-			return []; // never hopefully
-		}
-		const st = state.status;
-		const jumpMoves: {
-			number: number;
-			from: [number, number];
-			take: [number, number];
-			to: [number, number];
-			direction: [number, number];
-		}[] = [];
-		const normalMoves: {
-			number: number;
-			from: [number, number];
-			to: [number, number];
-			direction: [number, number];
-		}[] = [];
-		const piecesWithJumpMoves: typeof jumpMoves[] = [];
-		const piecesWithNormalMoves: typeof normalMoves[] = [];
-		const pieces = state.board.filter(t => t.piece?.color === st.turn);
-		for (const piece of pieces) {
-			for (const [dx, dy] of [
-				[-1, -1],
-				[-1, 1],
-				[1, -1],
-				[1, 1],
-			]) {
-				const [nx, ny] = [piece.x + dx, piece.y + dy];
-				const normal = state.board.get(nx, ny);
-				if (!normal) {
-					continue;
-				}
-				if (normal.piece) {
-					const [jx, jy] = [piece.x + 2 * dx, piece.y + 2 * dy];
-					const jump = state.board.get(jx, jy);
-					const pce = piece.tile.piece!;
-					if (jump?.piece?.color !== st.turn) {
-						const it: typeof jumpMoves[number] = {
-							number: pce.number,
-							from: [piece.x, piece.y],
-							take: [nx, ny],
-							to: [jx, jy],
-							direction: [dx, dy],
-						};
-						jumpMoves.push(it);
-						if (!piecesWithJumpMoves[pce.number])
-							piecesWithJumpMoves[pce.number] = [];
-						piecesWithJumpMoves[pce.number]!.push(it);
-						continue;
-					}
-					const it: typeof normalMoves[number] = {
-						number: piece.tile.piece!.number,
-						from: [piece.x, piece.y],
-						to: [nx, ny],
-						direction: [dx, dy],
-					};
-					normalMoves.push(it);
-					if (!piecesWithNormalMoves[pce.number])
-						piecesWithNormalMoves[pce.number] = [];
-					piecesWithNormalMoves[pce.number]!.push(it);
-					continue;
-				}
-				continue;
-			}
-		}
-		const clearOverlay = (state: Checkers) => {
-			state.board.forEach(tile => {
-				tile.overlay = undefined;
-			});
-		};
-		const results: g.MoveSet<Checkers> = [];
-		if (state.status.s === "turn" || state.status.s === "moveany") {
-			if (piecesWithJumpMoves.length >= 1) {
-				results.push(
-					// it seems there should only be one jump move per direction
-					// so instead of looping over jumpMoves, loop over piecesWithJumpMoves
-					...piecesWithJumpMoves.map(
-						(pwjm): g.Move<Checkers> => ({
-							button:
-								tileset.tiles.interaction.pieces[
-									pwjm[0].number
-								],
-							player: state.players[st.turn],
-							apply: state => {
-								if (
-									state.status.s === "jump" ||
-									state.status.s === "winner"
-								)
-									return state;
-								// clear overlay
-								clearOverlay(state);
-								const origst = state.status;
-								// setup overlay
-								for (const jm of pwjm) {
-									const tile = state.board.get(
-										jm.to[0],
-										jm.to[1],
-									)!;
-									const dirst = directionToDirectionString([
-										Math.sign(jm.to[0] - jm.from[0]),
-										Math.sign(jm.to[1] - jm.from[1]),
-									]);
-									tile.overlay = {
-										type: "move",
-										direction: dirst,
-									};
-								}
-								const player = state.board.get(
-									...pwjm[0].from,
-								)!;
-								player.overlay = {
-									type: "selpiece",
-									color: player.piece!.color,
-								};
-								// set next status
-								state.status = {
-									s: "jump", // only jump from now until the turn ends
-									turn: origst.turn,
-									piece: pwjm[0].number,
-								};
-								return state;
-							},
-						}),
-					),
-				);
-			} else {
-				results.push(
-					...piecesWithNormalMoves.map(
-						(pwnm): g.Move<Checkers> => ({
-							button:
-								tileset.tiles.interaction.pieces[
-									pwnm[0].number
-								],
-							player: state.players[st.turn],
-							apply: state => {
-								if (
-									state.status.s === "jump" ||
-									state.status.s === "winner"
-								)
-									return state;
-								// clear overlay
-								clearOverlay(state);
-								const origst = state.status;
-								// setup overlay
-								for (const nm of pwnm) {
-									const tile = state.board.get(
-										nm.to[0],
-										nm.to[1],
-									)!;
-									const dirst = directionToDirectionString([
-										Math.sign(nm.to[0] - nm.from[0]),
-										Math.sign(nm.to[1] - nm.from[1]),
-									]);
-									tile.overlay = {
-										type: "move",
-										direction: dirst,
-									};
-								}
-								const player = state.board.get(
-									...pwnm[0].from,
-								)!;
-								player.overlay = {
-									type: "selpiece",
-									color: player.piece!.color,
-								};
-								// set next status
-								state.status = {
-									s: "moveany",
-									turn: origst.turn,
-									piece: pwnm[0].number,
-								};
-								return state;
-							},
-						}),
-					),
-				);
-			}
-		}
-		if (state.status.s === "moveany" || state.status.s === "jump") {
-			const st = state.status;
-			if (jumpMoves.length >= 1 || state.status.s === "jump") {
-				const activePieces = jumpMoves.filter(
-					move => move.number === st.piece,
-				);
-				if (!activePieces.length) throw new Error("never");
-				results.push(
-					...activePieces.map(
-						(actv): g.Move<Checkers> => ({
-							button:
-								tileset.tiles.interaction.arrows[
-									directionToDirectionString(actv.direction)
-								],
-							apply: state => {
-								// clear overlay obviously
-								clearOverlay(state);
-								// perform jump
-								const checker = state.board.get(...actv.from)!;
-								const jumped = state.board.get(...actv.to)!;
-								jumped.overlay = {
-									type: "ghost",
-									color: jumped.piece!.color,
-								};
-								jumped.piece = undefined;
-								// set next status
-								// if at end of line, end immediately
-								// else set status to continue jumping
-								todo;
-								return state;
-							},
-							player: state.players[st.turn],
-						}),
-					),
-				);
-			} else {
-				const activePieces = normalMoves.filter(
-					move => move.number === st.piece,
-				);
-				if (!activePieces.length) throw new Error("never");
-				results.push(
-					...activePieces.map(
-						(actv): g.Move<Checkers> => ({
-							button:
-								tileset.tiles.interaction.arrows[
-									directionToDirectionString(actv.direction)
-								],
-							apply: state => {
-								// perform move
-								// set next status
-								todo;
-								return state;
-							},
-							player: state.players[st.turn],
-						}),
-					),
-				);
-			}
-		}
-		// IF CANNOT MOVE
-		// if moveany|jump
-		//  re-update
-		// else-if turn
-		//  request pass
-		todo;
-		return results;
+		return getMoves(state);
 	},
 	checkGameOver(state) {
 		return state.status.s === "winner";
