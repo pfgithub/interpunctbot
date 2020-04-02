@@ -512,15 +512,16 @@ client.on("guildMemberRemove", member => {
 					"the member is:",
 					member,
 				);
-				await member.fetch();
-				if (!tsAssert<Discord.GuildMember>(member)) return;
 			}
+			if (!member.guild) return;
 			const db = new Database(member.guild.id); // it seems bad creating these objects just to forget them immediately
 			const events = await db.getEvents();
 			if (events.userLeave) {
 				await runEvent(events.userLeave, db, member.guild, {
 					"{Mention}": member.toString(),
-					"{Name}": safe(member.displayName),
+					"{Name}": safe(
+						member.displayName || "(name could not be determined)",
+					),
 				}); // should (usually) not error
 			}
 		})(),
