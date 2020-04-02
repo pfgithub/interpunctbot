@@ -227,7 +227,8 @@ levels:
             - msg: "*You grab the tube and pull yourself up with great force*"
               goto: barrelsII
               chance: 0.3
-        right: "*You run into a wall*"
+        right:
+            - "*You run into a wall*"
     barrels:
         text: |
             {sky}{sky}{sky}{sky}{barrelsrock}
