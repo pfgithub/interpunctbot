@@ -537,7 +537,7 @@ export default class Info {
 		const s = templateGenerator((q: string) =>
 			q.replace(/[\\{|}]/g, "\\$1"),
 		);
-		return s(str, ...values);
+		return dgToDiscord(s(str, ...values), this);
 		// return await info.error(info.tag`{Command|test} is {Reaction|${user input}}`)
 	}
 	async result(...msg: MessageParametersType) {

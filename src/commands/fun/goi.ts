@@ -5,6 +5,7 @@ import { ilt, perr } from "../../..";
 import { messages } from "../../../messages";
 import * as nr from "../../NewRouter";
 import { createTimer, setEditInterval } from "./helpers";
+import Info from "../../Info";
 
 type GoDirectionSpec = (
 	| string
@@ -18,16 +19,56 @@ type LevelSpec = {
 	right: GoDirectionSpec;
 };
 
-const gamedata = yaml.safeLoad(
-	fs.readFileSync(
-		path.join(process.cwd(), "src/commands/fun/goi.yaml"),
-		"utf-8",
-	),
+let gamedata: any;
+
+let ge: { [key: string]: string | undefined };
+
+let goilevels: { [key: string]: LevelSpec };
+
+function reloadGoi(): undefined | Error {
+	try {
+		gamedata = yaml.safeLoad(
+			fs.readFileSync(
+				path.join(process.cwd(), "src/commands/fun/goi.yaml"),
+				"utf-8",
+			),
+		);
+		ge = gamedata.emojis;
+		goilevels = gamedata.levels;
+	} catch (e) {
+		return e;
+	}
+}
+
+const goload = reloadGoi();
+if (goload) throw goload;
+
+nr.globalCommand(
+	"/help/owner/reloadgoi",
+	"reloadgoi",
+	{
+		usage: "reloadgoi",
+		description: "reloads the goi yaml file",
+		examples: [],
+	},
+	nr.list(),
+	async ([], info) => {
+		if (!Info.theirPerm.owner(info)) return;
+
+		const start = new Date().getTime();
+		const goload = reloadGoi();
+		if (goload) {
+			return await info.error(
+				info.tag`Uh oh! An error: ${goload.toString()}`,
+			);
+		}
+		const end = new Date().getTime();
+		return await info.success(
+			info.tag`Success! Reloaded {Code|goi.yaml} in ${"" +
+				(end - start)}ms`,
+		);
+	},
 );
-
-const ge: { [key: string]: string | undefined } = gamedata.emojis;
-
-const goilevels: { [key: string]: LevelSpec } = gamedata.levels;
 
 nr.globalCommand(
 	"/help/fun/goi",
