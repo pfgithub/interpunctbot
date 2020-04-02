@@ -130,7 +130,7 @@ nr.globalCommand(
 
 		await info.result(
 			`
-**=============== 🥇 =================**
+**=============== 🏅 =================**
 ${" ".repeat(
 	Math.max(30 - userDisplayName.length, 0),
 )}Congratulations ${user.toString()},
