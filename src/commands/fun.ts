@@ -112,7 +112,7 @@ nr.globalCommand(
 	"/help/fun/award",
 	"award",
 	{
-		usage: "award",
+		usage: "award {Required|{Atmention|who}} {Required|award text...}",
 		description: "Give someone an award.",
 		examples: [],
 	},
@@ -122,7 +122,7 @@ nr.globalCommand(
 			return await info.error(messages.fun.fun_disabled(info));
 		}
 
-		if (!award) return await info.error("/help/fun/award/no-award");
+		if (!award) return await info.docs("/help/fun/award", "usage");
 
 		const userDisplayName = info.guild
 			? info.guild.member(user)?.displayName || user.username
