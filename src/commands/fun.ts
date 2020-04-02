@@ -124,10 +124,16 @@ nr.globalCommand(
 
 		if (!award) return await info.error("/help/fun/award/no-award");
 
+		const userDisplayName = info.guild
+			? info.guild.member(user)?.displayName || user.username
+			: user.username;
+
 		await info.result(
 			`
 **=============== 🥇 =================**
-  Congratulations ${user.toString()},
+${" ".repeat(
+	Math.max(30 - userDisplayName.length, 0),
+)}Congratulations ${user.toString()},
                You have been granted the award:
 ${" ".repeat(Math.max(43 - award.length, 0))}**${safe(award)}**
             for all your dedication and hard work!
