@@ -539,7 +539,9 @@ function RoleArgumentType(
 					minMatchCharLength: 1,
 					keys: ["name"],
 				});
-				const results = fuse.search(rolename);
+				const results = fuse
+					.search(rolename)
+					.map(r => ((r as any).item as Discord.Role) || r);
 				if (results.length === 0) {
 					return await error("/arg/role/not-found");
 				} else if (results.length > 1) {
