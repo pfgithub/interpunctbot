@@ -11,7 +11,7 @@ import "./fun/goi";
 import { createTimer } from "./fun/helpers";
 import "./fun/trivia";
 import "./fun/spyfall";
-import { getGuilds } from "../ShardHelper";
+import { getGuilds, getMembers } from "../ShardHelper";
 import { restrictTextToPerms } from "./customcommands";
 
 nr.addDocsWebPage(
@@ -707,25 +707,27 @@ nr.globalCommand(
 			return await info.error(messages.fun.fun_disabled(info));
 		}
 		const totalServers = await getGuilds(info.message.client);
+		const totalMembers = await getMembers(info.message.client);
 		const now = new Date().getTime();
 		const msg = `**Statistics**:
 > **Servers**: ${totalServers} total, ${
 			info.message.client.guilds.cache.size
-		} on this shard.
+		} on this shard. Serving about ${totalMembers} users.
 > **Uptime**: ${moment
 			.duration(now - serverStartTime)
 			.format(
 				"y [years] M [months] w [weeks] d [days,] h[h]:mm[m]:s.SSS[s]",
 			)}
-> Took ${new Date().getTime() - info.other!.startTime}ms, handling ${
-			info.other!.infoPerSecond
-		} db requests per second`;
+> **Handled in**: ${new Date().getTime() - info.other!.startTime}ms.`;
 		const msgs = await info.result(msg, undefined);
 		if (msgs && msgs[0])
 			await msgs[0].edit(
 				msg +
 					"\n> **Took**: " +
-					durationFormat(now - msgs[0].createdAt.getTime()) +
+					durationFormat(
+						msgs[0].createdAt.getTime() -
+							info.message.createdAt.getTime(),
+					) +
 					" to send this message.",
 			);
 	},
