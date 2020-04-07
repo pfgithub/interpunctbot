@@ -710,9 +710,9 @@ nr.globalCommand(
 		const totalMembers = await getMembers(info.message.client);
 		const now = new Date().getTime();
 		const msg = `**Statistics**:
-> **Servers**: ${totalServers} total, ${
+> **Servers**: ${totalServers.toLocaleString()} total, ${
 			info.message.client.guilds.cache.size
-		} on this shard. Serving about ${totalMembers} users.
+		} on this shard. Serving about ${totalMembers.toLocaleString()} users.
 > **Uptime**: ${moment
 			.duration(now - serverStartTime)
 			.format(
