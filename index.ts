@@ -308,11 +308,17 @@ async function updateActivity() {
 	console.log("Posting activity...");
 	if (client.user) {
 		const count = await getGuilds(client);
-		await client.user.setActivity(
-			count === -1
-				? "ip!help on a bunch of servers"
-				: `ip!help on ${count} servers`,
-		);
+		await client.user.setPresence({
+			activity: {
+				name:
+					count === -1
+						? "ip!help on a bunch of servers"
+						: `ip!help on ${count} servers`,
+				type: "WATCHING",
+				url: "https://interpunct.info/",
+			},
+			status: production ? "online" : "idle",
+		});
 		const dbgToken = globalConfig.listings?.["discord.bots.gg"];
 		if (count !== -1 && dbgToken) {
 			const fres = await fetch(
