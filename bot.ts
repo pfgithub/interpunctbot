@@ -27,7 +27,7 @@ if (!docsGenMode) {
 
 export let timedEvents: TimedEvents | undefined = undefined;
 
-client.on("ratelimit", rl => {
+client.on("rateLimit", rl => {
 	console.log("Client ratelimited", rl);
 });
 client.on("ready", () => {

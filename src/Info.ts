@@ -239,7 +239,7 @@ export type MessageParametersType =
 
 export default class Info {
 	loading: boolean;
-	channel: Discord.TextChannel | Discord.DMChannel;
+	channel: Discord.TextChannel | Discord.DMChannel | Discord.NewsChannel;
 	guild?: Discord.Guild | null;
 	message: Discord.Message;
 	other?: {
@@ -374,25 +374,21 @@ export default class Info {
 	async _tryReply(
 		...values: MessageParametersType
 	): Promise<Discord.Message[] | undefined> {
-		const pingUser = this.message.author.toString();
-		const doNotPingUser = safe(
-			"@" +
-				(this.message.member?.displayName ||
-					this.message.author.username),
-		);
-		const pingOrNot = this.shouldAlert() ? pingUser : doNotPingUser;
+		const atThem = this.message.author.toString();
+		const shouldAlert = this.shouldAlert();
 
 		const content = values[0];
 		const options = values[1];
 		// returns the message
 		const replyResult = await ilt(
-			this.message.channel.send(
-				safe`${raw(pingOrNot)}, ${raw(content)}`,
-				{
-					...options,
-					split: true,
+			this.message.channel.send(safe`${raw(atThem)}, ${raw(content)}`, {
+				...options,
+				split: true,
+				allowedMentions: {
+					users: shouldAlert ? [this.message.author.id] : [],
+					roles: [],
 				},
-			),
+			}),
 			false,
 		);
 		if (replyResult.result) {
