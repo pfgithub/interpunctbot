@@ -6,6 +6,7 @@
 	["channel", "/help/configuration"],
 	["channel", "/help/fun"],
 	["channel", "/help/emoji"],
+	["channel", "/help/messages"],
 	["channel", "/help/channels"],
 	["channel", "/help/administration"],
 	["channel", "/help/customcommands", "custom commands"],

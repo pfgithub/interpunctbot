@@ -65,6 +65,21 @@ setTimeout(() => {
 	);
 	canModifyGlobalValues = false;
 
+	// check if all commands split by space have a docs page
+	// eg `messages set welcome` should have a docs page for `messages set` and `messages`
+
+	for (const [cmd] of Object.entries(globalCommandNS)) {
+		const parts = cmd.split(" ");
+		for (let i = 1; i < parts.length - 1; i++) {
+			const part = parts.slice(0, i);
+			if (globalCommandNS[part.join(" ")]) continue;
+			if (globalDocs["/help/" + part.join("/")]) continue;
+			console.log(
+				"Sub-command " + part.join("/") + " does not have a command",
+			);
+		}
+	}
+
 	if (docsGenMode) {
 		console.log("Generating docs now");
 		DocsGen()

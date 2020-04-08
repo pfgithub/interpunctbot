@@ -17,6 +17,8 @@ Some parts of {Interpunct} can be configured
 {CmdSummary|set ManageBotRole}`,
 );
 
+// nr.globalAlias("help configuration", "set");
+
 nr.globalCommand(
 	"/help/settings/managebotrole",
 	"set managebotrole",

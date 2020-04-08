@@ -178,25 +178,16 @@ function remove(oldcmd: string, reason: string, version = "3.0") {
 
 depricate("settings prefix", "set prefix [new prefix]");
 depricate("settings lists", "lists [add/edit/remove]");
-depricate(
-	"settings discmoji",
-	"IMPLEMENT BEFORE RELEASE;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;", // > Warning: It is recommended to use rankmoji instead.
-);
+depricate("settings discmoji", "emoji");
 depricate("settings rankmoji", "emoji");
 remove(
 	"settings permreplacements",
 	"Permreplacements were never tested and probably didn't work.",
 );
 depricate("settings speedrun", "speedrun <add/remove/default>");
-depricate(
-	"settings nameScreening",
-	"IMPLEMENT BEFORE RELEASE;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;",
-);
+depricate("settings nameScreening", "autoban");
 depricate("settings logging", "log <enable/disable>");
-depricate(
-	"settings events",
-	"IMPLEMENT BEFORE RELEASE;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;",
-);
+depricate("settings events", "messages");
 depricate(
 	"settings unknownCommandMessages",
 	"set show unknown command [always/admins/never]",

@@ -108,6 +108,15 @@ nr.addDocsWebPage(
 {Interpunct} has a few commands for helping with administration
 
 {CmdSummary|purge}
+{LinkSummary|autoban}`,
+);
+
+nr.addDocsWebPage(
+	"/help/autoban",
+	"Autoban",
+	"commands to automatically ban users",
+	`{Title|Autoban}
+
 {CmdSummary|autoban add}
 {CmdSummary|autoban list}
 {CmdSummary|autoban clear}`,

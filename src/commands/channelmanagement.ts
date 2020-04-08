@@ -25,6 +25,15 @@ nr.addDocsWebPage(
 {CmdSummary|purge}
 {CmdSummary|slowmode set}
 {CmdSummary|send}
+{LinkSummary|/help/messages}`,
+);
+
+nr.addDocsWebPage(
+	"/help/messages",
+	"Welcome/Goodbye Messages",
+	"welcome/goodbye messages",
+	`{Title|Welcome/Goodbye Messages}
+
 {CmdSummary|messages set welcome}
 {CmdSummary|messages remove welcome}
 {CmdSummary|messages set goodbye}
@@ -566,15 +575,15 @@ nr.globalCommand(
 	"messages set goodbye",
 	{
 		usage:
-			"messagess set goodbye {Required|{Channel|#channel}} {Required|message...}",
+			"messages set goodbye {Required|{Channel|channel}} {Required|message...}",
 		description:
 			"set a message to show when someone leaves the server. use \\{Name\\} and \\{Mention\\} to include people's usernames/mentions",
 		examples: [
 			{
 				in:
-					"messages set goodbye {Channel|#welcome}\nGoodbye \\{Name\\} (\\{Mention\\}), we will miss you!",
+					"messages set goodbye {Channel|welcome}\nGoodbye \\{Name\\} (\\{Mention\\}), we will miss you!",
 				out:
-					"{Atmention|you}, {Emoji|success} Goodbye message set. Here is an example of what might be sent to {Channel|#welcome} when someone leaves:\n\nGoodbye person leaving ({Atmention|person leaving}), we will miss you!",
+					"{Atmention|you}, {Emoji|success} Goodbye message set. Here is an example of what might be sent to {Channel|welcome} when someone leaves:\n\nGoodbye person leaving ({Atmention|person leaving}), we will miss you!",
 			},
 		],
 	},
@@ -679,7 +688,7 @@ nr.globalCommand(
 	"messages set welcome",
 	{
 		usage:
-			"messagess set welcome {Required|{Channel|channel}} {Required|message...}",
+			"messages set welcome {Required|{Channel|channel}} {Required|message...}",
 		description:
 			"set a message to show when someone joins the server. use \\{Name\\} and \\{Mention\\} to include people's usernames/mentions",
 		examples: [
@@ -687,7 +696,7 @@ nr.globalCommand(
 				in:
 					"messages set goodbye {Channel|welcome}\nWelcome to the server \\{Mention\\} (\\{Name\\})!!! Make sure to check out the {Channel|rules}!",
 				out:
-					"{Atmention|you}, {Emoji|success} Welcome message set. Here is an example of what might be sent to {Channel|#welcome} when someone joins:\n\nWelcome {Atmention|person joining} (person joining)!!! Make sure to check out the {Channel|rules}!",
+					"{Atmention|you}, {Emoji|success} Welcome message set. Here is an example of what might be sent to {Channel|#welcome} when someone joins:\n\nWelcome to the server {Atmention|person joining} (person joining)!!! Make sure to check out the {Channel|rules}!",
 			},
 		],
 	},

@@ -122,6 +122,23 @@ nr.globalCommand(
 	},
 );
 
+// nr.globalCommand(
+// 	"/help/owner/querydb",
+// 	"querydb",
+// 	{
+// 		usage: "querydb",
+// 		description: "",
+// 		examples: [],
+// 	},
+// 	nr.passthroughArgs,
+// 	async ([cmd], info) => {
+// 		if (!Info.theirPerm.owner(info)) return;
+// 		// select COUNT(id) from guilds;
+// 		// select COUNT(id) from guilds where welcome is not null;
+// 		// select * from guilds where id = '431534524324132';
+// 	},
+// );
+
 nr.globalCommand(
 	"/help/owner/eval",
 	"eval",
