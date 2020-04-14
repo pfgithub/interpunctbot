@@ -46,6 +46,7 @@ nr.addDocsWebPage(
 {CmdSummary|speedrun set}
 {CmdSummary|speedrun disable}
 {CmdSummary|wr}
+{CmdSummary|pb}
 {CmdSummary|leaderboard}
 {CmdSummary|speedrun rules}`,
 );
@@ -147,7 +148,7 @@ async function getGameAndCategory(
 }
 
 async function displayLeaderboard(
-	position: number,
+	position: number | string,
 	categoryName: string,
 	info: Info,
 ) {
@@ -164,13 +165,16 @@ async function displayLeaderboard(
 		.embed(["category", "players", "game"])
 		.exec();
 	const actualGameData = gameData.items.game.data;
-	const runs = gameData.items.runs.filter(
-		(run: any) => run.place.toString() === place.toString(),
-	); // TODO run.place === place and have place just get the person in nth place // why isn't this .find()
 	const getPlayer = (player: any) =>
 		gameData.items.players.data.filter((pl: any) => pl.id === player)[0];
+	const runs = typeof position === "string" ? gameData.items.runs.filter(
+		(run: any) => run.run.players && run.run.players[0] && getPlayer(run.run.players[0].id)?.names?.international?.toLowerCase() === position.toLowerCase(),
+	):  gameData.items.runs.filter(
+		(run: any) => run.place === place,
+	); // TODO run.place === place and have place just get the person in nth place // why isn't this .find()
 	const run_ = runs[0];
 	if (!run_) {
+		if(typeof position === "string") return await info.error(info.tag`No runs found for player ${position}.`);
 		return await info.error(
 			messages.speedrun.no_run_for_position(info, position),
 		);
@@ -249,6 +253,21 @@ nr.globalCommand(
 			return await info.error(messages.speedrun.position_required(info));
 		}
 		await displayLeaderboard(position, cmd, info);
+	},
+);
+
+nr.globalCommand(
+	"/help/speedrun/pb",
+	"pb",
+	{
+		usage: "pb {Required|username} {Optional|Category%}",
+		description: "Get the pb for a specific speedrun person",
+		examples: [],
+	},
+	nr.list(nr.a.word(), ...nr.a.words()),
+	async ([username, cmd], info) => {
+		await info.startLoading();
+		await displayLeaderboard(username, cmd, info);
 	},
 );
 
