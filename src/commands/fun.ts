@@ -300,6 +300,57 @@ nr.globalCommand(
 	},
 );
 
+function initMapping(fromstr: string, tostr: string): (str: string) => string {
+	const from = [...fromstr];
+	const to = [...tostr];
+	if (from.length !== to.length)
+		throw new Error("different mapping lengths.");
+
+	const res: { [key: string]: string } = {};
+	from.forEach((q, i) => {
+		res[q] = to[i];
+	});
+
+	return (str: string) => [...str].map(c => res[c] || c).join("");
+}
+
+const superscript = initMapping(
+	"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
+	"ᵃᵇᶜᵈᵉᶠᵍʰᶦʲᵏˡᵐⁿᵒᵖᵠʳˢᵗᵘᵛʷˣʸᶻᴬᴮᶜᴰᴱᶠᴳᴴᴵᴶᴷᴸᴹᴺᴼᴾᵠᴿˢᵀᵁⱽᵂˣʸᶻ⁰¹²³⁴⁵⁶⁷⁸⁹",
+);
+const smallcaps = initMapping(
+	"abcdefghijklmnopqrstuvwxyz",
+	"ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘǫʀsᴛᴜᴠᴡxʏᴢ",
+);
+
+nr.globalCommand(
+	"/help/fun/tiny",
+	"tiny",
+	{
+		usage: "tiny {Required|text...}",
+		description: "makes your text ᵗᶦⁿʸ",
+		examples: [],
+	},
+	nr.list(...nr.a.words()),
+	async ([text], info) => {
+		return info.result(superscript(safe(text)));
+	},
+);
+
+nr.globalCommand(
+	"/help/fun/small",
+	"small",
+	{
+		usage: "small {Required|text...}",
+		description: "makes your text sᴍᴀʟʟᴄᴀᴘs",
+		examples: [],
+	},
+	nr.list(...nr.a.words()),
+	async ([text], info) => {
+		return info.result(smallcaps(safe(text)));
+	},
+);
+
 nr.globalCommand(
 	"/help/fun/vdb",
 	"vdb",
