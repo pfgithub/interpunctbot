@@ -1045,7 +1045,6 @@ const badMinesweeperGenerator = ({
 		revealed[y] = [];
 		for (let x = 0; x < w; x++) {
 			arr[y][x] = Math.random() > b ? 0 : 9;
-			if (arr[y][x] === 9) mineCount++;
 			revealed[y][x] = false;
 		}
 	}
@@ -1056,6 +1055,7 @@ const badMinesweeperGenerator = ({
 	for (let y = 0; y < h; y++) {
 		for (let x = 0; x < w; x++) {
 			const vta = arr[y][x] >= 9 ? 1 : 0;
+			if (vta) mineCount++;
 			for (let t = Math.max(y - 1, 0); t <= Math.min(y + 1, h - 1); t++) {
 				for (
 					let s = Math.max(x - 1, 0);
