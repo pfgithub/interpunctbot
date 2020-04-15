@@ -24,7 +24,7 @@ export type EventHandlers = {
 
 export type SqlEvent = {
 	id: number;
-	time: number;
+	time_64b: string;
 	event: string;
 	completed: boolean;
 };
@@ -62,7 +62,7 @@ export class TimedEvents {
 		const insertedResult = await globalKnex!<SqlEvent>(
 			"timed_events",
 		).insert({
-			time,
+			time_64b: "" + time,
 			event: JSON.stringify(eventfixed),
 			completed: false,
 		});
@@ -143,19 +143,20 @@ export class TimedEvents {
 		}
 		this.starting = true;
 		const events = await globalKnex<SqlEvent>("timed_events")
-			.where("time", ">", this.currentTime)
+			.where("time_64b", ">", this.currentTime)
 			.andWhere("completed", "=", false)
-			.orderBy("time")
+			.orderBy("time_64b")
 			.limit(100 - ongoingEvents);
 		if (events[events.length - 1]) {
-			this.currentTime = events[events.length - 1].time;
+			const ev = events[events.length - 1];
+			this.currentTime = +ev.time_64b;
 		}
 		this.starting = false;
 		for (const event of events) {
 			const eventData = JSON.parse(event.event) as EventData[];
 			this.startEventTimeout(
 				Array.isArray(eventData) ? eventData : [eventData],
-				event.time,
+				+event.time_64b,
 				event.id,
 			);
 		}
