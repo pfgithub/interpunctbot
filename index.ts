@@ -385,7 +385,7 @@ client.on("ready", () => {
 	perr(updateActivity(), "activity update");
 });
 
-setInterval(() => perr(updateActivity(), "activity update"), 5 * 60 * 1000); // update every 5 min
+setInterval(() => perr(updateActivity(), "activity update"), 15 * 60 * 1000); // update every 15 min
 
 function streplace(str: string, eplace: { [key: string]: string }) {
 	const uids: { [key: string]: string } = {};
