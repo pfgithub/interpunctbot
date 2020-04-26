@@ -153,7 +153,9 @@ export class TimedEvents {
 		}
 		this.starting = false;
 		for (const event of events) {
-			const eventData = JSON.parse(event.event) as EventData[];
+			const eventData = (typeof event.event === "string"
+				? JSON.parse(event.event)
+				: event.event) as EventData[];
 			this.startEventTimeout(
 				Array.isArray(eventData) ? eventData : [eventData],
 				+event.time_64b,
