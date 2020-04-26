@@ -76,9 +76,13 @@ function tryParse<T>(json: string | undefined, defaultValue: T): T {
 	if (!json) {
 		return defaultValue;
 	}
+	if (typeof json !== "string") return json; // ? not sure why this is needed
 	try {
 		return JSON.parse(json);
 	} catch (e) {
+		console.log("!! JSON PARSE FAILED !!");
+		console.log(json);
+		console.log("^^ JSON PARSE FAILED ^^");
 		logError(new Error(`Malformed JSON: ${json}`));
 		return defaultValue;
 	}
