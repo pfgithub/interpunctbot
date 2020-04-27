@@ -145,6 +145,12 @@ class Database {
 			cache.set(this.guild, {});
 		}
 	}
+	async deleteAllData(): Promise<void> {
+		cache.delete(this.guild);
+		await globalKnex!("guilds")
+			.where({ id: this.guild })
+			.del();
+	}
 	async getOrLoadData(): Promise<Fields> {
 		// loads data into the this.data.
 		if (this._data) {

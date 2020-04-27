@@ -32,6 +32,7 @@ import {
 } from "./src/commands/role";
 import { getGuilds } from "./src/ShardHelper";
 import fetch from "node-fetch";
+import { deleteLogs } from "./src/commands/logging";
 
 mdf(moment as any);
 
@@ -683,23 +684,25 @@ async function onMessage(msg: Discord.Message | Discord.PartialMessage) {
 		}
 	}
 
-	if (shouldIgnore(msg.author)) {
-		return;
-	}
-	logMsg({ prefix: "I", msg: msg });
-
 	if (info.db && (await info.db.getLogEnabled())) {
 		try {
 			await guildLog(
 				msg.guild!.id, // db ? guild! : guild?
 				`[${moment().format("YYYY-MM-DD HH:mm:ss Z")}] <#${
 					(msg.channel as Discord.TextChannel).name
-				}> \`${msg.author.tag}\`: ${msg.content}`,
+				}> ${msg.author.bot ? "[BOT] " : ""}\`${msg.author.tag}\`: ${
+					msg.content
+				}`,
 			);
 		} catch (e) {
 			logError(e);
 		}
 	}
+
+	if (shouldIgnore(msg.author)) {
+		return;
+	}
+	logMsg({ prefix: "I", msg: msg });
 
 	// await newInfo.setup(knex)
 
@@ -1092,9 +1095,13 @@ client.on("guildCreate", guild => {
 });
 
 client.on("guildDelete", guild => {
-	// forget about the guild at some point in time
 	global.console.log(`_ Left guild ${guild.name} (${guild.nameAcronym})`);
-	// TODO delete info in db after leaving a guild
+	deleteLogs(guild.id).catch(e =>
+		global.console.log("Could not delete guild logs,", e),
+	);
+	new Database(guild.id)
+		.deleteAllData()
+		.catch(e => global.console.log("Could not delete guild data,", e));
 });
 
 export async function reportILTFailure(message: ErrorWithID, reason: Error) {

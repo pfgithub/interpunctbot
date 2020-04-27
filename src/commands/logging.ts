@@ -14,6 +14,8 @@ nr.addDocsWebPage(
 
 {Interpunct} has the ability to log all messages sent and edited in your server.
 
+Logs can be deleted using the {Command|log reset} command, and all logs are deleted if you kick {Interpunct}. Old messages will be automatically removed from logs after 60 days, and a note will be inserted at the top of the log file.
+
 {CmdSummary|log enable}
 {CmdSummary|log disable}
 {CmdSummary|log download}
@@ -71,8 +73,8 @@ nr.globalCommand(
 	},
 );
 
-async function deleteLogs(guildID: string) {
-	await fs.unlink(path.join("../..", `/logs/${guildID}.log`));
+export async function deleteLogs(guildID: string) {
+	await fs.unlink(path.join(process.cwd(), `/logs/${guildID}.log`));
 }
 
 nr.globalCommand(
@@ -97,7 +99,6 @@ nr.globalCommand(
 		if (!(await info.db.getLogEnabled())) {
 			return await info.error("Logging is not enabled on your server");
 		}
-		await info.startLoading();
 		await deleteLogs(info.guild.id);
 		await info.success("Logs have been reset.");
 	},
@@ -123,7 +124,9 @@ nr.globalCommand(
 		if (!info.db || !info.guild) {
 			return await info.error("This command cannot be used in PMs");
 		}
-		await info.startLoading();
+		if (!(await info.db.getLogEnabled())) {
+			return await info.error("Logs are already disabled.");
+		}
 		await deleteLogs(info.guild.id);
 		await info.db.setLogEnabled(false);
 		await info.success("Logs have been disabled and deleted.");
@@ -150,7 +153,6 @@ nr.globalCommand(
 		if (!info.db || !info.guild) {
 			return await info.error("This command cannot be used in PMs");
 		}
-		await info.startLoading();
 		await info.db.setLogEnabled(true);
 		await info.success("Logs have been enabled.");
 	},
