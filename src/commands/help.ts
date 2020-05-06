@@ -10,6 +10,7 @@ nr.addDocsWebPage(
 {LinkSummary|/help/configuration}
 {LinkSummary|/help/fun}
 {LinkSummary|/help/emoji}
+{LinkSummary|/help/messages}
 {LinkSummary|/help/channels}
 {LinkSummary|/help/administration}
 {LinkSummary|/help/customcommands}
