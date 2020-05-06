@@ -761,11 +761,6 @@ export async function sendPinBottom(info: Info, chid: string) {
 
 	const lastSentTime = lastUpdatedTimesCache[chid];
 	if (lastSentTime && lastSentTime > new Date().getTime() - 1000 * 3) {
-		lastUpdatedTimesCache[chid] = undefined;
-		setTimeout(() => {
-			if (lastUpdatedTimesCache[chid] !== lastSentTime) return;
-			void sendPinBottom(info, chid).catch(() => {});
-		}, 3000);
 		return;
 	}
 	lastUpdatedTimesCache[chid] = new Date().getTime();
