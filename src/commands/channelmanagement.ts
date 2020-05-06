@@ -769,7 +769,9 @@ export async function sendPinBottom(info: Info, chid: string) {
 	const newSentMessage = await chanl.send(topts.pinBottom);
 	if (topts.lastestPinBottom) {
 		try {
-			await chanl.messages.resolve(topts.lastestPinBottom)!.delete();
+			await (
+				await chanl.messages.fetch(topts.lastestPinBottom)!
+			).delete();
 		} catch (e) {
 			// f. catch this to make sure latestPinBottom gets updated.
 		}
