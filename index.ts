@@ -33,6 +33,7 @@ import {
 import { getGuilds } from "./src/ShardHelper";
 import fetch from "node-fetch";
 import { deleteLogs } from "./src/commands/logging";
+import { sendPinBottom } from "./src/commands/channelmanagement";
 
 mdf(moment as any);
 
@@ -243,7 +244,6 @@ async function unknownCommandHandler(cmd: string, info: Info) {
 		const lists = await info.db.getCustomCommands(); // TODO info.db.lists
 		const listNames = Object.keys(lists);
 		for (const listName of listNames) {
-			console.log(listName);
 			if (
 				cmd.toLowerCase().startsWith(listName.toLowerCase()) &&
 				(cmd.substr(listName.length).trim() !==
@@ -703,6 +703,10 @@ async function onMessage(msg: Discord.Message | Discord.PartialMessage) {
 		return;
 	}
 	logMsg({ prefix: "I", msg: msg });
+
+	try {
+		await sendPinBottom(info, info.message.channel.id);
+	} catch (e) {}
 
 	// await newInfo.setup(knex)
 

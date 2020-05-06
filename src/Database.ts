@@ -70,6 +70,7 @@ const shouldCache: { [ey: string]: boolean | undefined } = {
 	autodelete: true,
 	quickrank: true, // why can't we just cache everything for now
 	managebotrole: true,
+	channeloptions: true,
 };
 
 function tryParse<T>(json: string | undefined, defaultValue: T): T {
@@ -111,6 +112,7 @@ type Fields = {
 	events?: string;
 	nameScreening2?: string;
 	managebotrole: string;
+	channeloptions: string;
 };
 
 type JSONFields = {
@@ -120,6 +122,7 @@ type JSONFields = {
 	quickrank: QuickrankField;
 	events: Events;
 	managebotrole: { role: string };
+	channeloptions: { [key: string]: ChannelOptions };
 };
 type BooleanFields = {
 	logging: boolean;
@@ -127,6 +130,7 @@ type BooleanFields = {
 	funEnabled: boolean;
 };
 type NameScreeningField = string[];
+type ChannelOptions = { pinBottom?: string; lastestPinBottom?: string };
 // type SpeedrunField = { gameID: string; categoryID: string };
 
 const lock: { [key: string]: (() => void)[] } = {};
@@ -301,6 +305,12 @@ class Database {
 	}
 	async setAutodeleteLimit(newLimit: number) {
 		return await this._set("autodelete_limit", newLimit);
+	}
+	async getChannelOptions() {
+		return await this._getJson("channeloptions", {});
+	}
+	async setChannelOptions(newOpts: { [key: string]: ChannelOptions }) {
+		return await this._setJson("channeloptions", newOpts);
 	}
 	async getAutodelete() {
 		return await this._getJson("autodelete", { rules: [], nextID: 1 });

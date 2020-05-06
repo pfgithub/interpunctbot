@@ -1,11 +1,12 @@
+import * as Discord from "discord.js";
 import { Channel, Guild, GuildChannel, TextChannel } from "discord.js";
-import { ilt, perr, assertNever } from "../..";
-import { messages, safe, raw } from "../../messages";
-import { AutodeleteRuleNoID, AutodeleteRule } from "../Database";
+import { assertNever, ilt, perr } from "../..";
+import { messages, raw, safe } from "../../messages";
+import { AutodeleteRule, AutodeleteRuleNoID } from "../Database";
 import { durationFormat } from "../durationFormat";
 import Info from "../Info";
-import { a, AP } from "./argumentparser";
 import * as nr from "../NewRouter";
+import { a, AP } from "./argumentparser";
 
 export const stripMentions = (msg: string) => {
 	return msg
@@ -25,6 +26,7 @@ nr.addDocsWebPage(
 {CmdSummary|purge}
 {CmdSummary|slowmode set}
 {CmdSummary|send}
+{CmdSummary|pinbottom}
 {LinkSummary|/help/messages}`,
 );
 
@@ -743,6 +745,89 @@ nr.globalCommand(
 					.split("{Mention}")
 					.join(info.atme),
 		);
+	},
+);
+
+const lastUpdatedTimesCache: { [key: string]: number | undefined } = {};
+export async function sendPinBottom(info: Info, chid: string) {
+	if (!info.db) return;
+	const db = info.db;
+	const client = info.message.client;
+
+	const chopts = await db.getChannelOptions(); // should be instant hopefully. might cause race conditions sometimes. this is a very well coded and robust bot.
+	const topts = chopts[chid];
+	if (!topts) return;
+	if (!topts.pinBottom) return;
+
+	const lastSentTime = lastUpdatedTimesCache[chid];
+	if (lastSentTime && lastSentTime > new Date().getTime() - 1000 * 3) {
+		lastUpdatedTimesCache[chid] = undefined;
+		setTimeout(() => {
+			if (lastUpdatedTimesCache[chid] !== lastSentTime) return;
+			void sendPinBottom(info, chid).catch(() => {});
+		}, 3000);
+		return;
+	}
+	lastUpdatedTimesCache[chid] = new Date().getTime();
+	const chanl = client.channels.resolve(chid)! as Discord.TextChannel;
+	if (!chanl) return; // f
+	const newSentMessage = await chanl.send(topts.pinBottom);
+	if (topts.lastestPinBottom) {
+		try {
+			await chanl.messages.resolve(topts.lastestPinBottom)!.delete();
+		} catch (e) {
+			// f. catch this to make sure latestPinBottom gets updated.
+		}
+	}
+	topts.lastestPinBottom = newSentMessage.id;
+	await db.setChannelOptions(chopts); // might cause race conditions if a user is updating the pinbottom setting at the same time. fun:). this is why it would be better to have this in a seperate db table and have it update a seperate column for channel latestpinbottom.
+}
+
+nr.globalCommand(
+	"/help/channels/pinbottom",
+	"pinbottom",
+	{
+		usage: "pinbottom {Required|{Channel|channel}} {Required|message...}",
+		description:
+			"{Interpunct} will send a message and make sure it always stays at the bottom of the channel",
+		examples: [],
+	},
+	nr.list(nr.a.channel(), ...nr.a.words()),
+	async ([channel, message], info) => {
+		if (!info.db) {
+			return await info.docs("/errors/pms", "error");
+		}
+		if (!Info.theirPerm.manageBot) return;
+		const theyCanMention = info.message.member!.hasPermission(
+			"MENTION_EVERYONE",
+		);
+
+		if (!theyCanMention) {
+			const nmsg = stripMentions(message);
+			if (nmsg !== message)
+				await info.warn(
+					"To include mentions in the pinned message, you must have permission to MENTION_EVERYONE.",
+				);
+			message = nmsg;
+		}
+		message = message.trim();
+
+		const chopts = await info.db.getChannelOptions();
+		if (!chopts[channel.id]) chopts[channel.id] = {};
+		chopts[channel.id].pinBottom = message;
+		chopts[channel.id].lastestPinBottom = undefined;
+		lastUpdatedTimesCache[channel.id] = undefined;
+		await info.db.setChannelOptions(chopts);
+		try {
+			await sendPinBottom(info, channel.id);
+		} catch (e) {
+			await info.error(
+				"I don't have permission to send messages in <#" +
+					channel.id +
+					"> :(",
+			);
+		}
+		await info.success("Success!");
 	},
 );
 
