@@ -604,42 +604,41 @@ export async function ArgumentParser<
 > {
 	const resarr: ArgTypeToReturnType<any>[] = [];
 	let index = 0;
-	for (const value of schema) {
-		const parseResult = await value(
-			info,
-			undefined,
-			cmd,
-			async (docs, other) => {
-				const docsPage = nr.globalDocs[docs];
-				if (!docsPage) {
-					throw new Error("docs page not found");
-				}
-				const cmdPage = nr.globalDocs[help];
-				if (!cmdPage) {
-					throw new Error("cmd page not found");
-				}
+	const errfn = async (
+		docs: string,
+		other?: { safeDetails?: string | undefined },
+	): Promise<{ result: "exit" }> => {
+		const docsPage = nr.globalDocs[docs];
+		if (!docsPage) {
+			throw new Error("docs page not found");
+		}
+		const cmdPage = nr.globalDocs[help];
+		if (!cmdPage) {
+			throw new Error("cmd page not found");
+		}
 
-				const pfx = other
-					? other.safeDetails
-						? other.safeDetails + "\n"
-						: ""
-					: "";
-				await info.error(
-					pfx +
-						"Usage: " +
-						dgToDiscord(cmdPage.summaries.usage, info) +
-						"\n" +
-						dgToDiscord(docsPage.summaries.description, info) +
-						"\n" +
-						"> Command Help: <https://interpunct.info" +
-						help +
-						">\n> Error Details: <https://interpunct.info" +
-						docsPage.path +
-						">",
-				);
-				return { result: "exit" };
-			},
+		const pfx = other
+			? other.safeDetails
+				? other.safeDetails + "\n"
+				: ""
+			: "";
+		await info.error(
+			pfx +
+				"Usage: " +
+				dgToDiscord(cmdPage.summaries.usage, info) +
+				"\n" +
+				dgToDiscord(docsPage.summaries.description, info) +
+				"\n" +
+				"> Command Help: <https://interpunct.info" +
+				help +
+				">\n> Error Details: <https://interpunct.info" +
+				docsPage.path +
+				">",
 		);
+		return { result: "exit" };
+	};
+	for (const value of schema) {
+		const parseResult = await value(info, undefined, cmd, errfn);
 		if (parseResult.result === "exit") {
 			return undefined;
 		}
@@ -650,9 +649,7 @@ export async function ArgumentParser<
 	if (cmd.trim() && !partial) {
 		// extra arguments
 		console.log("MISSING", cmd);
-		await info.error(
-			`Usage: ${help || "not provided"}`, // !!!!!!! str->messages
-		);
+		await errfn(help);
 		return undefined;
 	}
 	return {
