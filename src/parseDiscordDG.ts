@@ -361,7 +361,12 @@ const commands: {
 				"- " +
 				dgToMD(docs.summaries.usage) +
 				" — " +
-				dgToMD(docs.summaries.description)
+				"[" +
+				dgToMD(docs.summaries.description) +
+				"](" +
+				"https://interpunct.info" +
+				docs.path +
+				")"
 			);
 		},
 	},
@@ -426,16 +431,28 @@ const commands: {
 			);
 		},
 		md: args => {
-			const docs = globalDocs[args[0].raw];
+			const pageURL = args[0].raw;
+			const docs = globalDocs[pageURL];
 			if (!docs) return "- " + args[0].safe + " — Error :(";
-			return (
-				"- [" +
-				dgToMD(docs.summaries.title) +
-				"](https://interpunct.info" +
-				docs.path +
-				"): " +
-				dgToMD(docs.summaries.description)
-			);
+			if (globalSummaryDepth >= 1)
+				return (
+					"- [" +
+					dgToMD(docs.summaries.title) +
+					"](https://interpunct.info" +
+					docs.path +
+					"): " +
+					dgToMD(docs.summaries.description) +
+					"\n"
+				);
+			globalSummaryDepth++;
+			const result = rawhtml`${commands.Blockquote.md([
+				{
+					raw: "no",
+					safe: rawhtml`${dgToMD(docs.body)}`,
+				},
+			])}\n`;
+			globalSummaryDepth--;
+			return result;
 		},
 	},
 	LinkDocs: {
