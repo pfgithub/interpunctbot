@@ -386,9 +386,14 @@ For help, ask on the support server with your error code \`${errorCode}\`
 > **Support Server**: <https://interpunct.info/support>
 > **Error Code**: \`${errorCode}\``,
 		command_not_found: (info: Info, command: string) =>
-			safe`Command \`${command}\` not found. Type \`${raw(
+			safe`Command \`${info.prefix}${command}\` not found. Type \`${raw(
 				info.prefix,
-			)}help\` for a list of commands.`,
+			)}help\` for a list of commands.` +
+			(info.authorPerms.manageBot
+				? "\n> Don't want to see this? Disable this message with `" +
+				  safe`${info.prefix}set showunknowncommand never` +
+				  "`."
+				: ""),
 		command_removed: (
 			info: Info,
 			old: string,
@@ -418,13 +423,13 @@ ${info.prefix}space channels disable
 			showErrors === "always"
 				? `Errors will be shown to all users.${
 						unknownCommandMessages === "never"
-							? `\n> Unknown command errors are currently hidden. To show them for admins or all users, use \`${info.prefix}set show unknown command always\` or \`${info.prefix}set show unknown command admins\``
+							? `\n> Unknown command errors are currently hidden. To show them for admins or all users, use \`${info.prefix}set showunknowncommand always\` or \`${info.prefix}set showunknowncommand admins\``
 							: ""
 				  }`
 				: showErrors === "admins"
 				? `Bot errors will only be shown to members with the \`Manage Server\` permission.${
 						unknownCommandMessages === "always"
-							? `\n> Unknown command errors will still be shown to all users. To show them for admins or disable them entirely, use \`${info.prefix}set show unknown command admins\` or \`${info.prefix}set show unknown command never\``
+							? `\n> Unknown command errors will still be shown to all users. To show them for admins or disable them entirely, use \`${info.prefix}set show unknowncommand admins\` or \`${info.prefix}set showunknowncommand never\``
 							: ""
 				  }`
 				: showErrors === "never"
