@@ -109,7 +109,7 @@ nr.addDocsWebPage(
 {Interpunct} has a few commands for helping with administration
 
 {CmdSummary|purge}
-{LinkSummary|autoban}`,
+{LinkSummary|/help/autoban}`,
 );
 
 nr.addDocsWebPage(
