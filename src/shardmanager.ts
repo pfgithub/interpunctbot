@@ -26,7 +26,8 @@ async function cleanLogs() {
 	const mustBePast = new Date().getTime() - 60 * 24 * 60 * 60 * 1000;
 	for (const logFile of allLogs) {
 		const fpath = path.join(process.cwd(), "logs", logFile);
-		const allLines = (await fs.readFile(fpath, "utf-8")).split("\n");
+		const initialtext = await fs.readFile(fpath, "utf-8");
+		const allLines = initialtext.split("\n");
 		let resIdx = allLines.length;
 		let prevDeleteCount = 0;
 		let index = -1;
@@ -39,6 +40,10 @@ async function cleanLogs() {
 			const lineDate = rgx.exec(line);
 			if (!lineDate) continue;
 			const realDate = new Date(lineDate[1]).getTime();
+			if (isNaN(realDate)) {
+				resIdx = 0;
+				break;
+			}
 			if (realDate > mustBePast) {
 				resIdx = index;
 				break;
@@ -52,7 +57,8 @@ async function cleanLogs() {
 					tdelcount +
 					" messages were more than 60 days old and were trimmed from this log. https://interpunct.info/help/log ]",
 			);
-		await fs.writeFile(fpath, allLines.join("\n"), "utf-8");
+		const restext = allLines.join("\n");
+		if (initialtext != restext) await fs.writeFile(fpath, restext, "utf-8");
 		console.log("Trimmed log", logFile);
 	}
 }
