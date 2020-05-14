@@ -16,5 +16,6 @@ export function durationFormat(time: number) {
 				: l,
 		)
 		.filter(q => q)
+		.filter((q, i) => i <= 2)
 		.join(", ");
 }

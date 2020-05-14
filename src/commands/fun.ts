@@ -1,6 +1,6 @@
 import moment from "moment";
 import { serverStartTime } from "../..";
-import { messages, safe } from "../../messages";
+import { messages, safe, raw } from "../../messages";
 import { durationFormat } from "../durationFormat";
 import { setEditInterval } from "../editInterval";
 import Info from "../Info";
@@ -625,6 +625,39 @@ nr.globalCommand(
 			return await info.docs("/help/fun/vote2", "usage");
 		}
 		await Promise.all([info.message.react("👍"), info.message.react("👎")]);
+	},
+);
+
+nr.globalCommand(
+	"/help/fun/userinfo",
+	"userinfo",
+	{
+		usage: "userinfo {Required|{Atmention|someuser}}",
+		description: "gives some user info",
+		examples: [],
+	},
+	nr.list(nr.a.user()),
+	async ([ussr], info) => {
+		if (info.db ? !(await info.db.getFunEnabled()) : false) {
+			return await info.error(messages.fun.fun_disabled(info));
+		}
+		const now = new Date().getTime();
+		let l2o = "";
+		if (info.guild) {
+			const member = info.guild.member(ussr)!;
+			const jat = member.joinedAt!.getTime();
+			l2o = safe`\nJoined this server ${durationFormat(
+				now - jat,
+			)} ago (${new Date(jat).toUTCString()})`;
+		}
+		const dat = ussr.createdAt.getTime();
+		return await info.result(
+			safe`Info about ${raw(
+				ussr.toString(),
+			)}\nJoined discord ${durationFormat(now - dat)} ago (${new Date(
+				dat,
+			).toUTCString()})${raw(l2o)}`,
+		);
 	},
 );
 
