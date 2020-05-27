@@ -956,9 +956,9 @@ async function onReactionAdd(
 
 	let reason =
 		"Given by " +
-		msg.member!.toString() +
+		reactor.toString() +
 		" (" +
-		msg.member!.displayName +
+		reactor.displayName +
 		")";
 	await msg.member!.roles.add(rolesToGive, reason);
 
