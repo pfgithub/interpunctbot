@@ -954,7 +954,13 @@ async function onReactionAdd(
 	// if (!(await permTheyCanManageRole(reactor, role))) return;
 	// if (!(await permWeCanManageRole(reactor, role))) return;
 
-	await msg.member!.roles.add(rolesToGive);
+	let reason =
+		"Given by " +
+		msg.member!.toString() +
+		" (" +
+		msg.member!.displayName +
+		")";
+	await msg.member!.roles.add(rolesToGive, reason);
 
 	await msg.channel.send(
 		getRankSuccessMessage(

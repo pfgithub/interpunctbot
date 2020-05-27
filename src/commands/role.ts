@@ -564,7 +564,13 @@ nr.globalCommand(
 		}
 
 		// await info.startLoading();
-		await reciever.roles.add(discordRolesToGive);
+		let reason =
+			"Given by " +
+			info.message.member!.toString() +
+			" (" +
+			info.message.member!.displayName +
+			")";
+		await reciever.roles.add(discordRolesToGive, reason);
 
 		await info.message.channel.send(
 			getRankSuccessMessage(
