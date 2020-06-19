@@ -125,6 +125,8 @@ export class TimedEvents {
 				}
 			}
 		};
+        if(process.env.NODE_ENV === "production")
+            return;
 		if (deltaTime < 2147483647)
 			setTimeout(() => perr(handle(), "Handling event"), deltaTime);
 	}

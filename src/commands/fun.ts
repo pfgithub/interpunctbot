@@ -833,6 +833,9 @@ nr.globalCommand(
 	},
 	nr.passthroughArgs,
 	async ([cmd], info) => {
+        if(process.env.NODE_ENV === "production") {
+            return await info.error("Sorry! remindme doesn't work right now.");
+        }
 		if (info.db ? !(await info.db.getFunEnabled()) : false) {
 			return await info.error(messages.fun.fun_disabled(info));
 		}

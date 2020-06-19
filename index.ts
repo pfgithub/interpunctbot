@@ -699,10 +699,10 @@ async function onMessage(msg: Discord.Message | Discord.PartialMessage) {
 		}
 	}
 
+	logMsg({ prefix: "I", msg: msg });
 	if (shouldIgnore(msg.author)) {
 		return;
 	}
-	logMsg({ prefix: "I", msg: msg });
 
 	try {
 		await sendPinBottom(info, info.message.channel.id);

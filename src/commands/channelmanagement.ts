@@ -823,6 +823,7 @@ nr.globalCommand(
 					channel.id +
 					"> :(",
 			);
+            return;
 		}
 		await info.success("Success!");
 	},
