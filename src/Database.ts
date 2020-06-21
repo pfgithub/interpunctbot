@@ -117,6 +117,7 @@ type Fields = {
 
 type JSONFields = {
 	searchablePastebins: CustomCommandsFieldRaw;
+	nameScreening: NameScreeningField;
 	nameScreening2: NameScreeningField;
 	autodelete: AutodeleteField;
 	quickrank: QuickrankField;
@@ -284,11 +285,10 @@ class Database {
 		await this._setJson("searchablePastebins", newLists); // otherlists.quote overrides quote therefore we don't need to parse out and set quote
 	}
 	async getAutoban(): Promise<NameScreeningField> {
+        let existingNameScreening = await this._getJson("nameScreening", []);
 		return await this._getJson(
 			"nameScreening2",
-			((await this._get("nameScreening")) || "")
-				.split(",")
-				.filter(q => q.trim()),
+            existingNameScreening,
 		);
 	}
 	async setAutoban(newAutoban: NameScreeningField) {
