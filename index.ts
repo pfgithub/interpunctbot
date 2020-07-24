@@ -657,30 +657,35 @@ async function onMessage(msg: Discord.Message | Discord.PartialMessage) {
 				// assertNever(rule);
 			}
 			if (deleteMsg) {
-				await info.timedEvents.queue(
-					[
-						{
-							type: "delete",
-							guild: info.guild!.id,
-							channel: info.message.channel.id,
-							message: info.message.id,
-						},
-						...(rule.duration < 3000
-							? [
-									{
-										type: "pmuser",
-										user: msg.author.id,
-										message:
-											"Your message in <#" +
-											info.message.channel.id +
-											"> was removed.",
-									} as const,
-							  ]
-							: []),
-					],
-					new Date().getTime() + rule.duration,
-				);
+				setTimeout(() => {
+					info.message.delete().catch(() => {});
+				}, rule.duration);
 			}
+			//if (deleteMsg) {
+			//	await info.timedEvents.queue(
+			//		[
+			//			{
+			//				type: "delete",
+			//				guild: info.guild!.id,
+			//				channel: info.message.channel.id,
+			//				message: info.message.id,
+			//			},
+			//			...(rule.duration < 3000
+			//				? [
+			//						{
+			//							type: "pmuser",
+			//							user: msg.author.id,
+			//							message:
+			//								"Your message in <#" +
+			//								info.message.channel.id +
+			//								"> was removed.",
+			//						} as const,
+			//				  ]
+			//				: []),
+			//		],
+			//		new Date().getTime() + rule.duration,
+			//	);
+			//}
 		}
 	}
 
@@ -955,11 +960,7 @@ async function onReactionAdd(
 	// if (!(await permWeCanManageRole(reactor, role))) return;
 
 	let reason =
-		"Given by " +
-		reactor.toString() +
-		" (" +
-		reactor.displayName +
-		")";
+		"Given by " + reactor.toString() + " (" + reactor.displayName + ")";
 	await msg.member!.roles.add(rolesToGive, reason);
 
 	await msg.channel.send(
