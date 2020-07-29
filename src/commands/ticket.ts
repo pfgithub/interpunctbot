@@ -16,6 +16,14 @@ nr.addDocsWebPage(
 
 {Interpunct} can tickets.
 
+{Heading|Notable Features}
+
+- Transcripts ({Link|https://pfg.pw/rankr/view?page=https://cdn.discordapp.com/attachments/735250062635958323/737912350371217498/log.html|Like This})
+- Reaction controls (One reaction to create a ticket, one to close and save the transcript.)
+- Automatic Ping (ping after someone sends a message)
+- Automatic Close (close if no one sends anything)
+- In-discord setup (Configure permissions and stuff in discord directly)
+
 {CmdSummary|ticket quickstart}
 
 {Heading|Basic Setup}
