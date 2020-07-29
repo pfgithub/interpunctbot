@@ -61,6 +61,19 @@ export type Events = {
 	userJoin?: Event;
 	userLeave?: Event;
 };
+export type TicketConfig = {
+	main: {
+		/// category id
+		category?: string;
+		/// message id
+		invitation?: string;
+		logs?: { uploads: string; pretty: string };
+		transcripts?: string;
+		/// autodelete ms
+		autoclose?: number;
+		ping?: string;
+	};
+};
 
 const cache: Map<string, GuildData> = new Map();
 const shouldCache: { [ey: string]: boolean | undefined } = {
@@ -71,6 +84,7 @@ const shouldCache: { [ey: string]: boolean | undefined } = {
 	quickrank: true, // why can't we just cache everything for now
 	managebotrole: true,
 	channeloptions: true,
+	ticket: true,
 };
 
 function tryParse<T>(json: string | undefined, defaultValue: T): T {
@@ -113,6 +127,7 @@ type Fields = {
 	nameScreening2?: string;
 	managebotrole: string;
 	channeloptions: string;
+	ticket: string;
 };
 
 type JSONFields = {
@@ -124,6 +139,7 @@ type JSONFields = {
 	events: Events;
 	managebotrole: { role: string };
 	channeloptions: { [key: string]: ChannelOptions };
+	ticket: TicketConfig;
 };
 type BooleanFields = {
 	logging: boolean;
@@ -285,11 +301,8 @@ class Database {
 		await this._setJson("searchablePastebins", newLists); // otherlists.quote overrides quote therefore we don't need to parse out and set quote
 	}
 	async getAutoban(): Promise<NameScreeningField> {
-        let existingNameScreening = await this._getJson("nameScreening", []);
-		return await this._getJson(
-			"nameScreening2",
-            existingNameScreening,
-		);
+		const existingNameScreening = await this._getJson("nameScreening", []);
+		return await this._getJson("nameScreening2", existingNameScreening);
 	}
 	async setAutoban(newAutoban: NameScreeningField) {
 		return await this._setJson("nameScreening2", newAutoban);
@@ -347,6 +360,14 @@ class Database {
 	}
 	async setLogEnabled(bool: boolean) {
 		return await this._set("logging", bool.toString());
+	}
+	async getTicket(): Promise<TicketConfig> {
+		return await this._getJson("ticket", {
+			main: {},
+		});
+	}
+	async setTicket(nt: TicketConfig): Promise<void> {
+		return await this._setJson("ticket", nt);
 	}
 	async getUnknownCommandMessages(): Promise<"always" | "admins" | "never"> {
 		const value = await this._get("unknownCommandMessages");

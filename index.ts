@@ -19,6 +19,7 @@ import "./src/commands/test";
 import "./src/commands/role";
 import "./src/commands/apdocs";
 import "./src/commands/customcommands";
+import "./src/commands/ticket";
 import { globalConfig } from "./src/config";
 import Database, { Event } from "./src/Database";
 import Info, { memberCanManageRole, handleReactions } from "./src/Info";
@@ -959,7 +960,7 @@ async function onReactionAdd(
 	// if (!(await permTheyCanManageRole(reactor, role))) return;
 	// if (!(await permWeCanManageRole(reactor, role))) return;
 
-	let reason =
+	const reason =
 		"Given by " + reactor.toString() + " (" + reactor.displayName + ")";
 	await msg.member!.roles.add(rolesToGive, reason);
 
