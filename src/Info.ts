@@ -376,24 +376,31 @@ export default class Info {
 	): Promise<Discord.Message[] | undefined> {
 		const atThem = this.message.author.toString();
 		const shouldAlert = this.shouldAlert();
+		const allowedMentions: Discord.MessageMentionOptions = shouldAlert
+			? { users: [this.message.author.id], roles: [], parse: ["users"] }
+			: { users: [], roles: [], parse: [] };
 
 		const content = values[0];
 		const options = values[1];
 		// returns the message
-		const replyResult = await ilt(
-			this.message.channel.send(safe`${raw(atThem)}, ${raw(content)}`, {
-				...options,
-				split: true,
-				allowedMentions: {
-					users: shouldAlert ? [this.message.author.id] : [],
-					roles: [],
-				},
-			}),
-			false,
-		);
-		if (replyResult.result) {
-			return (replyResult.result as unknown) as Discord.Message[];
+
+		const msgtxt = atThem + ", " + content;
+		const splitmsg = Discord.Util.splitMessage(msgtxt);
+
+		const resmsgs: Discord.Message[] = [];
+		for (const msgpart of splitmsg) {
+			const iltres = await ilt(
+				this.message.channel.send(msgpart, {
+					...options,
+					split: false,
+					allowedMentions,
+				}),
+				false,
+			);
+			if (iltres.error) return; // oop
+			resmsgs.push(iltres.result);
 		}
+		return resmsgs;
 	}
 	async reply(
 		resultType: string,
