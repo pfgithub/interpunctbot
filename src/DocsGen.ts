@@ -211,7 +211,7 @@ export async function DocsGen() {
 					.replace("{html|pagetitle}", pagetitle)
 					.replace("{html|pagetitle}", pagetitle),
 				{
-					collapseWhitespace: true,
+					collapseWhitespace: false,
 				},
 			),
 			"utf-8",

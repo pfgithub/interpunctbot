@@ -8,7 +8,7 @@
 		"posttest": "nyc report --reporter lcov",
 		"test-error": "mocha",
 		"docs": "ts-node . --gen-docs",
-		"serve": "static-server docgen/dist/web --not-found docgen/dist/web/404.html",
+		"serve": "serve docs",
 		"build": "tsc",
 		"build-watch": "tsc --watch",
 		"run-slow": "ts-node .",
