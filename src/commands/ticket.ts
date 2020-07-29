@@ -2,7 +2,7 @@
 import * as Discord from "discord.js";
 import { assertNever, ilt, perr } from "../..";
 import { messages, raw, safe } from "../../messages";
-import { AutodeleteRule, AutodeleteRuleNoID } from "../Database";
+import { AutodeleteRule, AutodeleteRuleNoID, TicketConfig } from "../Database";
 import { durationFormat } from "../durationFormat";
 import Info from "../Info";
 import * as nr from "../NewRouter";
@@ -110,7 +110,8 @@ Active tickets will be put into the category you set. It must be empty and permi
 
 		const foundCategory = info.guild.channels.cache.find(
 			chan =>
-				chan.name.toUpperCase() === catnme.toUpperCase() &&
+				(chan.name.toUpperCase() === catnme.toUpperCase() ||
+					chan.id === catnme) &&
 				chan.type === "category",
 		) as Discord.CategoryChannel | null;
 		if (!foundCategory)
@@ -148,18 +149,41 @@ Active tickets will be put into the category you set. It must be empty and permi
 		const currentTickets = await info.db.getTicket();
 		currentTickets.main.category = foundCategory.id;
 		await info.db.setTicket(currentTickets);
-		const nextSteps = !currentTickets.main.invitation
-			? "\n" +
-			  info.tag`The next step is to create an invitation message. More info in {LinkDocs|/help/ticket}`
-			: "";
+
+		const suggestions = ticketSuggestions(currentTickets, info);
+
 		await info.success(
 			"Success! Tickets will be created in the <#" +
 				foundCategory.id +
 				"> channel." +
-				nextSteps,
+				suggestions.map(sg => "\n" + sg).join(""),
 		);
 	},
 );
+
+function ticketSuggestions(ticketdata: TicketConfig, info: Info) {
+	const res: string[] = [];
+	if (!ticketdata.main.category) {
+		return [
+			info.tag`The next step is to set the category for tickets to be added to with. More info in {LinkDocs|/help/ticket}`,
+		];
+	}
+	if (!ticketdata.main.invitation) {
+		return [
+			info.tag`The next step is to create an invitation message. More info in {LinkDocs|/help/ticket}`,
+		];
+	}
+	res.push(
+		"Ticketing is all set up! For more settings, check the docs: " +
+			info.tag`{LinkDocs|/help/ticket}`,
+	);
+	if (!ticketdata.main.logs && !ticketdata.main.transcripts) {
+		res.push(
+			info.tag`If you want closed tickets to be logged, you might want to enable ticket logs and or transcripts.`,
+		);
+	}
+	return res;
+}
 
 nr.globalCommand(
 	"/help/ticket/invitation",
@@ -175,20 +199,85 @@ nr.globalCommand(
 		if (!info.db || !info.guild) return await info.error("pms");
 
 		// find the invitation message (maybe there could be a command to create an invitation message)
+		const ids = msglink.match(/[0-9]{5,}/g);
+		if (!ids || ids.length !== 3)
+			return await info.error(
+				info.tag`Right click/tap and hold the message you want to use as an invitation message and select Copy Message Link. Then use it {Command|ticket invitation PASTE}`,
+			);
+		const [guildID, channelID, messageID] = ids;
+		if (info.guild.id !== guildID)
+			return await info.error(
+				info.tag`The message you linked is on a different server. Please select a message from this server to be the ticket invitation.`,
+			);
+		const msgchan = info.guild.channels.resolve(
+			channelID,
+		) as Discord.TextChannel;
+		if (!msgchan)
+			return await info.error(
+				"I could not find the channel <#" +
+					channelID +
+					">. Maybe I don't have permission to view it?",
+			);
+		// in zig this could just be const msgmsg = msgchan.messages.fetch(messageID) catch return info.error("...")
+		let msgmsg: Discord.Message;
+		try {
+			msgmsg = await msgchan.messages.fetch(messageID);
+		} catch (e) {
+			return await info.error(
+				"I could not find the message you linked in <#" +
+					channelID +
+					">. Maybe I don't have permission to view it? Make sure I have permission to Read Messages and View Message History.",
+			);
+		}
 
 		// check for the ability to remove reactions in the invitation message's channel
+		const chanperms = msgchan.permissionsFor(info.guild.me!);
+		if (chanperms) {
+			if (!chanperms.has("MANAGE_MESSAGES"))
+				return await info.error(
+					"In order for me to remove reactions, I need permission to Manage Messages in <#" +
+						channelID +
+						">.",
+				);
+			if (!chanperms.has("ADD_REACTIONS"))
+				return await info.error(
+					"In order for me to add reactions, I need permission to Add Reactions in <#" +
+						channelID +
+						">.",
+				);
+		}
 
-		// check for basic ticketing perms
 		if (!info.myChannelPerms!.has("MANAGE_CHANNELS")) {
+			// check for basic ticketing perms
 			await info.error(
-				info.tag`In order for {Interpunct} to be able to open and close tickets, {Interpunct} needs permission to Manage Channels.`,
+				info.tag`In order for me to be able to open and close tickets, I need permission to Manage Channels.`,
 			);
 			return false;
 		}
 
 		// if there are reactions on the invitation message, clear them and replace them.
 
+		const reminders: string[] = [];
+
+		const currentTickets = await info.db.getTicket();
+		currentTickets.main.invitation = {
+			channel: msgchan.id,
+			message: msgmsg.id,
+		};
+		await info.db.setTicket(currentTickets);
+
 		// if there are no reactions on the invitation message yet, send a reminder to add a reaction
-		// if logging is not set up yet, send a reminder to set up logging
+		if (msgmsg.reactions.cache.array().length === 0)
+			reminders.push(
+				"React to the invitation message to pick the reaction.",
+			);
+
+		// send other suggestions
+		reminders.push(...ticketSuggestions(currentTickets, info));
+
+		return await info.success(
+			"The ticket invitation message is set!" +
+				reminders.map(rm => "\n" + rm).join(""),
+		);
 	},
 );

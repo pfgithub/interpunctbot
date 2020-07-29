@@ -204,12 +204,13 @@ export async function DocsGen() {
 		await fs.writeFile(
 			webfile,
 			htmlMinifier.minify(
-				htmlTemplate
-					.replace("{html|content}", html)
-					.replace("{html|navbar}", navbar)
-					.replace("{html|sidebar}", sidebart)
-					.replace("{html|pagetitle}", pagetitle)
-					.replace("{html|pagetitle}", pagetitle),
+				htmlTemplate.replace(/{html\|(.+?)}/g, (a, txt) => {
+					if (txt === "content") return html;
+					if (txt === "navbar") return navbar;
+					if (txt === "sidebar") return sidebart;
+					if (txt === "pagetitle") return pagetitle;
+					return a;
+				}),
 				{
 					collapseWhitespace: false,
 				},
