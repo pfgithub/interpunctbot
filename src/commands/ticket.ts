@@ -884,9 +884,7 @@ async function closeTicket(
 		ctx,
 	);
 
-	await new Promise(r =>
-		setTimeout(r, ctx.ticket.main.deletetime || 60 * 1000),
-	);
+	await new Promise(r => setTimeout(r, deletetime));
 	await channel.delete("closed by " + closer.toString());
 	(channel as any).__IS_CLOSING = false;
 }
