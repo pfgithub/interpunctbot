@@ -309,6 +309,12 @@ nr.globalCommand(
 		// make sure I have send messages perms on each
 		for (const channel of [logsChan, uploadsChan]) {
 			const myPerms = channel.permissionsFor(info.guild.me!)!;
+			if (!myPerms.has("VIEW_CHANNEL")) {
+				return await info.error(
+					"I need permission to read messages in " +
+						channel.toString(),
+				);
+			}
 			if (!myPerms.has("SEND_MESSAGES")) {
 				return await info.error(
 					"I need permission to send messages in " +
@@ -354,6 +360,12 @@ nr.globalCommand(
 		if (!info.db || !info.guild) return await info.error("pms");
 		// make sure I have send messages perms
 		const myPerms = transcriptsChan.permissionsFor(info.guild.me!)!;
+		if (!myPerms.has("VIEW_CHANNEL")) {
+			return await info.error(
+				"I need permission to read messages in " +
+					transcriptsChan.toString(),
+			);
+		}
 		if (!myPerms.has("SEND_MESSAGES")) {
 			return await info.error(
 				"I need permission to send messages in " +
