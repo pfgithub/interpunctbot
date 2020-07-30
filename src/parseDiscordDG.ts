@@ -32,6 +32,7 @@ export const emoji: { [key: string]: [string, string, string?] } = {
 	sub10: [":sub10:", "443555771972845568"],
 	sub15: [":sub15:", "443555772031434763"],
 	sub20: [":sub20:", "443555771783839747"],
+	"📬": [":mailbox_with_mail:", "738493505885831280"], // hmm
 };
 
 let globalSummaryDepth = 0;

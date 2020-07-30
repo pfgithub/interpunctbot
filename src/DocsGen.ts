@@ -209,6 +209,8 @@ export async function DocsGen() {
 					if (txt === "navbar") return navbar;
 					if (txt === "sidebar") return sidebart;
 					if (txt === "pagetitle") return pagetitle;
+					if (txt === "stylesheet")
+						return `<link rel="stylesheet" href="/style.css" />`;
 					return a;
 				}),
 				{

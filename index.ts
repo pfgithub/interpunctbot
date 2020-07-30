@@ -19,7 +19,10 @@ import "./src/commands/test";
 import "./src/commands/role";
 import "./src/commands/apdocs";
 import "./src/commands/customcommands";
-import "./src/commands/ticket";
+import {
+	onMessageReactionAdd as ticketMessageReactionAdd,
+	onMessage as ticketMessage,
+} from "./src/commands/ticket";
 import { globalConfig } from "./src/config";
 import Database, { Event } from "./src/Database";
 import Info, { memberCanManageRole, handleReactions } from "./src/Info";
@@ -596,6 +599,8 @@ async function onMessage(msg: Discord.Message | Discord.PartialMessage) {
 	});
 
 	if (info.db) {
+		await ticketMessage(msg, info.db);
+
 		const autodelete = await info.db.getAutodelete();
 
 		for (const rule of autodelete.rules) {
@@ -829,44 +834,41 @@ client.on("messageUpdate", (from, msg) => {
 
 const ignoreReactionsOnFrom: { [key: string]: true } = {};
 
-async function onReactionAdd(
+async function rankingMessageReactionAdd(
 	reaction: Discord.MessageReaction,
 	user: Discord.User,
-) {
-	// defer would be really nice here, ignoreReactionsFrom[...] = ...; defer delete ignoreReactionsFrom[...]
-
+	db: Database,
+): Promise<boolean> {
 	const msg = reaction.message;
-	if (!msg.guild) {
-		return;
-	}
+	if (!msg.guild) return false;
+
 	const reactor = msg.guild.members.resolve(user);
 	if (!reactor) {
-		return;
+		return false;
 	}
+
 	// now there needs to be some filtering system or something
 	// to ignore most reactions
 	if (reaction.emoji instanceof Discord.ReactionEmoji) {
-		return;
+		return false;
 	}
 
 	const irfKey = msg.guild.id + "|" + msg.id + "|" + user.id;
-	if (ignoreReactionsOnFrom[irfKey]) return;
+	if (ignoreReactionsOnFrom[irfKey]) return false;
 	ignoreReactionsOnFrom[irfKey] = true;
-
-	const db = new Database(msg.guild.id);
 
 	const qr = await db.getQuickrank();
 
 	const isManager = qr.managerRole && reactor.roles.cache.has(qr.managerRole);
 	if (!(isManager || reactor.hasPermission("MANAGE_ROLES"))) {
 		delete ignoreReactionsOnFrom[irfKey];
-		return; // bad person
+		return false; // bad person
 	}
 
 	const hndlr = qr.emojiAlias[reaction.emoji.id];
 	if (!hndlr) {
 		delete ignoreReactionsOnFrom[irfKey];
-		return;
+		return false;
 	}
 
 	const roleIDs = [hndlr.role];
@@ -918,7 +920,7 @@ async function onReactionAdd(
 
 	if (!rank) {
 		await myreaxn.remove();
-		return;
+		return true;
 	}
 
 	const rolesToGive: Discord.Role[] = [];
@@ -928,9 +930,10 @@ async function onReactionAdd(
 	for (const roleID of allRoleIDsToGive) {
 		const role = guild.roles.resolve(roleID);
 		if (!role) {
-			return await msg.channel.send(
+			await msg.channel.send(
 				reactor.toString() + ", :x: Role not found.",
 			); // TODO simplified info things for sending successes and failures to channels but that can specify a user to reply to
+			return true;
 		}
 		if (msg.member!.roles.cache.has(roleID)) {
 			rolesAlreadyGiven.push(role);
@@ -939,21 +942,23 @@ async function onReactionAdd(
 		rolesToGive.push(role);
 
 		if (!memberCanManageRole(reactor, role) && !isManager) {
-			return await msg.channel.send(
+			await msg.channel.send(
 				reactor.toString() +
 					", :x: You do not have permission to manage " +
 					messages.role(role) +
 					".",
 			); // TODO info.docs^^
+			return true;
 		}
 
 		if (!memberCanManageRole(guild.me!, role)) {
-			return await msg.channel.send(
+			await msg.channel.send(
 				reactor.toString() +
 					", :x: I do not have permission to manage " +
 					messages.role(role) +
 					".",
 			); // TODO info.docs^^
+			return true;
 		}
 	}
 
@@ -975,6 +980,21 @@ async function onReactionAdd(
 	);
 
 	// if(msg.reactions.has("546938940389589002") && msg.reactions.get(546938940389589002).users.contains(user)) // incase they uncheck
+	return true;
+}
+
+async function onReactionAdd(
+	reaction: Discord.MessageReaction,
+	user: Discord.User,
+) {
+	// defer would be really nice here, ignoreReactionsFrom[...] = ...; defer delete ignoreReactionsFrom[...]
+
+	const msg = reaction.message;
+	if (!msg.guild) return;
+
+	const db = new Database(msg.guild.id);
+	if (await ticketMessageReactionAdd(reaction, user, db)) return;
+	if (await rankingMessageReactionAdd(reaction, user, db)) return;
 }
 
 client.on("messageReactionAdd", (reaction, user) => {

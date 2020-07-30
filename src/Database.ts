@@ -67,10 +67,13 @@ export type TicketConfig = {
 		category?: string;
 		/// message id (globally unique but channel is included for resolution if necessary)
 		invitation?: { channel: string; message: string };
+		joinmsg?: string;
 		logs?: { uploads: string; pretty: string };
 		transcripts?: string;
 		/// autodelete ms
 		autoclose?: number;
+		/// time to delete ms
+		deletetime?: number;
 		ping?: string;
 	};
 };

@@ -141,18 +141,23 @@ code {
 	background-color: var(--background-secondary);
 }
 
+pre {
+	background-color: var(--background-secondary);
+}
+
 .tag {
 	padding: 0 2px;
 	font-weight: 500;
 	transition: background-color 50ms ease-out, color 50ms ease-out;
 	cursor: pointer;
-	color: #7289da;
-	background-color: rgba(114, 137, 218, 0.1);
+	color: var(--fg-color, #7289da);
+	background-color: var(--bg-color, rgba(114, 137, 218, 0.1));
+	border-radius: 3px;
 }
 
 .tag:hover {
 	color: #fff;
-	background-color: rgba(114, 137, 218, 0.7);
+	background-color: var(--hl-color, rgba(114, 137, 218, 0.7));
 	text-decoration: none;
 }
 

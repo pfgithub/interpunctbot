@@ -9,6 +9,7 @@ nr.addDocsWebPage(
 
 {LinkSummary|/help/configuration}
 {LinkSummary|/help/fun}
+{LinkSummary|/help/ticket}
 {LinkSummary|/help/emoji}
 {LinkSummary|/help/messages}
 {LinkSummary|/help/channels}
@@ -42,6 +43,7 @@ nr.addDocsWebPage(
 	"bot updates",
 	`{Heading|Bot Updates}
 
+{LinkSummary|/updates/2020-07-30}
 {LinkSummary|/updates/2020-03-12}
 {LinkSummary|/updates/ipv3}`,
 );
@@ -57,6 +59,17 @@ Adds a new two-player game
 
 Adds a new fun command
 {CmdSummary|award}`,
+);
+
+nr.addDocsWebPage(
+	"/updates/2020-07-30",
+	"update 2020-07-30",
+	"update 2020-07-30",
+	`{Title|2020-07-30}
+
+Adds ticket stuff
+
+{LinkSummary|/help/ticket}`,
 );
 
 nr.addDocsWebPage(
