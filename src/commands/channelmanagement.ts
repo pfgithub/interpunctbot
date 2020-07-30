@@ -261,6 +261,7 @@ Note: Autodelete rules set to <1 second will PM the user of the deleted message.
 );
 
 function printrule(rule: AutodeleteRule, info: Info) {
+	if (typeof rule.duration !== "number") return "Other rule";
 	if (rule.type === "prefix") {
 		return safe`Remove messages starting with ${
 			rule.prefix
@@ -823,7 +824,7 @@ nr.globalCommand(
 					channel.id +
 					"> :(",
 			);
-            return;
+			return;
 		}
 		await info.success("Success!");
 	},

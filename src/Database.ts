@@ -16,18 +16,24 @@ type AutodeleteInfo = {
 	role: { role: string };
 	counting: { channel: string };
 };
+type AutodeleteDuration =
+	| number
+	| {
+			type: "autoreact";
+			reactions: string[];
+	  };
 export type AutodeleteRule = {
 	[key in keyof AutodeleteInfo]: AutodeleteInfo[key] & {
 		type: key;
 		id: number;
-		duration: number;
+		duration: AutodeleteDuration;
 	};
 }[keyof AutodeleteInfo];
 export type AutodeleteRuleNoID = {
 	[key in keyof AutodeleteInfo]: AutodeleteInfo[key] & {
 		type: key;
 		id?: undefined;
-		duration: number;
+		duration: AutodeleteDuration;
 	};
 }[keyof AutodeleteInfo];
 

@@ -663,9 +663,13 @@ async function onMessage(msg: Discord.Message | Discord.PartialMessage) {
 				// assertNever(rule);
 			}
 			if (deleteMsg) {
-				setTimeout(() => {
-					info.message.delete().catch(() => {});
-				}, rule.duration);
+				if (typeof rule.duration === "number") {
+					setTimeout(() => {
+						info.message.delete().catch(() => {});
+					}, rule.duration);
+				} else if (rule.duration.type === "autoreact") {
+					// TODO
+				}
 			}
 			//if (deleteMsg) {
 			//	await info.timedEvents.queue(
