@@ -4,6 +4,7 @@ import { messages, safe, raw } from "../../messages";
 import { durationFormat } from "../durationFormat";
 import { setEditInterval } from "../editInterval";
 import Info from "../Info";
+import * as discord from "discord.js";
 import * as nr from "../NewRouter";
 import { a, AP } from "./argumentparser";
 import "./fun/gamelibgames";
@@ -13,6 +14,7 @@ import "./fun/trivia";
 import "./fun/spyfall";
 import { getGuilds, getMembers } from "../ShardHelper";
 import { restrictTextToPerms } from "./customcommands";
+import * as fsync from "fs";
 
 nr.addDocsWebPage(
 	"/help/fun",
@@ -751,6 +753,95 @@ nr.globalCommand(
 	},
 );
 
+const localtrophycount: { [key: string]: number } = {};
+
+const allwords = JSON.parse(
+	fsync.readFileSync("words.json", "utf-8"),
+) as string[];
+
+function trophyprint(count: number) {
+	if (count === 0) return "0";
+	return "🏆".repeat(count);
+}
+
+nr.globalCommand(
+	"/help/fun/randomword",
+	"randomword",
+	{
+		usage: "randomword",
+		description: "the first person to type it wins",
+		examples: [],
+	},
+	nr.list(),
+	async ([], info) => {
+		if (info.db ? !(await info.db.getFunEnabled()) : false) {
+			return await info.error(messages.fun.fun_disabled(info));
+		}
+
+		const msg = info.message;
+
+		const rword = allwords[Math.floor(Math.random() * allwords.length)];
+		await msg.channel.send("quick type the word", {
+			files: [
+				{
+					name: "type.png",
+					attachment:
+						"https://dummyimage.com/400x100/000/fff.png&text=" +
+						encodeURIComponent(rword),
+				},
+			],
+		});
+		const start = new Date().getTime();
+		const collectr = new discord.MessageCollector(
+			msg.channel as discord.TextChannel,
+			m => m.content.toLowerCase() === rword.toLowerCase(),
+			{ time: 10_000 },
+		);
+		msg.channel.startTyping().catch(() => {});
+		let guessed = false;
+
+		const clxtrnded = async () => {
+			if (guessed) return;
+			msg.channel.stopTyping();
+			const mytrphies = (localtrophycount["MEMEME"] || 0) + 1;
+			localtrophycount["MEMEME"] = mytrphies;
+			await msg.channel.send(rword);
+			await msg.channel.send(
+				"ha! i win\ny'all'r too slow type faster next time :)\nmy trophy collection: " +
+					trophyprint(mytrphies),
+			);
+		};
+		collectr.on("end", () => {
+			clxtrnded().catch(() => {});
+		});
+		const clxtrclxted = async (msg_: discord.Message) => {
+			const msg = msg_;
+			msg.channel.stopTyping();
+			guessed = true;
+			collectr.stop();
+			const time = new Date().getTime() - start;
+			localtrophycount[msg.author.id] =
+				(localtrophycount[msg.author.id] || 0) + 1;
+			const tc = localtrophycount[msg.author.id];
+			await msg.channel.send(
+				"yay " +
+					msg.author.toString() +
+					", you typed it first in " +
+					time +
+					"ms." +
+					(tc > 1
+						? "\nyour trophies this session: " + trophyprint(tc)
+						: " here is your prize: 🏆"),
+			);
+			await msg.react("🏆");
+		};
+		collectr.on("collect", msg_ => {
+			clxtrclxted(msg_).catch(() => {});
+		});
+		return;
+	},
+);
+
 nr.globalCommand(
 	"/help/fun/snek",
 	"snek",
@@ -833,9 +924,9 @@ nr.globalCommand(
 	},
 	nr.passthroughArgs,
 	async ([cmd], info) => {
-        if(process.env.NODE_ENV === "production") {
-            return await info.error("Sorry! remindme doesn't work right now.");
-        }
+		if (process.env.NODE_ENV === "production") {
+			return await info.error("Sorry! remindme doesn't work right now.");
+		}
 		if (info.db ? !(await info.db.getFunEnabled()) : false) {
 			return await info.error(messages.fun.fun_disabled(info));
 		}

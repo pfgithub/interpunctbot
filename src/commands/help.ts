@@ -69,7 +69,8 @@ nr.addDocsWebPage(
 
 Adds ticket stuff
 
-{LinkSummary|/help/ticket}`,
+{LinkSummary|/help/ticket}
+{CmdLink|randomword}`,
 );
 
 nr.addDocsWebPage(
