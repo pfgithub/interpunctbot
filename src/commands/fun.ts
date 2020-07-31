@@ -40,7 +40,8 @@ Fun commands are enabled by default.
 {CmdSummary|timer}
 {CmdSummary|needle}
 {CmdSummary|members}
-{CmdSummary|remindme}`,
+{CmdSummary|remindme}
+{CmdSummary|randomword}`,
 );
 
 nr.globalCommand(
