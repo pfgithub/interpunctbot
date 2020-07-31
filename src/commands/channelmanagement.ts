@@ -830,4 +830,5 @@ nr.globalCommand(
 	},
 );
 
-// !!!!!!!!!!!!!!! router.add("pin message")
+//// TODO autoreact channel #memes [unicode emoji][unicode emoji]
+//// that might be difficult

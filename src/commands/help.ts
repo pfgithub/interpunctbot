@@ -70,7 +70,7 @@ nr.addDocsWebPage(
 Adds ticket stuff
 
 {LinkSummary|/help/ticket}
-{CmdLink|randomword}`,
+{CmdSummary|randomword}`,
 );
 
 nr.addDocsWebPage(
