@@ -37,6 +37,7 @@ body {
 	background-color: var(--background-primary);
 	color: var(--text-normal);
 	font-family: Whitney, "Helvetica Neue", Helvetica, Arial, sans-serif;
+	font-weight: 400;
 	display: grid;
 	grid-template-columns: 240px 1fr;
 	margin: 0;
@@ -239,6 +240,13 @@ pre {
 	align-items: center;
 	overflow: hidden;
 	color: var(--channels-default);
+}
+
+.channel-name {
+	font-weight: 500;
+}
+.category-name {
+	font-weight: 600;
 }
 
 .channel.active {
@@ -473,6 +481,7 @@ sup {
 
 .author {
 	grid-column: cont / contend;
+	font-weight: 500;
 }
 
 .msgcontent {
@@ -496,7 +505,6 @@ sup {
 	text-indent: 0;
 	background: #7289da;
 	color: #fff;
-	margin-left: 4px;
 	height: 15px;
 	padding: 0 4px;
 	margin-top: 1px;
@@ -652,4 +660,34 @@ blockquote > .heading:first-child {
 	height: 15px;
 	margin-left: -4px;
 	display: inline-block;
+}
+
+@font-face {
+	font-family: Whitney;
+	font-weight: 300;
+	src: url(/font/Whitney300.woff) format("woff");
+}
+
+@font-face {
+	font-family: Whitney;
+	font-weight: 400;
+	src: url(/font/Whitney400.woff) format("woff");
+}
+
+@font-face {
+	font-family: Whitney;
+	font-weight: 500;
+	src: url(/font/Whitney500.woff) format("woff");
+}
+
+@font-face {
+	font-family: Whitney;
+	font-weight: 600;
+	src: url(/font/Whitney600.woff) format("woff");
+}
+
+@font-face {
+	font-family: Whitney;
+	font-weight: 700;
+	src: url(/font/Whitney700.woff) format("woff");
 }
