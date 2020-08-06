@@ -99,14 +99,48 @@ nr.globalCommand(
 		if (info.db ? !(await info.db.getFunEnabled()) : false) {
 			return await info.error(messages.fun.fun_disabled(info));
 		}
-
-		const item = Math.floor(Math.random() * 190);
+		const size = 190;
+		const item = Math.floor(Math.random() * size);
 		await info.result(
 			"Find the needle (|):\n" +
-				new Array(190)
+				new Array(size)
 					.fill("")
 					.map((_, i) => (i === item ? "|||||" : "|| ||"))
 					.join(""),
+		);
+	},
+);
+
+nr.globalCommand(
+	"/help/fun/bubblewrap",
+	"bubblewrap",
+	{
+		usage: "bubblewrap",
+		description: "Bubblewrap.",
+		examples: [],
+	},
+	nr.list(),
+	async ([], info) => {
+		if (info.db ? !(await info.db.getFunEnabled()) : false) {
+			return await info.error(messages.fun.fun_disabled(info));
+		}
+		const w = 8;
+		const h = 10;
+
+		const cx = Math.floor(Math.random() * w);
+		const cy = Math.floor(Math.random() * h);
+		//prettier-ignore
+		await info.result(
+			"​\n" +
+			new Array(h)
+			.fill("")
+			.map((_, y) =>
+				new Array(w)
+				.fill("")
+				.map((_, x) =>
+					(x === cx && y === cy) ? "||Pöp||" : "||Pop||",
+				).join(" "),
+			).join("\n"),
 		);
 	},
 );
@@ -842,6 +876,7 @@ nr.globalCommand(
 		return;
 	},
 );
+nr.globalAlias("randomword", "random word");
 
 nr.globalCommand(
 	"/help/fun/snek",
