@@ -237,6 +237,7 @@ ${statusbar}
 ==============
 ${renderedBoard}
 ==============
+https://interpunct.info/help/fun/ultimatetictactoe
 `,
 		];
 	},

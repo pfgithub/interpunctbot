@@ -68,11 +68,16 @@ nr.globalCommand(
 		usage: "ultimatetictactoe",
 		description:
 			"Play a game of ultimate tic tac toe. {Interpunct} requires permission to manage reactions to run games best.",
-		extendedDescription: `instructions: play an x/o. try to get 3 in a row. the next player to play will have
-to play in the board corrospoding to the one you put your piece in. if that board is
-won, you can go anywhere! try to win 3 boards in a row.
+		extendedDescription: `Instructions:
+For better instructions, read {Link|https://mathwithbaddrawings.com/2013/06/16/ultimate-tic-tac-toe/}
+- On your turn, select which board to play on (if you have a choice) and then play your x/o.
+- When you get 3 in a row on a small board, you win that board.
+- To win the game, get 3 small boards in a row (up/down, left/right, or diagonal)
+- The square you play on determines which square your opponent must play on.
 
-for more detailed instructions, read {Link|https://mathwithbaddrawings.com/2013/06/16/ultimate-tic-tac-toe/}`,
+{Screenshot|https://i.imgur.com/m0CGIb5.png}
+
+`,
 		examples: [],
 	},
 	nr.passthroughArgs,
