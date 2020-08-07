@@ -41,7 +41,11 @@ Fun commands are enabled by default.
 {CmdSummary|needle}
 {CmdSummary|members}
 {CmdSummary|remindme}
-{CmdSummary|randomword}`,
+{CmdSummary|tictactoe}
+{CmdSummary|randomword}
+{CmdSummary|bubblewrap}
+{CmdSummary|ultimate tictactoe}
+`,
 );
 
 nr.globalCommand(
