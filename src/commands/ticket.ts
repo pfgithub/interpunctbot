@@ -846,7 +846,11 @@ async function closeTicket(
 	if ((channel as any).__IS_CLOSING) return;
 	(channel as any).__IS_CLOSING = true;
 
-	await channel.setName("closing-" + channel.name);
+	// prettier-ignore
+	await channel.edit({
+		name: "closing-" + channel.name,
+		topic: (channel.topic || "").replace("~", "×"),
+	}, "Ticket closed by "+closer.toString());
 
 	const forinactive = inactivity ? " for inactivity" : "";
 	const deletetime = ctx.ticket.main.deletetime || 60 * 1000;
