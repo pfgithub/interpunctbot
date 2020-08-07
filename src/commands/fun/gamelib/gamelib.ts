@@ -361,7 +361,9 @@ export function newBoard<TileData>(
 		},
 		megarender(_w, h, joinx, joiny, draw) {
 			if (joiny) h += 1;
-			const res: string[] = new Array(h * tiles.length).fill("");
+			let mcv = h * tiles.length;
+			if (joiny) mcv -= 1;
+			const res: string[] = new Array(mcv).fill("");
 			tiles.forEach((row, y) =>
 				row.forEach((tile, x) => {
 					const drawn = draw(tile, x, y);
