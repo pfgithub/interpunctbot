@@ -2,7 +2,7 @@ import * as nr from "../../NewRouter";
 import { connect4 } from "./gamelib/connect4";
 import { circlegame } from "./gamelib/circlegame";
 import { tictactoe } from "./gamelib/tictactoe";
-// import largetictactoe from
+import { ultimatetictactoe } from "./gamelib/ultimatetictactoe";
 
 nr.globalCommand(
 	"/help/fun/connect4",
@@ -59,3 +59,28 @@ nr.globalAlias("tictactoe", "knots and crosses");
 nr.globalAlias("tictactoe", "knotsandcrosses");
 nr.globalAlias("tictactoe", "tic tac toe");
 nr.globalAlias("tictactoe", "tick tack toâ€™");
+
+nr.globalCommand(
+	"/help/fun/ultimatetictactoe",
+	"ultimatetictactoe",
+	{
+		usage: "ultimatetictactoe",
+		description:
+			"Play a game of ultimate tic tac toe. {Interpunct} requires permission to manage reactions to run games best.",
+		extendedDescription: `instructions: play an x/o. try to get 3 in a row. the next player to play will have
+to play in the board corrospoding to the one you put your piece in. if that board is
+won, you can go anywhere! try to win 3 boards in a row.
+
+for more detailed instructions, read {Link|https://mathwithbaddrawings.com/2013/06/16/ultimate-tic-tac-toe/}`,
+		examples: [],
+	},
+	nr.passthroughArgs,
+	ultimatetictactoe,
+);
+// correct spelling
+nr.globalAlias("ultimatetictactoe", "ultimate tic tac toe");
+nr.globalAlias("ultimatetictactoe", "ultimate tictactoe");
+// wrong spelling
+nr.globalAlias("ultimatetictactoe", "ultimate knotsandcrosses");
+nr.globalAlias("ultimatetictactoe", "ultimateknotsandcrosses");
+nr.globalAlias("ultimatetictactoe", "ultimate knots and crosses");

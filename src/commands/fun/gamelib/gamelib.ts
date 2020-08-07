@@ -304,6 +304,11 @@ export type Board<TileData> = {
 	): void;
 	fill(tile: (tile: TileData, x: number, y: number) => TileData): void;
 	render(draw: (tile: TileData, x: number, y: number) => string): string;
+	megarender(
+		w: number,
+		h: number,
+		draw: (tile: TileData, x: number, y: number) => string[],
+	): string;
 	forEach(cb: (tile: TileData, x: number, y: number) => void): void;
 	filter(
 		compare: (tile: TileData, x: number, y: number) => boolean,
@@ -351,6 +356,19 @@ export function newBoard<TileData>(
 					row.map((tile, x) => draw(tile, x, y)).join(""),
 				)
 				.join("\n");
+		},
+		megarender(_w, h, draw) {
+			const res: string[] = new Array(h * tiles.length).fill("");
+			tiles.forEach((row, y) =>
+				row.forEach((tile, x) => {
+					const drawn = draw(tile, x, y);
+					drawn.forEach((line, i) => {
+						const ty = y * h + i;
+						res[ty] += line;
+					});
+				}),
+			);
+			return res.join("\n");
 		},
 		forEach(cb) {
 			for (let y = 0; y < h; y++) {

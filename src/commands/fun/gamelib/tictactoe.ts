@@ -27,6 +27,7 @@ type TicTacToe = {
 const tileset = newTileset({
 	tic: "❌",
 	tac: "🅾️",
+	toe: "◻️",
 	buttons: ["1️⃣", "2⃣", "3⃣", "4⃣", "5⃣", "6⃣", "7⃣", "8⃣", "9⃣"],
 });
 
@@ -127,7 +128,9 @@ export const tictactoe = newGame<TicTacToe>({
 		const renderedBoard = state.board.render((tile, x, y) => {
 			if (tile.color)
 				return tileset.tiles[tile.color === "x" ? "tic" : "tac"];
-			return tileset.tiles.buttons[y * 3 + x];
+			if (state.status.s === "playing")
+				return tileset.tiles.buttons[y * 3 + x];
+			return tileset.tiles.toe;
 		});
 		return [
 			`
