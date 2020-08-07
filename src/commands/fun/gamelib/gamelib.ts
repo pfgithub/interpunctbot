@@ -307,6 +307,8 @@ export type Board<TileData> = {
 	megarender(
 		w: number,
 		h: number,
+		jx: string,
+		jy: string,
 		draw: (tile: TileData, x: number, y: number) => string[],
 	): string;
 	forEach(cb: (tile: TileData, x: number, y: number) => void): void;
@@ -357,18 +359,20 @@ export function newBoard<TileData>(
 				)
 				.join("\n");
 		},
-		megarender(_w, h, draw) {
+		megarender(_w, h, joinx, joiny, draw) {
+			if (joiny) h += 1;
 			const res: string[] = new Array(h * tiles.length).fill("");
 			tiles.forEach((row, y) =>
 				row.forEach((tile, x) => {
 					const drawn = draw(tile, x, y);
 					drawn.forEach((line, i) => {
 						const ty = y * h + i;
+						if (res[ty]) res[ty] += joinx;
 						res[ty] += line;
 					});
 				}),
 			);
-			return res.join("\n");
+			return res.map(c => (c ? c : joiny)).join("\n");
 		},
 		forEach(cb) {
 			for (let y = 0; y < h; y++) {

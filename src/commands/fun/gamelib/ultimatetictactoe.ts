@@ -209,21 +209,27 @@ export const ultimatetictactoe = newGame<UltimateTicTacToe>({
 			statusbar = `Tie!`;
 		}
 
-		const renderedBoard = state.board.megarender(3, 3, (tile, x, y) => {
-			if (typeof tile === "string") return megatiles[tile];
-			return tile
-				.render((tyle, tx, ty) => {
-					if (tyle) return tileset.tiles[tyle];
-					if (state.status.s === "playing") {
-						if (state.status.board === "pick")
-							return tileset.tiles.buttons[y * 3 + x];
-						if (state.status.board === y * 3 + x)
-							return tileset.tiles.buttons[ty * 3 + tx];
-					}
-					return tileset.tiles.blank;
-				})
-				.split("\n");
-		});
+		const renderedBoard = state.board.megarender(
+			3,
+			3,
+			"|",
+			"-",
+			(tile, x, y) => {
+				if (typeof tile === "string") return megatiles[tile];
+				return tile
+					.render((tyle, tx, ty) => {
+						if (tyle) return tileset.tiles[tyle];
+						if (state.status.s === "playing") {
+							if (state.status.board === "pick")
+								return tileset.tiles.buttons[y * 3 + x];
+							if (state.status.board === y * 3 + x)
+								return tileset.tiles.buttons[ty * 3 + tx];
+						}
+						return tileset.tiles.blank;
+					})
+					.split("\n");
+			},
+		);
 		return [
 			`
 **Ultimate Tic Tac Toe**

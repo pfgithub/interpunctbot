@@ -59,6 +59,7 @@ nr.globalAlias("tictactoe", "knots and crosses");
 nr.globalAlias("tictactoe", "knotsandcrosses");
 nr.globalAlias("tictactoe", "tic tac toe");
 nr.globalAlias("tictactoe", "tick tack toâ€™");
+nr.globalAlias("tictactoe", "ttt");
 
 nr.globalCommand(
 	"/help/fun/ultimatetictactoe",
@@ -80,6 +81,7 @@ for more detailed instructions, read {Link|https://mathwithbaddrawings.com/2013/
 // correct spelling
 nr.globalAlias("ultimatetictactoe", "ultimate tic tac toe");
 nr.globalAlias("ultimatetictactoe", "ultimate tictactoe");
+nr.globalAlias("ultimatetictactoe", "uttt");
 // wrong spelling
 nr.globalAlias("ultimatetictactoe", "ultimate knotsandcrosses");
 nr.globalAlias("ultimatetictactoe", "ultimateknotsandcrosses");
