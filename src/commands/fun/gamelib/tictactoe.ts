@@ -10,34 +10,31 @@ import {
 
 //
 
-type Color = "r" | "y";
+type Color = "x" | "o";
 
 type Piece = { color?: Color };
 
-type Connect4 = {
+type TicTacToe = {
 	board: Board<Piece>;
 	turn: Color;
-	players: { r: Player; y: Player };
-	status: { s: "playing" } | { s: "winner"; winner: Player; reason: string };
+	players: { x: Player; o: Player };
+	status:
+		| { s: "playing" }
+		| { s: "winner"; winner: Player; reason: string }
+		| { s: "tie" };
 };
 
 const tileset = newTileset({
-	r: "<:r:648226318017626132>",
-	y: "<:y:648226318118420500>",
-	empty: "<:w:648296516406083595>",
-	buttons: ["1️⃣", "2⃣", "3⃣", "4⃣", "5⃣", "6⃣", "7⃣"],
-	laneHeadings: [
-		"<:number1:648301185115357205>",
-		"<:number2:648299358722195467>",
-		"<:number3:648301185127677972>",
-		"<:number4:648301184930545669>",
-		"<:number5:648301184955711488>",
-		"<:number6:648301496282120249>",
-		"<:number7:648301184679149570>",
-	],
+	tic: "❌",
+	tac: "🅾️",
+	buttons: ["1️⃣", "2⃣", "3⃣", "4⃣", "5⃣", "6⃣", "7⃣", "8⃣", "9⃣"],
 });
 
-function checkWin(gameState: Connect4, [placedX, placedY]: [number, number]) {
+function checkTie(gameState: TicTacToe) {
+	return gameState.board.filter(q => !q.color).length === 0;
+}
+
+function checkWin(gameState: TicTacToe, [placedX, placedY]: [number, number]) {
 	const checks: [number, number][] = [
 		[-1, -1],
 		[-1, 0],
@@ -63,85 +60,80 @@ function checkWin(gameState: Connect4, [placedX, placedY]: [number, number]) {
 			},
 		);
 		if (!upmost) throw new Error("tile was not found but it must be 2");
-		if (upmost.distance >= 4) return true;
+		if (upmost.distance >= 3) return true;
 	}
 	return false;
 }
 
-export const connect4 = newGame<Connect4>({
-	title: "Connect 4",
-	help: "/help/fun/connect4",
+export const tictactoe = newGame<TicTacToe>({
+	title: "Tic Tac Toe",
+	help: "/help/fun/tictactoe",
 	setup(players) {
 		return {
-			board: newBoard(7, 6, () => ({})),
-			turn: "r",
+			board: newBoard(3, 3, () => ({})),
+			turn: "x",
 			players: {
-				r: players[0], // person who ran the command
-				y: players[1], // next person to join
+				x: players[0], // person who ran the command
+				o: players[1], // next person to join
 			},
 			status: { s: "playing" },
 		};
 	},
 	getMoves(state) {
-		const resmoves: MoveSet<Connect4> = [];
-		for (let tx = 0; tx < 7; tx++) {
-			const found = state.board.search([tx, 0], (tile, x, y) => {
-				return tile.color ? "previous" : [x, y + 1];
-			});
-			if (!found) continue;
-			const [x, y] = [found.x, found.y];
+		const resmoves: MoveSet<TicTacToe> = [];
+		state.board.forEach((tile, x, y) => {
+			if (tile.color) return; // invalid move
 			resmoves.push({
-				button: tileset.tiles.buttons[x],
+				button: tileset.tiles.buttons[y * 3 + x],
 				player: state.players[state.turn],
 				apply: state => {
-					// we're pretending state is a copy (even though it isn't because that isn't implemented yet), it should be mutated
 					state.board.set(x, y, { color: state.turn });
-
-					if (checkWin(state, [x, y])) {
+					if (checkTie(state)) {
+						state.status = {
+							s: "tie",
+							// f
+						};
+					} else if (checkWin(state, [x, y])) {
 						state.status = {
 							s: "winner",
 							winner: state.players[state.turn],
 							reason: "Won!",
 						};
-					} else state.turn = state.turn === "r" ? "y" : "r";
+					} else state.turn = state.turn === "x" ? "o" : "x";
 					return state;
 				},
 			});
-		}
-		if (resmoves.length === 0) {
-			///// set lose
-			//// how?
-			/// lose needs to be set in state and this doesn't modify state
-			// also this doesn't get called until after lose should be run
-		}
+		});
 		return resmoves;
 	},
 	renderSetup() {
 		return [{ type: "once", actions: [...tileset.tiles.buttons] }];
 	},
 	checkGameOver(state) {
-		return state.status.s === "winner";
+		return state.status.s === "winner" || state.status.s === "tie";
 	},
-	render(state: Connect4): string[] {
+	render(state: TicTacToe): string[] {
 		const currentplayer = state.players[state.turn];
 		const playercolor =
-			state.turn === "r" ? tileset.tiles.r : tileset.tiles.y;
+			state.turn === "x" ? tileset.tiles.tic : tileset.tiles.tac;
 		const statusbar =
 			state.status.s === "playing"
 				? `<@${currentplayer.id}>'s turn (${playercolor})`
 				: state.status.s === "winner"
 				? `<@${state.status.winner.id}> won! (${state.status.reason})`
+				: state.status.s === "tie"
+				? `Tie!`
 				: "never.";
-		const renderedBoard = state.board.render(tile => {
-			if (tile.color) return tileset.tiles[tile.color];
-			return tileset.tiles.empty;
+		const renderedBoard = state.board.render((tile, x, y) => {
+			if (tile.color)
+				return tileset.tiles[tile.color === "x" ? "tic" : "tac"];
+			return tileset.tiles.buttons[y * 3 + x];
 		});
 		return [
 			`
-**Connect 4**
+**Tic Tac Toe**
 ${statusbar}
 ==============
-${tileset.tiles.laneHeadings.join("")}
 ${renderedBoard}
 ==============
 `,
@@ -152,7 +144,8 @@ ${renderedBoard}
 			time: unit(30, "sec"),
 			message: state => {
 				const currentplayer = state.players[state.turn];
-				const playercolor = tileset.tiles[state.turn];
+				const playercolor =
+					tileset.tiles[state.turn === "x" ? "tic" : "tac"];
 				return `<@${currentplayer.id}> (${playercolor}), it's your turn. 30s left.`;
 			},
 		},
@@ -161,7 +154,7 @@ ${renderedBoard}
 			update: state => {
 				state.status = {
 					s: "winner",
-					winner: state.players[state.turn === "r" ? "y" : "r"],
+					winner: state.players[state.turn === "x" ? "o" : "x"],
 					reason: "Time out!",
 				};
 				return state;
