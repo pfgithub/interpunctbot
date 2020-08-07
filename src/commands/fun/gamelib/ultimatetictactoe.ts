@@ -242,12 +242,12 @@ ${renderedBoard}
 	},
 	timers: [
 		{
-			time: unit(120, "sec"),
+			time: unit(340, "sec"),
 			message: state => {
 				if (state.status.s !== "playing") return "Never!";
 				const currentplayer = state.players[state.status.turn];
 				const playercolor = tileset.tiles[state.status.turn];
-				return `<@${currentplayer.id}> (${playercolor}), it's your turn. 30s left.`;
+				return `<@${currentplayer.id}> (${playercolor}), it's your turn. 1 minute left.`;
 			},
 		},
 		{
