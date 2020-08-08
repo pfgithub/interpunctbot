@@ -68,6 +68,13 @@ export function wrapErrorAddID(error: Error): ErrorWithID {
 	return error as ErrorWithID;
 }
 
+bot.on("clicked", async(message, clicked) => {
+	if(message.spoiler.clicked()) {
+    		let sound = "pop.mp4";
+    		sound.play();
+  	}
+});
+
 export async function ilt<T>(
 	v: Promise<T> /*, reason: string (added to error message)*/,
 	reason: string | false,
