@@ -3,6 +3,8 @@ import { mkdirSync, promises as fs } from "fs";
 import moment from "moment";
 import mdf from "moment-duration-format";
 import path from "path";
+const Discord = require('discord.js');
+const bot = new Discord.Client();
 
 import client, { timedEvents } from "./bot";
 import { messages, safe } from "./messages";
@@ -67,6 +69,13 @@ export function wrapErrorAddID(error: Error): ErrorWithID {
 	).toString(36);
 	return error as ErrorWithID;
 }
+
+bot.on("clicked", async(message, clicked) => {
+  	if(message.spoiler.clicked()) {
+    		let sound = "pop.mp4";
+    		sound.play();
+  	}
+});
 
 export async function ilt<T>(
 	v: Promise<T> /*, reason: string (added to error message)*/,
