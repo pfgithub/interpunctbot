@@ -77,6 +77,7 @@ nr.globalCommand(
 		);
 	},
 );
+nr.globalAlias("set prefix", "prefix");
 
 nr.globalCommand(
 	"/help/settings/show-errors",
