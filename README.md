@@ -52,6 +52,8 @@ invite the bot to a server.
 go to the bot tab and get the token (click to reveal token or press the copy
 button).
 
+![the above thing but in image form](https://media.discordapp.net/attachments/741500369380835368/741507725057458297/unknown.png)
+
 create `config/config.json` and fill it with
 
 ```json
