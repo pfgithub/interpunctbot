@@ -102,7 +102,8 @@ export const newGame = <State>(conf: GameConfig<State>) => async (
 	[cmd]: [string],
 	info: Info,
 ) => {
-	if (cmd.trim()) {
+	const DO_TEST_MODE = cmd === "testmode";
+	if (cmd.trim() && !DO_TEST_MODE) {
 		return await info.docs(conf.help, "usage");
 	}
 
@@ -182,7 +183,7 @@ export const newGame = <State>(conf: GameConfig<State>) => async (
 			messageNumber++;
 		}
 
-		await Promise.all(emojiPromises);
+		if (!DO_TEST_MODE) await Promise.all(emojiPromises);
 	}
 
 	const rerenderRatelimit = ratelimit(unit(3, "sec"));
@@ -307,10 +308,8 @@ export type Board<TileData> = {
 	megarender(
 		w: number,
 		h: number,
-		jx: string,
-		jy: string,
 		draw: (tile: TileData, x: number, y: number) => string[],
-	): string;
+	): string[][][];
 	forEach(cb: (tile: TileData, x: number, y: number) => void): void;
 	filter(
 		compare: (tile: TileData, x: number, y: number) => boolean,
@@ -359,22 +358,20 @@ export function newBoard<TileData>(
 				)
 				.join("\n");
 		},
-		megarender(_w, h, joinx, joiny, draw) {
-			if (joiny) h += 1;
-			let mcv = h * tiles.length;
-			if (joiny) mcv -= 1;
-			const res: string[] = new Array(mcv).fill("");
-			tiles.forEach((row, y) =>
+		megarender(_w, h, draw) {
+			const res: string[][][] = [];
+			tiles.forEach((row, y) => {
+				const rly: string[][] = new Array(h).fill(0).map(() => []);
+				res.push(rly);
 				row.forEach((tile, x) => {
 					const drawn = draw(tile, x, y);
 					drawn.forEach((line, i) => {
-						const ty = y * h + i;
-						if (res[ty]) res[ty] += joinx;
-						res[ty] += line;
+						const ty = i;
+						rly[ty].push(line);
 					});
-				}),
-			);
-			return res.map(c => (c ? c : joiny)).join("\n");
+				});
+			});
+			return res;
 		},
 		forEach(cb) {
 			for (let y = 0; y < h; y++) {

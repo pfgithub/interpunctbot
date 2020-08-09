@@ -847,7 +847,7 @@ nr.globalCommand(
 		const msg = info.message;
 
 		const rword = allwords[Math.floor(Math.random() * allwords.length)];
-		await msg.channel.send("quick type the word", {
+		await msg.channel.send("Quick, type the word!", {
 			files: [
 				{
 					name: "type.png",
@@ -873,8 +873,7 @@ nr.globalCommand(
 			localtrophycount["MEMEME"] = mytrphies;
 			await msg.channel.send(rword);
 			await msg.channel.send(
-				"ha! i win\ny'all'r too slow type faster next time :)\nmy trophy collection: " +
-					trophyprint(mytrphies),
+				"Ha! I win\nMy trophy collection: " + trophyprint(mytrphies),
 			);
 		};
 		collectr.on("end", () => {
@@ -890,14 +889,14 @@ nr.globalCommand(
 				(localtrophycount[msg.author.id] || 0) + 1;
 			const tc = localtrophycount[msg.author.id];
 			await msg.channel.send(
-				"yay " +
+				"Congrats " +
 					msg.author.toString() +
 					", you typed it first in " +
 					time +
 					"ms." +
 					(tc > 1
-						? "\nyour trophies this session: " + trophyprint(tc)
-						: " here is your prize: 🏆"),
+						? "\nYour trophies this session: " + trophyprint(tc)
+						: " Here is your prize: 🏆"),
 			);
 			await msg.react("🏆");
 		};

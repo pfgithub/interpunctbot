@@ -50,8 +50,8 @@ function checkWin(
 }
 
 const tileset = newTileset({
-	x: "❌",
-	o: "🟢",
+	x: "❎",
+	o: "🅾️",
 	blank: "⬜",
 	backbtn: "🔙",
 	buttons: ["1️⃣", "2⃣", "3⃣", "4⃣", "5⃣", "6⃣", "7⃣", "8⃣", "9⃣"],
@@ -59,8 +59,8 @@ const tileset = newTileset({
 
 const megatiles = {
 	"~": ["⬛⬛⬛", "🇹​🇮​🇪", "⬛⬛⬛"],
-	x: ["🟥⬛🟥", "⬛🟥⬛", "🟥⬛🟥"],
-	o: ["⬛🟩⬛", "🟩🟢🟩", "⬛🟩⬛"],
+	x: ["🟩⬛🟩", "⬛🟩⬛", "🟩⬛🟩"],
+	o: ["⬛🟥⬛", "🟥🟥🟥", "⬛🟥⬛"],
 };
 
 type UltimateTicTacToe = {
@@ -74,6 +74,20 @@ type UltimateTicTacToe = {
 
 function toXY(v: number): Pos {
 	return [v % 3, (v - (v % 3)) / 3];
+}
+
+function joinBetween<T>(
+	a: T[],
+	cb: () => T,
+	xtramode: "startend" | "between" = "between",
+): T[] {
+	const res: T[] = [];
+	a.forEach((itm, i) => {
+		if (i !== 0 || xtramode !== "between") res.push(cb());
+		res.push(itm);
+		if (i === a.length - 1 && xtramode === "startend") res.push(cb());
+	});
+	return res;
 }
 
 export const ultimatetictactoe = newGame<UltimateTicTacToe>({
@@ -209,33 +223,95 @@ export const ultimatetictactoe = newGame<UltimateTicTacToe>({
 			statusbar = `Tie!`;
 		}
 
-		const renderedBoard = state.board.megarender(
-			3,
-			3,
-			"|",
-			"-",
-			(tile, x, y) => {
-				if (typeof tile === "string") return megatiles[tile];
-				return tile
-					.render((tyle, tx, ty) => {
-						if (tyle) return tileset.tiles[tyle];
-						if (state.status.s === "playing") {
-							if (state.status.board === "pick")
-								return tileset.tiles.buttons[y * 3 + x];
-							if (state.status.board === y * 3 + x)
-								return tileset.tiles.buttons[ty * 3 + tx];
-						}
-						return tileset.tiles.blank;
-					})
-					.split("\n");
-			},
+		// make tiles like
+		const renderedBoard = state.board.megarender(3, 3, (tile, x, y) => {
+			if (typeof tile === "string") return megatiles[tile];
+			return tile
+				.render((tyle, tx, ty) => {
+					if (tyle) return tileset.tiles[tyle];
+					if (state.status.s === "playing") {
+						if (state.status.board === "pick")
+							return tileset.tiles.buttons[y * 3 + x];
+						if (state.status.board === y * 3 + x)
+							return tileset.tiles.buttons[ty * 3 + tx];
+					}
+					return tileset.tiles.blank;
+				})
+				.split("\n");
+		});
+
+		// do some magic to outline all tiles with 1 layer of black tiles
+		const rbth: string[][][] = joinBetween(
+			renderedBoard.map(q =>
+				q.map(v => joinBetween(v, () => "⬛", "startend")),
+			),
+			() => [
+				[
+					"⬛",
+					"⬛".repeat(3),
+					"⬛",
+					"⬛".repeat(3),
+					"⬛",
+					"⬛".repeat(3),
+					"⬛",
+				],
+			],
+			"startend",
 		);
+
+		// resulting structure looks like this (numbers represent # of emojis in a string)
+		// [
+		//  [[1 3 1 3 1 3 1]]
+		//  [[1 3 1 3 1 3 1]
+		//   [1 3 1 3 1 3 1]
+		//   [1 3 1 3 1 3 1]]
+		//  [[1 3 1 3 1 3 1]]
+		//  [[1 3 1 3 1 3 1]
+		//   [1 3 1 3 1 3 1]
+		//   [1 3 1 3 1 3 1]]
+		//  [[1 3 1 3 1 3 1]]
+		//  [[1 3 1 3 1 3 1]
+		//   [1 3 1 3 1 3 1]
+		//   [1 3 1 3 1 3 1]]
+		//  [[1 3 1 3 1 3 1]]
+		// ]
+
+		// do some magic to outline either the current board or the whole map depending on what is available rn
+		if (state.status.s === "playing") {
+			if (state.status.board === "pick") {
+				rbth.forEach((fl, yv) => {
+					for (const fq of fl) {
+						let lim = [0, 6];
+						if (yv === 0 || yv === 6) lim = [0, 1, 2, 3, 4, 5, 6];
+						for (const i of lim) {
+							fq[i] = fq[i].split("⬛").join("🟨");
+						}
+					}
+				});
+			} else {
+				// surround
+				const [x, y] = toXY(state.status.board);
+				const [rx, ry] = [x * 2 + 1, y * 2 + 1];
+				const fixlines = rbth.slice(ry - 1, ry + 2);
+				for (const fixlinel of fixlines) {
+					for (const fixline of fixlinel) {
+						for (let i = rx - 1; i < rx + 2; i++) {
+							fixline[i] = fixline[i].split("⬛").join("🟨");
+						}
+					}
+				}
+			}
+		}
+
+		const finalboard = rbth
+			.map(q => q.map(i => i.join("")).join("\n"))
+			.join("\n");
 		return [
 			`
 **Ultimate Tic Tac Toe**
 ${statusbar}
 ==============
-${renderedBoard}
+${finalboard}
 ==============
 https://interpunct.info/help/fun/ultimatetictactoe
 `,
