@@ -89,16 +89,16 @@ export const tictactoe = newGame<TicTacToe>({
 				player: state.players[state.turn],
 				apply: state => {
 					state.board.set(x, y, { color: state.turn });
-					if (checkTie(state)) {
-						state.status = {
-							s: "tie",
-							// f
-						};
-					} else if (checkWin(state, [x, y])) {
+					if (checkWin(state, [x, y])) {
 						state.status = {
 							s: "winner",
 							winner: state.players[state.turn],
 							reason: "Won!",
+						};
+					} else if (checkTie(state)) {
+						state.status = {
+							s: "tie",
+							// f
 						};
 					} else state.turn = state.turn === "x" ? "o" : "x";
 					return state;

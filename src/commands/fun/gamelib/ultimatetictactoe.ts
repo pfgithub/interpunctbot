@@ -150,21 +150,21 @@ export const ultimatetictactoe = newGame<UltimateTicTacToe>({
 				player: state.players[turn],
 				apply: state => {
 					minitile.set(x, y, turn);
-					if (checkTie(minitile)) {
-						state.board.set(tx, ty, "~");
-						if (checkTie(state.board)) {
-							state.status = { s: "tie" };
-						}
-					} else if (checkWin(minitile, [x, y])) {
+					if (checkWin(minitile, [x, y])) {
 						state.board.set(tx, ty, turn);
-						if (checkTie(state.board)) {
-							state.status = { s: "tie" };
-						} else if (checkWin(state.board, [tx, ty])) {
+						if (checkWin(state.board, [tx, ty])) {
 							state.status = {
 								s: "winner",
 								winner: state.players[turn],
 								reason: "good at the game",
 							};
+						} else if (checkTie(state.board)) {
+							state.status = { s: "tie" };
+						}
+					} else if (checkTie(minitile)) {
+						state.board.set(tx, ty, "~");
+						if (checkTie(state.board)) {
+							state.status = { s: "tie" };
 						}
 					}
 					if (state.status.s === "playing") {
