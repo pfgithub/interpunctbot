@@ -462,6 +462,7 @@ nr.globalCommand(
 		});
 	},
 );
+nr.globalAlias("inspirobot", "inspireme");
 
 nr.addErrorDocsPage("/help/fun/timer/too-long", {
 	overview:
