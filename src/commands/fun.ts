@@ -15,6 +15,7 @@ import "./fun/spyfall";
 import { getGuilds, getMembers } from "../ShardHelper";
 import { restrictTextToPerms } from "./customcommands";
 import * as fsync from "fs";
+import fetch from "node-fetch";
 
 nr.addDocsWebPage(
 	"/help/fun",
@@ -434,6 +435,30 @@ For help, type "help".
 Type "apropos word" to search for commands related to "word".
 (vdb) ${cmd ? safe`${cmd}\n` + callcmd(cmd) + "\n(vdb) quit" : "|"}
 \`\`\``);
+	},
+);
+
+nr.globalCommand(
+	"/help/inspirobot",
+	"inspirobot",
+	{
+		usage: "inspirobot",
+		description: "get some inspiration from inspirobot",
+		examples: [],
+	},
+	nr.list(),
+	async ([], info) => {
+		const txtres = await (
+			await fetch("https://inspirobot.me/api?generate=true")
+		).text();
+		return await info.result("", {
+			files: [
+				{
+					name: "inspiration.png",
+					attachment: txtres,
+				},
+			],
+		});
 	},
 );
 
