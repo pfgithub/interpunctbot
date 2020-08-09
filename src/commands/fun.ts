@@ -43,6 +43,7 @@ Fun commands are enabled by default.
 {CmdSummary|members}
 {CmdSummary|remindme}
 {CmdSummary|tictactoe}
+{CmdSummary|inspirobot}
 {CmdSummary|randomword}
 {CmdSummary|bubblewrap}
 {CmdSummary|ultimate tictactoe}
