@@ -1053,7 +1053,8 @@ export async function onMessageReactionAdd(
 	}
 	if (rxn.message.id === ticketData.main.invitation.message) {
 		if (rxn.partial) await rxn.fetch();
-		if ((rxn.count || 100) <= 1) {
+        await rxn.users.fetch({limit: 4});
+		if (rxn.users.cache.size == 1) {
 			await rxn.message.react(rxn.emoji);
 			await rxn.users.remove(usr.id);
 			return true;
