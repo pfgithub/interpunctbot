@@ -87,7 +87,13 @@ For better instructions, read {Link|https://mathwithbaddrawings.com/2013/06/16/u
 nr.globalAlias("ultimatetictactoe", "ultimate tic tac toe");
 nr.globalAlias("ultimatetictactoe", "ultimate tictactoe");
 nr.globalAlias("ultimatetictactoe", "uttt");
+nr.globalAlias("ultimatetictactoe", "bigtictactoe");
+nr.globalAlias("ultimatetictactoe", "big tic tac toe");
+nr.globalAlias("ultimatetictactoe", "big tictactoe");
 // wrong spelling
 nr.globalAlias("ultimatetictactoe", "ultimate knotsandcrosses");
 nr.globalAlias("ultimatetictactoe", "ultimateknotsandcrosses");
 nr.globalAlias("ultimatetictactoe", "ultimate knots and crosses");
+nr.globalAlias("ultimatetictactoe", "big knotsandcrosses");
+nr.globalAlias("ultimatetictactoe", "bigknotsandcrosses");
+nr.globalAlias("ultimatetictactoe", "big knots and crosses");
