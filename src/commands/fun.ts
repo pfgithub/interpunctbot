@@ -28,10 +28,15 @@ Fun commands are enabled by default.
 {CmdSummary|fun}
 
 {Heading|Games}
-{CmdSummary|trivia}
 {CmdSummary|connect4}
 {CmdSummary|minesweeper}
+{CmdSummary|ultimate tictactoe}
 {CmdSummary|circlegame}
+{CmdSummary|tictactoe}
+- Coming Soon™: {Command|checkers}
+{CmdSummary|randomword}
+{CmdSummary|trivia}
+{CmdSummary|needle}
 
 {Heading|Misc}
 {CmdSummary|ping}
@@ -39,14 +44,10 @@ Fun commands are enabled by default.
 {CmdSummary|vote}
 {CmdSummary|stats}
 {CmdSummary|timer}
-{CmdSummary|needle}
 {CmdSummary|members}
 {CmdSummary|remindme}
-{CmdSummary|tictactoe}
 {CmdSummary|inspirobot}
-{CmdSummary|randomword}
 {CmdSummary|bubblewrap}
-{CmdSummary|ultimate tictactoe}
 `,
 );
 
@@ -836,7 +837,12 @@ nr.globalCommand(
 	{
 		usage: "randomword",
 		description: "the first person to type it wins",
-		examples: [],
+		examples: [
+			{
+				in: "randomword",
+				out: "{Screenshot|https://i.imgur.com/dWOoTBM.png}",
+			},
+		],
 	},
 	nr.list(),
 	async ([], info) => {

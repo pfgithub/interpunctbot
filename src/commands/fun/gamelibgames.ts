@@ -34,7 +34,12 @@ nr.globalCommand(
 			"Play a game of circlegame. {Interpunct} requires permission to manage reactions to run games best.",
 		extendedDescription:
 			"To play circlegame, select a row and then a number of circles to take and try to be the last person to take a circle.",
-		examples: [],
+		examples: [
+			{
+				in: "circlegame",
+				out: "{Screenshot|https://i.imgur.com/HW7Pxh6.png}",
+			},
+		],
 	},
 	nr.passthroughArgs,
 	circlegame,
@@ -50,7 +55,12 @@ nr.globalCommand(
 			"Play a game of tic tac toe. {Interpunct} requires permission to manage reactions to run games best.",
 		extendedDescription: `To play tic tac toe, try to make 3 in a row on your turn.
 {Blockquote|Some people incorrectly spell this game "knots and crosses". This spelling is wrong, but it will still be accepted by {Interpunct}.}`,
-		examples: [],
+		examples: [
+			{
+				in: "ticktactoe",
+				out: "{Screenshot|https://i.imgur.com/VL8fihL.png}",
+			},
+		],
 	},
 	nr.passthroughArgs,
 	tictactoe,
@@ -78,7 +88,12 @@ For better instructions, read {Link|https://mathwithbaddrawings.com/2013/06/16/u
 {Screenshot|https://i.imgur.com/m0CGIb5.png}
 
 `,
-		examples: [],
+		examples: [
+			{
+				in: "ultimate tictactoe",
+				out: "{Screenshot|https://i.imgur.com/eqODbw0.png}",
+			},
+		],
 	},
 	nr.passthroughArgs,
 	ultimatetictactoe,
