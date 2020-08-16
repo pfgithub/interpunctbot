@@ -61,7 +61,6 @@ Now, create an invitation message. Users will react to this message to create a 
 {ExampleUserMessageNoPfx|{Blockquote|React {Emoji|📬} to request a rank.}
 {Reaction|📬|1}}
 Right click or Tap and Hold on the invitation message and select "Copy Message Link". Desktop screenshot:
-
 {Screenshot|https://i.imgur.com/IXXmWvX.png}
 
 Paste it like this:
@@ -74,20 +73,17 @@ Next, set a welcome message:
 Tickets are set up. To try it out, click the reaction on your invitation message. If you haven't added one yet, add one and then click it after {Interpunct} replaces it.
 
 {Heading|Ticket logs}
-For logs like this:
+{Blockquote|For logs like this:
 {Screenshot|https://i.imgur.com/3S6YtZI.png}
 you need 2 channels. The second one will have messages like this in it:
 {Screenshot|https://i.imgur.com/8AdVa6k.png}
 {ExampleUserMessage|ticket logs {Channel|ticket-logs} {Channel|uploads}}
-Note that only the last 100 messages in a ticket will be logged.
+Note that only the last 100 messages in a ticket will be logged.}
 
-
-For logs like this:
-
-
+{Blockquote|For logs like this:
 {Screenshot|https://i.imgur.com/LtH2SvF.png}
 you need just one channel.
-{ExampleUserMessage|ticket transcripts {Channel|text-transcripts}}
+{ExampleUserMessage|ticket transcripts {Channel|text-transcripts}}}
 
 {Heading|Additional configuration}
 
@@ -1053,7 +1049,7 @@ export async function onMessageReactionAdd(
 	}
 	if (rxn.message.id === ticketData.main.invitation.message) {
 		if (rxn.partial) await rxn.fetch();
-        await rxn.users.fetch({limit: 4});
+		await rxn.users.fetch({ limit: 4 });
 		if (rxn.users.cache.size == 1) {
 			await rxn.message.react(rxn.emoji);
 			await rxn.users.remove(usr.id);
