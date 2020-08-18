@@ -3,6 +3,7 @@ import { connect4 } from "./gamelib/connect4";
 import { circlegame } from "./gamelib/circlegame";
 import { tictactoe } from "./gamelib/tictactoe";
 import { ultimatetictactoe } from "./gamelib/ultimatetictactoe";
+import { checkers } from "./gamelib/checkers";
 
 nr.globalCommand(
 	"/help/fun/connect4",
@@ -24,6 +25,26 @@ nr.globalCommand(
 	connect4,
 );
 nr.globalAlias("connect4", "connect 4");
+
+nr.globalCommand(
+	"/help/fun/checkers",
+	"checkers",
+	{
+		usage: "checkers",
+		description:
+			"Play a game of checkers. {Interpunct} requires permission to manage reactions to run games best.",
+		extendedDescription:
+			"To play checkers, try to take all your opponents' pieces. For more help, look up the rules online, checkers has a lot of rules.",
+		examples: [
+			{
+				in: "checkers",
+				out: "…TODO put an example of what checkers looks like here",
+			},
+		],
+	},
+	nr.passthroughArgs,
+	connect4,
+);
 
 nr.globalCommand(
 	"/help/fun/circlegame",
