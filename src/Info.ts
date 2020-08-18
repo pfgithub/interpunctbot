@@ -321,8 +321,8 @@ export default class Info {
 			manageEmoji: this.authorGuildPerms
 				? this.authorGuildPerms.has("MANAGE_EMOJIS")
 				: true,
-			manageMessages: this.authorGuildPerms // maybe we should only allow send: to send to channels author has manage messages perms for
-				? this.authorGuildPerms.has("MANAGE_MESSAGES")
+			manageMessages: this.authorChannelPerms
+				? this.authorChannelPerms.has("MANAGE_MESSAGES")
 				: true,
 			banMembers: this.authorGuildPerms
 				? this.authorGuildPerms.has("BAN_MEMBERS")

@@ -137,6 +137,10 @@ export const a = {
 			RoleArgumentType(true) as ArgumentType<Discord.Role[]>,
 		] as const;
 	},
+	// this is the dumbest code I have ever seen what
+	message() {
+		return MessageArgumentType();
+	},
 };
 
 export type ArgTypeToReturnType<T> = T extends BaseArgType<any, infer Q>
@@ -483,6 +487,53 @@ function BacktickArgumentType(): ArgumentType<string> {
 	};
 }
 
+function MessageArgumentType(): ArgumentType<Discord.Message> {
+	return async (info, arg, cmd, error) => {
+		if (!cmd.trim()) {
+			return await error("/arg/message/not-found");
+		}
+		const word = /^([\S]+)\s*([\S\s]*)/.exec(cmd.trim());
+		if (!word) {
+			return await error("/arg/message/not-found");
+		}
+		const [, urlink, final] = word;
+		const ids = urlink.match(/[0-9]{5,}/g);
+		if (!ids || ids.length !== 3)
+			return await error("/arg/message/not-found");
+
+		const [guildID, channelID, messageID] = ids;
+		if (!info.guild || info.guild.id !== guildID)
+			return await error("/arg/message/different-server");
+
+		const msgchan = info.guild.channels.resolve(
+			channelID,
+		) as Discord.TextChannel;
+		if (!msgchan)
+			return await error(
+				"I could not find the channel <#" +
+					channelID +
+					">. Maybe I don't have permission to view it?",
+			);
+
+		let msgmsg: Discord.Message;
+		try {
+			msgmsg = await msgchan.messages.fetch(messageID);
+		} catch (e) {
+			return await error(
+				"I could not find the message you linked in <#" +
+					channelID +
+					">. Maybe I don't have permission to view it? Make sure I have permission to Read Messages and View Message History.",
+			);
+		}
+
+		return {
+			result: "continue",
+			value: msgmsg,
+			cmd: final.trim(),
+		};
+	};
+}
+
 function RoleArgumentType(
 	allowMultiple: boolean,
 ): ArgumentType<Discord.Role | Discord.Role[]> {
@@ -613,8 +664,9 @@ export async function ArgumentParser<
 		other?: { safeDetails?: string | undefined },
 	): Promise<{ result: "exit" }> => {
 		const docsPage = nr.globalDocs[docs];
-		if (!docsPage) {
-			throw new Error("docs page not found");
+		let docsres: string = docs;
+		if (docsPage) {
+			docsres = dgToDiscord(docsPage.summaries.description, info);
 		}
 		const cmdPage = nr.globalDocs[help];
 		if (!cmdPage) {
@@ -631,13 +683,16 @@ export async function ArgumentParser<
 				"Usage: " +
 				dgToDiscord(cmdPage.summaries.usage, info) +
 				"\n" +
-				dgToDiscord(docsPage.summaries.description, info) +
+				docsres +
 				"\n" +
 				"> Command Help: <https://interpunct.info" +
 				help +
-				">\n> Error Details: <https://interpunct.info" +
-				docsPage.path +
-				">",
+				">" +
+				docsPage
+				? "\n> Error Details: <https://interpunct.info" +
+						docsPage.path +
+						">"
+				: "",
 		);
 		return { result: "exit" };
 	};

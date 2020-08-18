@@ -285,3 +285,19 @@ nr.addErrorDocsPage("/arg/emoji/not-found", {
 	detail: "In order to use this command, you need to provide an emoji.",
 	mainPath: "/arg/emoji",
 });
+
+nr.addErrorDocsPage("/arg/message/not-found", {
+	overview:
+		"This command needs a link to a message. Right click/tap and hold the message you want and select Copy Message Link. Then use it.",
+	detail:
+		"In order to use this command, you need to provide a link to a message.",
+	mainPath: "/arg/message",
+});
+
+nr.addErrorDocsPage("/arg/message/different-server", {
+	overview:
+		"The message you linked is on a different server. Please link a message from this server.",
+	detail:
+		"The message you linked is on a different server. Please link a message from this server.",
+	mainPath: "/arg/message",
+});

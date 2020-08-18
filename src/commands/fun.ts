@@ -734,47 +734,108 @@ const msgopts: discord.MessageOptions = {
 	allowedMentions: { parse: [], roles: [], users: [] },
 };
 
+async function getMsgFrom(
+	info: Info,
+	wrds: string,
+): Promise<string | undefined> {
+	const link = wrds.trim();
+	if (
+		link.length < 3 ||
+		!link.startsWith("c") ||
+		!link.endsWith("R") ||
+		/[^a-zA-Z0-9]/.exec(link)
+	) {
+		await info.docs("/help/sendmsg", "usage");
+		return;
+	}
+	const resultraw = await fetch(
+		"https://s.pfg.pw/" +
+			encodeURIComponent(link.substring(1, link.length - 1)),
+		{ redirect: "manual" },
+	);
+	console.log(resultraw);
+	console.log(resultraw.headers.get("location"));
+	const hgl = resultraw.headers.get("location");
+	if (!hgl) {
+		await info.error("Error 0x1fA4v43");
+		return;
+	}
+	const location = hgl.replace("https://pfg.pw/spoilerbot/spoiler?s=", "");
+	if (hgl === location) {
+		await info.error("Error 0x432na9f");
+		return;
+	}
+	const decoded = decodeURIComponent(location.replace(/\+/g, " "));
+	const parsed = JSON.parse(decoded);
+	if (typeof parsed !== "object" || typeof parsed.text !== "string") {
+		await info.error("Error 0xzx42lx0a3p[]");
+		return;
+	}
+
+	return parsed.text;
+}
+
 nr.globalCommand(
 	"/help/sendmsg",
 	"sendmsg",
 	{
-		usage: "[see description]",
+		usage: "sendmsg {Required|sendmsg code}",
 		description: "{Link|https://pfg.pw/sitepages/messagecreator}",
 		examples: [],
 	},
 	nr.list(...nr.a.words()),
 	async ([wrds], info) => {
 		if (!Info.theirPerm.manageMessages(info)) return;
-		const link = wrds.trim();
-		if (
-			link.length < 3 ||
-			!link.startsWith("c") ||
-			!link.endsWith("R") ||
-			/[^a-zA-Z0-9]/.exec(link)
-		) {
-			return await info.docs("/help/sendmsg", "usage");
-		}
-		const resultraw = await fetch(
-			"https://s.pfg.pw/" +
-				encodeURIComponent(link.substring(1, link.length - 1)),
-			{ redirect: "manual" },
-		);
-		console.log(resultraw);
-		console.log(resultraw.headers.get("location"));
-		const hgl = resultraw.headers.get("location");
-		if (!hgl) return await info.error("Bad");
-		const location = hgl.replace(
-			"https://pfg.pw/spoilerbot/spoiler?s=",
-			"",
-		);
-		if (hgl === location) return await info.error("Bad 2");
-		const decoded = decodeURIComponent(location.replace(/\+/g, " "));
-		const parsed = JSON.parse(decoded);
-		if (typeof parsed !== "object" || typeof parsed.text !== "string")
-			return await info.error("Bad 3");
-		await info.channel.send(parsed.text, { ...msgopts, split: true });
+		const msgval = await getMsgFrom(info, wrds); // zig: getMsgFrom(wrds) orelse return (or more likely, catch |err| return reportMsgFromErr(err))
+		if (!msgval) return;
+		await info.channel.send(msgval, { ...msgopts, split: true });
 	},
 );
+
+nr.globalCommand(
+	"/help/updatemsg",
+	"updatemsg",
+	{
+		usage: "updatemsg {Required|message link} {Required|sendmsg code}",
+		description: "{Link|https://pfg.pw/sitepages/messagecreator}",
+		examples: [],
+	},
+	nr.list(nr.a.message(), ...nr.a.words()),
+	async ([msgtoedit, code], info) => {
+		// ip!sendmsg cbyANR
+		if (msgtoedit.author.id !== info.message.client.user!.id) {
+			return await info.error(
+				"The message you linked was sent by " +
+					msgtoedit.author.toString() +
+					", but I can only edit my own messages.",
+			);
+		}
+		const theirPerms = (msgtoedit.channel as discord.TextChannel).permissionsFor(
+			info.message.author,
+		);
+		if (!theirPerms || !theirPerms.has("MANAGE_MESSAGES")) {
+			return await info.error(
+				"You need permission to Manage Messages in <#" +
+					msgtoedit.channel.id +
+					"> in order to edit my message.",
+			);
+		}
+		if (!msgtoedit.editable) {
+			return await info.error(
+				"I can't edit that message. I'm not sure why.",
+			);
+		}
+		const msgval = await getMsgFrom(info, code); // zig: getMsgFrom(wrds) orelse return (or more likely, catch |err| return reportMsgFromErr(err))
+		if (!msgval) return;
+		if (msgval.length > 2000)
+			return await info.error(
+				"I can't edit in more than 2000 characters.",
+			);
+		await msgtoedit.edit(msgval);
+		return await info.success("Edited!");
+	},
+);
+nr.globalAlias("updatemsg", "editmsg");
 
 /*
 @Docs
