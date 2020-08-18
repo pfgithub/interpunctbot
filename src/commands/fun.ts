@@ -853,46 +853,44 @@ nr.globalCommand(
 	},
 );
 
-// type PTRes = { error: string } | { code: string };
-// function postText(text: { text: string }): Promise<PTRes> {
-// 	return new Promise<PTRes>((resolve, reject) => {
-// 		fetch(
-// 			"https://firebasedynamiclinks.googleapis.com/v1/shortLinks?key=AIzaSyAp1bFmhU7jx2tdcDzXz1cJu_9kyQgB5QQ",
-// 			{
-// 				method: "POST",
-// 				headers: {
-// 					"Content-Type": "application/json",
-// 				},
-// 				body: JSON.stringify({
-// 					dynamicLinkInfo: {
-// 						domainUriPrefix: "s.pfg.pw",
-// 						link:
-// 							"https://pfg.pw/spoilerbot/spoiler?s=" +
-// 							encodeURIComponent(JSON.stringify(text)),
-// 					},
-// 					suffix: { option: "SHORT" },
-// 				}),
-// 			},
-// 		)
-// 			.then(response => response.json())
-// 			.catch(e => {
-// 				return resolve({ error: " " + e.toString() });
-// 			})
-// 			.then(res => {
-// 				console.log(res);
-// 				if (!res.shortLink) {
-// 					return resolve({
-// 						error:
-// 							"Error ```json\n" + JSON.stringify(res) + "\n```",
-// 					});
-// 				}
-// 				return resolve({
-// 					code: res.shortLink.replace("https://s.pfg.pw/", ""),
-// 				});
-// 			})
-// 			.catch(e => reject(e));
-// 	});
-// }
+type PTRes = { error: string } | { url: string };
+function shortenLink(longurl: string): Promise<PTRes> {
+	return new Promise<PTRes>((resolve, reject) => {
+		fetch(
+			"https://firebasedynamiclinks.googleapis.com/v1/shortLinks?key=AIzaSyAp1bFmhU7jx2tdcDzXz1cJu_9kyQgB5QQ",
+			{
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					dynamicLinkInfo: {
+						domainUriPrefix: "s.pfg.pw",
+						link: longurl,
+					},
+					suffix: { option: "SHORT" },
+				}),
+			},
+		)
+			.then(response => response.json())
+			.catch(e => {
+				return resolve({ error: " " + e.toString() });
+			})
+			.then(res => {
+				console.log(res);
+				if (!res.shortLink) {
+					return resolve({
+						error:
+							"Error ```json\n" + JSON.stringify(res) + "\n```",
+					});
+				}
+				return resolve({
+					url: res.shortLink,
+				});
+			})
+			.catch(e => reject(e));
+	});
+}
 
 nr.globalCommand(
 	"/help/editmsg",
@@ -907,15 +905,15 @@ nr.globalCommand(
 	async ([msgtoedit], info) => {
 		if (!(await confirmEditable(msgtoedit, info))) return;
 		await msgtoedit.fetch();
-		// I forgot the website can't actually determine the result of a redirect. f.
-		// const postres = await postText({ text: msgtoedit.content });
-		// if ("error" in postres) return await info.error(postres.error);
+		const resurl =
+			"https://pfg.pw/sitepages/messagecreator?content=" +
+			encodeURIComponent(msgtoedit.content) +
+			"&msglink=" +
+			encodeURIComponent(msgtoedit.url);
+		const postres = await shortenLink(resurl);
+		if ("error" in postres) return await info.error(postres.error);
 		return await info.result(
-			"Edit the message here: <https://pfg.pw/sitepages/messagecreator?content=" +
-				encodeURIComponent(msgtoedit.content) +
-				"&msglink=" +
-				encodeURIComponent(msgtoedit.url) +
-				">",
+			"Edit the message here: <" + postres.url + ">",
 		);
 	},
 );
