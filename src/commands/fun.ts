@@ -755,16 +755,24 @@ nr.globalCommand(
 			return await info.docs("/help/sendmsg", "usage");
 		}
 		const resultraw = await fetch(
-			"https://file.io/" + encodeURI(link.substring(1, link.length - 1)),
-		).then(r => r.text());
+			"https://s.pfg.pw/" +
+				encodeURIComponent(link.substring(1, link.length - 1)),
+			{ redirect: "manual" },
+		);
 		console.log(resultraw);
-		if (resultraw.startsWith(`{"success":false,`)) {
-			return await info.error("```json\n" + resultraw + "\n```");
-		}
-		const result = JSON.parse(resultraw);
-		if (!result.text || typeof result.text !== "string")
-			return await info.error("bad command");
-		await info.channel.send(result.text, msgopts);
+		console.log(resultraw.headers.get("location"));
+		const hgl = resultraw.headers.get("location");
+		if (!hgl) return await info.error("Bad");
+		const location = hgl.replace(
+			"https://pfg.pw/spoilerbot/spoiler?s=",
+			"",
+		);
+		if (hgl === location) return await info.error("Bad 2");
+		const decoded = decodeURIComponent(location.replace(/\+/g, " "));
+		const parsed = JSON.parse(decoded);
+		if (typeof parsed !== "object" || typeof parsed.text !== "string")
+			return await info.error("Bad 3");
+		await info.channel.send(parsed.text, msgopts);
 	},
 );
 
