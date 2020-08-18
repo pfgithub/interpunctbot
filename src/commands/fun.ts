@@ -737,15 +737,18 @@ const msgopts: discord.MessageOptions = {
 async function getMsgFrom(
 	info: Info,
 	wrds: string,
+	prefix: string,
+	postfix: string,
+	help: string,
 ): Promise<string | undefined> {
 	const link = wrds.trim();
 	if (
 		link.length < 3 ||
-		!link.startsWith("c") ||
-		!link.endsWith("R") ||
+		!link.startsWith(prefix) ||
+		!link.endsWith(postfix) ||
 		/[^a-zA-Z0-9]/.exec(link)
 	) {
-		await info.docs("/help/sendmsg", "usage");
+		await info.docs(help, "usage");
 		return;
 	}
 	const resultraw = await fetch(
@@ -786,11 +789,41 @@ nr.globalCommand(
 	nr.list(...nr.a.words()),
 	async ([wrds], info) => {
 		if (!Info.theirPerm.manageMessages(info)) return;
-		const msgval = await getMsgFrom(info, wrds); // zig: getMsgFrom(wrds) orelse return (or more likely, catch |err| return reportMsgFromErr(err))
+		const msgval = await getMsgFrom(info, wrds, "c", "R", "/help/sendmsg"); // zig: getMsgFrom(wrds) orelse return (or more likely, catch |err| return reportMsgFromErr(err))
 		if (!msgval) return;
 		await info.channel.send(msgval, { ...msgopts, split: true });
 	},
 );
+
+async function confirmEditable(
+	msgtoedit: discord.Message,
+	info: Info,
+): Promise<boolean> {
+	if (msgtoedit.author.id !== info.message.client.user!.id) {
+		await info.error(
+			"The message you linked was sent by " +
+				msgtoedit.author.toString() +
+				", but I can only edit my own messages.",
+		);
+		return false;
+	}
+	const theirPerms = (msgtoedit.channel as discord.TextChannel).permissionsFor(
+		info.message.author,
+	);
+	if (!theirPerms || !theirPerms.has("MANAGE_MESSAGES")) {
+		await info.error(
+			"You need permission to Manage Messages in <#" +
+				msgtoedit.channel.id +
+				"> in order to edit my message.",
+		);
+		return false;
+	}
+	if (!msgtoedit.editable) {
+		await info.error("I can't edit that message. I'm not sure why.");
+		return false;
+	}
+	return true;
+}
 
 nr.globalCommand(
 	"/help/updatemsg",
@@ -802,30 +835,14 @@ nr.globalCommand(
 	},
 	nr.list(nr.a.message(), ...nr.a.words()),
 	async ([msgtoedit, code], info) => {
-		// ip!sendmsg cbyANR
-		if (msgtoedit.author.id !== info.message.client.user!.id) {
-			return await info.error(
-				"The message you linked was sent by " +
-					msgtoedit.author.toString() +
-					", but I can only edit my own messages.",
-			);
-		}
-		const theirPerms = (msgtoedit.channel as discord.TextChannel).permissionsFor(
-			info.message.author,
-		);
-		if (!theirPerms || !theirPerms.has("MANAGE_MESSAGES")) {
-			return await info.error(
-				"You need permission to Manage Messages in <#" +
-					msgtoedit.channel.id +
-					"> in order to edit my message.",
-			);
-		}
-		if (!msgtoedit.editable) {
-			return await info.error(
-				"I can't edit that message. I'm not sure why.",
-			);
-		}
-		const msgval = await getMsgFrom(info, code); // zig: getMsgFrom(wrds) orelse return (or more likely, catch |err| return reportMsgFromErr(err))
+		if (!(await confirmEditable(msgtoedit, info))) return;
+		const msgval = await getMsgFrom(
+			info,
+			code,
+			"M",
+			"y",
+			"/help/updatemsg",
+		); // zig: getMsgFrom(wrds) orelse return (or more likely, catch |err| return reportMsgFromErr(err))
 		if (!msgval) return;
 		if (msgval.length > 2000)
 			return await info.error(
@@ -835,7 +852,80 @@ nr.globalCommand(
 		return await info.success("Edited!");
 	},
 );
-nr.globalAlias("updatemsg", "editmsg");
+
+// type PTRes = { error: string } | { code: string };
+// function postText(text: { text: string }): Promise<PTRes> {
+// 	return new Promise<PTRes>((resolve, reject) => {
+// 		fetch(
+// 			"https://firebasedynamiclinks.googleapis.com/v1/shortLinks?key=AIzaSyAp1bFmhU7jx2tdcDzXz1cJu_9kyQgB5QQ",
+// 			{
+// 				method: "POST",
+// 				headers: {
+// 					"Content-Type": "application/json",
+// 				},
+// 				body: JSON.stringify({
+// 					dynamicLinkInfo: {
+// 						domainUriPrefix: "s.pfg.pw",
+// 						link:
+// 							"https://pfg.pw/spoilerbot/spoiler?s=" +
+// 							encodeURIComponent(JSON.stringify(text)),
+// 					},
+// 					suffix: { option: "SHORT" },
+// 				}),
+// 			},
+// 		)
+// 			.then(response => response.json())
+// 			.catch(e => {
+// 				return resolve({ error: " " + e.toString() });
+// 			})
+// 			.then(res => {
+// 				console.log(res);
+// 				if (!res.shortLink) {
+// 					return resolve({
+// 						error:
+// 							"Error ```json\n" + JSON.stringify(res) + "\n```",
+// 					});
+// 				}
+// 				return resolve({
+// 					code: res.shortLink.replace("https://s.pfg.pw/", ""),
+// 				});
+// 			})
+// 			.catch(e => reject(e));
+// 	});
+// }
+
+nr.globalCommand(
+	"/help/editmsg",
+	"editmsg",
+	{
+		usage: "editmsg {Required|message link}",
+		description:
+			"editmsg [link to a message from {Interpunct}]. it will give you a link to edit the message.",
+		examples: [],
+	},
+	nr.list(nr.a.message()),
+	async ([msgtoedit], info) => {
+		if (!(await confirmEditable(msgtoedit, info))) return;
+		await msgtoedit.fetch();
+		// I forgot the website can't actually determine the result of a redirect. f.
+		// const postres = await postText({ text: msgtoedit.content });
+		// if ("error" in postres) return await info.error(postres.error);
+		return await info.result(
+			"Edit the message here: <https://pfg.pw/sitepages/messagecreator?content=" +
+				encodeURIComponent(msgtoedit.content) +
+				"&msglink=" +
+				encodeURIComponent(msgtoedit.url) +
+				">",
+		);
+	},
+);
+// command editmsg should do this:
+// get a message link
+// get the text of the message
+// upload it to the url shortener
+// send you to https://pfg.pw/sitepages/messagecreator?from=URLSHORTENED&link=MSGLINK
+// then messsagecreator should fill the textarea (disable while loading) and when you click "Edit"
+// it should give you the `updatemsg` command.
 
 /*
 @Docs
