@@ -730,6 +730,46 @@ nr.globalCommand(
 	},
 );
 
+const msgopts: discord.MessageOptions = {
+	allowedMentions: { parse: [], roles: [], users: [] },
+};
+
+nr.globalCommand(
+	"/help/sendmsg",
+	"sendmsg",
+	{
+		usage: "[see description]",
+		description: "{Link|https://pfg.pw/sitepages/messagecreator}",
+		examples: [],
+	},
+	nr.list(...nr.a.words()),
+	async ([wrds], info) => {
+		if (!Info.theirPerm.manageMessages(info)) return;
+		const link = wrds.trim();
+		if (!link.startsWith("c") || !link.endsWith("R")) {
+			return await info.docs("/help/sendmsg", "usage");
+		}
+		const result = await fetch(
+			"https://file.io/" + encodeURI(link.substring(1, link.length - 1)),
+		).then(r => r.json());
+		console.log(result);
+		if (
+			"success" in result &&
+			result.success === false &&
+			"error" in result &&
+			typeof result.error === "number" &&
+			"message" in result &&
+			typeof "message" === "string"
+		)
+			return await info.error(
+				"uh oh! Error " + result.error + ": " + result.message,
+			);
+		if (!result.text || typeof result.text !== "string")
+			return await info.error("bad command");
+		await info.channel.send(result.text, msgopts);
+	},
+);
+
 /*
 @Docs
 Usage: ip!vote {Text|your message}

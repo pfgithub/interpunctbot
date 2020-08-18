@@ -333,7 +333,7 @@ ${roles
 			`Role ${messages.role(
 				addedRole,
 			)} added to restrictions for ${emoji.toString()}. This emoji can now only be used by members with any of these roles:
-${fullList.map(role => `- ${messages.role(role)}\n`).join("")}
+${fullList.map(role => `- ${role.toString()}\n`).join("")}
 > If this was a mistake, reset the restrictions for this emoji with \`${
 				info.prefix
 			}emoji unrestrict ${emoji.id}\``,
@@ -343,10 +343,8 @@ ${fullList.map(role => `- ${messages.role(role)}\n`).join("")}
 			removedRole: Discord.Role,
 			fullList: Discord.Role[],
 		) =>
-			`Role ${messages.role(
-				removedRole,
-			)} removed from restrictions for ${emoji.toString()}. This emoji can now only be used by members with any of these roles:
-${fullList.map(role => `- ${messages.role(role)}\n`).join("")}
+			`Role ${removedRole.toString()} removed from restrictions for ${emoji.toString()}. This emoji can now only be used by members with any of these roles:
+${fullList.map(role => `- ${role.toString()}\n`).join("")}
 > If this was a mistake, reset the restrictions for this emoji with \`${
 				info.prefix
 			}emoji unrestrict ${emoji.id}\``,
@@ -361,7 +359,7 @@ ${
 		? `This emoji can only be used by members with at least one of these roles:
 ${emoji.roles.cache
 	.array()
-	.map(role => `- ${messages.role(role)}\n`)
+	.map(role => `- ${role.toString()}\n`)
 	.join("")}`
 		: ""
 }**Image**: ${emoji.url}`,
