@@ -688,11 +688,11 @@ export async function ArgumentParser<
 				"> Command Help: <https://interpunct.info" +
 				help +
 				">" +
-				docsPage
-				? "\n> Error Details: <https://interpunct.info" +
-						docsPage.path +
-						">"
-				: "",
+				(docsPage
+					? "\n> Error Details: <https://interpunct.info" +
+					  docsPage.path +
+					  ">"
+					: ""),
 		);
 		return { result: "exit" };
 	};

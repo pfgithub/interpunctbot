@@ -917,6 +917,41 @@ nr.globalCommand(
 		);
 	},
 );
+nr.globalCommand(
+	"/help/viewmsgsource",
+	"viewmsgsource",
+	{
+		usage: "viewmsgsource {Required|message link}",
+		description:
+			"viewmsgsource [link to a message]. it will give you a link to the source markdown of the message.",
+		examples: [],
+	},
+	nr.list(nr.a.message()),
+	async ([msgtoedit], info) => {
+		const theirPerms = (msgtoedit.channel as discord.TextChannel).permissionsFor(
+			info.message.author,
+		);
+		if (
+			!theirPerms ||
+			!theirPerms.has("READ_MESSAGE_HISTORY") ||
+			!theirPerms.has("VIEW_CHANNEL")
+		) {
+			return await info.error(
+				"You need permission to Read Messages + Read Message History in <#" +
+					msgtoedit.channel.id +
+					"> in order to view the message source..",
+			);
+		}
+
+		await msgtoedit.fetch();
+		const resurl =
+			"https://pfg.pw/spoilerbot/spoiler?s=" +
+			encodeURIComponent(msgtoedit.content);
+		const postres = await shortenLink(resurl);
+		if ("error" in postres) return await info.error(postres.error);
+		return await info.result("Message source: <" + postres.url + ">");
+	},
+);
 // command editmsg should do this:
 // get a message link
 // get the text of the message
