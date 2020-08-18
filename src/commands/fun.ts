@@ -772,7 +772,7 @@ nr.globalCommand(
 		const parsed = JSON.parse(decoded);
 		if (typeof parsed !== "object" || typeof parsed.text !== "string")
 			return await info.error("Bad 3");
-		await info.channel.send(parsed.text, msgopts);
+		await info.channel.send(parsed.text, { ...msgopts, split: true });
 	},
 );
 
