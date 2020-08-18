@@ -746,24 +746,22 @@ nr.globalCommand(
 	async ([wrds], info) => {
 		if (!Info.theirPerm.manageMessages(info)) return;
 		const link = wrds.trim();
-		if (!link.startsWith("c") || !link.endsWith("R")) {
+		if (
+			link.length < 3 ||
+			!link.startsWith("c") ||
+			!link.endsWith("R") ||
+			/[^a-zA-Z0-9]/.exec(link)
+		) {
 			return await info.docs("/help/sendmsg", "usage");
 		}
-		const result = await fetch(
+		const resultraw = await fetch(
 			"https://file.io/" + encodeURI(link.substring(1, link.length - 1)),
-		).then(r => r.json());
-		console.log(result);
-		if (
-			"success" in result &&
-			result.success === false &&
-			"error" in result &&
-			typeof result.error === "number" &&
-			"message" in result &&
-			typeof "message" === "string"
-		)
-			return await info.error(
-				"uh oh! Error " + result.error + ": " + result.message,
-			);
+		).then(r => r.text());
+		console.log(resultraw);
+		if (resultraw.startsWith(`{"success":false,`)) {
+			return await info.error("```json\n" + resultraw + "\n```");
+		}
+		const result = JSON.parse(resultraw);
 		if (!result.text || typeof result.text !== "string")
 			return await info.error("bad command");
 		await info.channel.send(result.text, msgopts);
