@@ -36,6 +36,8 @@ export const safe = templateGenerator((str: string) =>
 		.replace(/here/g, "he\u200bre"),
 );
 
+const shownon: { [key: string]: true | undefined } = {};
+
 export const messages = {
 	help: {
 		overall: (info: Info, lists: { [key: string]: string }) =>
@@ -387,10 +389,14 @@ For help, ask on the support server with your error code \`${errorCode}\`
 			safe`Command \`${info.prefix}${command}\` not found. Type \`${raw(
 				info.prefix,
 			)}help\` for a list of commands.` +
-			(info.authorPerms.manageBot
-				? "\n> Don't want to see this? Disable this message with `" +
-				  safe`${info.prefix}set showunknowncommand never` +
-				  "`."
+			(info.authorPerms.manageBot &&
+			!shownon[info.message.channel.id + "|" + info.message.author.id]
+				? ((shownon[
+						info.message.channel.id + "|" + info.message.author.id
+				  ] = true),
+				  "\n> Don't want to see this? Disable this message with `" +
+						safe`${info.prefix}set showunknowncommand never` +
+						"`.")
 				: ""),
 		command_removed: (
 			info: Info,
