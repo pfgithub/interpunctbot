@@ -250,8 +250,11 @@ export const papersoccer = newGame<GameState>({
 	render(state) {
 		return [
 			"== **Paper Soccer** ==\n"+
-			"⬆️<@"+state.players[0].id+">, you win by getting the ball to the **top** of the screen.\n"+
-			"⬇️<@"+state.players[1].id+">, you win by getting the ball to the **bottom** of the screen.",
+			"⬆️ <@"+state.players[0].id+">, you win by getting the ball to the **top** of the screen.\n"+
+			"⬇️ <@"+state.players[1].id+">, you win by getting the ball to the **bottom** of the screen.\n"+
+			"You cannot move across a line that has already been drawn.\n"+
+			"If the ball has already been in the location you move to, you get another turn.\n"+
+			"If you get the ball stuck, your opponent wins.",
 			displayBoard(state.board, state.ball, !!state.winner, (state.winner || state.players[state.turn]).id),
 		];
 	},
