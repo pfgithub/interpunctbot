@@ -13,5 +13,7 @@ docs
 .DS_Store
 .restarting
 
-assets/*/inter
-assets/*/res
+assets/*/inter/
+assets/*/res/
+assets/*/Makefile
+assets/token

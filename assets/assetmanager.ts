@@ -8,7 +8,7 @@
 import {promises as fs} from "fs";
 import * as cp from "child_process";
 import * as path from "path";
-
+import * as discord from "discord.js";
 
 function exec(cwd: string, cmd: string, args: string[]) {
 	const res = cp.spawnSync(cmd, args, {cwd});
@@ -28,49 +28,30 @@ function advanceMode(mode: number[], choices: string[][]) {
     return true;
 }
 
+// makefile escape. not actually good, will break for certain characters in filenames
+const se = (filename: string) => filename.split(" ").join("\\ ");
+
 // basically a makefile but not a makefile
 // or it could be a makefile. wouldn't be too difficult
 // just generate a makefile and run `make -j4`
 class Depender {
-	dependencies: {[key: string]: {reqs: string[]; exec: () => void}} = {};
-	depend(inv: string[], out: string[], exec: () => void) {
-		if(out.length !== 1) throw new Error("only supports 1 out because I forgot how to program");
-		const of = out[0];
-		if(this.dependencies[of]) throw new Error("two recipes produce the same file `"+of+"`");
-		this.dependencies[of] = {reqs: inv, exec};
-	}
-	async produceOne(cwd: string, file: string, producedList: Map<string, boolean>) {
-		if(producedList.get(file) === false) throw new Error("attempting to produce something already being produced");
-		if(producedList.get(file)) return; // nothing to do;
-		producedList.set(file, false);
-		console.log(file);
-		if(!this.dependencies[file]){
-			// check if the file exists
-			const stat = await fs.stat(path.join(cwd, file));
-			console.log("atime", stat.atimeMs, file);
-		}else{
-			for(const fyl of this.dependencies[file].reqs) {
-				await this.produceOne(cwd, fyl, producedList);
-			}
-			this.dependencies[file].exec();
-		}
-		producedList.set(file, true);
-		
+	makefile: string[] = [];
+	depend(inv: string[], out: string[], cmd: string, args: string[]) {
+		if(out.length !== 1) throw new Error("")
+		this.makefile.push(out[0] + ": " + inv.map(se).join(" "));
+		this.makefile.push("\t"+se(cmd)+" "+args.map(se).join(" "));
 	}
 	async produce(cwd: string, files: string[]) {
-		// const filetimes: {[key: string]: number} = {};
-		const producedList = new Map<string, boolean>();
-		for(const execfyl of files) {
-			await this.produceOne(cwd, execfyl, producedList);
-		}
+		await fs.writeFile(path.join(cwd, "Makefile"), this.makefile.join("\n"));
+		exec(cwd, "make", ["-j4", ...files]);
+		await fs.unlink(path.join(cwd, "Makefile"));
 	}
 }
 
-(async () => {
-	const cwd = process.cwd();
-	if(!cwd.endsWith("/interpunctbot")) throw new Error("Wrong cwd!");
-	
-	const soccer = path.join(cwd, "assets/paper soccer");
+type ProjectResult = {emojiname: string; path: string; data: string};
+
+async function createPaperSoccer(_cwd: string): Promise<ProjectResult[]> {
+	const soccer = path.join(_cwd, "assets/paper soccer");
 	
 	// : to create:
 	// check if the source files changed
@@ -87,21 +68,21 @@ class Depender {
 	exec(soccer, "mkdir", ["-p", "inter"]);
 	exec(soccer, "mkdir", ["-p", "res"]);
 
-	depend(["ball.png"], ["inter/balldr.png"], () => exec(soccer, "convert", ["ball.png", "-crop", "32x32+0+0", "inter/balldr.png"]));
-	depend(["ball.png"], ["inter/balldl.png"], () => exec(soccer, "convert", ["ball.png", "-crop", "32x32+32+0", "inter/balldl.png"]));
-	depend(["ball.png"], ["inter/ballur.png"], () => exec(soccer, "convert", ["ball.png", "-crop", "32x32+0+32", "inter/ballur.png"]));
-	depend(["ball.png"], ["inter/ballul.png"], () => exec(soccer, "convert", ["ball.png", "-crop", "32x32+32+32", "inter/ballul.png"]));
+	depend(["ball.png"], ["inter/balldr.png"], "convert", ["ball.png", "-crop", "32x32+0+0", "inter/balldr.png"]);
+	depend(["ball.png"], ["inter/balldl.png"], "convert", ["ball.png", "-crop", "32x32+32+0", "inter/balldl.png"]);
+	depend(["ball.png"], ["inter/ballur.png"], "convert", ["ball.png", "-crop", "32x32+0+32", "inter/ballur.png"]);
+	depend(["ball.png"], ["inter/ballul.png"], "convert", ["ball.png", "-crop", "32x32+32+32", "inter/ballul.png"]);
 
-	depend(["lines.png"], ["inter/linebottom.png"], () => exec(soccer, "convert", ["lines.png", "-crop", "32x16+0+0", "-background", "none", "-gravity", "north", "-splice", "0x16", "inter/linebottom.png"]));
-	depend(["lines.png"], ["inter/linetop.png"], () => exec(soccer, "convert", ["lines.png", "-crop", "32x16+0+16", "-background", "none", "-gravity", "south", "-splice", "0x16", "inter/linetop.png"]));
+	depend(["lines.png"], ["inter/linebottom.png"], "convert", ["lines.png", "-crop", "32x16+0+0", "-background", "none", "-gravity", "north", "-splice", "0x16", "inter/linebottom.png"]);
+	depend(["lines.png"], ["inter/linetop.png"], "convert", ["lines.png", "-crop", "32x16+0+16", "-background", "none", "-gravity", "south", "-splice", "0x16", "inter/linetop.png"]);
 
-	depend(["lines.png"], ["inter/lineright.png"], () => exec(soccer, "convert", ["lines.png", "-crop", "16x32+32+0", "-background", "none", "-gravity", "west", "-splice", "16x0", "inter/lineright.png"]));
-	depend(["lines.png"], ["inter/lineleft.png"], () => exec(soccer, "convert", ["lines.png", "-crop", "16x32+48+0", "-background", "none", "-gravity", "east", "-splice", "16x0", "inter/lineleft.png"]));
+	depend(["lines.png"], ["inter/lineright.png"], "convert", ["lines.png", "-crop", "16x32+32+0", "-background", "none", "-gravity", "west", "-splice", "16x0", "inter/lineright.png"]);
+	depend(["lines.png"], ["inter/lineleft.png"], "convert", ["lines.png", "-crop", "16x32+48+0", "-background", "none", "-gravity", "east", "-splice", "16x0", "inter/lineleft.png"]);
 
-	depend(["lines.png"], ["inter/linediagonur.png"], () => exec(soccer, "convert", ["lines.png", "-crop", "32x32+0+32", "inter/linediagonur.png"]));
-	depend(["lines.png"], ["inter/linediagonbr.png"], () => exec(soccer, "convert", ["lines.png", "-crop", "32x32+32+32", "inter/linediagonbr.png"]));
+	depend(["lines.png"], ["inter/linediagonur.png"], "convert", ["lines.png", "-crop", "32x32+0+32", "inter/linediagonur.png"]);
+	depend(["lines.png"], ["inter/linediagonbr.png"], "convert", ["lines.png", "-crop", "32x32+32+32", "inter/linediagonbr.png"]);
 	
-	depend(["bg.png"], ["inter/bg.png"], () => exec(soccer, "cp", ["bg.png", "inter/bg.png"]));
+	depend(["bg.png"], ["inter/bg.png"], "cp", ["bg.png", "inter/bg.png"]);
 	
 	const choices = [
 	    ["bg"],
@@ -117,24 +98,103 @@ class Depender {
 	
 	// ok now generate all possible combanations
 	do {
-        const layers = mode.map((pce, i) => choices[i][pce]).filter(pce => pce);
-		const pnglayers = layers.map(layer => "inter/"+layer+".png");
+		const pnglayers = mode.map((pce, i) => choices[i][pce]).filter(pce => pce).map(layer => "inter/"+layer+".png");
         const args: string[] = [];
         pnglayers.forEach((layer, i) => {
             args.push(layer); if(i !== 0) args.push("-composite");
         });
-		const resfyl = "res/" + layers.join("_") + ".png";
+		const resfyl = "res/_" + mode.map(m => "" + m).join("_") + "_.png";
         args.push(resfyl);
-		depend(pnglayers, [resfyl], () => exec(soccer, "convert", args));
+		depend(pnglayers, [resfyl], "convert", args);
 		finals.push(resfyl);
     } while(advanceMode(mode, choices));
 	
 	await depender.produce(soccer, finals);
-	console.log("Done!");
 	
-	// and then once done, return
-	// {emojiname: string, path: string}
-	// emojiname should include a timestamp
+	const res: ProjectResult[] = await Promise.all(finals.map(async final => {
+		const selections = final.split("_").map(a => +a);
+		selections.shift();
+		selections.pop();
+		const stat = await fs.stat(path.join(soccer, final));
+		const fyltime = stat.atime.getTime().toString(36);
+		const resname = selections.join("") + "_" + fyltime;
+		return {emojiname: resname, path: path.join(soccer, final), data: "papersoccer-" + JSON.stringify(selections)};
+	}))
+	
+	return res;
+}
+(async () => {
+	const cwd = process.cwd();
+	if(!cwd.endsWith("/interpunctbot")) throw new Error("Wrong cwd!");
+	
+	const allEmojis: ProjectResult[] = [];
+	allEmojis.push(...await createPaperSoccer(cwd));
+	
+	const requiredServerCount = Math.ceil(allEmojis.length / 50);
+	
+	const token = await fs.readFile(path.join(cwd, "assets/token"), "utf-8");
+	
+	const client = new discord.Client();
+	await client.login(token);
+	
+	console.log("Connected to discord!");
+	if(client.guilds.cache.size < requiredServerCount)
+		throw new Error("Not connected to enough servers. Need "+requiredServerCount);
+	
+	const progress = new Map(allEmojis.map(emji => [emji.emojiname, emji]));
+	const emojisToDelete: discord.GuildEmoji[] = [];
+	for(const guild of client.guilds.cache.array()) {
+		await guild.fetch();
+		console.log("Checking server ", guild.name);
+		for(const emoji of guild.emojis.cache.array()) {
+			if(progress.has(emoji.name)) {
+				progress.delete(emoji.name);
+			}else{
+				emojisToDelete.push(emoji);
+			}
+		};
+		console.log("Done with server ", guild.name);
+	}
+	
+	console.log("Deleting "+emojisToDelete.length+" emojis.");
+	for(const emoji of emojisToDelete) {
+		process.stdout.write("- :"+emoji.name+":");
+		await emoji.delete("No longer needed");
+		console.log("\r× :"+emoji.name+":\x1b[K");
+	}
+	
+	const remaining = [...progress.values()];
+
+	for(const guild of client.guilds.cache.array()) {
+		console.log("Uploading emojis to server ", guild.name);
+		const putCount = 50 - guild.emojis.cache.size;
+		for(let i = 0; i < putCount; i++) {
+			const emoji = remaining.pop();
+			if(!emoji) continue;
+			
+			process.stdout.write("+ :"+emoji.emojiname+":");
+			await guild.emojis.create(emoji.path, emoji.emojiname);
+			console.log("\r√ :"+emoji.emojiname+":\x1b[K");
+			
+		}
+		console.log("Done with server ", guild.name);
+	}
+	if(remaining.length > 0) throw new Error("Some emojis are left over");
+	
+	console.log("All emojis are synced");
+	// now generate the id cache
+	const emojidata = new Map(allEmojis.map(emji => [emji.emojiname, emji]));
+	const resfile: {[data: string]: string} = {};
+	for(const guild of client.guilds.cache.array()) {
+		for(const emoji of guild.emojis.cache.array()) {
+			const ted = emojidata.get(emoji.name);
+			if(!ted) throw new Error("unexpected emoji :"+emoji.name+": on server "+guild.name);
+			resfile[ted.data] = "<:v:"+emoji.id+">";
+		}
+	}
+	await fs.writeFile(path.join(cwd, "config/emojis.json"), JSON.stringify(resfile));
+	console.log("Done!");
+	process.exit(0); // I must have a hanging resource or something idk
 })().catch(e => {throw e;});
 
 
