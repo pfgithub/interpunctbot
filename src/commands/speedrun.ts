@@ -167,14 +167,24 @@ async function displayLeaderboard(
 	const actualGameData = gameData.items.game.data;
 	const getPlayer = (player: any) =>
 		gameData.items.players.data.filter((pl: any) => pl.id === player)[0];
-	const runs = typeof position === "string" ? gameData.items.runs.filter(
-		(run: any) => run.run.players && run.run.players[0] && getPlayer(run.run.players[0].id)?.names?.international?.toLowerCase() === position.toLowerCase(),
-	):  gameData.items.runs.filter(
-		(run: any) => run.place === place,
-	); // TODO run.place === place and have place just get the person in nth place // why isn't this .find()
+	const runs =
+		typeof position === "string"
+			? gameData.items.runs.filter(
+					(run: any) =>
+						run.run.players &&
+						run.run.players[0] &&
+						getPlayer(
+							run.run.players[0].id,
+						)?.names?.international?.toLowerCase() ===
+							position.toLowerCase(),
+			  )
+			: gameData.items.runs.filter((run: any) => run.place === place); // TODO run.place === place and have place just get the person in nth place // why isn't this .find()
 	const run_ = runs[0];
 	if (!run_) {
-		if(typeof position === "string") return await info.error(info.tag`No runs found for player ${position}.`);
+		if (typeof position === "string")
+			return await info.error(
+				info.tag`No runs found for player ${position}.`,
+			);
 		return await info.error(
 			messages.speedrun.no_run_for_position(info, position),
 		);
@@ -182,8 +192,13 @@ async function displayLeaderboard(
 	const run = run_.run;
 
 	const mb = MB();
-	mb.url.putRaw(gameData.items.category.data.weblink);
-	mb.title.put(gameData.items.category.data.name);
+	mb.url.putRaw(run.weblink);
+	const duration = moment.duration(run.times.primary_t, "seconds");
+	mb.title.put(
+		duration.format(
+			"y [years] M [months] w [weeks] d [days,] h[h]:mm[m]:s.SSS[s]",
+		),
+	);
 
 	const runPlayer = getPlayer(run.players[0].id);
 	mb.setAuthor(
@@ -193,11 +208,8 @@ async function displayLeaderboard(
 			runPlayer.location.country.code) as string}.png`,
 		runPlayer.weblink,
 	);
-	const duration = moment.duration(run.times.primary_t, "seconds");
-	mb.description.tag`[${duration.format(
-		"y [years] M [months] w [weeks] d [days,] h[h]:mm[m]:s.SSS[s]",
-	)}](`;
-	mb.description.putRaw(run.weblink);
+	mb.description.tag`[${gameData.items.category.data.name}](`;
+	mb.description.putRaw(gameData.items.category.data.weblink);
 	mb.description.tag`)
 	${run.comment || "No comment"}
 	`;
@@ -242,8 +254,9 @@ nr.globalCommand(
 	"/help/speedrun/leaderboard",
 	"leaderboard",
 	{
-		usage: "leaderboard {Required|Position#} {Optional|Category%}",
-		description: "Get the current speedrun world record holder",
+		usage: "leaderboard {Optional|Position#} {Optional|Category%}",
+		description:
+			"Show the speedrun leaderboard, optionally in a specific category / including a person in #th place",
 		examples: [],
 	},
 	nr.list(nr.a.number(), ...nr.a.words()),
