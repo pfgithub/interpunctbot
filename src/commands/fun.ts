@@ -48,6 +48,7 @@ Fun commands are enabled by default.
 {CmdSummary|timer}
 {CmdSummary|sendmsg}
 {CmdSummary|editmsg}
+{CmdSummary|viewmsgsource}
 {CmdSummary|remindme}
 {CmdSummary|inspirobot}
 {CmdSummary|bubblewrap}
@@ -786,7 +787,7 @@ nr.globalCommand(
 	"sendmsg",
 	{
 		usage: "sendmsg",
-		description: "{Link|https://pfg.pw/sitepages/messagecreator}",
+		description: "Send a message from {Link|https://pfg.pw/sitepages/messagecreator}",
 		examples: [],
 	},
 	nr.list(...nr.a.words()),
@@ -902,7 +903,9 @@ nr.globalCommand(
 	{
 		usage: "editmsg {Required|message link}",
 		description:
-			"editmsg [link to a message from {Interpunct}]. it will give you a link to edit the message.",
+			"editmsg [link to a message from {Interpunct}].",
+		extendedDescription:
+			"Right click / Tap and hold the message from {Interpunct} that you want to edit, and select 'Copy Message Link' to get the message link.",
 		examples: [],
 	},
 	nr.list(nr.a.message()),
@@ -928,6 +931,8 @@ nr.globalCommand(
 		usage: "viewmsgsource {Required|message link}",
 		description:
 			"viewmsgsource [link to a message]. it will give you a link to the source markdown of the message.",
+		extendedDescription:
+			"Right click / Tap and hold the message you want to view source to, and select 'Copy Message Link' to get the message link.",
 		examples: [],
 	},
 	nr.list(nr.a.message()),
