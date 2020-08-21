@@ -21,15 +21,11 @@ speedrun ruels <category>
 
 */
 
-//@ts-ignore
-import SpeedrunAPI from "speedrunapi";
-const sr = new SpeedrunAPI();
 import MB, { TextBuilder } from "../MessageBuilder";
 import Info from "../Info";
 import { messages } from "../../messages";
 import * as nr from "../NewRouter";
-//@ts-ignore
-import request from "async-request"; // this is a terrible library why am I using it // TODO switch to node-fetch
+import fetch from "node-fetch";
 
 import moment from "moment";
 
@@ -65,7 +61,7 @@ export async function getURL(
 			res += encodeURIComponent(values[i]);
 		}
 	});
-	return JSON.parse((await request(res)).body);
+	return await fetch(res).then(v => v.json());
 }
 
 function compareCatName(cat1: string, cat2: string) {
@@ -78,40 +74,85 @@ function compareCatName(cat1: string, cat2: string) {
 	return cat1.toLowerCase() === cat2.toLowerCase();
 }
 
+type Game = {
+	id: string;
+	names: {
+		international: string;
+		twitch?: string;
+		japanese?: string;
+	};
+	abbreviation: string;
+	weblink: string;
+	released: number;
+	"release-date": string;
+	ruleset: {
+		"show-miliseconds": boolean;
+		"require-verification": boolean;
+		"require-video": boolean;
+		"run-times": ("realtime" | "ingame")[];
+		"default-time": "realtime" | "ingame";
+		"emulators-allowed": boolean;
+	};
+	romhack: boolean;
+	gametypes: unknown[];
+	platforms: string[];
+	regions: unknown[];
+	genres: string[];
+	engines: string[];
+	developers: string[];
+	publishers: string[];
+	moderators: { [id: string]: "moderator" | "super-moderator" };
+	created: string;
+	assets: {
+		[key: string]: { uri: string; width: number; height: number };
+	};
+	links: { rel: string; uri: string }[];
+};
+
 async function getGamesFrom({ abbreviation }: { abbreviation: string }) {
 	const startTime = ctime();
 	const gameData = await getURL`https://www.speedrun.com/api/v1/games?abbreviation=${abbreviation}&embed=categories`;
-	//let gameData = await sr.games().param({abbreviation: abbreviation}).embed(["categories"]).exec(); // works but geturl is almost better
 	console.log(
 		`Getting games for abbreviation took ${ctime() - startTime}ms.`,
 	);
-	return gameData;
+	return gameData as {
+		data: (Game & { categories: { data: Category[] } })[];
+	};
 }
+
+type Link = { rel: string; url: string };
+
+type Category = {
+	id: string;
+	name: string;
+	weblink: string;
+	type: "per-game" | "per-level";
+	rules: string;
+	players: { type: "exactly"; value: 1 };
+	miscellaneous: boolean;
+	links: Link[];
+};
 async function getCategoriesFromGameID(id: string) {
 	const startTime = ctime();
-	// we may want to stop using the speedrun api it's really bad and unreliable
-	const categoriesGetter = sr.games(id);
-	categoriesGetter._method = "categories"; // reliable modules such as speedrunapi work great
-	const categories = await categoriesGetter.exec();
+	const res: {
+		data: Category[];
+	} = await getURL`https://www.speedrun.com/api/v1/games/${id}/categories`;
 	console.log(`Getting categories for game took ${ctime() - startTime}ms.`);
-	return categories;
+	res.data = res.data.filter(cat => cat.type === "per-game");
+	return res;
 }
 
 function parseAbbreviation({ from: speedrunpage = "" }) {
-	// I've been doing too much swift
 	const match = /[A-Za-z0-9_]+$/.exec(speedrunpage); // match the last a-za-z0-9+ of the page. if this doesn't work for all pages, submit a bug report
 	return match ? match[0] : undefined;
 }
-
-//router.add([r.manageBot], adminrouter); // that might error if anyone doesn't have managebot // confirmed it does, might want to change this in commandourndstgjkh
-// forex we could have the router still route through the paths but once an actual matching command is found, it could check these. not sure if that would work with
-// quotes though
 
 async function getGameAndCategory(
 	categoryName: string,
 	info: Info,
 ): Promise<
-	{ gameID: string; categoryID: string; error: false } | { error: true }
+	| { gameID: string; categoryID: string; error: false; category: Category }
+	| { error: true }
 > {
 	if (!info.db) {
 		await info.error(messages.failure.command_cannot_be_used_in_pms(info));
@@ -125,10 +166,12 @@ async function getGameAndCategory(
 	let { gameID, categoryID } = defaultGameCategory;
 	gameID = gameID;
 
+	let category: Category;
+
 	if (categoryName) {
 		const categories = await getCategoriesFromGameID(gameID);
 
-		const categoryFilter = categories.items.filter((cat: any) =>
+		const categoryFilter = categories.data.filter(cat =>
 			compareCatName(cat.name, categoryName),
 		);
 		if (categoryFilter.length <= 0) {
@@ -136,16 +179,92 @@ async function getGameAndCategory(
 				messages.speedrun.invalid_category_name(
 					info,
 					categoryName,
-					categories.items.map((cat: any) => cat.name),
+					categories.data.map(cat => cat.name),
 				),
 			);
 			return { error: true };
 		} // TODO return as a mb fields[categoryname,url,name,url...]
 		categoryID = categoryFilter[0].id;
+		category = categoryFilter[0];
+	} else {
+		category = (
+			await getURL`https://www.speedrun.com/api/v1/categories/${categoryID}`
+		).data;
 	}
 
-	return { gameID, categoryID, error: false };
+	return { gameID, categoryID, category, error: false };
 }
+
+type Run = {
+	place: number;
+	run: {
+		id: string;
+		weblink: string;
+		game: string;
+		level?: unknown;
+		category: string;
+		videos: { links: { uri: string }[] };
+		comment: string;
+		status: {
+			status: "verified" | unknown;
+			examiner: string;
+			"verify-date": string;
+		};
+		players: { rel: string; id: string; uri: string }[];
+		date: string;
+		times: {
+			primary: string;
+			primary_t: number;
+			realtime?: string;
+			realtime_t?: number;
+			realtime_noloads?: string;
+			realtime_noloads_number?: number;
+			ingame?: string;
+			ingame_t?: number;
+		};
+		system: { platform: string; emulated: boolean; region?: unknown };
+		splits?: unknown;
+		values: {};
+	};
+};
+
+type GameData = {
+	weblink: string;
+	level?: unknown;
+	platform?: unknown;
+	region?: unknown;
+	emulators?: unknown;
+	"video-only": boolean;
+	timing: string;
+	values: {};
+	runs: Run[];
+	links: { rel: string; uri: string }[];
+};
+
+type Player = {
+	rel: string;
+	id: string;
+	names: {
+		international: string;
+		japanese?: unknown;
+	};
+	weblink: string;
+	"name-style": unknown;
+	role: "user";
+	signup: string;
+	location?: {
+		country: {
+			code: string;
+			names: { international: string; japanese?: unknown };
+		};
+	};
+	twitch?: unknown;
+	hitbox?: unknown;
+	youtube?: { uri: string };
+	twitter?: unknown;
+	speedrunslive?: unknown;
+	links: { rel: string; uri: string }[];
+};
 
 async function displayLeaderboard(
 	position: number | string,
@@ -160,17 +279,21 @@ async function displayLeaderboard(
 
 	const place = position;
 
-	const gameData = await sr
-		.leaderboards(gameID, categoryID)
-		.embed(["category", "players", "game"])
-		.exec();
-	const actualGameData = gameData.items.game.data;
-	const getPlayer = (player: any) =>
-		gameData.items.players.data.filter((pl: any) => pl.id === player)[0];
+	const gameData: {
+		data: GameData & {
+			category: { data: Category };
+			game: { data: Game };
+			players: { data: Player[] };
+		};
+	} = await getURL`https://www.speedrun.com/api/v1/leaderboards/${gameID}/category/${categoryID}?embed=category,players,game`;
+
+	const actualGameData = gameData.data.game.data;
+	const getPlayer = (player: string) =>
+		gameData.data.players.data.filter(pl => pl.id === player)[0];
 	const runs =
 		typeof position === "string"
-			? gameData.items.runs.filter(
-					(run: any) =>
+			? gameData.data.runs.filter(
+					run =>
 						run.run.players &&
 						run.run.players[0] &&
 						getPlayer(
@@ -178,7 +301,7 @@ async function displayLeaderboard(
 						)?.names?.international?.toLowerCase() ===
 							position.toLowerCase(),
 			  )
-			: gameData.items.runs.filter((run: any) => run.place === place); // TODO run.place === place and have place just get the person in nth place // why isn't this .find()
+			: gameData.data.runs.filter((run: any) => run.place === place); // TODO run.place === place and have place just get the person in nth place // why isn't this .find()
 	const run_ = runs[0];
 	if (!run_) {
 		if (typeof position === "string")
@@ -203,13 +326,13 @@ async function displayLeaderboard(
 	const runPlayer = getPlayer(run.players[0].id);
 	mb.setAuthor(
 		runPlayer.names.international,
-		`https://www.speedrun.com/images/flags/${(runPlayer.location &&
-			runPlayer.location.country &&
-			runPlayer.location.country.code) as string}.png`,
+		runPlayer.location
+			? `https://www.speedrun.com/images/flags/${runPlayer.location.country.code}.png`
+			: undefined,
 		runPlayer.weblink,
 	);
-	mb.description.tag`[${gameData.items.category.data.name}](`;
-	mb.description.putRaw(gameData.items.category.data.weblink);
+	mb.description.tag`[${gameData.data.category.data.name}](`;
+	mb.description.putRaw(gameData.data.category.data.weblink);
 	mb.description.tag`)
 	${run.comment || "No comment"}
 	`;
@@ -301,17 +424,12 @@ nr.globalCommand(
 
 		const gac = await getGameAndCategory(categoryName, info);
 		if (gac.error) return;
-		const { gameID, categoryID } = gac;
-
-		const gameData = await sr
-			.leaderboards(gameID, categoryID)
-			.embed(["category"])
-			.exec();
+		const { gameID, categoryID, category } = gac;
 
 		const mb = MB();
-		mb.url.putRaw(gameData.items.category.data.weblink);
-		mb.title.put(gameData.items.category.data.name);
-		mb.description.put(gameData.items.category.data.rules);
+		mb.url.putRaw(category.weblink);
+		mb.title.put(category.name);
+		mb.description.put(category.rules);
 		mb.footer.tag`Took ${`${ctime() - startTime}`} ms`;
 
 		if (info.myChannelPerms!.has("EMBED_LINKS")) {
@@ -400,14 +518,14 @@ nr.globalCommand(
 		// get the provided category
 		const gameID = game.id;
 		const categories = game.categories.data;
-		const category = categories.find((category: any) =>
+		const category = categories.find(category =>
 			compareCatName(category.name, categoryName),
 		);
 		if (!category) {
 			return await info.error(
 				new TextBuilder()
 					.tag`The category \`${categoryName}\` is not in the game.
-	Valid categories: ${categories.map((cat: any) => cat.name).join`, `}`.build(),
+	Valid categories: ${categories.map(cat => cat.name).join(`, `)}`.build(),
 				undefined,
 			);
 		}

@@ -507,9 +507,9 @@ ${info.prefix}space channels disable
 			categoryName: string,
 			categoryNames: string[],
 		) =>
-			safe`The category ${categoryName} is not on the selected game. Valid categories are: ${categoryNames
-				.map(cn => cn + "%")
-				.join(", ")}.
+			safe`The category ${categoryName} is not on the selected game. Valid categories are: ${categoryNames.join(
+				", ",
+			)}.
 > More Info: <https://interpunct.info/speedrun>`,
 		no_wr_found: (info: Info) => `No world record found.
 > More Info: <https://interpunct.info/speedrun>`,
