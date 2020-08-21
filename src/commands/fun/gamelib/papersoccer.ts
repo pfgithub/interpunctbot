@@ -1,123 +1,13 @@
-
-export type GamelibBoard<TileData> = {
-	get(x: number, y: number): TileData | undefined;
-	set( // or mutate tile
-		x: number,
-		y: number,
-		tile: TileData,
-	): void;
-	fill(tile: (tile: TileData, x: number, y: number) => TileData): void;
-	render(draw: (tile: TileData, x: number, y: number) => string): string;
-	megarender(
-		w: number,
-		h: number,
-		draw: (tile: TileData, x: number, y: number) => string[],
-	): string[][][];
-	forEach(cb: (tile: TileData, x: number, y: number) => void): void;
-	filter(
-		compare: (tile: TileData, x: number, y: number) => boolean,
-	): { tile: TileData; x: number; y: number }[];
-	search(
-		startingPosition: Pos,
-		cb: (
-			tile: TileData,
-			x: number,
-			y: number,
-		) => Pos | "current" | "previous",
-	): { x: number; y: number; distance: number } | undefined;
-};
-export type Pos = [number, number];
-// this should just be a class instead of this function thing
-export function newGamelibBoard<TileData>(
-	w: number,
-	h: number,
-	fill: (x: number, y: number) => TileData, // to make copies, x and y are unnecessary but why not
-): GamelibBoard<TileData> {
-	const tiles: TileData[][] = [];
-	for (let y = 0; y < h; y++) {
-		tiles[y] = [];
-		for (let x = 0; x < w; x++) {
-			tiles[y][x] = fill(x, y);
-		}
-	}
-
-	const board: GamelibBoard<TileData> = {
-		// returns undefined when out of map
-		get(x, y) {
-			return tiles[y]?.[x];
-		},
-		set(x, y, tile) {
-			tiles[y][x] = tile;
-		},
-		fill(tile) {
-			board.forEach((tilec, x, y) => {
-				board.set(x, y, tile(tilec, x, y));
-			});
-		},
-		render(draw) {
-			return tiles
-				.map((row, y) =>
-					row.map((tile, x) => draw(tile, x, y)).join(""),
-				)
-				.join("\n");
-		},
-		megarender(_w, h, draw) {
-			const res: string[][][] = [];
-			tiles.forEach((row, y) => {
-				const rly: string[][] = new Array(h).fill(0).map(() => []);
-				res.push(rly);
-				row.forEach((tile, x) => {
-					const drawn = draw(tile, x, y);
-					drawn.forEach((line, i) => {
-						const ty = i;
-						rly[ty].push(line);
-					});
-				});
-			});
-			return res;
-		},
-		forEach(cb) {
-			for (let y = 0; y < h; y++) {
-				for (let x = 0; x < w; x++) {
-					cb(board.get(x, y)!, x, y);
-				}
-			}
-		},
-		filter(filtration) {
-			const results: { tile: TileData; x: number; y: number }[] = [];
-			board.forEach((tile, x, y) => {
-				if (filtration(tile, x, y)) results.push({ tile, x, y });
-			});
-			return results;
-		},
-		search(startingPosition, cb) {
-			let [cx, cy] = startingPosition;
-			let [x, y] = startingPosition;
-			let i = 0;
-			while (true) {
-				if (i > 1000)
-					throw new Error("Potentially infinite find!:(passed 1000)");
-				const result = // in zig this could be a normal if statement instead of a ternary thing. that is the obvious way to do it, why doesn't every language do it that way
-					cx >= w || cx < 0 || cy >= h || cy < 0
-						? "previous" // search will now automatically fail when off board
-						: cb(tiles[cy][cx], cx, cy);
-				if (result === "previous")
-					if (i === 0) return undefined;
-					else return { x, y, distance: i };
-				[x, y] = [cx, cy];
-				i++;
-				if (result === "current") return { x, y, distance: i };
-				[cx, cy] = result;
-			}
-		},
-	};
-
-	return board;
-}
-
+import {
+	newBoard as newGamelibBoard,
+	Player,
+	newGame,
+	MoveSet,
+	unit,
+} from "./gamelib";
 import * as fs from "fs";
 
-const emojis = JSON.parse(fs.readFileSync("config/emojis.json", "utf-8"));
+const emojis = JSON.parse(fs.readFileSync("config/emojis/papersoccer.json", "utf-8"));
 
 //
 
@@ -176,8 +66,9 @@ type DisplayTile = {
 	diagonur: boolean;
 	ball: BallPosition;
 } | undefined;
-function displayBoard(board: Board, ball: [number, number], player: string) {
-	const glboard = newGamelibBoard<DisplayTile>(10, 14, (x, y) => {
+function displayBoard(board: Board, ball: [number, number], winner: boolean, player: string) {
+	const glboard = newGamelibBoard<DisplayTile>(8, 12, (rvx, rvy) => {
+		const [x, y] = [rvx + 1, rvy + 1];
 		if(!inBoard(x, y) || !inBoard(x+1, y) || !inBoard(x, y+1) || !inBoard(x+1, y+1)) return undefined;
 		const ul = board.points[xyToPtIndex(x, y)];
 		const bl = board.points[xyToPtIndex(x, y+1)];
@@ -205,12 +96,10 @@ function displayBoard(board: Board, ball: [number, number], player: string) {
 		if(!match) throw new Error("Bad tile match "+JSON.stringify(mode));
 		return match;
 	}).split("\n");
-	res.shift();
-	res.pop();
 	for(const line of [0, res.length - 1]) {
 		res[line] = res[line].substr(0, res[line].length - 3);
 	}
-	return "<@"+player+">:\n\n" + res.join("\n");
+	return (winner ? "<@"+player+"> won!" : "<@"+player+">'s turn:") + "\n\n" + res.join("\n");
 }
 
 function initBoard(): Board {
@@ -258,4 +147,130 @@ function initBoard(): Board {
 	return res;
 }
 
-console.log(displayBoard(initBoard(), [5, 7], "341076015663153153"));
+// console.log(displayBoard(initBoard(), [5, 7], "341076015663153153"));
+
+const buttonReactions: {[key in Direction]: string} = {
+	"aa": "↖️",
+	"ba": "⬆️",
+	"ca": "↗️",
+	"cb": "➡️",
+	"cc": "↘️",
+	"bc": "⬇️",
+	"ac": "↙️",
+	"ab": "⬅️",
+};
+
+type GameState = {
+	board: Board;
+	players: Player[];
+	turn: number;
+	ball: [number, number];
+	winner?: Player;
+};
+
+function availableConnections(state: GameState, x: number, y: number): "none" | "some" | "all" {
+	let connections = 0;
+	let maxConnections = 0;
+	
+	const point = state.board.points[xyToPtIndex(x, y)];
+	for(const conxn of Object.values(point.connections)) {
+		if(conxn) {
+			maxConnections += 1;
+			if(!state.board.connections[conxn.active])
+				connections += 1;
+		}
+	}
+	console.log(connections, maxConnections)
+	if(connections === maxConnections) return "all";
+	if(connections === 1) return "none";
+	return "some";
+}
+
+export const papersoccer = newGame<GameState>({
+	title: "Paper Soccer",
+	help: "/help/fun/papersoccer",
+	setup(players) {
+		return {
+			board: initBoard(),
+			turn: 0,
+			players,
+			ball: [5, 7],
+		}
+	},
+	getMoves(state) {
+		const resMoves: MoveSet<GameState> = [];
+		const index = xyToPtIndex(...state.ball);
+		const point = state.board.points[index];
+		
+		for(const [dir, conxn] of Object.entries(point.connections) as [Direction, Connection][]) {
+			if(!conxn) continue;
+			if(state.board.connections[conxn.active]) continue;
+			resMoves.push({
+				button: buttonReactions[dir],
+				player: state.players[state.turn],
+				apply: state => {
+					const [ofstx, ofsty] = directionToDiff(dir);
+					state.ball[0] += ofstx;
+					state.ball[1] += ofsty;
+					const conxnCnt = availableConnections(state, ...state.ball);
+					state.board.connections[conxn.active] = true;
+					if(state.ball[1] === 1) {
+						// p0 wins
+						state.turn = 0;
+						state.winner = state.players[state.turn];
+					} else if(state.ball[1] === 13) {
+						// p1 wins
+						state.turn = 1;
+						state.winner = state.players[state.turn];
+					} else if(conxnCnt === "all") {
+						// next turn
+						state.turn += 1;
+						state.turn %= state.players.length;
+					}else if(conxnCnt === "none") {
+						// other player wins
+						state.turn += 1;
+						state.turn %= state.players.length;
+						state.winner = state.players[state.turn];
+					}else{
+						// current player goes again
+					}
+					return state;
+				},
+			});
+		}
+		
+		return resMoves;
+	},
+	renderSetup() {
+		return [{type: "once", actions: []}, { type: "once", actions: Object.values(buttonReactions) }];
+	},
+	checkGameOver(state) {
+		return !!state.winner;
+	},
+	render(state) {
+		return [
+			"== **Paper Soccer** ==\n"+
+			"⬆️<@"+state.players[0].id+">, you win by getting the ball to the **top** of the screen.\n"+
+			"⬇️<@"+state.players[1].id+">, you win by getting the ball to the **bottom** of the screen.",
+			displayBoard(state.board, state.ball, !!state.winner, (state.winner || state.players[state.turn]).id),
+		];
+	},
+	timers: [
+		{
+			time: unit(30, "sec"),
+			message: state => {
+				const currentplayer = state.players[state.turn];
+				return `<@${currentplayer.id}>, it's your turn. 30s left.`;
+			},
+		},
+		{
+			time: unit(60, "sec"),
+			update: state => {
+				state.turn += 1;
+				state.turn %= state.players.length;
+				state.winner = state.players[state.turn];
+				return state;
+			},
+		},
+	],
+});

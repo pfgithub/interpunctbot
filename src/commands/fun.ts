@@ -30,6 +30,7 @@ Fun commands are enabled by default.
 {Heading|Games}
 {CmdSummary|connect4}
 {CmdSummary|minesweeper}
+{CmdSummary|papersoccer}
 {CmdSummary|ultimate tictactoe}
 {CmdSummary|circlegame}
 {CmdSummary|tictactoe}
@@ -44,7 +45,9 @@ Fun commands are enabled by default.
 {CmdSummary|vote}
 {CmdSummary|stats}
 {CmdSummary|timer}
-{CmdSummary|members}
+{CmdSummary|timer}
+{CmdSummary|sendmsg}
+{CmdSummary|editmsg}
 {CmdSummary|remindme}
 {CmdSummary|inspirobot}
 {CmdSummary|bubblewrap}
@@ -782,7 +785,7 @@ nr.globalCommand(
 	"/help/sendmsg",
 	"sendmsg",
 	{
-		usage: "sendmsg {Required|sendmsg code}",
+		usage: "sendmsg",
 		description: "{Link|https://pfg.pw/sitepages/messagecreator}",
 		examples: [],
 	},

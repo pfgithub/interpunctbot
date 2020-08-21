@@ -128,7 +128,8 @@ async function createPaperSoccer(_cwd: string): Promise<ProjectResult[]> {
 	if(!cwd.endsWith("/interpunctbot")) throw new Error("Wrong cwd!");
 	
 	const allEmojis: ProjectResult[] = [];
-	allEmojis.push(...await createPaperSoccer(cwd));
+	// paper soccer is now locked in and will not be changed in the future.
+	if(false as true) allEmojis.push(...await createPaperSoccer(cwd));
 	
 	const requiredServerCount = Math.ceil(allEmojis.length / 50);
 	

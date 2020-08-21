@@ -4,6 +4,7 @@ import { circlegame } from "./gamelib/circlegame";
 import { tictactoe } from "./gamelib/tictactoe";
 import { ultimatetictactoe } from "./gamelib/ultimatetictactoe";
 import { checkers } from "./gamelib/checkers";
+import { papersoccer } from "./gamelib/papersoccer";
 
 nr.globalCommand(
 	"/help/fun/connect4",
@@ -133,3 +134,31 @@ nr.globalAlias("ultimatetictactoe", "ultimate knots and crosses");
 nr.globalAlias("ultimatetictactoe", "big knotsandcrosses");
 nr.globalAlias("ultimatetictactoe", "bigknotsandcrosses");
 nr.globalAlias("ultimatetictactoe", "big knots and crosses");
+
+nr.globalCommand(
+	"/help/fun/papersoccer",
+	"papersoccer",
+	{
+		usage: "papersoccer",
+		description:
+			"Play a game of paper soccer. {Interpunct} requires permission to manage reactions to run games best.",
+		extendedDescription: `To play paper soccer, try to get the ball into the opponent's goal.
+You cannot move in a line that has already been drawn.
+If you move somewhere that already has lines going from it, you get to move again.
+
+Alternative spellings are accepted, including {Command|paper football}`,
+		examples: [
+			{
+				in: "papersoccer",
+				out: "{Screenshot|https://i.imgur.com/Hp6D9hx.png}",
+			},
+		],
+	},
+	nr.passthroughArgs,
+	papersoccer,
+);
+nr.globalAlias("papersoccer", "paper soccer");
+nr.globalAlias("papersoccer", "paper football");
+nr.globalAlias("papersoccer", "paperfootball");
+nr.globalAlias("papersoccer", "soccer");
+nr.globalAlias("papersoccer", "football");
