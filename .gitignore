@@ -12,3 +12,6 @@ dist
 docs
 .DS_Store
 .restarting
+
+assets/*/inter
+assets/*/res
