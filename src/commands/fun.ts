@@ -789,6 +789,7 @@ nr.globalCommand(
 	nr.list(...nr.a.words()),
 	async ([wrds], info) => {
 		if (!Info.theirPerm.manageMessages(info)) return;
+		if(!wrds) return await info.result("Create your message at <https://pfg.pw/sitepages/messagecreator>.");
 		const msgval = await getMsgFrom(info, wrds, "c", "R", "/help/sendmsg"); // zig: getMsgFrom(wrds) orelse return (or more likely, catch |err| return reportMsgFromErr(err))
 		if (!msgval) return;
 		await info.channel.send(msgval, { ...msgopts, split: true });
