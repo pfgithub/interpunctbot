@@ -150,7 +150,7 @@ Alternative spellings are accepted, including {Command|paper football}`,
 		examples: [
 			{
 				in: "papersoccer",
-				out: "{Screenshot|https://i.imgur.com/Hp6D9hx.png}",
+				out: "{Screenshot|https://i.imgur.com/FNnudZ6.png}",
 			},
 		],
 	},
