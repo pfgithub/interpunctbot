@@ -113,7 +113,7 @@ For better instructions, read {Link|https://mathwithbaddrawings.com/2013/06/16/u
 		examples: [
 			{
 				in: "ultimate tictactoe",
-				out: "{Screenshot|https://i.imgur.com/eqODbw0.png}",
+				out: "{Screenshot|https://i.imgur.com/SsjvYYm.png}",
 			},
 		],
 	},

@@ -11,7 +11,7 @@ type State = {
 };
 
 const tileset = newTileset({
-	normal: "<:Circle:649845888377815061>",
+	normal: "🟣",
 	selected: [
 		"<:Reaction1:649845887551668237>",
 		"<:Reaction2:649845886943363102>",
@@ -20,7 +20,8 @@ const tileset = newTileset({
 		"<:Reaction5:649845885832003585>",
 	],
 	numbers: ["1️⃣", "2⃣", "3⃣", "4⃣", "5⃣"],
-	noNumber: "0⃣",
+	noNumber: "🟦",
+	backbtn: "↩️",
 });
 
 export const circlegame = newGame<State>({
@@ -59,8 +60,8 @@ export const circlegame = newGame<State>({
 				})
 				.filter(q => q)
 				.map(q => q!);
-		if (state.mode === "count")
-			return [1, 2, 3, 4, 5]
+		if (state.mode === "count") {
+			const res = [1, 2, 3, 4, 5]
 				.map((toRemove): Move<State> | undefined => {
 					const remaining = state.rows[state.selectedIndex];
 					if (toRemove > remaining) return undefined;
@@ -82,10 +83,25 @@ export const circlegame = newGame<State>({
 				})
 				.filter(q => q)
 				.map(q => q!);
+			res.push({
+				button: tileset.tiles.backbtn,
+				player: state.players[state.turnIndex],
+				apply: state => {
+					state.mode = "row";
+					return state;
+				},
+			});
+			return res;
+		}
 		return []; // never
 	},
 	renderSetup() {
-		return [{ type: "once", actions: tileset.tiles.numbers }];
+		return [
+			{
+				type: "once",
+				actions: [tileset.tiles.backbtn, ...tileset.tiles.numbers],
+			},
+		];
 	},
 	render(state) {
 		// prettier-ignore
@@ -116,6 +132,7 @@ export const circlegame = newGame<State>({
 				board +
 				"\n=============" +
 				"\n" +
+				"Try to be the last player to take a circle.\n" +
 				status,
 		];
 	},

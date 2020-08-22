@@ -144,7 +144,7 @@ ${statusbar}
 ${tileset.tiles.laneHeadings.join("")}
 ${renderedBoard}
 ==============
-`,
+Try to get 4 in a row in any direction, including diagonal.`,
 		];
 	},
 	timers: [
