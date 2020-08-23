@@ -12,13 +12,7 @@ type State = {
 
 const tileset = newTileset({
 	normal: "🟣",
-	selected: [
-		"<:Reaction1:649845887551668237>",
-		"<:Reaction2:649845886943363102>",
-		"<:Reaction3:649845885835935747>",
-		"<:Reaction4:649845883826995210>",
-		"<:Reaction5:649845885832003585>",
-	],
+	selected: ["1️⃣", "2⃣", "3⃣", "4⃣", "5⃣"],
 	numbers: ["1️⃣", "2⃣", "3⃣", "4⃣", "5⃣"],
 	noNumber: "🟦",
 	backbtn: "↩️",

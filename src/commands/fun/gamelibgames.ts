@@ -44,7 +44,7 @@ nr.globalCommand(
 		],
 	},
 	nr.passthroughArgs,
-	connect4,
+	checkers,
 );
 
 nr.globalCommand(

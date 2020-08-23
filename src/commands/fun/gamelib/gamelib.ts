@@ -127,11 +127,9 @@ export const newGame = <State>(conf: GameConfig<State>) => async (
 	const gameOverListener = oneway<boolean>();
 	let gameOver = false;
 
-	const players = await getTwoPlayers(
-		[info.message.author.id],
-		conf.title,
-		info,
-	);
+	const players = DO_TEST_MODE
+		? [info.message.author.id, info.message.author.id]
+		: await getTwoPlayers([info.message.author.id], conf.title, info);
 	if (!players) return;
 
 	let state = conf.setup(
