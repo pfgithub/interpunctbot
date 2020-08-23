@@ -35,11 +35,11 @@ nr.globalCommand(
 		description:
 			"Play a game of checkers. {Interpunct} requires permission to manage reactions to run games best.",
 		extendedDescription:
-			"To play checkers, try to take all your opponents' pieces. For more help, look up the rules online, checkers has a lot of rules.",
+			"To play checkers, try to take all your opponents' pieces. For more help, look up the rules online. {Link|http://www.darkfish.com/checkers/rules.html}",
 		examples: [
 			{
 				in: "checkers",
-				out: "…TODO put an example of what checkers looks like here",
+				out: "{Screenshot|https://i.imgur.com/Nx3tVMB.png}",
 			},
 		],
 	},

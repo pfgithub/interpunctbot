@@ -32,9 +32,9 @@ Fun commands are enabled by default.
 {CmdSummary|minesweeper}
 {CmdSummary|papersoccer}
 {CmdSummary|ultimate tictactoe}
+{CmdSummary|checkers}
 {CmdSummary|circlegame}
 {CmdSummary|tictactoe}
-- Coming Soon™: {Command|checkers}
 {CmdSummary|randomword}
 {CmdSummary|trivia}
 {CmdSummary|needle}

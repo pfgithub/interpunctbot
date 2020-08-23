@@ -18,7 +18,7 @@ type Piece = {
 		  }
 		| { type: "selpiece" }
 		| { type: "select" }
-		| { type: "ghost"; color: Color };
+		| { type: "ghost" };
 };
 
 type Checkers = {
@@ -292,6 +292,17 @@ function updateOverlay(state: Checkers) {
 				type: "move",
 				direction: directionToDirectionString(moveDir.direction),
 			};
+
+			if (moveDir.take) {
+				const takepce = state.board.get(...moveDir.take);
+				if (!takepce || !takepce.piece) throw new Error("bad takepce");
+				takepce.overlay = { type: "ghost" };
+			}
+
+			const selxtdpc = state.board.get(...moveDir.from);
+			if (!selxtdpc || !selxtdpc.piece)
+				throw new Error("bad movedir current");
+			selxtdpc.overlay = { type: "selpiece" };
 		}
 	}
 }
@@ -420,7 +431,7 @@ function assertNever(a: never): never {
 }
 
 export const checkers = g.newGame<Checkers>({
-	title: "checkers",
+	title: "Checkers",
 	help: "/help/fun/checkers",
 	setup(players) {
 		const u___ = {};
@@ -497,7 +508,7 @@ export const checkers = g.newGame<Checkers>({
 				if (tile.overlay.type === "selpiece")
 					return tileset.tiles[tile.piece!.color].selected;
 				if (tile.overlay.type === "ghost")
-					return tileset.tiles[tile.overlay.color].ghost;
+					return tileset.tiles[tile.piece!.color].ghost;
 				if (tile.overlay.type === "select")
 					return tileset.tiles[tile.piece!.color].pieces[
 						tile.piece!.number
@@ -515,7 +526,7 @@ export const checkers = g.newGame<Checkers>({
 		});
 
 		return [
-			`**Checkers***
+			`**Checkers**
 === ${status1} ===
 ${boardRender}
 === ${status1} ===`,
