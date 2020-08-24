@@ -561,6 +561,7 @@ ${boardRender}
 					reason: "Time out.",
 					winner: currentplayer,
 				};
+				updateOverlay(state);
 				return state;
 			},
 		},
