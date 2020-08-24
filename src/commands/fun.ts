@@ -13,7 +13,6 @@ import { createTimer } from "./fun/helpers";
 import "./fun/trivia";
 import "./fun/spyfall";
 import { getGuilds, getMembers } from "../ShardHelper";
-import { restrictTextToPerms } from "./customcommands";
 import * as fsync from "fs";
 import fetch from "node-fetch";
 
@@ -235,20 +234,14 @@ nr.globalCommand(
 		examples: [],
 	},
 	nr.list(...nr.a.words()),
-	async ([finalresunsafe], info) => {
+	async ([finalressafe], info) => {
 		if (info.db ? !(await info.db.getFunEnabled()) : false) {
 			return await info.error(messages.fun.fun_disabled(info));
 		}
 
-		const finalressafe = await restrictTextToPerms(
-			info.message.member!,
-			finalresunsafe,
-			info,
-		);
-
 		const prefix =
 			"<@" + info.message.author.id + ">, <a:loading:682804438783492139>";
-		const msg = await info.channel.send(prefix);
+		const msg = await info.channel.send(prefix, msgopts);
 		info.message.delete().catch(() => {});
 		await ms(3000);
 		await msg.edit(prefix + " Just one moment...");
@@ -265,6 +258,7 @@ nr.globalCommand(
 				(messages.emoji.success + " " + finalressafe.trim() ||
 					messages.emoji.failure +
 						" Huh, it seems something went wrong."),
+			msgopts as discord.MessageEditOptions
 		);
 	},
 );
@@ -991,18 +985,12 @@ nr.globalCommand(
 		],
 	},
 	nr.passthroughArgs,
-	async ([unsafemessage], info) => {
+	async ([message], info) => {
 		if (info.db ? !(await info.db.getFunEnabled()) : false) {
 			return await info.error(messages.fun.fun_disabled(info));
 		}
 
-		const safemessage = await restrictTextToPerms(
-			info.message.member!,
-			unsafemessage,
-			info,
-		);
-
-		const msg = await info.channel.send("VOTE: " + safemessage);
+		const msg = await info.channel.send("VOTE: " + message, msgopts);
 		await Promise.all([msg.react("👍"), msg.react("👎")]);
 
 		let endhandler: () => void = () => {
@@ -1021,7 +1009,7 @@ nr.globalCommand(
 			const voteCount = upvotes - downvotes;
 			const content =
 				"VOTE: " +
-				safemessage +
+				message +
 				" (Votes: " +
 				(voteCount > 0 ? "+" : "") +
 				voteCount.toLocaleString("en-US") +
@@ -1037,7 +1025,7 @@ nr.globalCommand(
 					: "No Votes") +
 				(over ? ", Voting ended." : "") +
 				")";
-			if (msg.content !== content) await msg.edit(content);
+			if (msg.content !== content) await msg.edit(content, msgopts as discord.MessageEditOptions);
 		}
 		const msgEditInterval = setEditInterval(async () => {
 			await editMessage();
