@@ -570,11 +570,7 @@ export function handleReactions(
 ) {
 	const reactionCollector = new Discord.ReactionCollector(
 		msg,
-		(rxn, usr) => {
-			// collectorfilter seems to need some updates in the type declarations
-			// return filter ? filter(rxn, usr) : true;
-			return true;
-		},
+		() => true, // the filter doesn't actually eg prevent reactions from going to the standard onReactionAdd handler so it's pointless
 		{},
 	);
 	let errCb: (error: Error) => void = (error: Error) => {

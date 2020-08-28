@@ -124,7 +124,7 @@ nr.globalCommand(
 			const progressPerdeci = Math.floor(
 				(deletedCount / toSlowDelete.size) * 10,
 			);
-			await ilt(
+			const iltres = await ilt(
 				progressMessage.edit(
 					`Deleting messages... [\`${"X".repeat(progressPerdeci) +
 						" ".repeat(
@@ -133,6 +133,7 @@ nr.globalCommand(
 				),
 				"purge messages progress bar",
 			);
+			if (iltres.error) return; // nope stop
 			updateProgressInterval = startUpdateThing();
 		};
 		const startUpdateThing = () =>
