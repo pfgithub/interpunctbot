@@ -81,7 +81,6 @@ nr.globalCommand(
 	nr.list(nr.a.number()),
 	async ([messageLimit], info) => {
 		if (!Info.theirPerm.manageMessages(info)) return;
-		Info.ourPerm.manageMessages;
 		if (!info.guild || !info.db) {
 			return await info.error(
 				messages.failure.command_cannot_be_used_in_pms(info),
@@ -596,7 +595,7 @@ nr.globalCommand(
 		if (!info.db) {
 			return await info.docs("/errors/pms", "error");
 		}
-		if (!Info.theirPerm.manageBot(info)) return;
+		if (!await Info.theirPerm.manageBot(info)) return;
 		const theyCanMention = info.message.member!.hasPermission(
 			"MENTION_EVERYONE",
 		);
@@ -650,7 +649,7 @@ nr.globalCommand(
 		if (!info.db) {
 			return await info.docs("/errors/pms", "error");
 		}
-		if (!Info.theirPerm.manageBot(info)) return;
+		if (!await Info.theirPerm.manageBot(info)) return;
 
 		const events = await info.db.getEvents();
 		events.userJoin = {
@@ -675,7 +674,7 @@ nr.globalCommand(
 		if (!info.db) {
 			return await info.docs("/errors/pms", "error");
 		}
-		if (!Info.theirPerm.manageBot(info)) return;
+		if (!await Info.theirPerm.manageBot(info)) return;
 
 		const events = await info.db.getEvents();
 		events.userLeave = {
@@ -709,7 +708,7 @@ nr.globalCommand(
 		if (!info.db) {
 			return await info.docs("/errors/pms", "error");
 		}
-		if (!Info.theirPerm.manageBot(info)) return;
+		if (!await Info.theirPerm.manageBot(info)) return;
 		const theyCanMention = info.message.member!.hasPermission(
 			"MENTION_EVERYONE",
 		);
@@ -796,7 +795,7 @@ nr.globalCommand(
 		if (!info.db) {
 			return await info.docs("/errors/pms", "error");
 		}
-		if (!Info.theirPerm.manageBot(info)) return;
+		if (!await Info.theirPerm.manageBot(info)) return;
 		const theyCanMention = info.message.member!.hasPermission(
 			"MENTION_EVERYONE",
 		);
