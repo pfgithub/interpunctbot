@@ -596,7 +596,7 @@ nr.globalCommand(
 		if (!info.db) {
 			return await info.docs("/errors/pms", "error");
 		}
-		if (!Info.theirPerm.manageBot) return;
+		if (!Info.theirPerm.manageBot(info)) return;
 		const theyCanMention = info.message.member!.hasPermission(
 			"MENTION_EVERYONE",
 		);
@@ -650,7 +650,7 @@ nr.globalCommand(
 		if (!info.db) {
 			return await info.docs("/errors/pms", "error");
 		}
-		if (!Info.theirPerm.manageBot) return;
+		if (!Info.theirPerm.manageBot(info)) return;
 
 		const events = await info.db.getEvents();
 		events.userJoin = {
@@ -675,7 +675,7 @@ nr.globalCommand(
 		if (!info.db) {
 			return await info.docs("/errors/pms", "error");
 		}
-		if (!Info.theirPerm.manageBot) return;
+		if (!Info.theirPerm.manageBot(info)) return;
 
 		const events = await info.db.getEvents();
 		events.userLeave = {
@@ -709,7 +709,7 @@ nr.globalCommand(
 		if (!info.db) {
 			return await info.docs("/errors/pms", "error");
 		}
-		if (!Info.theirPerm.manageBot) return;
+		if (!Info.theirPerm.manageBot(info)) return;
 		const theyCanMention = info.message.member!.hasPermission(
 			"MENTION_EVERYONE",
 		);
@@ -796,7 +796,7 @@ nr.globalCommand(
 		if (!info.db) {
 			return await info.docs("/errors/pms", "error");
 		}
-		if (!Info.theirPerm.manageBot) return;
+		if (!Info.theirPerm.manageBot(info)) return;
 		const theyCanMention = info.message.member!.hasPermission(
 			"MENTION_EVERYONE",
 		);
