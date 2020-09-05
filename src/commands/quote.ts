@@ -279,8 +279,9 @@ nr.globalCommand(
 		usage:
 			"lists add {Required|listname} {Required|https://pastebin.com/url}",
 		description: "Add custom command list.",
-		extendedDescription:
-			"Example list: {Link|https://pastebin.com/NFuKYjUN}",
+		extendedDescription: `Example list: {Link|https://pastebin.com/NFuKYjUN}
+
+Each quote should be separated by two lines (quote, blank line, quote). If you want to attribute the quote, put a -. For example: "Mathematics is written for mathematicians." - Nicolaus Copernicus`,
 		examples: [
 			{
 				in: "lists add motivation {Link|https://pastebin.com/NFuKYjUN}",
