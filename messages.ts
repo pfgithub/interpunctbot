@@ -616,7 +616,7 @@ Try it out with \`${info.prefix}${listName}\``,
 					: messageLimit < 1
 					? `Message limit must be positive.`
 					: messageLimit > 100
-					? `Message limit must be less than 100`
+					? `Message limit must be between 1 and 100`
 					: `Message limit must be an integer.`,
 			in_progress: (info: Info, messagesToDelete: number) =>
 				`Deleting ${messagesToDelete} messages...`,
