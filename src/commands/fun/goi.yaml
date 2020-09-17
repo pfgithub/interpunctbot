@@ -35,6 +35,19 @@ emojis:
     grider: "<:Grider:691641487925968916>"
     rockroof: "<:rockroof:691655352478859294>"
     chimneyrock2: "<:chimneyrock2:691656565966766202>"
+    chimney: "<:chimney:755672811707695145>"
+    chimneydoor: "<:chimneydoor:755673712337879071>"
+    chimneyrockbackground: "<:chimneyrockbackground:755674811446984765>"
+    clamp_up: "<:clamp_up:755675618409971734>"
+    clamp_down: "<:clamp_down:755675672193662977>"
+    cfloor: "<:cfloor:755676518839091242>"
+    chimneygraybackground: "<:chimneygraybackground:755677500025208882>"
+    spaces: "   "
+    chimneytop: "<:chimneytop:755693919035195452>"
+    skyblue: "<:skyblue:755694482288148481>"
+    constructionedge: "<:constructionedge:755694803622166611>"
+    chimneytree: "<:chimneytree:755697021029056583>"
+    rocksbackground: "<:rocksbackground:755697967163244544>"
 start: tree
 levels:
     tree:
@@ -349,7 +362,7 @@ levels:
         up:
             - "*You pogo up but miss the rock*"
             - msg: "*You pogo up and grab the rock*"
-              goto: chimneyrock
+              goto: chimneygrider
               chance: 0.7
             - msg:
                   "*You pogo up and try grabbing the rock but fall back to the
@@ -359,15 +372,21 @@ levels:
         right:
             - msg: "*You go back to the rock*"
               goto: chimneystart
-    chimneyrock:
+    chimneygrider:
         text: |
-            {player} This level is not implemented yet! {player}
-            Add it yourself:
-            https://github.com/pfgithub/interpunctbot/blob/master/src/commands/fun/goi.yaml
+            {sky             }{sky   }{sky   }{sky        }
+            {sky             }{sky   }{sky   }{grider     }
+            {chimneyskiprock2}{player}{leaves}{sky        }
+            {chimneyskiprock }{chimneyrock}{leaves}{leaves}
         left:
-            - "*You go left*"
+            - msg: "*You jump off to the left and fall down to the basin.*"
+              goto: basin
         up:
-            - "*You go up*"
+            - msg: "*You try to grab the grider but fail.*"
+              chance: 0.8
+            - msg: "*You grab the grider and pull yourself up to chimney.*"
+              goto: chimney
+              chance: 0.3
         right:
             - msg: "*You go back to the start of chimney*"
               goto: chimneystart
@@ -375,3 +394,70 @@ levels:
             - msg: "*You go back down to the rock*"
               goto: chimneyplatform
               chance: 0.5
+    chimney:
+      text: |
+            {spaces}{chimneyrockbackground}{clamp_up}{spaces}{chimneygraybackground}
+            {sky}{chimney}{clamp_down}{chimneygraybackground}
+            {sky}{sky}{player}{chimneydoor}
+            {sky}{sky}{cfloor}{chimneygraybackground}
+      left:
+          - msg: "*You go back to the grider.*"
+            goto: chimneygrider
+      up:
+          - msg: "*You try to climb up the chimney but fail.*"
+            chance: 80
+          - msg: "*You climb up the chimney but accidentally jump off to the left.*"
+            goto: basin
+            chance: 5
+          - msg: "*You climb up the chimney but accidentally jump off to the left.*"
+            goto: chimneygrider
+            chance: 5
+          - msg: "*You climb up the chimney.*"
+            goto: chimneytop
+            chance: 10
+      right:
+          - "*You run into a wall.*"
+    chimneytop:
+      text: |
+            {skyblue    }{skyblue}{skyblue}{skyblue                                }
+            {skyblue    }{skyblue}{skyblue}{skyblue                                }
+            {chimneytree}{player}{skyblue        }{constructionedge                }
+            {skyblue}{chimneytop           }{rocksbackground}{chimneygraybackground}
+      left:
+          - msg: "*You jump off to the left*"
+            goto: chimneygrider
+            chance: 30
+          - msg: "*You jump off to the left*"
+            goto: basin
+            chance: 70
+      up:
+          - msg: "*You grab the rock and successfully pull yourself up*"
+            goto: constructionstart
+            chance: 90
+          - msg: "*You jump up but miss the rock.*"
+            chance: 5
+          - msg: "*You jump up but miss the rock and fall back down to the bottom of the chimney.*"
+            goto: chimney
+            chance: 5
+          - msg: "*You grab the rock but accidentally fall to the left.*"
+            goto: basin
+            chance: 1
+      right:
+          - msg: "*You grab the rock and successfully pull yourself up*"
+            goto: constructionstart
+            chance: 80
+          - msg: "*You fall back down to the bottom of the chimney.*"
+            goto: chimney
+            chance: 20
+    constructionstart:
+      text: |
+            {player} This level is not implemented yet! {player}
+            Add it yourself:
+            https://github.com/pfgithub/interpunctbot/blob/master/src/commands/fun/goi.yaml
+      left:
+          - msg: "*You go back down to chimney.*"
+            goto: chimneytop
+      up:
+          - "*You go up.*"
+      right:
+          - "*You go right.*"
