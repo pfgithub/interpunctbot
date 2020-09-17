@@ -17,3 +17,4 @@ assets/*/inter/
 assets/*/res/
 assets/*/Makefile
 assets/token
+package-lock.json
