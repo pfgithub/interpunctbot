@@ -86,6 +86,20 @@ node built
 
 and restart that to restart the bot
 
+## using the `ip!restart` command
+
+to use the restart command, you have to first add yourself as an owner
+
+in `config/config.json`, add `, "owners": ["your discord id"]`
+
+second, you need to run the bot to automatically restart
+
+bash: `while node built; do [ ]; done`
+
+fish: `while node built; end`
+
+windows: use git bash or wsl instead
+
 ## autoreloading docs
 
 run the build watcher
