@@ -319,7 +319,7 @@ async function displayLeaderboard(
 	const duration = moment.duration(run.times.primary_t, "seconds");
 	mb.title.put(
 		duration.format(
-			"y [years] M [months] w [weeks] d [days,] h[h]:mm[m]:s.SSS[s]",
+			"y [years] M [months] w [weeks] d [days,] h[h]:mm[m]:ss.SSS[s]",
 		),
 	);
 
