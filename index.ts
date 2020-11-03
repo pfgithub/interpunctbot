@@ -1004,10 +1004,10 @@ async function onReactionAdd(
 client.on("messageReactionAdd", (reaction, user) => {
 	perr(
 		(async () => {
-            console.log("Got reaction: {}, {}", reaction, user);
+			console.log("Got reaction: {}, {}", reaction, user);
 			const freaction = await reaction.fetch();
 			await onReactionAdd(freaction, user);
-    	})(),
+		})(),
 		"handle reactions",
 	);
 });
@@ -1031,7 +1031,7 @@ client.on("messageReactionAdd", (reaction, user) => {
 //});
 
 function getEmojiKey(emoji: any) {
- 	return emoji.id ? `${emoji.name}:${emoji.id}` : emoji.name;
+	return emoji.id ? `${emoji.name}:${emoji.id}` : emoji.name;
 }
 //
 // bot.on("raw", async event => {

@@ -798,7 +798,7 @@ async function sendChannelLogMayError(
 		if (lmsg.member?.partial) await lmsg.author.fetch();
 	}
 	const logtext = genLog(lastMessages);
-	const logMsg = await sendTo.send("<@" + ticketOwnerID + ">'s '", {
+	const logMsg = (await sendTo.send("<@" + ticketOwnerID + ">'s '", {
 		...msgopts,
 		files: [
 			{
@@ -806,7 +806,7 @@ async function sendChannelLogMayError(
 				attachment: Buffer.from(logtext),
 			},
 		],
-	}) as discord.Message;
+	})) as discord.Message;
 	sendTo.stopTyping();
 	const atchurl =
 		"https://interpunct.info/viewticket?page=" +
@@ -1029,7 +1029,7 @@ export async function onMessageReactionAdd(
 	usr: discord.User | discord.PartialUser,
 	db: Database,
 ): Promise<boolean> {
-    console.log("Got reaction: {}, {}", rxn, usr);
+	console.log("Got reaction: {}, {}", rxn, usr);
 
 	if (usr.bot) return false;
 	if (!rxn.message.guild) return false;

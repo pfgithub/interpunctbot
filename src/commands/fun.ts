@@ -241,7 +241,10 @@ nr.globalCommand(
 
 		const prefix =
 			"<@" + info.message.author.id + ">, <a:loading:682804438783492139>";
-		const msg = await info.channel.send(prefix, msgopts) as discord.Message;
+		const msg = (await info.channel.send(
+			prefix,
+			msgopts,
+		)) as discord.Message;
 		info.message.delete().catch(() => {});
 		await ms(3000);
 		await msg.edit(prefix + " Just one moment...");
@@ -258,7 +261,7 @@ nr.globalCommand(
 				(messages.emoji.success + " " + finalressafe.trim() ||
 					messages.emoji.failure +
 						" Huh, it seems something went wrong."),
-			msgopts as discord.MessageEditOptions
+			msgopts as discord.MessageEditOptions,
 		);
 	},
 );
@@ -584,11 +587,11 @@ nr.globalCommand(
 
 			const results: string[] = [];
 			for (const role of roles) {
-                if(info.guild.members.cache.size != info.guild.memberCount) {
-                    info.message.channel.startTyping().catch(e => {});
-                    await info.guild.members.fetch();
-                    info.message.channel.stopTyping();
-                }
+				if (info.guild.members.cache.size != info.guild.memberCount) {
+					info.message.channel.startTyping().catch(e => {});
+					await info.guild.members.fetch();
+					info.message.channel.stopTyping();
+				}
 				const rolemembers = role.members.size;
 				results.push(
 					"This server has " +
@@ -596,14 +599,13 @@ nr.globalCommand(
 						" members with the role " +
 						messages.role(role) +
 						" (" +
-						(rolemembers / info.guild.members.cache.size).toLocaleString(
-							"en-US",
-							{
-								style: "percent",
-								minimumSignificantDigits: 3,
-								maximumSignificantDigits: 3,
-							},
-						) +
+						(
+							rolemembers / info.guild.members.cache.size
+						).toLocaleString("en-US", {
+							style: "percent",
+							minimumSignificantDigits: 3,
+							maximumSignificantDigits: 3,
+						}) +
 						")",
 				);
 			}
@@ -735,7 +737,7 @@ nr.globalCommand(
 
 const msgopts: discord.MessageOptions = {
 	allowedMentions: { parse: [], roles: [], users: [] },
-    split: false,
+	split: false,
 };
 
 async function getMsgFrom(
@@ -787,13 +789,17 @@ nr.globalCommand(
 	"sendmsg",
 	{
 		usage: "sendmsg",
-		description: "Send a message from {Link|https://pfg.pw/sitepages/messagecreator}",
+		description:
+			"Send a message from {Link|https://pfg.pw/sitepages/messagecreator}",
 		examples: [],
 	},
 	nr.list(...nr.a.words()),
 	async ([wrds], info) => {
 		if (!Info.theirPerm.manageMessages(info)) return;
-		if(!wrds) return await info.result("Create your message at <https://pfg.pw/sitepages/messagecreator>.");
+		if (!wrds)
+			return await info.result(
+				"Create your message at <https://pfg.pw/sitepages/messagecreator>.",
+			);
 		const msgval = await getMsgFrom(info, wrds, "c", "R", "/help/sendmsg"); // zig: getMsgFrom(wrds) orelse return (or more likely, catch |err| return reportMsgFromErr(err))
 		if (!msgval) return;
 		await info.channel.send(msgval, { ...msgopts, split: true });
@@ -902,8 +908,7 @@ nr.globalCommand(
 	"editmsg",
 	{
 		usage: "editmsg {Required|message link}",
-		description:
-			"editmsg [link to a message from {Interpunct}].",
+		description: "editmsg [link to a message from {Interpunct}].",
 		extendedDescription:
 			"Right click / Tap and hold the message from {Interpunct} that you want to edit, and select 'Copy Message Link' to get the message link.",
 		examples: [],
@@ -996,7 +1001,10 @@ nr.globalCommand(
 			return await info.error(messages.fun.fun_disabled(info));
 		}
 
-		const msg = await info.channel.send("VOTE: " + message, msgopts) as discord.Message;
+		const msg = (await info.channel.send(
+			"VOTE: " + message,
+			msgopts,
+		)) as discord.Message;
 		await Promise.all([msg.react("👍"), msg.react("👎")]);
 
 		let endhandler: () => void = () => {
@@ -1031,7 +1039,8 @@ nr.globalCommand(
 					: "No Votes") +
 				(over ? ", Voting ended." : "") +
 				")";
-			if (msg.content !== content) await msg.edit(content, msgopts as discord.MessageEditOptions);
+			if (msg.content !== content)
+				await msg.edit(content, msgopts as discord.MessageEditOptions);
 		}
 		const msgEditInterval = setEditInterval(async () => {
 			await editMessage();
