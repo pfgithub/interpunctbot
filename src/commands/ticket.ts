@@ -806,7 +806,7 @@ async function sendChannelLogMayError(
 				attachment: Buffer.from(logtext),
 			},
 		],
-	});
+	}) as discord.Message;
 	sendTo.stopTyping();
 	const atchurl =
 		"https://interpunct.info/viewticket?page=" +
@@ -1026,9 +1026,11 @@ export async function onMessage(
 
 export async function onMessageReactionAdd(
 	rxn: discord.MessageReaction,
-	usr: discord.User,
+	usr: discord.User | discord.PartialUser,
 	db: Database,
 ): Promise<boolean> {
+    console.log("Got reaction: {}, {}", rxn, usr);
+
 	if (usr.bot) return false;
 	if (!rxn.message.guild) return false;
 
@@ -1049,12 +1051,17 @@ export async function onMessageReactionAdd(
 	}
 	if (rxn.message.id === ticketData.main.invitation.message) {
 		if (rxn.partial) await rxn.fetch();
-		await rxn.users.fetch({ limit: 4 });
-		if (rxn.users.cache.size == 1) {
-			await rxn.message.react(rxn.emoji);
-			await rxn.users.remove(usr.id);
-			return true;
-		}
+		await Promise.race([
+			(async () => {
+				await rxn.users.fetch({ limit: 4 });
+				if (rxn.users.cache.size == 1) {
+					await rxn.message.react(rxn.emoji);
+					await rxn.users.remove(usr.id);
+					return true;
+				}
+			})(),
+			new Promise(r => setTimeout(r, 1000)),
+		]);
 		await rxn.users.remove(usr.id);
 		await createTicket(usr, ctx);
 		return true;

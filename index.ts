@@ -840,13 +840,13 @@ const ignoreReactionsOnFrom: { [key: string]: true } = {};
 
 async function rankingMessageReactionAdd(
 	reaction: Discord.MessageReaction,
-	user: Discord.User,
+	user: Discord.User | Discord.PartialUser,
 	db: Database,
 ): Promise<boolean> {
 	const msg = reaction.message;
 	if (!msg.guild) return false;
 
-	const reactor = msg.guild.members.resolve(user);
+	const reactor = msg.guild.members.resolve(user.id);
 	if (!reactor) {
 		return false;
 	}
@@ -989,7 +989,7 @@ async function rankingMessageReactionAdd(
 
 async function onReactionAdd(
 	reaction: Discord.MessageReaction,
-	user: Discord.User,
+	user: Discord.User | Discord.PartialUser,
 ) {
 	// defer would be really nice here, ignoreReactionsFrom[...] = ...; defer delete ignoreReactionsFrom[...]
 
@@ -1004,17 +1004,35 @@ async function onReactionAdd(
 client.on("messageReactionAdd", (reaction, user) => {
 	perr(
 		(async () => {
+            console.log("Got reaction: {}, {}", reaction, user);
 			const freaction = await reaction.fetch();
-			const fuser = await user.fetch();
-			await onReactionAdd(freaction, fuser);
-		})(),
+			await onReactionAdd(freaction, user);
+    	})(),
 		"handle reactions",
 	);
 });
 
-// function getEmojiKey(emoji) {
-// 	return emoji.id ? `${emoji.name}:${emoji.id}` : emoji.name;
-// }
+//client.on("raw", async event => {
+//    if(event.t === "MESSAGE_REACTION_ADD") {
+//        //console.log("Got message reaction add event: {}", event);
+//        const data = event.d;
+//        const user_id = data.user_id;
+//        const message_id = data.message_id;
+//        const channel_id = data.channel_id;
+//        const channel = await client.channels.fetch(channel_id);
+//        if(!channel) return;
+//        if(!(channel instanceof Discord.TextChannel)) return;
+//        const message = await channel.messages.fetch(message_id);
+//        const emoji_key = getEmojiKey(data.emoji);
+//        const reaction = message.reactions.resolve(emoji_key);
+//
+//        console.log("Got message reaction add event: {}", reaction, user_id);
+//    }
+//});
+
+function getEmojiKey(emoji: any) {
+ 	return emoji.id ? `${emoji.name}:${emoji.id}` : emoji.name;
+}
 //
 // bot.on("raw", async event => {
 // 	if (event.t !== "MESSAGE_REACTION_ADD") {

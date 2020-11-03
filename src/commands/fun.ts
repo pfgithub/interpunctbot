@@ -241,7 +241,7 @@ nr.globalCommand(
 
 		const prefix =
 			"<@" + info.message.author.id + ">, <a:loading:682804438783492139>";
-		const msg = await info.channel.send(prefix, msgopts);
+		const msg = await info.channel.send(prefix, msgopts) as discord.Message;
 		info.message.delete().catch(() => {});
 		await ms(3000);
 		await msg.edit(prefix + " Just one moment...");
@@ -584,6 +584,11 @@ nr.globalCommand(
 
 			const results: string[] = [];
 			for (const role of roles) {
+                if(info.guild.members.cache.size != info.guild.memberCount) {
+                    info.message.channel.startTyping().catch(e => {});
+                    await info.guild.members.fetch();
+                    info.message.channel.stopTyping();
+                }
 				const rolemembers = role.members.size;
 				results.push(
 					"This server has " +
@@ -591,7 +596,7 @@ nr.globalCommand(
 						" members with the role " +
 						messages.role(role) +
 						" (" +
-						(rolemembers / info.guild.memberCount).toLocaleString(
+						(rolemembers / info.guild.members.cache.size).toLocaleString(
 							"en-US",
 							{
 								style: "percent",
@@ -730,6 +735,7 @@ nr.globalCommand(
 
 const msgopts: discord.MessageOptions = {
 	allowedMentions: { parse: [], roles: [], users: [] },
+    split: false,
 };
 
 async function getMsgFrom(
@@ -990,7 +996,7 @@ nr.globalCommand(
 			return await info.error(messages.fun.fun_disabled(info));
 		}
 
-		const msg = await info.channel.send("VOTE: " + message, msgopts);
+		const msg = await info.channel.send("VOTE: " + message, msgopts) as discord.Message;
 		await Promise.all([msg.react("👍"), msg.react("👎")]);
 
 		let endhandler: () => void = () => {
@@ -1140,6 +1146,8 @@ nr.globalCommand(
 	},
 );
 nr.globalAlias("randomword", "random word");
+nr.globalAlias("randomword", "randword");
+nr.globalAlias("randomword", "rw");
 
 nr.globalCommand(
 	"/help/fun/snek",

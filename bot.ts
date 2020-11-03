@@ -6,7 +6,7 @@ import path from "path";
 import { durationFormat } from "./src/durationFormat";
 import { initHelper } from "./src/ShardHelper";
 const client = new Discord.Client({
-	partials: ["MESSAGE", "CHANNEL", "REACTION"],
+	partials: ["USER", "MESSAGE", "CHANNEL", "GUILD_MEMBER", "REACTION"],
 });
 
 //eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
