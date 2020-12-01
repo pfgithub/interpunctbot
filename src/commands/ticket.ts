@@ -1091,7 +1091,7 @@ export async function onMessageReactionAdd(
 	usr: discord.User | discord.PartialUser,
 	db: Database,
 ): Promise<boolean> {
-	console.log("Got reaction: {}, {}", rxn, usr);
+	//console.log("Got reaction: {}, {}", rxn, usr);
 
 	if (usr.bot) return false;
 	if (!rxn.message.guild) return false;
