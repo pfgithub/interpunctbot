@@ -929,6 +929,12 @@ async function rankingMessageReactionAdd(
 		return true;
 	}
 
+    const member = await msg.guild.members.fetch(msg.author);
+    if(!member) {
+        await msg.channel.send(reactor.toString() + ", Member "+msg.author.toString()+" not found. Are they still on the server?");
+        return true;
+    }
+
 	const rolesToGive: Discord.Role[] = [];
 	const rolesAlreadyGiven: Discord.Role[] = [];
 
@@ -943,9 +949,7 @@ async function rankingMessageReactionAdd(
 		}
         if(msg.partial) await msg.fetch();
         console.log("Ranking", msg.author.toString());
-        if(!msg.member) (msg as any).member = await msg.guild.members.fetch(msg.author);
-        if(msg.member!.partial) await msg.member!.fetch();
-		if (msg.member!.roles.cache.has(roleID)) {
+		if (member.roles.cache.has(roleID)) {
 			rolesAlreadyGiven.push(role);
 			continue;
 		}
@@ -977,12 +981,12 @@ async function rankingMessageReactionAdd(
 
 	const reason =
 		"Given by " + reactor.toString() + " (" + reactor.displayName + ")";
-	await msg.member!.roles.add(rolesToGive, reason);
+	await member.roles.add(rolesToGive, reason);
 
 	await msg.channel.send(
 		getRankSuccessMessage(
 			reactor,
-			msg.member!,
+			member,
 			rolesToGive,
 			rolesAlreadyGiven,
 			roleIDs,
