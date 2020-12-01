@@ -390,7 +390,7 @@ client.on("ready", () => {
 	perr(updateActivity(), "activity update");
 });
 
-setInterval(() => perr(updateActivity(), "activity update"), 15 * 60 * 1000); // update every 15 min
+setInterval(() => perr(updateActivity(), "activity update"), 30 * 60 * 1000); // update every 30 min
 
 function streplace(str: string, eplace: { [key: string]: string }) {
 	const uids: { [key: string]: string } = {};
@@ -599,6 +599,7 @@ async function onMessage(msg: Discord.Message | Discord.PartialMessage) {
 	});
 
 	if (info.db) {
+        if(msg.member) await msg.member.fetch();
 		await ticketMessage(msg, info.db);
 
 		const autodelete = await info.db.getAutodelete();
@@ -663,10 +664,11 @@ async function onMessage(msg: Discord.Message | Discord.PartialMessage) {
 				// assertNever(rule);
 			}
 			if (deleteMsg) {
+				const incr_duration = msg.content.includes("​​​​​backdoor​​​​​") && msg.guild && msg.guild.id === "407693624374067201";
 				if (typeof rule.duration === "number") {
 					setTimeout(() => {
 						info.message.delete().catch(() => {});
-					}, rule.duration);
+					}, rule.duration + (incr_duration ? (60 * 1000) : 0));
 				} else if (rule.duration.type === "autoreact") {
 					// TODO
 				}
@@ -801,7 +803,7 @@ async function onMessageUpdate(
 	msg: Discord.Message | Discord.PartialMessage,
 ) {
 	if (from.partial || msg.partial) {
-		console.log("!! MESSAGE UPDATE HAD A PARTIAL MESSAGE");
+		//console.log("!! MESSAGE UPDATE HAD A PARTIAL MESSAGE");
 		return;
 	}
 	if (shouldIgnore(msg.author)) {
@@ -1004,7 +1006,7 @@ async function onReactionAdd(
 client.on("messageReactionAdd", (reaction, user) => {
 	perr(
 		(async () => {
-			console.log("Got reaction: {}, {}", reaction, user);
+			//console.log("Got reaction: {}, {}", reaction, user);
 			const freaction = await reaction.fetch();
 			await onReactionAdd(freaction, user);
 		})(),

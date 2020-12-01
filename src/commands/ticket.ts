@@ -4,8 +4,11 @@ import discordMarkdownAny from "discord-markdown";
 import * as discord from "discord.js";
 import * as fsync from "fs";
 import htmlMinifier from "html-minifier";
-import { raw } from "../../messages";
-import Database, { TicketConfig } from "../Database";
+import { raw, safe } from "../../messages";
+import Database, {
+	TicketConfig,
+	TicketMessageType,
+} from "../Database";
 import Info from "../Info";
 import * as nr from "../NewRouter";
 import { safehtml } from "../parseDiscordDG";
@@ -129,7 +132,7 @@ nr.addDocsWebPage(
 {CmdSummary|ticket ping}
 {CmdSummary|ticket autoclose}
 {CmdSummary|ticket deletetime}
-{CmdSummary|ticket info}
+{CmdSummary|ticket diagnose}
 
 To disable tickets, delete the invitation message and the ticket category.
 `,
@@ -289,6 +292,30 @@ nr.globalCommand(
 	},
 );
 
+function confirmLogPermissions(channels: {
+	logsChan: discord.GuildChannel;
+	uploadsChan: discord.GuildChannel;
+}, info: Info): string[] {
+	const errors: string[] = [];
+	//prettier-ignore
+	const makeError = (why: string, what: string, where: discord.GuildChannel) =>
+		"In order to "+why+", I need permission to "+what+" in "+where.toString();
+		
+	for (const channel of [channels.logsChan, channels.uploadsChan]) {
+		const myPerms = channel.permissionsFor(info.guild!.me!)!;
+		if (!myPerms.has("VIEW_CHANNEL")) {
+			errors.push(makeError("create logs", "read messages", channel));
+		}
+		if (!myPerms.has("SEND_MESSAGES")) {
+			errors.push(makeError("create logs", "send messages", channel));
+		}
+		if (channel === channels.uploadsChan && !myPerms.has("ATTACH_FILES")) {
+			errors.push(makeError("create logs", "attach files", channel));
+		}
+	}
+	return errors;
+}
+
 nr.globalCommand(
 	"/help/ticket/logs",
 	"ticket logs",
@@ -303,27 +330,11 @@ nr.globalCommand(
 		if (!(await Info.theirPerm.manageBot(info))) return;
 		if (!info.db || !info.guild) return await info.error("pms");
 		// make sure I have send messages perms on each
-		for (const channel of [logsChan, uploadsChan]) {
-			const myPerms = channel.permissionsFor(info.guild.me!)!;
-			if (!myPerms.has("VIEW_CHANNEL")) {
-				return await info.error(
-					"I need permission to read messages in " +
-						channel.toString(),
-				);
-			}
-			if (!myPerms.has("SEND_MESSAGES")) {
-				return await info.error(
-					"I need permission to send messages in " +
-						channel.toString(),
-				);
-			}
-			if (channel === uploadsChan && !myPerms.has("ATTACH_FILES")) {
-				return await info.error(
-					"I need permission to attach files in " +
-						channel.toString(),
-				);
-			}
+		const perm_errors = confirmLogPermissions({logsChan, uploadsChan}, info);
+		if(perm_errors.length > 1) {
+			return await info.error(perm_errors.join("\n"));
 		}
+		
 		// save
 		const ticket = await info.db.getTicket();
 		ticket.main.logs = { pretty: logsChan.id, uploads: uploadsChan.id };
@@ -474,6 +485,33 @@ nr.globalCommand(
 
 		return await info.result(
 			"```json\n" + JSON.stringify(ticketInfo.main) + "\n```",
+		);
+	},
+);
+nr.globalCommand(
+	"/help/ticket/diagnose",
+	"ticket diagnose",
+	{
+		usage: "ticket diagnose",
+		description: "Use this command if tickets aren't working",
+		examples: [],
+	},
+	nr.list(),
+	async ([], info) => {
+		if (!(await Info.theirPerm.manageBot(info))) return;
+		if (!info.db || !info.guild) return await info.error("pms");
+
+		const ticketInfo = await info.db.getTicket();
+
+		const suggestions = ticketSuggestions(ticketInfo, info);
+		// TODO: confirm that permissions for the ticket channel are set correctly
+		// TODO: confirm that permissions for join message is set correctly
+		
+		// if(log channels) check 1: that log channels exist and 2: log perms
+		// confirmLogPermissions()
+
+		return await info.result(
+			"TODO    " + suggestions.join("\n"),
 		);
 	},
 );
@@ -891,6 +929,23 @@ async function closeTicket(
 
 const colors = { green: 3066993, red: 15158332 };
 
+const default_messages: { [key in TicketMessageType]: string } = {
+	doublejoin: "{Mention}, Your ticket is here.",
+	selfassign: "This ticket has been assigned to {Mention}.",
+};
+
+function getMsg(
+	ctx: TicketCtx,
+	message: TicketMessageType,
+	user: discord.User | discord.PartialUser,
+): string {
+	return (ctx.ticket.main.messages?.[message] || default_messages[message])
+		.split("{Mention}")
+		.join(user.toString())
+		.split("{Name}")
+		.join(safe(user.username || "") || user.toString());
+}
+
 async function createTicket(
 	creator: discord.User | discord.PartialUser,
 	ctx: TicketCtx,
@@ -907,7 +962,7 @@ async function createTicket(
 		ch => ch.name === channelName,
 	) as discord.TextChannel;
 	if (foundch) {
-		await foundch.send(creator.toString() + ", Your ticket is here.");
+		await foundch.send(getMsg(ctx, "doublejoin", creator));
 		return;
 	}
 	const cre8tedchan = await cat.guild.channels.create(channelName, {
@@ -918,9 +973,9 @@ async function createTicket(
 	const hedrmsg = await cre8tedchan.send(
 		creator.toString() +
 			", " +
-			(ctx.ticket.main.joinmsg || "No join message has been set."),
+			(ctx.ticket.main.joinmsg ||
+				"No join message has been set. Set one with `ticket welcome <Welcome message…>`"),
 	);
-	await hedrmsg.react("🗑️");
 	const hndlfn = async () => {
 		if (cre8tedchan.deleted) return;
 		if ((cre8tedchan.topic || "").startsWith("~")) {
@@ -930,12 +985,19 @@ async function createTicket(
 			await closeTicket(cre8tedchan, creator, ctx, true);
 		}
 	};
-	if (ctx.ticket.main.autoclose)
+	if (ctx.ticket.main.autoclose) {
 		setTimeout(() => {
 			hndlfn().catch(e => console.log(e));
 		}, ctx.ticket.main.autoclose);
+	}
 
-	await ticketLog(creator.id, "Created ticket", "green", ctx);
+	await Promise.all([
+		(async () => {
+			await hedrmsg.react("🗑️");
+			if (ctx.ticket.main.enable_assignment) await hedrmsg.react("📝");
+		})(),
+		ticketLog(creator.id, "Created ticket", "green", ctx),
+	]);
 }
 
 async function ticketLog(
@@ -1040,14 +1102,35 @@ export async function onMessageReactionAdd(
 
 	const ctx: TicketCtx = { guild: rxn.message.guild, ticket: ticketData };
 
+	if (rxn.message.channel instanceof discord.DMChannel) {
+		// unreachable;
+		return false;
+	}
+
+	// if closing- and you click a reaction, maybe cancel the close?
+	// also if closing- and it's not queued here, retry the close I guess
+
+	const chaname = rxn.message.channel.name;
 	if (
-		(rxn.message.channel as discord.TextChannel).parent?.id ===
-			ticketData.main.category &&
-		// && title contains ticket magic
-		rxn.emoji.name === "🗑️"
+		rxn.message.channel.parent?.id === ticketData.main.category &&
+		rxn.message.channel instanceof discord.TextChannel
 	) {
-		await closeTicket(rxn.message.channel as discord.TextChannel, usr, ctx);
-		return true;
+		if (
+			rxn.emoji.name === "📝" &&
+			ticketData.main.enable_assignment &&
+			chaname !== "ticket-" + usr.id &&
+			!chaname.startsWith("closing-")
+		) {
+			await rxn.message.channel.send(getMsg(ctx, "selfassign", usr));
+			return true;
+		}
+		if (
+			rxn.emoji.name === "🗑️" &&
+			(chaname.startsWith("ticket-") || chaname.startsWith("closing-"))
+		) {
+			await closeTicket(rxn.message.channel, usr, ctx);
+			return true;
+		}
 	}
 	if (rxn.message.id === ticketData.main.invitation.message) {
 		if (rxn.partial) await rxn.fetch();

@@ -67,6 +67,12 @@ export type Events = {
 	userJoin?: Event;
 	userLeave?: Event;
 };
+export type TicketMessageType =
+	// clicking the join button when you already have a ticket
+	| "doublejoin"
+	// assigning the ticket to yourself
+	| "selfassign"
+;
 export type TicketConfig = {
 	main: {
 		/// category id
@@ -81,6 +87,9 @@ export type TicketConfig = {
 		/// time to delete ms
 		deletetime?: number;
 		ping?: string;
+		enable_assignment?: boolean;
+			// {Mention} is mention, {Name} is name
+		messages?: {[key in TicketMessageType]?: string};
 	};
 };
 

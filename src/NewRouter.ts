@@ -106,7 +106,7 @@ export function addDocsPage(docsPath: string, page: PageData) {
 		throw new Error("Docs path must start with /");
 	if (docsPath.endsWith("/"))
 		throw new Error("Docs path must not end with /");
-	if (globalDocs[docsPath]) throw new Error("Docs path must be unique.");
+	if (globalDocs[docsPath]) throw new Error("Docs path must be unique. "+docsPath);
 
 	if (developmentMode) {
 		// process.stdout.write("  docs..."); // \r  Loaded docs: \u001b[0K\n
