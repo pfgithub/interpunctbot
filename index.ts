@@ -512,7 +512,7 @@ client.on("guildMemberRemove", member => {
 				console.log(
 					"!!! PARTIAL MEMBER WAS AQUIRED IN A MEMBER REMOVE EVENT",
 					"the member is:",
-					member,
+					member.toString(),
 				);
 			}
 			if (!member.guild) return;
@@ -745,6 +745,17 @@ async function onMessage(msg: Discord.Message | Discord.PartialMessage) {
 
 	if (commandText) {
 		const lcCutContent = commandText.toLowerCase();
+
+        try {
+            guildLog(
+                    "__commands", // db ? guild! : guild?
+                `[${moment().format("YYYY-MM-DD HH:mm:ss Z")}] (${msg.guild ? msg.guild.name : "DM"}) <#${
+                    (msg.channel as Discord.TextChannel).name || "??"
+                }> ${msg.author.bot ? "[BOT] " : ""}\`${msg.author.tag}\`: ${
+                    msg.content
+                }`,
+            ).catch(e => {});
+        }catch(e) {}
 
 		const allCommands = Object.keys(nr.globalCommandNS)
 			.sort()
