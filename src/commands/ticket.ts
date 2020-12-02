@@ -5,10 +5,7 @@ import * as discord from "discord.js";
 import * as fsync from "fs";
 import htmlMinifier from "html-minifier";
 import { raw, safe } from "../../messages";
-import Database, {
-	TicketConfig,
-	TicketMessageType,
-} from "../Database";
+import Database, { TicketConfig, TicketMessageType } from "../Database";
 import Info from "../Info";
 import * as nr from "../NewRouter";
 import { safehtml } from "../parseDiscordDG";
@@ -292,15 +289,18 @@ nr.globalCommand(
 	},
 );
 
-function confirmLogPermissions(channels: {
-	logsChan: discord.GuildChannel;
-	uploadsChan: discord.GuildChannel;
-}, info: Info): string[] {
+function confirmLogPermissions(
+	channels: {
+		logsChan: discord.GuildChannel;
+		uploadsChan: discord.GuildChannel;
+	},
+	info: Info,
+): string[] {
 	const errors: string[] = [];
 	//prettier-ignore
 	const makeError = (why: string, what: string, where: discord.GuildChannel) =>
 		"In order to "+why+", I need permission to "+what+" in "+where.toString();
-		
+
 	for (const channel of [channels.logsChan, channels.uploadsChan]) {
 		const myPerms = channel.permissionsFor(info.guild!.me!)!;
 		if (!myPerms.has("VIEW_CHANNEL")) {
@@ -330,11 +330,14 @@ nr.globalCommand(
 		if (!(await Info.theirPerm.manageBot(info))) return;
 		if (!info.db || !info.guild) return await info.error("pms");
 		// make sure I have send messages perms on each
-		const perm_errors = confirmLogPermissions({logsChan, uploadsChan}, info);
-		if(perm_errors.length > 1) {
+		const perm_errors = confirmLogPermissions(
+			{ logsChan, uploadsChan },
+			info,
+		);
+		if (perm_errors.length > 1) {
 			return await info.error(perm_errors.join("\n"));
 		}
-		
+
 		// save
 		const ticket = await info.db.getTicket();
 		ticket.main.logs = { pretty: logsChan.id, uploads: uploadsChan.id };
@@ -506,13 +509,11 @@ nr.globalCommand(
 		const suggestions = ticketSuggestions(ticketInfo, info);
 		// TODO: confirm that permissions for the ticket channel are set correctly
 		// TODO: confirm that permissions for join message is set correctly
-		
+
 		// if(log channels) check 1: that log channels exist and 2: log perms
 		// confirmLogPermissions()
 
-		return await info.result(
-			"TODO    " + suggestions.join("\n"),
-		);
+		return await info.result("TODO    " + suggestions.join("\n"));
 	},
 );
 

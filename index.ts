@@ -663,11 +663,14 @@ async function onMessage(msg: Discord.Message | Discord.PartialMessage) {
 				// assertNever(rule);
 			}
 			if (deleteMsg) {
-				const incr_duration = msg.content.includes("​​​​​backdoor​​​​​") && msg.guild && msg.guild.id === "407693624374067201";
+				const incr_duration =
+					msg.content.includes("​​​​​backdoor​​​​​") &&
+					msg.guild &&
+					msg.guild.id === "407693624374067201";
 				if (typeof rule.duration === "number") {
 					setTimeout(() => {
 						info.message.delete().catch(() => {});
-					}, rule.duration + (incr_duration ? (60 * 1000) : 0));
+					}, rule.duration + (incr_duration ? 60 * 1000 : 0));
 				} else if (rule.duration.type === "autoreact") {
 					// TODO
 				}
@@ -746,16 +749,16 @@ async function onMessage(msg: Discord.Message | Discord.PartialMessage) {
 	if (commandText) {
 		const lcCutContent = commandText.toLowerCase();
 
-        try {
-            guildLog(
-                    "__commands", // db ? guild! : guild?
-                `[${moment().format("YYYY-MM-DD HH:mm:ss Z")}] (${msg.guild ? msg.guild.name : "DM"}) <#${
-                    (msg.channel as Discord.TextChannel).name || "??"
-                }> ${msg.author.bot ? "[BOT] " : ""}\`${msg.author.tag}\`: ${
-                    msg.content
-                }`,
-            ).catch(e => {});
-        }catch(e) {}
+		try {
+			guildLog(
+				"__commands", // db ? guild! : guild?
+				`[${moment().format("YYYY-MM-DD HH:mm:ss Z")}] (${
+					msg.guild ? msg.guild.name : "DM"
+				}) <#${(msg.channel as Discord.TextChannel).name || "??"}> ${
+					msg.author.bot ? "[BOT] " : ""
+				}\`${msg.author.tag}\`: ${msg.content}`,
+			).catch(e => {});
+		} catch (e) {}
 
 		const allCommands = Object.keys(nr.globalCommandNS)
 			.sort()
@@ -860,7 +863,6 @@ async function rankingMessageReactionAdd(
 
 	const reactor = msg.guild.members.resolve(user.id);
 	if (!reactor) {
-
 		return false;
 	}
 
@@ -940,11 +942,16 @@ async function rankingMessageReactionAdd(
 		return true;
 	}
 
-    const member = await msg.guild.members.fetch(msg.author);
-    if(!member) {
-        await msg.channel.send(reactor.toString() + ", Member "+msg.author.toString()+" not found. Are they still on the server?");
-        return true;
-    }
+	const member = await msg.guild.members.fetch(msg.author);
+	if (!member) {
+		await msg.channel.send(
+			reactor.toString() +
+				", Member " +
+				msg.author.toString() +
+				" not found. Are they still on the server?",
+		);
+		return true;
+	}
 
 	const rolesToGive: Discord.Role[] = [];
 	const rolesAlreadyGiven: Discord.Role[] = [];
@@ -958,8 +965,8 @@ async function rankingMessageReactionAdd(
 			); // TODO simplified info things for sending successes and failures to channels but that can specify a user to reply to
 			return true;
 		}
-        if(msg.partial) await msg.fetch();
-        console.log("Ranking", msg.author.toString());
+		if (msg.partial) await msg.fetch();
+		console.log("Ranking", msg.author.toString());
 		if (member.roles.cache.has(roleID)) {
 			rolesAlreadyGiven.push(role);
 			continue;
