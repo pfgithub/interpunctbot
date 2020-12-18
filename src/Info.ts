@@ -536,7 +536,7 @@ export default class Info {
 		}
 		throw new Error("bad help :{ !! }:");
 	}
-	tag(str: TemplateStringsArray, ...values: string[]) {
+	tag(str: TemplateStringsArray, ...values: (string | {__raw: string})[]) {
 		const s = templateGenerator((q: string) =>
 			q.replace(/[\\{|}]/g, "\\$1"),
 		);

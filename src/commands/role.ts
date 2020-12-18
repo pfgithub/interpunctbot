@@ -1,10 +1,11 @@
 import * as nr from "../NewRouter";
 import Info, { permTheyCanManageRole, permWeCanManageRole } from "../Info";
 import * as Discord from "discord.js";
-import { messages, safe } from "../../messages";
+import { messages, raw, safe } from "../../messages";
 import { durationFormat } from "../durationFormat";
 import { AP } from "./argumentparser";
 import { QuickrankField } from "../Database";
+import { INSPECT_MAX_BYTES } from "buffer";
 
 /*
 
@@ -41,12 +42,13 @@ nr.addDocsWebPage(
 	`{Title|Quickrank}
 Quickrank can be set up to allow admins to rank people quickly on a server.
 
-After setup, you can run commands like this:
+After setup, you can react like this:
+{ExampleUserMessage|Give me a rank
+{Reaction|sub10|1} {Reaction|success|1}}
+Or send a message like this:
 {ExampleUserMessage|rank {Atmention|person} sub-10}
-or react like this:
-{Reaction|sub10|1} {Reaction|success|1}
 to give a user one or more roles
-{ExampleBotMessage|{Atmention|person}, {Atmention|admin} gave you the roles @🕐︎ SUB-10, @🕐︎ SUB-15, @🕐︎ SUB-20}
+{ExampleBotMessage|{Atmention|person}, You were given the roles @🕐︎ SUB-10, @🕐︎ SUB-15, @🕐︎ SUB-20 by {Atmention|admin}}
 
 {Comment|
 {Heading|Basic Setup}
@@ -75,20 +77,21 @@ nr.addDocsWebPage(
 	"/help/quickrank/setup",
 	"Quickrank Setup",
 	"setup quickrank commands",
-	`{Title|Advanced Setup}
+	`{Title|Setup}
 To set up a system like the example above, first each role must be given either a name,  emoji, or both, and then a chain of provides must be set up.
-
-{Bold|Names}:
-{Blockquote|{ExampleUserMessage|quickrank add named {Code|sub-10} @🕐︎ SUB-10}
-{ExampleUserMessage|quickrank add named {Code|sub-15} @🕐︎ SUB-15}
-{ExampleUserMessage|quickrank add named {Code|sub-20} @🕐︎ SUB-20}
-Note that the name must be surrounded in \`backticks\` in order to set it.}
 
 {Bold|Reactions}:
 {Blockquote|{ExampleUserMessage|quickrank add reaction {Emoji|sub10} @🕐︎ SUB-10}
 {ExampleUserMessage|quickrank add reaction {Emoji|sub15} @🕐︎ SUB-15}
 {ExampleUserMessage|quickrank add reaction {Emoji|sub20} @🕐︎ SUB-20}
 You might also want to make it so these emojis are given to people as rewards for getting these roles, for more about that see {LinkDocs|/help/emoji}. Make sure you give your admin roles access to the emoji too though!}
+
+{Bold|Names}:
+{Blockquote|{ExampleUserMessage|quickrank add named {Code|sub-10} @🕐︎ SUB-10}
+{ExampleUserMessage|quickrank add named {Code|sub-15} @🕐︎ SUB-15}
+{ExampleUserMessage|quickrank add named {Code|sub-20} @🕐︎ SUB-20}
+Note that the name must be surrounded in \`backticks\` if there are multiple words.}
+
 
 {Bold|Provides}:
 {Blockquote|If you give someone one role, provides will automatically add any other roles they need too. For example, if I rank someone sub-10 I also want to give them sub-15 and sub-20. Also, if I rank someone sub-15, I also want to give them sub-20. To do this, I can set up a provides chain so sub-10 provides sub-15 and sub-15 provides sub-20.
@@ -226,20 +229,29 @@ nr.globalCommand(
 
 		const qr = await info.db.getQuickrank();
 
-		for (const roleID of [
+		const listOfManagableRoles = [
 			...Object.values(qr.emojiAlias).map(r => r.role),
 			...Object.values(qr.nameAlias).map(r => r.role),
 			...qr.timeAlias.map(r => r.role),
 			...Object.keys(qr.providesAlias),
-		]) {
+		];
+		const setOfManagableRoles = new Set(listOfManagableRoles);
+
+		for (const roleID of setOfManagableRoles) {
 			const r = info.guild!.roles.resolve(roleID);
 			if (r) if (!(await permTheyCanManageRole(r, info))) return;
 		}
 
 		qr.managerRole = role.id;
 		await info.db.setQuickrank(qr);
+
+		const managableRoles = [...setOfManagableRoles.values()].map(q => "<@&"+q+">");
+
 		await info.success(
-			"Quickrank role set! Members with this role can give any user one of these roles/;123:!TODO",
+			"Quickrank role set to "+role.toString()
+			+"! Members with the "+role.toString()
+			+(managableRoles.length == 0 ? " role can give any user roles with quickrank. Quickrank is not yet configued."
+			: " role can give any user these roles with quickrank: "+managableRoles.join(", ")),
 		);
 	},
 );
@@ -385,73 +397,70 @@ nr.globalCommand(
 
 		const qr = await info.db.getQuickrank();
 
-		const allRulesFirst: { roleID: string; text: string }[] = [];
+		const byRole: {[roleID: string]: {emojiMention?: string; safeNameAlias?: string; timeAlias?: number; provides?: string[]}} = {};
 
-		for (const [emoji, rule] of Object.entries(qr.emojiAlias)) {
-			console.log("<:emoji:" + emoji + ">");
-			allRulesFirst.push({
-				roleID: rule.role,
-				text:
-					"React to any message with the emoji <:emoji:" +
-					emoji +
-					"> and press check.",
-			});
+		for (const [emojiID, rule] of Object.entries(qr.emojiAlias)) {
+			if(!byRole[rule.role]) byRole[rule.role] = {}; // ??=
+			let emojiName = "unknown";
+			const match = info.message.client.emojis.resolve(emojiID);
+			if(match) {
+				emojiName = match.name;
+			}
+			byRole[rule.role].emojiMention = "<:"+emojiName+":"+emojiID+">";
 		}
 		for (const [safeName, rule] of Object.entries(qr.nameAlias)) {
-			allRulesFirst.push({
-				roleID: rule.role,
-				text:
-					"Use the command " +
-					safe(info.prefix) +
-					"rank @user " +
-					safeName,
-			});
+			if(!byRole[rule.role]) byRole[rule.role] = {}; // ??=
+			byRole[rule.role].safeNameAlias = safeName;
 		}
 		for (const rule of qr.timeAlias) {
-			allRulesFirst.push({
-				roleID: rule.role,
-				text:
-					"Something something " +
-					rule.ltgt +
-					durationFormat(rule.ms),
-			});
+			if(!byRole[rule.role]) byRole[rule.role] = {}; // ??=
+			byRole[rule.role].timeAlias = rule.ms;
 		}
 		for (const [fromRoleID, rule] of Object.entries(qr.providesAlias)) {
-			allRulesFirst.push({
-				roleID: fromRoleID,
-				text: "This role provides: " + rule.map(r => r.role).join(", "),
-			});
+			if(!byRole[fromRoleID]) byRole[fromRoleID] = {}; // ??=
+			byRole[fromRoleID].provides = rule.map(v => v.role);
 		}
 
-		if (!allRulesFirst.length)
+		if (!Object.entries(byRole).length)
 			await info.error(
 				"Quickrank has not been set up yet on this server.",
 			);
-		const allRules = allRulesFirst.map(rule => {
-			const r = info.guild!.roles.resolve(rule.roleID);
+		const sortedByRole = Object.entries(byRole).map(([roleID, content]) => {
+			const r = info.guild!.roles.resolve(roleID);
 			return {
 				roleSort: r?.position ?? 1000000,
-				text:
-					"- " +
-					(r ? messages.role(r) : "@deleted-role") +
-					": " +
-					rule.text,
+				roleID,
+				content,
 			};
-		});
+		}).sort((a, b) => a.roleSort - b.roleSort);
 		const mngrrle = qr.managerRole
 			? info.guild!.roles.resolve(qr.managerRole)
 			: undefined;
+
+		const sortedText = sortedByRole.map(({roleID, content}) => {
+			const methods: string[] = [];
+			if(content.emojiMention) methods.push("react with "+content.emojiMention+"✅");
+			if(content.safeNameAlias) methods.push(info.tag`use the command {Command|rank @user ${raw(content.safeNameAlias)}}`);
+			if(content.timeAlias) methods.push(info.tag`use the command {Command|rank @user sub-${""+(content.timeAlias / 60000)}}`);
+			const providesMsg = content.provides ? " This role also gives "+orlist(content.provides.map(q => "<@&"+q+">"), "and")+" when given with quickrank." : "";
+			return "- <@&"+roleID+">: "+orlist(methods)+"."+providesMsg;
+		});
+
 		await info.result(
-			"Users with permission to manage roles or users with the role " +
-				(mngrrle ? messages.role(mngrrle) : "*not set*") +
-				" are allowed to use quickrank\n" +
-				allRules
-					.sort((a, b) => b.roleSort - a.roleSort)
-					.map(q => q.text)
-					.join("\n"),
+			"Users with permission to manage roles"+(mngrrle ? " or users with the role " +
+			mngrrle.toString() : "") +
+			" are allowed to use quickrank\n" +
+			sortedText.join("\n"),
 		);
 	},
 );
+
+function orlist(items: string[], joiner = "or"): string {
+	if(items.length == 0) return "*empty list oops*";
+	if(items.length == 1) return items[0];
+	if(items.length == 2) return items.join(" "+joiner+" ");
+	return items.map((a, i) => ((i == items.length - 1) ? "or " : "") + a).join(", ");
+}
 
 export function findAllProvidedRoles(
 	roleIDs: string[],
@@ -597,15 +606,17 @@ export function getRankSuccessMessage(
 	explicitRolesToGive: string[],
 ) {
 	if (rolesToGive.length === 0) {
+		const explicit = explicitRolesToGive.map(id => preExistingRoles.find(q => q.id == id)!);
 		return (
 			giver.toString() +
 			", No roles were given. " +
 			safe(reciever.displayName) +
-			" already has all of these roles: " +
-			preExistingRoles
-				.sort((a, b) => b.position - a.position)
-				.map(r => messages.role(r))
-				.join(", ")
+			" already has " +
+			orlist(
+			explicit
+			.sort((a, b) => b.position - a.position)
+			.map(r => messages.role(r))
+			, "and")
 		);
 	}
 	const explicitRolesNotGiven = preExistingRoles.filter(r =>
@@ -613,20 +624,21 @@ export function getRankSuccessMessage(
 	);
 	return (
 		reciever.toString() +
-		", You were given the roles " +
-		rolesToGive
+		", You were given the role"+(rolesToGive.length == 1 ? "" : "s")+" " +
+		orlist(
+			rolesToGive
 			.sort((a, b) => b.position - a.position)
-			.map(r => messages.role(r))
-			.join(", ") +
+			.map(r => messages.role(r)), "and") +
 		" by " +
 		giver.toString() +
 		"" +
 		(explicitRolesNotGiven.length > 0
-			? "\n> The roles " +
+			? "\n> The role"+(explicitRolesNotGiven.length == 1 ? "" : "s")+" " +
+			orlist(
 			  explicitRolesNotGiven
 					.sort((a, b) => b.position - a.position)
-					.map(r => messages.role(r))
-					.join(", ") +
+					.map(r => messages.role(r)), "and"
+			)+
 			  " were not given because you already have them."
 			: "")
 	);
