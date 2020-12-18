@@ -754,9 +754,9 @@ async function onMessage(msg: Discord.Message | Discord.PartialMessage) {
 				"__commands", // db ? guild! : guild?
 				`[${moment().format("YYYY-MM-DD HH:mm:ss Z")}] (${
 					msg.guild ? msg.guild.nameAcronym : "DM"
-				}) <#${msg.channel.id}> ${
-					msg.author.bot ? "[BOT] " : ""
-				}\`${msg.author.id}\`: ${msg.content}`,
+				}) <#${msg.channel.id}> ${msg.author.bot ? "[BOT] " : ""}\`${
+					msg.author.id
+				}\`: ${msg.content}`,
 			).catch(e => {});
 		} catch (e) {}
 

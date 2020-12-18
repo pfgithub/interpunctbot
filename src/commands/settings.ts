@@ -15,7 +15,7 @@ Some parts of {Interpunct} can be configured
 {CmdSummary|set ShowErrors}
 {CmdSummary|set ShowUnknownCommand}
 {CmdSummary|set ManageBotRole}
-{CmdSummary|fun}`
+{CmdSummary|fun}`,
 );
 
 // nr.globalAlias("help configuration", "set");

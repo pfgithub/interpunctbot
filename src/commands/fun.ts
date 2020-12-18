@@ -286,13 +286,17 @@ nr.globalCommand(
 		usage: "time {Optional|timezone}",
 		description: "time",
 		examples: [
-			{in: "time", out: "Fri, 18 Dec 2020 06:33:28 GMT"},
-			{in: "time ET", out: "{Emoji|failure} timezones are not implemented yet :("},
+			{ in: "time", out: "Fri, 18 Dec 2020 06:33:28 GMT" },
+			{
+				in: "time ET",
+				out: "{Emoji|failure} timezones are not implemented yet :(",
+			},
 		],
 	},
 	nr.list(...nr.a.words()),
 	async ([cmd], info) => {
-		if (cmd.trim()) return await info.error("timezones are not implemented yet :(");
+		if (cmd.trim())
+			return await info.error("timezones are not implemented yet :(");
 		return await info.result(new Date().toUTCString());
 	},
 );

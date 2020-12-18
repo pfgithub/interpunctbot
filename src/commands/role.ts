@@ -245,13 +245,19 @@ nr.globalCommand(
 		qr.managerRole = role.id;
 		await info.db.setQuickrank(qr);
 
-		const managableRoles = [...setOfManagableRoles.values()].map(q => "<@&"+q+">");
+		const managableRoles = [...setOfManagableRoles.values()].map(
+			q => "<@&" + q + ">",
+		);
 
 		await info.success(
-			"Quickrank role set to "+role.toString()
-			+"! Members with the "+role.toString()
-			+(managableRoles.length == 0 ? " role can give any user roles with quickrank. Quickrank is not yet configued."
-			: " role can give any user these roles with quickrank: "+andlist(managableRoles)),
+			"Quickrank role set to " +
+				role.toString() +
+				"! Members with the " +
+				role.toString() +
+				(managableRoles.length == 0
+					? " role can give any user roles with quickrank. Quickrank is not yet configued."
+					: " role can give any user these roles with quickrank: " +
+					  andlist(managableRoles)),
 		);
 	},
 );
@@ -397,27 +403,35 @@ nr.globalCommand(
 
 		const qr = await info.db.getQuickrank();
 
-		const byRole: {[roleID: string]: {emojiMention?: string; safeNameAlias?: string; timeAlias?: number; provides?: string[]}} = {};
+		const byRole: {
+			[roleID: string]: {
+				emojiMention?: string;
+				safeNameAlias?: string;
+				timeAlias?: number;
+				provides?: string[];
+			};
+		} = {};
 
 		for (const [emojiID, rule] of Object.entries(qr.emojiAlias)) {
-			if(!byRole[rule.role]) byRole[rule.role] = {}; // ??=
+			if (!byRole[rule.role]) byRole[rule.role] = {}; // ??=
 			let emojiName = "unknown";
 			const match = info.message.client.emojis.resolve(emojiID);
-			if(match) {
+			if (match) {
 				emojiName = match.name;
 			}
-			byRole[rule.role].emojiMention = "<:"+emojiName+":"+emojiID+">";
+			byRole[rule.role].emojiMention =
+				"<:" + emojiName + ":" + emojiID + ">";
 		}
 		for (const [safeName, rule] of Object.entries(qr.nameAlias)) {
-			if(!byRole[rule.role]) byRole[rule.role] = {}; // ??=
+			if (!byRole[rule.role]) byRole[rule.role] = {}; // ??=
 			byRole[rule.role].safeNameAlias = safeName;
 		}
 		for (const rule of qr.timeAlias) {
-			if(!byRole[rule.role]) byRole[rule.role] = {}; // ??=
+			if (!byRole[rule.role]) byRole[rule.role] = {}; // ??=
 			byRole[rule.role].timeAlias = rule.ms;
 		}
 		for (const [fromRoleID, rule] of Object.entries(qr.providesAlias)) {
-			if(!byRole[fromRoleID]) byRole[fromRoleID] = {}; // ??=
+			if (!byRole[fromRoleID]) byRole[fromRoleID] = {}; // ??=
 			byRole[fromRoleID].provides = rule.map(v => v.role);
 		}
 
@@ -425,32 +439,52 @@ nr.globalCommand(
 			await info.error(
 				"Quickrank has not been set up yet on this server.",
 			);
-		const sortedByRole = Object.entries(byRole).map(([roleID, content]) => {
-			const r = info.guild!.roles.resolve(roleID);
-			return {
-				roleSort: r?.position ?? 1000000,
-				roleID,
-				content,
-			};
-		}).sort((a, b) => a.roleSort - b.roleSort);
+		const sortedByRole = Object.entries(byRole)
+			.map(([roleID, content]) => {
+				const r = info.guild!.roles.resolve(roleID);
+				return {
+					roleSort: r?.position ?? 1000000,
+					roleID,
+					content,
+				};
+			})
+			.sort((a, b) => a.roleSort - b.roleSort);
 		const mngrrle = qr.managerRole
 			? info.guild!.roles.resolve(qr.managerRole)
 			: undefined;
 
-		const sortedText = sortedByRole.map(({roleID, content}) => {
+		const sortedText = sortedByRole.map(({ roleID, content }) => {
 			const methods: string[] = [];
-			if(content.emojiMention) methods.push("react with "+content.emojiMention+"✅");
-			if(content.safeNameAlias) methods.push(info.tag`use the command {Command|rank @user ${raw(content.safeNameAlias)}}`);
-			if(content.timeAlias) methods.push(info.tag`use the command {Command|rank @user sub-${""+(content.timeAlias / 60000)}}`);
-			const providesMsg = content.provides ? " This role also gives "+andlist(content.provides.map(q => "<@&"+q+">"))+" when given with quickrank." : "";
-			return "- <@&"+roleID+">: "+orlist(methods)+"."+providesMsg;
+			if (content.emojiMention)
+				methods.push("react with " + content.emojiMention + "✅");
+			if (content.safeNameAlias)
+				methods.push(
+					info.tag`use the command {Command|rank @user ${raw(
+						content.safeNameAlias,
+					)}}`,
+				);
+			if (content.timeAlias)
+				methods.push(
+					info.tag`use the command {Command|rank @user sub-${"" +
+						content.timeAlias / 60000}}`,
+				);
+			const providesMsg = content.provides
+				? " This role also gives " +
+				  andlist(content.provides.map(q => "<@&" + q + ">")) +
+				  " when given with quickrank."
+				: "";
+			return (
+				"- <@&" + roleID + ">: " + orlist(methods) + "." + providesMsg
+			);
 		});
 
 		await info.result(
-			"Users with permission to manage roles"+(mngrrle ? " or users with the role " +
-			mngrrle.toString() : "") +
-			" are allowed to use quickrank\n" +
-			sortedText.join("\n"),
+			"Users with permission to manage roles" +
+				(mngrrle
+					? " or users with the role " + mngrrle.toString()
+					: "") +
+				" are allowed to use quickrank\n" +
+				sortedText.join("\n"),
 		);
 	},
 );
@@ -599,7 +633,9 @@ export function getRankSuccessMessage(
 	explicitRolesToGive: string[],
 ) {
 	if (rolesToGive.length === 0) {
-		const explicit = explicitRolesToGive.map(id => preExistingRoles.find(q => q.id == id)!);
+		const explicit = explicitRolesToGive.map(
+			id => preExistingRoles.find(q => q.id == id)!,
+		);
 		return (
 			giver.toString() +
 			", No roles were given. " +
@@ -607,8 +643,8 @@ export function getRankSuccessMessage(
 			" already has " +
 			andlist(
 				explicit
-				.sort((a, b) => b.position - a.position)
-				.map(r => messages.role(r))
+					.sort((a, b) => b.position - a.position)
+					.map(r => messages.role(r)),
 			)
 		);
 	}
@@ -617,21 +653,26 @@ export function getRankSuccessMessage(
 	);
 	return (
 		reciever.toString() +
-		", You were given the role"+(rolesToGive.length == 1 ? "" : "s")+" " +
+		", You were given the role" +
+		(rolesToGive.length == 1 ? "" : "s") +
+		" " +
 		andlist(
 			rolesToGive
-			.sort((a, b) => b.position - a.position)
-			.map(r => messages.role(r))) +
+				.sort((a, b) => b.position - a.position)
+				.map(r => messages.role(r)),
+		) +
 		" by " +
 		giver.toString() +
 		"" +
 		(explicitRolesNotGiven.length > 0
-			? "\n> The role"+(explicitRolesNotGiven.length == 1 ? "" : "s")+" " +
-			andlist(
-			  explicitRolesNotGiven
-					.sort((a, b) => b.position - a.position)
-					.map(r => messages.role(r))
-			)+
+			? "\n> The role" +
+			  (explicitRolesNotGiven.length == 1 ? "" : "s") +
+			  " " +
+			  andlist(
+					explicitRolesNotGiven
+						.sort((a, b) => b.position - a.position)
+						.map(r => messages.role(r)),
+			  ) +
 			  " were not given because you already have them."
 			: "")
 	);

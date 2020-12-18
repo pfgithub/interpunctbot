@@ -32,16 +32,25 @@ export function templateGenerator<InType>(helper: (str: InType) => string) {
 /// joins a list in english
 /// eg One / One or Two / One, Two, or Three / One, Two, Three, or Four
 /// joiner is 'and' or 'or'
-export function humanizelist(items: string[], joiner: string, empty = "*Empty list oops*"): string {
-	if(items.length == 0) return empty;
-	if(items.length == 1) return items[0];
-	if(items.length == 2) return items.join(" "+joiner+" ");
-	return items.map((a, i) => ((i == items.length - 1) ? "or " : "") + a).join(", ");
+export function humanizelist(
+	items: string[],
+	joiner: string,
+	empty = "*Empty list oops*",
+): string {
+	if (items.length == 0) return empty;
+	if (items.length == 1) return items[0];
+	if (items.length == 2) return items.join(" " + joiner + " ");
+	return items
+		.map((a, i) => (i == items.length - 1 ? "or " : "") + a)
+		.join(", ");
 }
 
-export const orlist = (items: string[], empty?: string) => humanizelist(items, "or", empty);
-export const andlist = (items: string[], empty?: string) => humanizelist(items, "and", empty);
-export const plural = (text: any[] | number) => (typeof text === "number" ? text : text.length) === 1 ? "" : "s";
+export const orlist = (items: string[], empty?: string) =>
+	humanizelist(items, "or", empty);
+export const andlist = (items: string[], empty?: string) =>
+	humanizelist(items, "and", empty);
+export const plural = (text: any[] | number) =>
+	(typeof text === "number" ? text : text.length) === 1 ? "" : "s";
 
 export const safe = templateGenerator((str: string) =>
 	str
@@ -569,8 +578,9 @@ ${info.prefix}space channels \`_\`
 \`\`\`
 > More Info: <https://interpunct.info/spacing-channels>`,
 			succeeded_spacing: (info: Info, channels: Discord.Channel[]) =>
-				`The channel${plural(channels)} ${andlist(channels
-					.map(c => c.toString()))} now have spaces.`,
+				`The channel${plural(channels)} ${andlist(
+					channels.map(c => c.toString()),
+				)} now have spaces.`,
 			autospace_info_off: (info: Info) =>
 				`> If you want channels to automatically have spaces in the future, use \`${info.prefix}space channels automatically\``,
 			autospace_info_on: (info: Info) =>
@@ -580,10 +590,12 @@ ${info.prefix}space channels \`_\`
 				channels: Discord.Channel[],
 				failedChannels: Discord.Channel[],
 			) =>
-				`The channel${plural(channels)} ${andlist(channels
-					.map(c => c.toString()))} now have spaces.
-The channel${plural(failedChannels)} ${andlist(failedChannels
-					.map(c => c.toString()))} could not be given spaces. Maybe ${
+				`The channel${plural(channels)} ${andlist(
+					channels.map(c => c.toString()),
+				)} now have spaces.
+The channel${plural(failedChannels)} ${andlist(
+					failedChannels.map(c => c.toString()),
+				)} could not be given spaces. Maybe ${
 					info.atme
 				} does not have permission to Manage Channels?
 If you wanted spaces in these channels, check the channel settings to see if ${
@@ -593,8 +605,9 @@ If you wanted spaces in these channels, check the channel settings to see if ${
 > Discord Support: <https://support.discordapp.com/hc/en-us/articles/206029707-How-do-I-set-up-Permissions->
 > Command Help: <https://interpunct.info/spacing-channels>`,
 			failed_spacing: (info: Info, failedChannels: Discord.Channel[]) =>
-				`The channel${plural(failedChannels)} ${andlist(failedChannels
-					.map(c => c.toString()))} could not be given spaces. Maybe ${
+				`The channel${plural(failedChannels)} ${andlist(
+					failedChannels.map(c => c.toString()),
+				)} could not be given spaces. Maybe ${
 					info.atme
 				} does not have permission to Manage Channels?
 If you wanted spaces in these channels, check the channel settings to see if ${
@@ -612,17 +625,20 @@ ${info.prefix}send This is my great message! #rules #general
 \`\`\`
 > More Info: <https://interpunct.info/sending-messages-to-multiple-channels>`,
 			succeeded_sending: (info: Info, channels: Discord.Channel[]) =>
-				`Your message was sent to ${andlist(channels
-					.map(c => c.toString()))}.`,
+				`Your message was sent to ${andlist(
+					channels.map(c => c.toString()),
+				)}.`,
 			partially_succeeded_sending: (
 				info: Info,
 				channels: Discord.Channel[],
 				failedChannels: Discord.Channel[],
 			) =>
-				`Your message was sent to ${andlist(channels
-					.map(c => c.toString()))}.
-It could not be sent to ${orlist(failedChannels
-					.map(c => c.toString()))}. Maybe ${
+				`Your message was sent to ${andlist(
+					channels.map(c => c.toString()),
+				)}.
+It could not be sent to ${orlist(
+					failedChannels.map(c => c.toString()),
+				)}. Maybe ${
 					info.atme
 				} does not have permission to Read and Send Messages there?
 Check the channel settings to see if ${
@@ -631,8 +647,9 @@ Check the channel settings to see if ${
 > Discord Support: <https://support.discordapp.com/hc/en-us/articles/206029707-How-do-I-set-up-Permissions->
 > Command Help: <https://interpunct.info/sending-messages-to-multiple-channels>`,
 			failed_sending: (info: Info, failedChannels: Discord.Channel[]) =>
-				`Your message could not be sent to ${orlist(failedChannels
-					.map(c => c.toString()))}. Maybe ${
+				`Your message could not be sent to ${orlist(
+					failedChannels.map(c => c.toString()),
+				)}. Maybe ${
 					info.atme
 				} does not have permission to Read and Send Messages there?
 Check the channel settings to see if ${
