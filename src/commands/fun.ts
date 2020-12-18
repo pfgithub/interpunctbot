@@ -17,16 +17,13 @@ import * as fsync from "fs";
 import fetch from "node-fetch";
 
 nr.addDocsWebPage(
-	"/help/fun",
-	"Fun",
-	"games and other fun commands",
-	`{Title|Fun}\n\n{Interpunct} has a variety of fun commands.
+	"/help/games",
+	"Games",
+	"games",
+	`{Title|Fun}\n\n{Interpunct} has a variety of games.
 
-{Heading|Configuration}
-Fun commands are enabled by default.
-{CmdSummary|fun}
+Note that most games work best when {Interpunct} has permission to Manage Reactions
 
-{Heading|Games}
 {CmdSummary|connect4}
 {CmdSummary|minesweeper}
 {CmdSummary|papersoccer}
@@ -37,6 +34,22 @@ Fun commands are enabled by default.
 {CmdSummary|randomword}
 {CmdSummary|trivia}
 {CmdSummary|needle}
+
+{Heading|Configuration}
+Games are enabled by default.
+{CmdSummary|fun}
+
+`,
+);
+nr.addDocsWebPage(
+	"/help/fun",
+	"Fun",
+	"fun commands",
+	`{Title|Fun}\n\n{Interpunct} has a variety of fun commands.
+
+{Heading|Configuration}
+Fun commands are enabled by default.
+{CmdSummary|fun}
 
 {Heading|Misc}
 {CmdSummary|ping}
@@ -272,11 +285,14 @@ nr.globalCommand(
 	{
 		usage: "time {Optional|timezone}",
 		description: "time",
-		examples: [],
+		examples: [
+			{in: "time", out: "Fri, 18 Dec 2020 06:33:28 GMT"},
+			{in: "time ET", out: "{Emoji|failure} timezones are not implemented yet :("},
+		],
 	},
 	nr.list(...nr.a.words()),
 	async ([cmd], info) => {
-		if (cmd.trim()) return await info.error("timezone not supported :(");
+		if (cmd.trim()) return await info.error("timezones are not implemented yet :(");
 		return await info.result(new Date().toUTCString());
 	},
 );
@@ -1286,7 +1302,7 @@ nr.globalCommand(
 	"fun",
 	{
 		usage: "fun {Required|{Enum|enable|disable}}",
-		description: "enables or disables fun",
+		description: "enables or disables fun and games",
 		examples: [
 			{
 				in: "fun disable",

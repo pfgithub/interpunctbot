@@ -1,6 +1,6 @@
 import * as Discord from "discord.js";
 import he from "he";
-import { messages, raw, safe } from "../../../messages";
+import { andlist, messages, raw, safe } from "../../../messages";
 import { setEditInterval } from "../../editInterval";
 import * as nr from "../../NewRouter";
 import { getURL } from "../speedrun";
@@ -275,9 +275,7 @@ ${raw(
 				)!.emoji
 		  } - ${safe`${decodeHTML(triviaQuestion.correct_answer)}`}
 **Winners**: ${
-				state.winners.length === 0
-					? "*No one won*"
-					: state.winners.map(w => `<@${w}>`).join(", ")
+				andlist(state.winners.map(w => `<@${w}>`))
 		  }`,
 )}`,
 				);

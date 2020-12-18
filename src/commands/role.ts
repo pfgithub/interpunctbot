@@ -1,7 +1,7 @@
 import * as nr from "../NewRouter";
 import Info, { permTheyCanManageRole, permWeCanManageRole } from "../Info";
 import * as Discord from "discord.js";
-import { messages, raw, safe } from "../../messages";
+import { andlist, messages, orlist, raw, safe } from "../../messages";
 import { durationFormat } from "../durationFormat";
 import { AP } from "./argumentparser";
 import { QuickrankField } from "../Database";
@@ -251,7 +251,7 @@ nr.globalCommand(
 			"Quickrank role set to "+role.toString()
 			+"! Members with the "+role.toString()
 			+(managableRoles.length == 0 ? " role can give any user roles with quickrank. Quickrank is not yet configued."
-			: " role can give any user these roles with quickrank: "+managableRoles.join(", ")),
+			: " role can give any user these roles with quickrank: "+andlist(managableRoles)),
 		);
 	},
 );
@@ -442,7 +442,7 @@ nr.globalCommand(
 			if(content.emojiMention) methods.push("react with "+content.emojiMention+"✅");
 			if(content.safeNameAlias) methods.push(info.tag`use the command {Command|rank @user ${raw(content.safeNameAlias)}}`);
 			if(content.timeAlias) methods.push(info.tag`use the command {Command|rank @user sub-${""+(content.timeAlias / 60000)}}`);
-			const providesMsg = content.provides ? " This role also gives "+orlist(content.provides.map(q => "<@&"+q+">"), "and")+" when given with quickrank." : "";
+			const providesMsg = content.provides ? " This role also gives "+andlist(content.provides.map(q => "<@&"+q+">"))+" when given with quickrank." : "";
 			return "- <@&"+roleID+">: "+orlist(methods)+"."+providesMsg;
 		});
 
@@ -454,13 +454,6 @@ nr.globalCommand(
 		);
 	},
 );
-
-function orlist(items: string[], joiner = "or"): string {
-	if(items.length == 0) return "*empty list oops*";
-	if(items.length == 1) return items[0];
-	if(items.length == 2) return items.join(" "+joiner+" ");
-	return items.map((a, i) => ((i == items.length - 1) ? "or " : "") + a).join(", ");
-}
 
 export function findAllProvidedRoles(
 	roleIDs: string[],
@@ -612,11 +605,11 @@ export function getRankSuccessMessage(
 			", No roles were given. " +
 			safe(reciever.displayName) +
 			" already has " +
-			orlist(
-			explicit
-			.sort((a, b) => b.position - a.position)
-			.map(r => messages.role(r))
-			, "and")
+			andlist(
+				explicit
+				.sort((a, b) => b.position - a.position)
+				.map(r => messages.role(r))
+			)
 		);
 	}
 	const explicitRolesNotGiven = preExistingRoles.filter(r =>
@@ -625,19 +618,19 @@ export function getRankSuccessMessage(
 	return (
 		reciever.toString() +
 		", You were given the role"+(rolesToGive.length == 1 ? "" : "s")+" " +
-		orlist(
+		andlist(
 			rolesToGive
 			.sort((a, b) => b.position - a.position)
-			.map(r => messages.role(r)), "and") +
+			.map(r => messages.role(r))) +
 		" by " +
 		giver.toString() +
 		"" +
 		(explicitRolesNotGiven.length > 0
 			? "\n> The role"+(explicitRolesNotGiven.length == 1 ? "" : "s")+" " +
-			orlist(
+			andlist(
 			  explicitRolesNotGiven
 					.sort((a, b) => b.position - a.position)
-					.map(r => messages.role(r)), "and"
+					.map(r => messages.role(r))
 			)+
 			  " were not given because you already have them."
 			: "")

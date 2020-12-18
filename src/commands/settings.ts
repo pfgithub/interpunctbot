@@ -6,7 +6,7 @@ import Info from "../Info";
 nr.addDocsWebPage(
 	"/help/configuration",
 	"Configuration",
-	"settings for some parts of inter·punct",
+	"settings for general parts of inter·punct",
 	`{Title|Configuration}
 
 Some parts of {Interpunct} can be configured
@@ -14,7 +14,8 @@ Some parts of {Interpunct} can be configured
 {CmdSummary|set prefix}
 {CmdSummary|set ShowErrors}
 {CmdSummary|set ShowUnknownCommand}
-{CmdSummary|set ManageBotRole}`,
+{CmdSummary|set ManageBotRole}
+{CmdSummary|fun}`
 );
 
 // nr.globalAlias("help configuration", "set");

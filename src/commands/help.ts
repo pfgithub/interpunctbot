@@ -8,7 +8,7 @@ nr.addDocsWebPage(
 	`{Title|inter·punct bot}
 
 {LinkSummary|/help/configuration}
-{LinkSummary|/help/fun}
+{LinkSummary|/help/games}
 {LinkSummary|/help/ticket}
 {LinkSummary|/help/emoji}
 {LinkSummary|/help/messages}
@@ -16,6 +16,7 @@ nr.addDocsWebPage(
 {LinkSummary|/help/administration}
 {LinkSummary|/help/customcommands}
 {LinkSummary|/help/log}
+{LinkSummary|/help/fun}
 {LinkSummary|/help/speedrun}
 {LinkSummary|/help/quickrank}
 {LinkSummary|/help/autodelete}`,

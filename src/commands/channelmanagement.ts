@@ -510,6 +510,7 @@ nr.globalCommand(
 	},
 );
 
+// TODO add a note for people who use `ip!channels sendMany` still that they can switch to `ip!send`
 nr.globalCommand(
 	"/help/channels/send",
 	"send",

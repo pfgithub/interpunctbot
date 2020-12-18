@@ -75,11 +75,10 @@ nr.globalCommand(
 		usage: "tictactoe",
 		description:
 			"Play a game of tic tac toe. {Interpunct} requires permission to manage reactions to run games best.",
-		extendedDescription: `To play tic tac toe, try to make 3 in a row on your turn.
-{Blockquote|Some people incorrectly spell this game "knots and crosses". This spelling is wrong, but it will still be accepted by {Interpunct}.}`,
+		extendedDescription: `To play tic tac toe, try to make 3 in a row on your turn.`,
 		examples: [
 			{
-				in: "ticktactoe",
+				in: "tictactoe",
 				out: "{Screenshot|https://i.imgur.com/VL8fihL.png}",
 			},
 		],
@@ -90,6 +89,8 @@ nr.globalCommand(
 nr.globalAlias("tictactoe", "knots and crosses");
 nr.globalAlias("tictactoe", "knotsandcrosses");
 nr.globalAlias("tictactoe", "tic tac toe");
+nr.globalAlias("tictactoe", "ticktactoe");
+nr.globalAlias("tictactoe", "tick tac toe");
 nr.globalAlias("tictactoe", "tick tack toâ€™");
 nr.globalAlias("tictactoe", "ttt");
 

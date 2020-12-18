@@ -4,7 +4,7 @@
 	["channel", "/updates"],
 	["category", "/help"],
 	["channel", "/help/configuration"],
-	["channel", "/help/fun"],
+	["channel", "/help/games"],
 	["channel", "/help/ticket"],
 	["channel", "/help/emoji"],
 	["channel", "/help/messages"],
@@ -13,6 +13,7 @@
 	["channel", "/help/customcommands", "custom commands"],
 	["channel", "/help/log", "logging"],
 	["channel", "/help/speedrun", "speedrun.com"],
+	["channel", "/help/fun"],
 	["channel", "/help/quickrank"],
 	["channel", "/help/autodelete"]
 ]
