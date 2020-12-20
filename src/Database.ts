@@ -22,19 +22,19 @@ type AutodeleteDuration =
 			type: "autoreact";
 			reactions: string[];
 	  };
-export type AutodeleteRule = {
-	[key in keyof AutodeleteInfo]: AutodeleteInfo[key] & {
-		type: key;
-		id: number;
-		duration: AutodeleteDuration;
+type OneAutodeleteRule<key extends keyof AutodeleteInfo> = {
+	type: key;
+	duration: AutodeleteDuration;
+	apply_roles?: {
+		exclude: string[];
+		include_only: string[];
 	};
+};
+export type AutodeleteRule = {
+	[key in keyof AutodeleteInfo]: AutodeleteInfo[key] & OneAutodeleteRule<key> & {id: number};
 }[keyof AutodeleteInfo];
 export type AutodeleteRuleNoID = {
-	[key in keyof AutodeleteInfo]: AutodeleteInfo[key] & {
-		type: key;
-		id?: undefined;
-		duration: AutodeleteDuration;
-	};
+	[key in keyof AutodeleteInfo]: AutodeleteInfo[key] & OneAutodeleteRule<key> & {id?: number};
 }[keyof AutodeleteInfo];
 
 export type CustomCommand =

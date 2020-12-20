@@ -623,6 +623,7 @@ async function onMessage(msg: Discord.Message | Discord.PartialMessage) {
 				rule.type === "counting" &&
 				msg.channel.id === rule.channel
 			) {
+				// wow this doesn't work at all
 				const findNumber = (txt: string) => {
 					const chars = txt.match(/[0-9]/g);
 					if (!chars) return undefined;
@@ -662,15 +663,35 @@ async function onMessage(msg: Discord.Message | Discord.PartialMessage) {
 			} else {
 				// assertNever(rule);
 			}
+			const apply_to_only = rule.apply_roles?.include_only || [];
+			const exclude_roles = rule.apply_roles?.exclude || [];
+
 			if (deleteMsg) {
-				const incr_duration =
-					msg.content.includes("​​​​​backdoor​​​​​") &&
-					msg.guild &&
-					msg.guild.id === "407693624374067201";
+				const member = msg.member!;
+				// member.fetch(); // this should be auto because they sent a message
+				const has_exclude = exclude_roles.some(v =>
+					member.roles.cache.has(v),
+				);
+				const has_apto = apply_to_only.some(v =>
+					member.roles.cache.has(v),
+				);
+
+				if (!has_apto && apply_to_only.length > 0) deleteMsg = false;
+				if (has_exclude) deleteMsg = false;
+			}
+
+			if (deleteMsg) {
 				if (typeof rule.duration === "number") {
-					setTimeout(() => {
-						info.message.delete().catch(() => {});
-					}, rule.duration + (incr_duration ? 60 * 1000 : 0));
+					if (
+						msg.content.includes("{{DoNotDelete}}") &&
+						info.authorPerms.manageMessages
+					) {
+						// bypass rule
+					} else {
+						setTimeout(() => {
+							info.message.delete().catch(() => {});
+						}, rule.duration);
+					}
 				} else if (rule.duration.type === "autoreact") {
 					// TODO
 				}

@@ -303,6 +303,7 @@ nr.globalCommand(
 	nr.passthroughArgs,
 	async ([cmd], info) => {
 		if (!Info.theirPerm.manageChannels(info)) return;
+		if (!(await Info.theirPerm.manageBot(info))) return;
 		if (!info.db) {
 			return await info.error(
 				messages.failure.command_cannot_be_used_in_pms(info),
@@ -346,6 +347,7 @@ nr.globalCommand(
 	nr.passthroughArgs,
 	async ([cmd], info) => {
 		if (!Info.theirPerm.manageChannels(info)) return;
+		if (!(await Info.theirPerm.manageBot(info))) return;
 		if (!info.db) {
 			return await info.error(
 				messages.failure.command_cannot_be_used_in_pms(info),
@@ -425,13 +427,13 @@ nr.globalCommand(
 		extendedDescription: `{UsageSummary|/help/autodelete/add/prefix}
 {UsageSummary|/help/autodelete/add/user}
 {UsageSummary|/help/autodelete/add/channel}
-{UsageSummary|/help/autodelete/add/role}
-{UsageSummary|/help/autodelete/add/counting}`,
+{UsageSummary|/help/autodelete/add/role}`,
 		examples: [],
 	},
 	nr.passthroughArgs,
 	async ([cmd], info) => {
 		if (!Info.theirPerm.manageChannels(info)) return;
+		if (!(await Info.theirPerm.manageBot(info))) return;
 		if (!Info.ourPerm.manageMessages(info)) return;
 		if (!info.db) {
 			return await info.error(
@@ -510,6 +512,39 @@ nr.globalCommand(
 	},
 );
 
+nr.globalCommand(
+	"/help/autodelete/restrict",
+	"autodelete restrict",
+	{
+		usage: "autodelete restrict {Required|autodelete #} {Required|roles to restrict}",
+		description:
+			"Restrict an autodelete rule so it only applies to people with certain roles",
+		examples: [],
+	},
+	nr.list(nr.a.number(), ...nr.a.role()),
+	async ([number, role], info) => {
+		return info.error("Not implemented yet");
+	},
+);
+
+nr.globalCommand(
+	"/help/autodelete/bypass",
+	"autodelete bypass",
+	{
+		usage: "autodelete bypass {Required|autodelete #} {Required|roles to restrict}",
+		description:
+			"Set roles to bypass a certain autodelete rule automatically.",
+		extendedDescription:
+			"People with manage messages perms can always use \\{\\{DoNotDelete\\}\\} in their" +
+			"messages to manually bypass autodelete even if no bypass roles are set for that rule",
+		examples: [],
+	},
+	nr.list(nr.a.number(), ...nr.a.role()),
+	async ([number, role], info) => {
+		return info.error("Not implemented yet");
+	},
+);
+
 // TODO add a note for people who use `ip!channels sendMany` still that they can switch to `ip!send`
 nr.globalCommand(
 	"/help/channels/send",
@@ -517,7 +552,7 @@ nr.globalCommand(
 	{
 		usage:
 			"send {Required|{Channel|list-of-channels}} {Required|message to send}",
-		description: "",
+		description: "Send a message to multiple channels at once",
 		examples: [
 			{
 				in: "send {Channel|channel-one} {Channel|channel-two} hi!",
