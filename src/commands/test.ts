@@ -112,7 +112,7 @@ nr.globalCommand(
 		usage: "restart",
 		description: "restart the shard",
 		examples: [],
-		perms: {runner: ["bot_owner"]},
+		perms: { runner: ["bot_owner"] },
 	},
 	nr.list(),
 	async ([], info) => {
@@ -162,8 +162,7 @@ nr.globalCommand(
 	nr.passthroughArgs,
 	async ([cmd], info) => {
 		cmd = cmd.replace(/(^\`|\`$)/g, "").trim();
-		if(cmd === "1 + 1")
-			return await info.result("2");
+		if (cmd === "1 + 1") return await info.result("2");
 		if (cmd === "client.guilds.cache.size")
 			return await info.result(
 				"" +

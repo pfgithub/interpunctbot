@@ -120,7 +120,7 @@ ip!quickrank name `gold pot` @gold pot
 ip!rank @user gold pot
 */
 		],
-		perms: {runner: ["manage_bot"]}, // more checked in body
+		perms: { runner: ["manage_bot"] }, // more checked in body
 	},
 	nr.list(nr.a.backtick(), ...nr.a.role()),
 	async ([name, role], info) => {
@@ -158,7 +158,7 @@ nr.globalCommand(
 		description:
 			"add a rank time to be unsed in the {Command|rank} command",
 		examples: [],
-		perms: {runner: ["manage_bot"]}, // more checked in body
+		perms: { runner: ["manage_bot"] }, // more checked in body
 	},
 	nr.list(nr.a.enumNoSpace("<", ">"), nr.a.duration(), ...nr.a.role()),
 	async ([ltgt, duration, role], info) => {
@@ -186,7 +186,7 @@ nr.globalCommand(
 		description:
 			"add a reaction to react to messages and click check with to rank people",
 		examples: [],
-		perms: {runner: ["manage_bot"]}, // more checked in body
+		perms: { runner: ["manage_bot"] }, // more checked in body
 	},
 	nr.list(nr.a.emoji(), ...nr.a.role()),
 	async ([emoji, role], info) => {
@@ -217,7 +217,7 @@ nr.globalCommand(
 		description:
 			"set a role that allows members to quickrank even if they do not have permissions to manage roles. Keep in mind that this will allow people with this role to give people any of the roles configured in quickrank. If you don't want them giving away admin roles, make sure not to put those in quickrank.",
 		examples: [],
-		perms: {runner: ["manage_bot"]},
+		perms: { runner: ["manage_bot"] },
 	},
 	nr.list(...nr.a.role()),
 	async ([role], info) => {
@@ -269,7 +269,7 @@ nr.globalCommand(
 		description:
 			"Remove a role from quickrank entirely (reaction, named, time, provides)",
 		examples: [],
-		perms: {runner: ["manage_bot"]},
+		perms: { runner: ["manage_bot"] },
 	},
 	nr.list(...nr.a.role()),
 	async ([role], info) => {
@@ -330,7 +330,7 @@ nr.globalCommand(
 			"quickrank add provides {Required|@role 1} -> {Required|@role 2}",
 		description: "when ranking users with role 1, also give them role 2.",
 		examples: [],
-		perms: {runner: ["manage_bot"]}
+		perms: { runner: ["manage_bot"] },
 	},
 	nr.passthroughArgs,
 	async ([cmd], info) => {
@@ -388,7 +388,7 @@ nr.globalCommand(
 		usage: "quickrank list",
 		description: "list all quickrank configuration.",
 		examples: [],
-		perms: {runner: ["manage_bot"]}
+		perms: { runner: ["manage_bot"] },
 	},
 	nr.list(),
 	async ([], info) => {
@@ -538,7 +538,9 @@ nr.globalCommand(
 			.map(w => w.trim())
 			.filter(w => w);
 		const qr = await info.db.getQuickrank();
-		const isManager = qr.managerRole && info.message.member!.roles.cache.has(qr.managerRole);
+		const isManager =
+			qr.managerRole &&
+			info.message.member!.roles.cache.has(qr.managerRole);
 
 		const rolesToGive: string[] = [];
 
@@ -588,7 +590,8 @@ nr.globalCommand(
 					"/errors/quickrank/deleted-role",
 					"error",
 				);
-			if(!isManager) if (!(await permTheyCanManageRole(role, info))) return;
+			if (!isManager)
+				if (!(await permTheyCanManageRole(role, info))) return;
 			if (!(await permWeCanManageRole(role, info))) return;
 			if (reciever.roles.cache.has(roleID)) {
 				discordRolesAlreadyGiven.push(role);

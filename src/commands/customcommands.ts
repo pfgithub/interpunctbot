@@ -52,7 +52,7 @@ nr.globalCommand(
 		usage: "command add {Required|commandname} {Required|text...}",
 		description: "add a custom command",
 		examples: [],
-		perms: {runner: ["manage_bot"]},
+		perms: { runner: ["manage_bot"] },
 	},
 	nr.list(nr.a.backtick(), ...nr.a.words()),
 	async ([safecmdname, unsaferestext], info) => {

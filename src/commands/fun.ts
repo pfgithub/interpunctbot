@@ -74,7 +74,7 @@ nr.globalCommand(
 		usage: "ping",
 		description: "Play a game of ping pong against {Interpunct}.",
 		examples: [{ in: "ping", out: "@you, Pong!" }],
-		perms: {fun: true}
+		perms: { fun: true },
 	},
 	nr.list(),
 	async ([], info) => {
@@ -92,7 +92,7 @@ nr.globalCommand(
 		usage: "pong",
 		description: "Play a game of pong ping against {Interpunct}.",
 		examples: [{ in: "pong", out: "@you, Ping!" }],
-		perms: {fun: true},
+		perms: { fun: true },
 	},
 	nr.list(),
 	async ([], info) => {
@@ -110,7 +110,7 @@ nr.globalCommand(
 		usage: "needle",
 		description: "Find the needle in the haystack.",
 		examples: [],
-		perms: {fun: true},
+		perms: { fun: true },
 	},
 	nr.list(),
 	async ([], info) => {
@@ -133,7 +133,7 @@ nr.globalCommand(
 		usage: "bubblewrap",
 		description: "Bubblewrap.",
 		examples: [],
-		perms: {fun: true},
+		perms: { fun: true },
 	},
 	nr.list(),
 	async ([], info) => {
@@ -165,7 +165,7 @@ nr.globalCommand(
 		usage: "award {Required|{Atmention|who}} {Required|award text...}",
 		description: "Give someone an award.",
 		examples: [],
-		perms: {fun: true},
+		perms: { fun: true },
 	},
 	nr.list(nr.a.user(), ...nr.a.words()),
 	async ([user, award], info) => {
@@ -192,7 +192,12 @@ ${" ".repeat(Math.max(43 - award.length, 0))}**${safe(award)}**
 nr.globalCommand(
 	"/help/fun/botdev",
 	"botdev",
-	{ usage: "botdev", description: "Get help", examples: [], perms: {fun: true} },
+	{
+		usage: "botdev",
+		description: "Get help",
+		examples: [],
+		perms: { fun: true },
+	},
 	nr.list(),
 	async ([], info) => {
 		await info.error(
@@ -205,7 +210,12 @@ nr.globalCommand(
 nr.globalCommand(
 	"/help/fun/notdev",
 	"notdev",
-	{ usage: "botdev", description: "Get help", examples: [], perms: {fun: true} },
+	{
+		usage: "botdev",
+		description: "Get help",
+		examples: [],
+		perms: { fun: true },
+	},
 	nr.list(),
 	async ([], info) => {
 		await info.error(
@@ -224,7 +234,7 @@ nr.globalCommand(
 		usage: "load {Optional|final message}",
 		description: "Fetch results",
 		examples: [],
-		perms: {fun: true},
+		perms: { fun: true },
 	},
 	nr.list(...nr.a.words()),
 	async ([finalressafe], info) => {
@@ -268,7 +278,7 @@ nr.globalCommand(
 				out: "{Emoji|failure} timezones are not implemented yet :(",
 			},
 		],
-		perms: {fun: true},
+		perms: { fun: true },
 	},
 	nr.list(...nr.a.words()),
 	async ([cmd], info) => {
@@ -285,7 +295,7 @@ nr.globalCommand(
 		usage: "color {Required|hex code}",
 		description: "shows an image of a hex color",
 		examples: [],
-		perms: {fun: true},
+		perms: { fun: true },
 	},
 	nr.list(nr.a.word()),
 	async ([word], info) => {
@@ -305,7 +315,7 @@ nr.globalCommand(
 		usage: "play {Required|song}",
 		description: "Plays a song in a fake music player",
 		examples: [],
-		perms: {fun: true},
+		perms: { fun: true },
 	},
 	nr.passthroughArgs,
 	async ([cmd], info) => {
@@ -325,7 +335,7 @@ nr.globalCommand(
 		usage: "accept all",
 		description: "You made the right choice!",
 		examples: [],
-		perms: {fun: true},
+		perms: { fun: true },
 	},
 	nr.list(),
 	async ([], info) => {
@@ -363,7 +373,7 @@ nr.globalCommand(
 		usage: "tiny {Required|text...}",
 		description: "makes your text ᵗᶦⁿʸ",
 		examples: [],
-		perms: {fun: true},
+		perms: { fun: true },
 	},
 	nr.list(...nr.a.words()),
 	async ([text], info) => {
@@ -378,7 +388,7 @@ nr.globalCommand(
 		usage: "small {Required|text...}",
 		description: "makes your text sᴍᴀʟʟᴄᴀᴘs",
 		examples: [],
-		perms: {fun: true},
+		perms: { fun: true },
 	},
 	nr.list(...nr.a.words()),
 	async ([text], info) => {
@@ -393,7 +403,7 @@ nr.globalCommand(
 		usage: "vdb {Optional|command}",
 		description: "runs a command in the vdb debugger",
 		examples: [],
-		perms: {fun: true},
+		perms: { fun: true },
 	},
 	nr.passthroughArgs,
 	async ([cmd], info) => {
@@ -440,7 +450,7 @@ nr.globalCommand(
 		usage: "inspirobot",
 		description: "get some inspiration from inspirobot",
 		examples: [],
-		perms: {fun: true},
+		perms: { fun: true },
 	},
 	nr.list(),
 	async ([], info) => {
@@ -554,7 +564,7 @@ nr.globalCommand(
 					"This server has 83 members with the role {Role|🕐︎ SUB-3} (4.77%)",
 			},
 		],
-		perms: {fun: true},
+		perms: { fun: true },
 	},
 	nr.passthroughArgs,
 	async ([cmd], info) => {
@@ -658,7 +668,7 @@ nr.globalCommand(
 		usage: "cube",
 		description: "cube",
 		examples: [],
-		perms: {fun: true},
+		perms: { fun: true },
 	},
 	nr.list(),
 	async ([], info) => {
@@ -675,7 +685,7 @@ nr.globalCommand(
 		usage: "vote2 {Required|contraversial statement}",
 		description: "allows other people to vote on your message",
 		examples: [],
-		perms: {fun: true},
+		perms: { fun: true },
 	},
 	nr.passthroughArgs,
 	async ([cmd], info) => {
@@ -693,7 +703,7 @@ nr.globalCommand(
 		usage: "userinfo {Required|{Atmention|someuser}}",
 		description: "gives some user info",
 		examples: [],
-		perms: {fun: true},
+		perms: { fun: true },
 	},
 	nr.list(nr.a.user()),
 	async ([ussr], info) => {
@@ -774,7 +784,7 @@ nr.globalCommand(
 		description:
 			"Send a message from {Link|https://pfg.pw/sitepages/messagecreator}",
 		examples: [],
-		perms: {runner: ["manage_messages_thischannel"]},
+		perms: { runner: ["manage_messages_thischannel"] },
 	},
 	nr.list(...nr.a.words()),
 	async ([wrds], info) => {
@@ -979,7 +989,7 @@ nr.globalCommand(
 					"VOTE: pineapple on pizza is good (Votes: +143,289, Voting ended)\n{Reaction|upvote|7,543,829}{Reaction|downvote|7,400,540}", // so in discord it can show as [^ 6543643] [v 543]
 			},
 		],
-		perms: {fun: true},
+		perms: { fun: true },
 	},
 	nr.passthroughArgs,
 	async ([message], info) => {
@@ -1067,7 +1077,7 @@ nr.globalCommand(
 				out: "{Screenshot|https://i.imgur.com/dWOoTBM.png}",
 			},
 		],
-		perms: {fun: true},
+		perms: { fun: true },
 	},
 	nr.list(),
 	async ([], info) => {
@@ -1144,7 +1154,7 @@ nr.globalCommand(
 		usage: "snek",
 		description: "snek",
 		examples: [],
-		perms: {fun: true},
+		perms: { fun: true },
 	},
 	nr.list(),
 	async ([], info) => {
@@ -1167,7 +1177,7 @@ nr.globalCommand(
 					"{Atmention|you}, Statistics:\n{Blockquote|{Bold|Servers}: 1834 servers\n{Bold|Uptime}: 39m:37.128s\nTook 8ms, handling -1 db requests per second}",
 			},
 		],
-		perms: {fun: true},
+		perms: { fun: true },
 	},
 	nr.list(),
 	async ([], info) => {
@@ -1211,7 +1221,7 @@ nr.globalCommand(
 				out: "{Emoji|success} Reminder set for 10 years.",
 			},
 		],
-		perms: {fun: true},
+		perms: { fun: true },
 	},
 	nr.passthroughArgs,
 	async ([cmd], info) => {
@@ -1265,7 +1275,7 @@ nr.globalCommand(
 				out: "{Emoji|success} Fun is no longer allowed on this server.",
 			},
 		],
-		perms: {runner: ["manage_bot"]},
+		perms: { runner: ["manage_bot"] },
 	},
 	nr.list(nr.a.enum("enable", "disable")),
 	async ([mode], info) => {
@@ -1310,7 +1320,7 @@ nr.globalCommand(
 				out: "{Screenshot|https://i.imgur.com/M0nA5Hg.png}",
 			},
 		],
-		perms: {fun: true},
+		perms: { fun: true },
 	},
 	nr.passthroughArgs,
 	async ([cmd], info) => {

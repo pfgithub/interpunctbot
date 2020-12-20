@@ -28,7 +28,7 @@ nr.globalCommand(
 		description: "Set a role in which users can manage the bot settings.",
 		usage: "set ManageBotRole {Required|{Role|role}}",
 		examples: [],
-		perms: {runner: ["manage_bot"]},
+		perms: { runner: ["manage_bot"] },
 	},
 	nr.list(...nr.a.role()),
 	async ([role], info) => {
@@ -57,7 +57,7 @@ nr.globalCommand(
 					"{Emoji|success} Prefix set to !\n{Blockquote|Try it out with !test}",
 			},
 		],
-		perms: {runner: ["manage_bot"]}
+		perms: { runner: ["manage_bot"] },
 	},
 	nr.passthroughArgs,
 	async ([cmd], info) => {
@@ -86,7 +86,7 @@ nr.globalCommand(
 		usage: "set ShowErrors {Required|{Enum|always|admins|never}}",
 		description: "choose who command errors are shown to",
 		examples: [],
-		perms: {runner: ["manage_bot"]},
+		perms: { runner: ["manage_bot"] },
 	},
 	nr.list(nr.a.enum("always", "admins", "never")),
 	async ([cmd], info) => {
@@ -122,7 +122,7 @@ nr.globalCommand(
 		usage: "set ShowUnknownCommand {Required|{Enum|always|admins|never}}",
 		description: "choose who unknown command errors are shown to",
 		examples: [],
-		perms: {runner: ["manage_bot"]}
+		perms: { runner: ["manage_bot"] },
 	},
 	nr.list(nr.a.enum("always", "admins", "never")),
 	async ([cmd], info) => {
@@ -169,7 +169,7 @@ nr.globalCommand(
 					"{Emoji|success} Users with these words in their name (not case-sensitive) will be banned when they join the server:\n- twitch.tv\n- discord.dg",
 			},
 		],
-		perms: {runner: ["ban_members", "manage_bot"], bot: ["ban_members"]},
+		perms: { runner: ["ban_members", "manage_bot"], bot: ["ban_members"] },
 	},
 	nr.passthroughArgs,
 	async ([words], info) => {
@@ -209,7 +209,7 @@ nr.globalCommand(
 		usage: "autoban list",
 		description: "list all name parts",
 		examples: [],
-		perms: {runner: ["manage_bot"]}
+		perms: { runner: ["manage_bot"] },
 	},
 	nr.list(),
 	async ([], info) => {
@@ -233,7 +233,7 @@ nr.globalCommand(
 		usage: "autoban clear",
 		description: "disable autoban on the server",
 		examples: [],
-		perms: {runner: ["manage_bot", "ban_members"]},
+		perms: { runner: ["manage_bot", "ban_members"] },
 	},
 	nr.list(),
 	async ([], info) => {

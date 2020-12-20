@@ -77,7 +77,7 @@ nr.globalCommand(
 					"{Atmention|you}, {Emoji|success} Succesfully deleted 1 message.",
 			},
 		],
-		perms: {runner: ["manage_messages_thischannel"]}, // would be neat if adding "guild" here would pass in an info with guild and db guarenteed
+		perms: { runner: ["manage_messages_thischannel"] }, // would be neat if adding "guild" here would pass in an info with guild and db guarenteed
 	},
 	nr.list(nr.a.number()),
 	async ([messageLimit], info) => {
@@ -203,11 +203,10 @@ nr.globalCommand(
 					"{Atmention|you}, {Emoji|success} Slowmode for {Channel|channel} set to 1 second, 000ms",
 			},
 		],
-		perms: {runner: ["manage_channels"]}
+		perms: { runner: ["manage_channels"] },
 	},
 	nr.list(nr.a.channel(), nr.a.duration()),
 	async ([channel, time], info) => {
-
 		const guild = info.guild;
 		if (!guild) {
 			return await info.error(
@@ -295,7 +294,7 @@ function printrule(rule: AutodeleteRule, info: Info) {
 const autodelete_perms = {
 	runner: ["manage_channels", "manage_bot"],
 	bot: ["manage_messages"],
- } as const;
+} as const;
 
 nr.globalCommand(
 	"/help/autodelete/list",
@@ -304,7 +303,7 @@ nr.globalCommand(
 		usage: "autodelete list",
 		description: "list all autodelete rules on this server",
 		examples: [],
-		perms: {runner: autodelete_perms.runner},
+		perms: { runner: autodelete_perms.runner },
 	},
 	nr.passthroughArgs,
 	async ([cmd], info) => {
@@ -347,7 +346,7 @@ nr.globalCommand(
 		description:
 			"remove an autodelete rule. use {Command|autodelete list} to list.",
 		examples: [],
-		perms: {runner: autodelete_perms.runner},
+		perms: { runner: autodelete_perms.runner },
 	},
 	nr.passthroughArgs,
 	async ([cmd], info) => {
@@ -522,11 +521,12 @@ nr.globalCommand(
 	"/help/autodelete/restrict",
 	"autodelete restrict",
 	{
-		usage: "autodelete restrict {Required|autodelete #} {Required|roles to restrict}",
+		usage:
+			"autodelete restrict {Required|autodelete #} {Required|roles to restrict}",
 		description:
 			"Restrict an autodelete rule so it only applies to people with certain roles",
 		examples: [],
-		perms: {runner: autodelete_perms.runner},
+		perms: { runner: autodelete_perms.runner },
 	},
 	nr.list(nr.a.number(), ...nr.a.role()),
 	async ([number, role], info) => {
@@ -538,14 +538,15 @@ nr.globalCommand(
 	"/help/autodelete/bypass",
 	"autodelete bypass",
 	{
-		usage: "autodelete bypass {Required|autodelete #} {Required|roles to restrict}",
+		usage:
+			"autodelete bypass {Required|autodelete #} {Required|roles to restrict}",
 		description:
 			"Set roles to bypass a certain autodelete rule automatically.",
 		extendedDescription:
 			"People with manage messages perms can always use \\{\\{DoNotDelete\\}\\} in their" +
 			"messages to manually bypass autodelete even if no bypass roles are set for that rule",
 		examples: [],
-		perms: {runner: autodelete_perms.runner},
+		perms: { runner: autodelete_perms.runner },
 	},
 	nr.list(nr.a.number(), ...nr.a.role()),
 	async ([number, role], info) => {
@@ -568,7 +569,7 @@ nr.globalCommand(
 					"{Atmention|you}, {Emoji|success} Your message was sent to {Channel|channel-one}, {Channel|channel-two}",
 			},
 		],
-		perms: {runner: ["manage_channels"]},
+		perms: { runner: ["manage_channels"] },
 	},
 	nr.passthroughArgs,
 	async ([cmd], info) => {
@@ -632,7 +633,7 @@ nr.globalCommand(
 					"{Atmention|you}, {Emoji|success} Goodbye message set. Here is an example of what might be sent to {Channel|welcome} when someone leaves:\n\nGoodbye person leaving ({Atmention|person leaving}), we will miss you!",
 			},
 		],
-		perms: {runner: ["manage_bot"]},
+		perms: { runner: ["manage_bot"] },
 	},
 	nr.list(nr.a.channel(), ...nr.a.words()),
 	async ([channel, message], info) => {
@@ -686,7 +687,7 @@ nr.globalCommand(
 		usage: "messages remove welcome",
 		description: "disable the welcome message",
 		examples: [],
-		perms: {runner: ["manage_bot"]},
+		perms: { runner: ["manage_bot"] },
 	},
 	nr.list(),
 	async ([], info) => {
@@ -711,7 +712,7 @@ nr.globalCommand(
 		usage: "messages remove goodbye",
 		description: "disable the goodbye message",
 		examples: [],
-		perms: {runner: ["manage_bot"]},
+		perms: { runner: ["manage_bot"] },
 	},
 	nr.list(),
 	async ([], info) => {
@@ -745,7 +746,7 @@ nr.globalCommand(
 					"{Atmention|you}, {Emoji|success} Welcome message set. Here is an example of what might be sent to {Channel|#welcome} when someone joins:\n\nWelcome to the server {Atmention|person joining} (person joining)!!! Make sure to check out the {Channel|rules}!",
 			},
 		],
-		perms: {runner: ["manage_bot"]},
+		perms: { runner: ["manage_bot"] },
 	},
 	nr.list(nr.a.channel(), ...nr.a.words()),
 	async ([channel, message], info) => {
@@ -832,7 +833,7 @@ nr.globalCommand(
 		description:
 			"{Interpunct} will send a message and make sure it always stays at the bottom of the channel",
 		examples: [],
-		perms: {runner: ["manage_bot"]},
+		perms: { runner: ["manage_bot"] },
 	},
 	nr.list(nr.a.channel(), ...nr.a.words()),
 	async ([channel, message], info) => {

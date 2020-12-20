@@ -136,7 +136,7 @@ nr.globalCommand(
 		description:
 			"restrict an emoji so only people with one of the specified roles can use it",
 		examples: [],
-		perms: {runner: ["manage_emoji"], bot: ["manage_emoji"]}
+		perms: { runner: ["manage_emoji"], bot: ["manage_emoji"] },
 	},
 	nr.list(nr.a.emoji(), ...nr.a.role()),
 	async ([emoji, role], info) => {
@@ -160,7 +160,7 @@ nr.globalCommand(
 			"emoji unrestrict {Optional|{Emoji|emoji}} {Optional|{Role|role}}",
 		description: "unrestrict an emoji so anyone can use it",
 		examples: [],
-		perms: {runner: ["manage_emoji"], bot: ["manage_emoji"]},
+		perms: { runner: ["manage_emoji"], bot: ["manage_emoji"] },
 	},
 	nr.passthroughArgs,
 	async ([cmd], info) => {

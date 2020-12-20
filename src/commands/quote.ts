@@ -185,7 +185,7 @@ nr.globalCommand(
 					"{Atmention|you}, {Bold|Lists}:\n{Blockquote|motivation: {Link|https://pastebin.com/NFuKYjUN}}",
 			},
 		],
-		perms: {}
+		perms: {},
 	},
 	nr.list(),
 	async ([], info) => {
@@ -290,7 +290,7 @@ Each quote should be separated by two lines (quote, blank line, quote). If you w
 					"{Atmention|you}, {Emoji|success} Added list motivation with pastebin URL {Link|https://pastebin.com/NFuKYjUN}\nTry it out with {Command|motivation}",
 			},
 		],
-		perms: {runner: ["manage_bot"]},
+		perms: { runner: ["manage_bot"] },
 	},
 	nr.passthroughArgs,
 	async ([cmd], info) => {
@@ -315,7 +315,7 @@ nr.globalCommand(
 					"{Atmention|you}, {Emoji|success} Updated list motivation with new pastebin URL {Link|https://pastebin.com/NFuKYjUN}\nTry it out with {Command|motivation}",
 			},
 		],
-		perms: {runner: ["manage_bot"]},
+		perms: { runner: ["manage_bot"] },
 	},
 	nr.passthroughArgs,
 	async ([cmd], info) => {
@@ -335,7 +335,7 @@ nr.globalCommand(
 				out: "{Emoji|success} Command removed",
 			},
 		],
-		perms: {runner: ["manage_bot"]},
+		perms: { runner: ["manage_bot"] },
 	},
 	nr.passthroughArgs,
 	async ([listName], info) => {

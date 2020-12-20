@@ -36,7 +36,7 @@ nr.globalCommand(
 					"{Atmention|you}, Log files:\n{Screenshot|https://i.imgur.com/D9GVOoC.png}",
 			},
 		],
-		perms: {runner: ["manage_bot"]},
+		perms: { runner: ["manage_bot"] },
 	},
 	nr.list(),
 	async ([], info) => {
@@ -89,7 +89,7 @@ nr.globalCommand(
 				out: "{Atmention|you}, {Emoji|success} Logs have been reset.",
 			},
 		],
-		perms: {runner: ["manage_bot"]},
+		perms: { runner: ["manage_bot"] },
 	},
 	nr.list(),
 	async ([], info) => {
@@ -117,7 +117,7 @@ nr.globalCommand(
 					"{Atmention|you}, {Emoji|success} Logs have been disabled and deleted.",
 			},
 		],
-		perms: {runner: ["manage_bot"]},
+		perms: { runner: ["manage_bot"] },
 	},
 	nr.list(),
 	async ([], info) => {
@@ -147,7 +147,7 @@ nr.globalCommand(
 				out: "{Atmention|you}, {Emoji|success} Logs have been enabled.",
 			},
 		],
-		perms: {runner: ["manage_bot"]}
+		perms: { runner: ["manage_bot"] },
 	},
 	nr.list(),
 	async ([], info) => {

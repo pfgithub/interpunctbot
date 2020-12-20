@@ -467,7 +467,7 @@ nr.globalCommand(
 		usage: "speedrun disable",
 		description: "disable speedrun commands",
 		examples: [],
-		perms: {runner: ["manage_bot"]},
+		perms: { runner: ["manage_bot"] },
 	},
 	nr.list(),
 	async ([], info) => {
@@ -490,7 +490,7 @@ nr.globalCommand(
 			"speedrun set {Required|https://speedrun.com/game%} {Required|Category%}",
 		description: "Set the speedrun game",
 		examples: [],
-		perms: {runner: ["manage_bot"]}
+		perms: { runner: ["manage_bot"] },
 	},
 	nr.list(nr.a.word(), ...nr.a.words()),
 	async ([speedrunpage, categoryName], info) => {

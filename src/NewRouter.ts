@@ -12,7 +12,7 @@ import { assertNever, ilt, perr } from "..";
 import { confirmDocs } from "./parseDiscordDG";
 import { docsGenMode } from "../bot";
 import { DocsGen } from "./DocsGen";
-import { messages } from "../messages";
+import { andlist, messages } from "../messages";
 export { list, a };
 
 export type CmdCb<APList extends APListAny> = (
@@ -132,15 +132,21 @@ export function addHelpDocsPage(
 ) {
 	if (!docsPath.startsWith("/help/"))
 		throw new Error("Docs path must start with /help/");
+	const permlist: string[] = [];
+	(help.perms.runner || []).forEach(runnerperm => permlist.push("{Perm|runner|"+runnerperm+"}"));
+	(help.perms.bot || []).forEach(botperm => permlist.push("{Perm|bot|"+botperm+"}"));
+	// if(help.perms.fun) permlist.push("")
 	addDocsPage(docsPath, {
 		body:
 			"{Heading|" +
 			help.title +
-			"}\n\nUsage: {Command|" +
+			"}\n" +
+			"Usage: {Command|" +
 			help.usage +
 			"|" +
 			docsPath +
-			"}\n\n" +
+			"}\n" +
+			(permlist.length ? "Permissions: "+permlist.join(", ") +".\n" : "") + "\n" +
 			help.description +
 			"\n\n" +
 			(help.extendedDescription || "") +
@@ -244,8 +250,11 @@ export function reportError(error: Error, info: Info) {
 export const noArgs = list();
 export const passthroughArgs = list(...a.words());
 
-type Permission = "manage_channels" | "manage_bot" | "manage_emoji" | "manage_messages_thischannel" | "ban_members" | "dm_only" | "bot_owner";
-type BotPermission = "manage_channels" | "manage_emoji" | "manage_messages" | "ban_members";
+export const runner_permissions = ["manage_channels", "manage_bot", "manage_emoji", "manage_messages_thischannel", "ban_members", "dm_only", "bot_owner"] as const;
+export const bot_permissions = ["manage_channels", "manage_emoji", "manage_messages", "ban_members"] as const;
+
+type Permission = (typeof runner_permissions)[number];
+type BotPermission = (typeof bot_permissions)[number];
 
 export function globalCommand<APList extends APListAny>(
 	docsPath: string,

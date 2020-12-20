@@ -2,7 +2,7 @@ import assert from "assert";
 import { messages, raw, safe, templateGenerator } from "../messages";
 import Info from "./Info";
 import { parseDG } from "./parseDGv2";
-import { globalCommandNS, globalDocs } from "./NewRouter";
+import { bot_permissions, globalCommandNS, globalDocs, runner_permissions } from "./NewRouter";
 
 export function escapeHTML(html: string) {
 	return html
@@ -116,6 +116,31 @@ const commands: {
 			),
 		discord: (_, info) => info.atme,
 		md: () => `@inter·punct`,
+	},
+	Perm: {
+		// TODO I want little permission icons or emojis on discord or something
+		// and like "manage_bot" should link to a page that tells you how to add a manage bot role
+		// and …
+		confirm: args => {
+			assert.equal(args.length, 2);
+			const [permkind, permname] = args;
+			if(permkind.raw !== "runner" && permkind.raw !== "bot") throw new Error("expected runner or bot");
+			if(permkind.raw === "runner") {
+				if(!runner_permissions.includes(permname.raw as any)) throw new Error("bad runner permission name");
+			}
+			if(permkind.raw === "bot") {
+				if(!bot_permissions.includes(permname.raw as any)) throw new Error("bad bot permission name");
+			}
+		},
+		html: ([permkind, permname], pageURL) => {
+			return ""+(permkind.raw === "bot" ? "I" : "runner")+" need"+(permkind.raw === "runner" ? "s" : "")+" "+permname.safe+"";
+		},
+		discord: ([permkind, permname], info) => {
+			return ""+(permkind.raw === "bot" ? "I" : "runner")+" need"+(permkind.raw === "runner" ? "s" : "")+" "+permname.safe+"";
+		},
+		md: ([permkind, permname]) => {
+			return ""+(permkind.raw === "bot" ? "I" : "runner")+" need"+(permkind.raw === "runner" ? "s" : "")+" "+permname.safe+"";
+		},
 	},
 	Optional: {
 		confirm: args => assert.equal(args.length, 1),

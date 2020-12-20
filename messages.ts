@@ -33,7 +33,7 @@ export function templateGenerator<InType>(helper: (str: InType) => string) {
 /// eg One / One or Two / One, Two, or Three / One, Two, Three, or Four
 /// joiner is 'and' or 'or'
 export function humanizelist(
-	items: string[],
+	items: readonly string[],
 	joiner: string,
 	empty = "*Empty list oops*",
 ): string {
@@ -45,9 +45,9 @@ export function humanizelist(
 		.join(", ");
 }
 
-export const orlist = (items: string[], empty?: string) =>
+export const orlist = (items: readonly string[], empty?: string) =>
 	humanizelist(items, "or", empty);
-export const andlist = (items: string[], empty?: string) =>
+export const andlist = (items: readonly string[], empty?: string) =>
 	humanizelist(items, "and", empty);
 export const plural = (text: any[] | number) =>
 	(typeof text === "number" ? text : text.length) === 1 ? "" : "s";
