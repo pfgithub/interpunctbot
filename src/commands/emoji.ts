@@ -136,12 +136,10 @@ nr.globalCommand(
 		description:
 			"restrict an emoji so only people with one of the specified roles can use it",
 		examples: [],
+		perms: {runner: ["manage_emoji"], bot: ["manage_emoji"]}
 	},
 	nr.list(nr.a.emoji(), ...nr.a.role()),
 	async ([emoji, role], info) => {
-		if (!Info.theirPerm.manageEmoji(info)) return;
-		if (!Info.ourPerm.manageEmoji(info)) return;
-
 		const newRoles = emoji.roles.cache.array();
 		newRoles.push(role);
 		await emoji.edit(
@@ -162,12 +160,10 @@ nr.globalCommand(
 			"emoji unrestrict {Optional|{Emoji|emoji}} {Optional|{Role|role}}",
 		description: "unrestrict an emoji so anyone can use it",
 		examples: [],
+		perms: {runner: ["manage_emoji"], bot: ["manage_emoji"]},
 	},
 	nr.passthroughArgs,
 	async ([cmd], info) => {
-		if (!Info.theirPerm.manageEmoji(info)) return;
-		if (!Info.ourPerm.manageEmoji(info)) return;
-
 		if (!info.guild) {
 			return await info.error(
 				messages.failure.command_cannot_be_used_in_pms(info),
@@ -213,6 +209,7 @@ nr.globalCommand(
 		usage: "emoji inspect {Required|{Emoji|emoji}}",
 		description: "get information about an emoji",
 		examples: [],
+		perms: {},
 	},
 	nr.list(nr.a.emoji()),
 	async ([emoji], info) => {

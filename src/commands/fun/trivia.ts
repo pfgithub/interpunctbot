@@ -126,13 +126,10 @@ nr.globalCommand(
 				out: "{Screenshot|https://i.imgur.com/kejbm15.png}",
 			},
 		],
+		perms: {fun: true},
 	},
 	nr.list(),
 	async ([], info) => {
-		if (info.db ? !(await info.db.getFunEnabled()) : false) {
-			return await info.error(messages.fun.fun_disabled(info));
-		}
-
 		if (info.myChannelPerms) {
 			if (!info.myChannelPerms.has("ADD_REACTIONS")) {
 				return await info.error(

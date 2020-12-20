@@ -139,7 +139,7 @@ ${statusbar}
 ==============
 ${renderedBoard}
 ==============
-`,
+To win Tic Tac Toe, try to be the first to get 3 in a row including diagonals`,
 		];
 	},
 	timers: [

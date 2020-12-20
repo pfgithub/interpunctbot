@@ -120,6 +120,7 @@ ip!quickrank name `gold pot` @gold pot
 ip!rank @user gold pot
 */
 		],
+		perms: {runner: ["manage_bot"]}, // more checked in body
 	},
 	nr.list(nr.a.backtick(), ...nr.a.role()),
 	async ([name, role], info) => {
@@ -128,7 +129,6 @@ ip!rank @user gold pot
 			return;
 		}
 
-		if (!(await Info.theirPerm.manageBot(info))) return;
 		if (!(await permTheyCanManageRole(role, info))) return;
 		if (!(await permWeCanManageRole(role, info))) return;
 
@@ -154,10 +154,11 @@ nr.globalCommand(
 	"quickrank add time",
 	{
 		usage:
-			"quickrank add time {Required|{Duration|duration}} {Required|@role}",
+			"quickrank add time {Required|< or >}{Required|{Duration|duration}} {Required|@role}",
 		description:
 			"add a rank time to be unsed in the {Command|rank} command",
 		examples: [],
+		perms: {runner: ["manage_bot"]}, // more checked in body
 	},
 	nr.list(nr.a.enumNoSpace("<", ">"), nr.a.duration(), ...nr.a.role()),
 	async ([ltgt, duration, role], info) => {
@@ -166,7 +167,6 @@ nr.globalCommand(
 			return;
 		}
 
-		if (!(await Info.theirPerm.manageBot(info))) return;
 		if (!(await permTheyCanManageRole(role, info))) return;
 		if (!(await permWeCanManageRole(role, info))) return;
 
@@ -186,6 +186,7 @@ nr.globalCommand(
 		description:
 			"add a reaction to react to messages and click check with to rank people",
 		examples: [],
+		perms: {runner: ["manage_bot"]}, // more checked in body
 	},
 	nr.list(nr.a.emoji(), ...nr.a.role()),
 	async ([emoji, role], info) => {
@@ -194,7 +195,6 @@ nr.globalCommand(
 			return;
 		}
 
-		if (!(await Info.theirPerm.manageBot(info))) return;
 		if (!(await permTheyCanManageRole(role, info))) return;
 		if (!(await permWeCanManageRole(role, info))) return;
 
@@ -217,6 +217,7 @@ nr.globalCommand(
 		description:
 			"set a role that allows members to quickrank even if they do not have permissions to manage roles. Keep in mind that this will allow people with this role to give people any of the roles configured in quickrank. If you don't want them giving away admin roles, make sure not to put those in quickrank.",
 		examples: [],
+		perms: {runner: ["manage_bot"]},
 	},
 	nr.list(...nr.a.role()),
 	async ([role], info) => {
@@ -224,8 +225,6 @@ nr.globalCommand(
 			await info.docs("/errors/pms", "error");
 			return;
 		}
-
-		if (!(await Info.theirPerm.manageBot(info))) return;
 
 		const qr = await info.db.getQuickrank();
 
@@ -270,6 +269,7 @@ nr.globalCommand(
 		description:
 			"Remove a role from quickrank entirely (reaction, named, time, provides)",
 		examples: [],
+		perms: {runner: ["manage_bot"]},
 	},
 	nr.list(...nr.a.role()),
 	async ([role], info) => {
@@ -277,8 +277,6 @@ nr.globalCommand(
 			await info.docs("/errors/pms", "error");
 			return;
 		}
-
-		if (!(await Info.theirPerm.manageBot(info))) return;
 
 		const qr = await info.db.getQuickrank();
 
@@ -332,6 +330,7 @@ nr.globalCommand(
 			"quickrank add provides {Required|@role 1} -> {Required|@role 2}",
 		description: "when ranking users with role 1, also give them role 2.",
 		examples: [],
+		perms: {runner: ["manage_bot"]}
 	},
 	nr.passthroughArgs,
 	async ([cmd], info) => {
@@ -339,8 +338,6 @@ nr.globalCommand(
 			await info.docs("/errors/pms", "error");
 			return;
 		}
-
-		if (!(await Info.theirPerm.manageBot(info))) return;
 
 		const arrowSplit = cmd.split("->");
 		if (arrowSplit.length !== 2) {
@@ -391,6 +388,7 @@ nr.globalCommand(
 		usage: "quickrank list",
 		description: "list all quickrank configuration.",
 		examples: [],
+		perms: {runner: ["manage_bot"]}
 	},
 	nr.list(),
 	async ([], info) => {
@@ -398,8 +396,6 @@ nr.globalCommand(
 			await info.docs("/errors/pms", "error");
 			return;
 		}
-
-		if (!(await Info.theirPerm.manageBot(info))) return;
 
 		const qr = await info.db.getQuickrank();
 
@@ -518,6 +514,7 @@ nr.globalCommand(
 		description:
 			"rank someone with a given list of roles. role names must be configured with quickrank.",
 		examples: [],
+		perms: {}, // checked in body
 	},
 	nr.list(nr.a.user(), ...nr.a.words()),
 	async ([user, words], info) => {
@@ -541,6 +538,7 @@ nr.globalCommand(
 			.map(w => w.trim())
 			.filter(w => w);
 		const qr = await info.db.getQuickrank();
+		const isManager = qr.managerRole && info.message.member!.roles.cache.has(qr.managerRole);
 
 		const rolesToGive: string[] = [];
 
@@ -590,7 +588,7 @@ nr.globalCommand(
 					"/errors/quickrank/deleted-role",
 					"error",
 				);
-			if (!(await permTheyCanManageRole(role, info))) return;
+			if(!isManager) if (!(await permTheyCanManageRole(role, info))) return;
 			if (!(await permWeCanManageRole(role, info))) return;
 			if (reciever.roles.cache.has(roleID)) {
 				discordRolesAlreadyGiven.push(role);

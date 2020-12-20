@@ -50,19 +50,18 @@ nr.globalCommand(
 		usage: "reloadgoi",
 		description: "reloads the goi yaml file",
 		examples: [],
+		perms: {runner: ["bot_owner"]},
 	},
 	nr.list(),
 	async ([], info) => {
-		if (!Info.theirPerm.owner(info)) return;
-
-		const start = new Date().getTime();
+		const start = Date.now();
 		const goload = reloadGoi();
 		if (goload) {
 			return await info.error(
 				info.tag`Uh oh! An error: ${goload.toString()}`,
 			);
 		}
-		const end = new Date().getTime();
+		const end = Date.now();
 		return await info.success(
 			info.tag`Success! Reloaded {Code|goi.yaml} in ${"" +
 				(end - start)}ms`,
@@ -77,13 +76,10 @@ nr.globalCommand(
 		usage: "goi",
 		description: "Play a game of Getting Over It with Bennett Foddy",
 		examples: [],
+		perms: {fun: true}
 	},
 	nr.list(),
 	async ([], info) => {
-		if (info.db ? !(await info.db.getFunEnabled()) : false) {
-			return await info.error(messages.fun.fun_disabled(info));
-		}
-
 		if (info.myChannelPerms) {
 			if (!info.myChannelPerms.has("USE_EXTERNAL_EMOJIS")) {
 				return await info.error(

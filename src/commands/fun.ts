@@ -74,13 +74,10 @@ nr.globalCommand(
 		usage: "ping",
 		description: "Play a game of ping pong against {Interpunct}.",
 		examples: [{ in: "ping", out: "@you, Pong!" }],
+		perms: {fun: true}
 	},
 	nr.list(),
 	async ([], info) => {
-		if (info.db ? !(await info.db.getFunEnabled()) : false) {
-			return await info.error(messages.fun.fun_disabled(info));
-		}
-
 		if (Math.random() > 0.9) {
 			return await info.result("\\*misses\\*");
 		}
@@ -95,13 +92,10 @@ nr.globalCommand(
 		usage: "pong",
 		description: "Play a game of pong ping against {Interpunct}.",
 		examples: [{ in: "pong", out: "@you, Ping!" }],
+		perms: {fun: true},
 	},
 	nr.list(),
 	async ([], info) => {
-		if (info.db ? !(await info.db.getFunEnabled()) : false) {
-			return await info.error(messages.fun.fun_disabled(info));
-		}
-
 		if (Math.random() > 0.9) {
 			return await info.result("\\*misses\\*");
 		}
@@ -116,12 +110,10 @@ nr.globalCommand(
 		usage: "needle",
 		description: "Find the needle in the haystack.",
 		examples: [],
+		perms: {fun: true},
 	},
 	nr.list(),
 	async ([], info) => {
-		if (info.db ? !(await info.db.getFunEnabled()) : false) {
-			return await info.error(messages.fun.fun_disabled(info));
-		}
 		const size = 190;
 		const item = Math.floor(Math.random() * size);
 		await info.result(
@@ -141,12 +133,10 @@ nr.globalCommand(
 		usage: "bubblewrap",
 		description: "Bubblewrap.",
 		examples: [],
+		perms: {fun: true},
 	},
 	nr.list(),
 	async ([], info) => {
-		if (info.db ? !(await info.db.getFunEnabled()) : false) {
-			return await info.error(messages.fun.fun_disabled(info));
-		}
 		const w = 8;
 		const h = 10;
 
@@ -175,13 +165,10 @@ nr.globalCommand(
 		usage: "award {Required|{Atmention|who}} {Required|award text...}",
 		description: "Give someone an award.",
 		examples: [],
+		perms: {fun: true},
 	},
 	nr.list(nr.a.user(), ...nr.a.words()),
 	async ([user, award], info) => {
-		if (info.db ? !(await info.db.getFunEnabled()) : false) {
-			return await info.error(messages.fun.fun_disabled(info));
-		}
-
 		if (!award) return await info.docs("/help/fun/award", "usage");
 
 		const userDisplayName = info.guild
@@ -205,13 +192,9 @@ ${" ".repeat(Math.max(43 - award.length, 0))}**${safe(award)}**
 nr.globalCommand(
 	"/help/fun/botdev",
 	"botdev",
-	{ usage: "botdev", description: "Get help", examples: [] },
+	{ usage: "botdev", description: "Get help", examples: [], perms: {fun: true} },
 	nr.list(),
 	async ([], info) => {
-		if (info.db ? !(await info.db.getFunEnabled()) : false) {
-			return await info.error(messages.fun.fun_disabled(info));
-		}
-
 		await info.error(
 			`Command \`botdev\` not found, type \`${info.prefix}notdev\` for a list of commands.`,
 		);
@@ -222,13 +205,9 @@ nr.globalCommand(
 nr.globalCommand(
 	"/help/fun/notdev",
 	"notdev",
-	{ usage: "botdev", description: "Get help", examples: [] },
+	{ usage: "botdev", description: "Get help", examples: [], perms: {fun: true} },
 	nr.list(),
 	async ([], info) => {
-		if (info.db ? !(await info.db.getFunEnabled()) : false) {
-			return await info.error(messages.fun.fun_disabled(info));
-		}
-
 		await info.error(
 			`Command \`notdev\` not found, type \`${info.prefix}botdev\` for a list of commands.`,
 		);
@@ -245,13 +224,10 @@ nr.globalCommand(
 		usage: "load {Optional|final message}",
 		description: "Fetch results",
 		examples: [],
+		perms: {fun: true},
 	},
 	nr.list(...nr.a.words()),
 	async ([finalressafe], info) => {
-		if (info.db ? !(await info.db.getFunEnabled()) : false) {
-			return await info.error(messages.fun.fun_disabled(info));
-		}
-
 		const prefix =
 			"<@" + info.message.author.id + ">, <a:loading:682804438783492139>";
 		const msg = (await info.channel.send(
@@ -292,6 +268,7 @@ nr.globalCommand(
 				out: "{Emoji|failure} timezones are not implemented yet :(",
 			},
 		],
+		perms: {fun: true},
 	},
 	nr.list(...nr.a.words()),
 	async ([cmd], info) => {
@@ -308,13 +285,10 @@ nr.globalCommand(
 		usage: "color {Required|hex code}",
 		description: "shows an image of a hex color",
 		examples: [],
+		perms: {fun: true},
 	},
 	nr.list(nr.a.word()),
 	async ([word], info) => {
-		if (info.db ? !(await info.db.getFunEnabled()) : false) {
-			return await info.error(messages.fun.fun_disabled(info));
-		}
-
 		const hexcode = word.replace("#", "");
 		await info.result(
 			safe`Color #${hexcode}: https://dummyimage.com/300x300/${encodeURIComponent(
@@ -331,13 +305,10 @@ nr.globalCommand(
 		usage: "play {Required|song}",
 		description: "Plays a song in a fake music player",
 		examples: [],
+		perms: {fun: true},
 	},
 	nr.passthroughArgs,
 	async ([cmd], info) => {
-		if (info.db ? !(await info.db.getFunEnabled()) : false) {
-			return await info.error(messages.fun.fun_disabled(info));
-		}
-
 		if (!cmd) {
 			return await info.docs("/help/fun/play", "usage");
 		}
@@ -354,13 +325,10 @@ nr.globalCommand(
 		usage: "accept all",
 		description: "You made the right choice!",
 		examples: [],
+		perms: {fun: true},
 	},
 	nr.list(),
 	async ([], info) => {
-		if (info.db ? !(await info.db.getFunEnabled()) : false) {
-			return await info.error(messages.fun.fun_disabled(info));
-		}
-
 		await info.success("You made the right choice!");
 	},
 );
@@ -395,6 +363,7 @@ nr.globalCommand(
 		usage: "tiny {Required|text...}",
 		description: "makes your text ᵗᶦⁿʸ",
 		examples: [],
+		perms: {fun: true},
 	},
 	nr.list(...nr.a.words()),
 	async ([text], info) => {
@@ -409,6 +378,7 @@ nr.globalCommand(
 		usage: "small {Required|text...}",
 		description: "makes your text sᴍᴀʟʟᴄᴀᴘs",
 		examples: [],
+		perms: {fun: true},
 	},
 	nr.list(...nr.a.words()),
 	async ([text], info) => {
@@ -423,16 +393,18 @@ nr.globalCommand(
 		usage: "vdb {Optional|command}",
 		description: "runs a command in the vdb debugger",
 		examples: [],
+		perms: {fun: true},
 	},
 	nr.passthroughArgs,
 	async ([cmd], info) => {
-		if (info.db ? !(await info.db.getFunEnabled()) : false) {
-			return await info.error(messages.fun.fun_disabled(info));
-		}
-
 		const callcmd = (cmd: string) => {
 			if (cmd === "help") {
 				return safe`Uh oh! VDB debugging mode is not enabled. Help is not enabled.`;
+			}
+			if (cmd === "apropos word") {
+				return safe`if -- Execute nested commands once IF the conditional expression is non zero.
+while -- Execute nested commands WHILE the conditional expression is non zero.
+x -- Examine memory: x/FMT ADDRESS.`;
 			}
 			if (cmd === "quit") {
 				return "";
@@ -468,6 +440,7 @@ nr.globalCommand(
 		usage: "inspirobot",
 		description: "get some inspiration from inspirobot",
 		examples: [],
+		perms: {fun: true},
 	},
 	nr.list(),
 	async ([], info) => {
@@ -581,13 +554,10 @@ nr.globalCommand(
 					"This server has 83 members with the role {Role|🕐︎ SUB-3} (4.77%)",
 			},
 		],
+		perms: {fun: true},
 	},
 	nr.passthroughArgs,
 	async ([cmd], info) => {
-		if (info.db ? !(await info.db.getFunEnabled()) : false) {
-			return await info.error(messages.fun.fun_disabled(info));
-		}
-
 		if (!info.guild) {
 			return await info.error("something something pms");
 		}
@@ -688,13 +658,10 @@ nr.globalCommand(
 		usage: "cube",
 		description: "cube",
 		examples: [],
+		perms: {fun: true},
 	},
 	nr.list(),
 	async ([], info) => {
-		if (info.db ? !(await info.db.getFunEnabled()) : false) {
-			return await info.error(messages.fun.fun_disabled(info));
-		}
-
 		await info.result(
 			"https://i.imgur.com/HXoUOPN.png\n\n> For more info on making cubes, ip!tutorial cube",
 		);
@@ -708,13 +675,10 @@ nr.globalCommand(
 		usage: "vote2 {Required|contraversial statement}",
 		description: "allows other people to vote on your message",
 		examples: [],
+		perms: {fun: true},
 	},
 	nr.passthroughArgs,
 	async ([cmd], info) => {
-		if (info.db ? !(await info.db.getFunEnabled()) : false) {
-			return await info.error(messages.fun.fun_disabled(info));
-		}
-
 		if (!cmd) {
 			return await info.docs("/help/fun/vote2", "usage");
 		}
@@ -729,12 +693,10 @@ nr.globalCommand(
 		usage: "userinfo {Required|{Atmention|someuser}}",
 		description: "gives some user info",
 		examples: [],
+		perms: {fun: true},
 	},
 	nr.list(nr.a.user()),
 	async ([ussr], info) => {
-		if (info.db ? !(await info.db.getFunEnabled()) : false) {
-			return await info.error(messages.fun.fun_disabled(info));
-		}
 		const now = new Date().getTime();
 		let l2o = "";
 		if (info.guild) {
@@ -812,10 +774,10 @@ nr.globalCommand(
 		description:
 			"Send a message from {Link|https://pfg.pw/sitepages/messagecreator}",
 		examples: [],
+		perms: {runner: ["manage_messages_thischannel"]},
 	},
 	nr.list(...nr.a.words()),
 	async ([wrds], info) => {
-		if (!Info.theirPerm.manageMessages(info)) return;
 		if (!wrds)
 			return await info.result(
 				"Create your message at <https://pfg.pw/sitepages/messagecreator>.",
@@ -863,6 +825,7 @@ nr.globalCommand(
 		usage: "updatemsg {Required|message link} {Required|sendmsg code}",
 		description: "{Link|https://pfg.pw/sitepages/messagecreator}",
 		examples: [],
+		perms: {}, // handled in body
 	},
 	nr.list(nr.a.message(), ...nr.a.words()),
 	async ([msgtoedit, code], info) => {
@@ -932,6 +895,7 @@ nr.globalCommand(
 		extendedDescription:
 			"Right click / Tap and hold the message from {Interpunct} that you want to edit, and select 'Copy Message Link' to get the message link.",
 		examples: [],
+		perms: {}, // handled in body
 	},
 	nr.list(nr.a.message()),
 	async ([msgtoedit], info) => {
@@ -959,6 +923,7 @@ nr.globalCommand(
 		extendedDescription:
 			"Right click / Tap and hold the message you want to view source to, and select 'Copy Message Link' to get the message link.",
 		examples: [],
+		perms: {}, // handled in body
 	},
 	nr.list(nr.a.message()),
 	async ([msgtoedit], info) => {
@@ -1014,13 +979,10 @@ nr.globalCommand(
 					"VOTE: pineapple on pizza is good (Votes: +143,289, Voting ended)\n{Reaction|upvote|7,543,829}{Reaction|downvote|7,400,540}", // so in discord it can show as [^ 6543643] [v 543]
 			},
 		],
+		perms: {fun: true},
 	},
 	nr.passthroughArgs,
 	async ([message], info) => {
-		if (info.db ? !(await info.db.getFunEnabled()) : false) {
-			return await info.error(messages.fun.fun_disabled(info));
-		}
-
 		const msg = (await info.channel.send(
 			"VOTE: " + message,
 			msgopts,
@@ -1105,13 +1067,10 @@ nr.globalCommand(
 				out: "{Screenshot|https://i.imgur.com/dWOoTBM.png}",
 			},
 		],
+		perms: {fun: true},
 	},
 	nr.list(),
 	async ([], info) => {
-		if (info.db ? !(await info.db.getFunEnabled()) : false) {
-			return await info.error(messages.fun.fun_disabled(info));
-		}
-
 		const msg = info.message;
 
 		const rword = allwords[Math.floor(Math.random() * allwords.length)];
@@ -1185,13 +1144,10 @@ nr.globalCommand(
 		usage: "snek",
 		description: "snek",
 		examples: [],
+		perms: {fun: true},
 	},
 	nr.list(),
 	async ([], info) => {
-		if (info.db ? !(await info.db.getFunEnabled()) : false) {
-			return await info.error(messages.fun.fun_disabled(info));
-		}
-
 		return await info.result(
 			"<:snakehead:417047491062661134> <:donotridesnake:413753981186342923>",
 		);
@@ -1211,12 +1167,10 @@ nr.globalCommand(
 					"{Atmention|you}, Statistics:\n{Blockquote|{Bold|Servers}: 1834 servers\n{Bold|Uptime}: 39m:37.128s\nTook 8ms, handling -1 db requests per second}",
 			},
 		],
+		perms: {fun: true},
 	},
 	nr.list(),
 	async ([], info) => {
-		if (info.db ? !(await info.db.getFunEnabled()) : false) {
-			return await info.error(messages.fun.fun_disabled(info));
-		}
 		const totalServers = await getGuilds(info.message.client);
 		const totalMembers = await getMembers(info.message.client);
 		const now = new Date().getTime();
@@ -1257,14 +1211,12 @@ nr.globalCommand(
 				out: "{Emoji|success} Reminder set for 10 years.",
 			},
 		],
+		perms: {fun: true},
 	},
 	nr.passthroughArgs,
 	async ([cmd], info) => {
 		if (process.env.NODE_ENV === "production") {
 			return await info.error("Sorry! remindme doesn't work right now.");
-		}
-		if (info.db ? !(await info.db.getFunEnabled()) : false) {
-			return await info.error(messages.fun.fun_disabled(info));
 		}
 		const ap = await AP(
 			{ cmd, info, help: "/help/fun/remindme" },
@@ -1313,10 +1265,10 @@ nr.globalCommand(
 				out: "{Emoji|success} Fun is no longer allowed on this server.",
 			},
 		],
+		perms: {runner: ["manage_bot"]},
 	},
 	nr.list(nr.a.enum("enable", "disable")),
 	async ([mode], info) => {
-		if (!(await Info.theirPerm.manageBot(info))) return;
 		if (!info.db) {
 			return await info.error(
 				messages.failure.command_cannot_be_used_in_pms(info),
@@ -1358,6 +1310,7 @@ nr.globalCommand(
 				out: "{Screenshot|https://i.imgur.com/M0nA5Hg.png}",
 			},
 		],
+		perms: {fun: true},
 	},
 	nr.passthroughArgs,
 	async ([cmd], info) => {

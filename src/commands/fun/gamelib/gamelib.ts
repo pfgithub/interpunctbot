@@ -120,10 +120,6 @@ export const newGame = <State>(conf: GameConfig<State>) => async (
 		);
 	}
 
-	if (!(await info.db.getFunEnabled())) {
-		return await info.docs("/errors/fun-disabled", "error");
-	}
-
 	const gameOverListener = oneway<boolean>();
 	let gameOver = false;
 

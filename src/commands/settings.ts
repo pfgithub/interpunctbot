@@ -2,6 +2,7 @@ import * as nr from "../NewRouter";
 
 import { messages, safe } from "../../messages";
 import Info from "../Info";
+import { KeyObject } from "crypto";
 
 nr.addDocsWebPage(
 	"/help/configuration",
@@ -27,11 +28,10 @@ nr.globalCommand(
 		description: "Set a role in which users can manage the bot settings.",
 		usage: "set ManageBotRole {Required|{Role|role}}",
 		examples: [],
+		perms: {runner: ["manage_bot"]},
 	},
 	nr.list(...nr.a.role()),
 	async ([role], info) => {
-		if (!(await Info.theirPerm.manageBot(info))) return;
-
 		if (!info.db) {
 			return await info.error(
 				messages.failure.command_cannot_be_used_in_pms(info),
@@ -57,11 +57,10 @@ nr.globalCommand(
 					"{Emoji|success} Prefix set to !\n{Blockquote|Try it out with !test}",
 			},
 		],
+		perms: {runner: ["manage_bot"]}
 	},
 	nr.passthroughArgs,
 	async ([cmd], info) => {
-		if (!(await Info.theirPerm.manageBot(info))) return;
-
 		if (!info.db) {
 			return await info.error(
 				messages.failure.command_cannot_be_used_in_pms(info),
@@ -87,10 +86,10 @@ nr.globalCommand(
 		usage: "set ShowErrors {Required|{Enum|always|admins|never}}",
 		description: "choose who command errors are shown to",
 		examples: [],
+		perms: {runner: ["manage_bot"]},
 	},
 	nr.list(nr.a.enum("always", "admins", "never")),
 	async ([cmd], info) => {
-		if (!(await Info.theirPerm.manageBot(info))) return;
 		if (!info.db) {
 			return await info.error(
 				messages.failure.command_cannot_be_used_in_pms(info),
@@ -123,10 +122,10 @@ nr.globalCommand(
 		usage: "set ShowUnknownCommand {Required|{Enum|always|admins|never}}",
 		description: "choose who unknown command errors are shown to",
 		examples: [],
+		perms: {runner: ["manage_bot"]}
 	},
 	nr.list(nr.a.enum("always", "admins", "never")),
 	async ([cmd], info) => {
-		if (!(await Info.theirPerm.manageBot(info))) return;
 		if (!info.db) {
 			return await info.error(
 				messages.failure.command_cannot_be_used_in_pms(info),
@@ -170,12 +169,10 @@ nr.globalCommand(
 					"{Emoji|success} Users with these words in their name (not case-sensitive) will be banned when they join the server:\n- twitch.tv\n- discord.dg",
 			},
 		],
+		perms: {runner: ["ban_members", "manage_bot"], bot: ["ban_members"]},
 	},
 	nr.passthroughArgs,
 	async ([words], info) => {
-		if (!Info.theirPerm.banMembers(info)) return;
-		if (!(await Info.theirPerm.manageBot(info))) return;
-		if (!Info.ourPerm.banMembers(info)) return;
 		const nlsep = words
 			.split("\n")
 			.map(w => w.trim())
@@ -212,11 +209,10 @@ nr.globalCommand(
 		usage: "autoban list",
 		description: "list all name parts",
 		examples: [],
+		perms: {runner: ["manage_bot"]}
 	},
 	nr.list(),
 	async ([], info) => {
-		if (!Info.theirPerm.banMembers(info)) return;
-		if (!(await Info.theirPerm.manageBot(info))) return;
 		if (!info.db) {
 			return await info.docs("/errors/pms", "error");
 		}
@@ -237,11 +233,10 @@ nr.globalCommand(
 		usage: "autoban clear",
 		description: "disable autoban on the server",
 		examples: [],
+		perms: {runner: ["manage_bot", "ban_members"]},
 	},
 	nr.list(),
 	async ([], info) => {
-		if (!Info.theirPerm.banMembers(info)) return;
-		if (!(await Info.theirPerm.manageBot(info))) return;
 		if (!info.db) {
 			return await info.docs("/errors/pms", "error");
 		}

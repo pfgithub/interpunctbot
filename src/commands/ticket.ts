@@ -175,10 +175,10 @@ nr.globalCommand(
 		description:
 			"Set the message to be sent to users when they create a ticket. Do {Command|ticket welcome} to unset.",
 		examples: [],
+		perms: {runner: ["manage_bot"]},
 	},
 	nr.list(...nr.a.words()),
 	async ([msgtxt], info) => {
-		if (!(await Info.theirPerm.manageBot(info))) return;
 		if (!info.db || !info.guild) return await info.error("pms");
 
 		const ticket = await info.db.getTicket();
@@ -207,10 +207,10 @@ nr.globalCommand(
 		description:
 			"Set a person/role to @ after someone says something in a new ticket. do {Command|ticket ping} to unset.",
 		examples: [],
+		perms: {runner: ["manage_bot"]},
 	},
 	nr.list(...nr.a.words()),
 	async ([msgtxt], info) => {
-		if (!(await Info.theirPerm.manageBot(info))) return;
 		if (!info.db || !info.guild) return await info.error("pms");
 
 		const ticket = await info.db.getTicket();
@@ -235,10 +235,10 @@ nr.globalCommand(
 		description:
 			"automatically close a ticket if no one has sent anything it after the specified period. do {Command|ticket autoclose 0s} to unset.",
 		examples: [],
+		perms: {runner: ["manage_bot"]},
 	},
 	nr.list(nr.a.duration()),
 	async ([dur8n], info) => {
-		if (!(await Info.theirPerm.manageBot(info))) return;
 		if (!info.db || !info.guild) return await info.error("pms");
 
 		const ticket = await info.db.getTicket();
@@ -265,10 +265,10 @@ nr.globalCommand(
 		description:
 			"set how long to wait after closing a ticket before deleting the channel. messages sent in this time will show up in transcripts, but not logs. default is 1 minute.",
 		examples: [],
+		perms: {runner: ["manage_bot"]},
 	},
 	nr.list(nr.a.duration()),
 	async ([dur8n], info) => {
-		if (!(await Info.theirPerm.manageBot(info))) return;
 		if (!info.db || !info.guild) return await info.error("pms");
 
 		const ticket = await info.db.getTicket();
@@ -324,6 +324,7 @@ nr.globalCommand(
 		description:
 			"Log the last 100 messages in a ticket to #ticket-logs when the ticket is closed. To disable, delete the log channels.",
 		examples: [],
+		perms: {runner: ["manage_bot"]},
 	},
 	nr.list(nr.a.channel(), nr.a.channel()),
 	async ([logsChan, uploadsChan], info) => {
@@ -363,6 +364,7 @@ nr.globalCommand(
 		description:
 			"Log all messages sent in a ticket to {Channel|#ticket-transcripts}. Does not log edits.",
 		examples: [],
+		perms: {runner: ["manage_bot"]},
 	},
 	nr.list(nr.a.channel()),
 	async ([transcriptsChan], info) => {
@@ -404,10 +406,10 @@ nr.globalCommand(
 		usage: "ticket category {Required|CATEGORY NAME}",
 		description: `Active tickets will be put into the category you set. It must be empty and with the right permissions.`,
 		examples: [],
+		perms: {runner: ["manage_bot"]},
 	},
 	nr.list(...nr.a.words()),
 	async ([catnme], info) => {
-		if (!(await Info.theirPerm.manageBot(info))) return;
 		if (!info.db || !info.guild) return await info.error("pms");
 
 		const foundCategory = info.guild.channels.cache.find(
@@ -478,10 +480,10 @@ nr.globalCommand(
 		usage: "ticket info",
 		description: "debug command",
 		examples: [],
+		perms: {runner: ["manage_bot"]},
 	},
 	nr.list(),
 	async ([], info) => {
-		if (!(await Info.theirPerm.manageBot(info))) return;
 		if (!info.db || !info.guild) return await info.error("pms");
 
 		const ticketInfo = await info.db.getTicket();
@@ -498,10 +500,10 @@ nr.globalCommand(
 		usage: "ticket diagnose",
 		description: "Use this command if tickets aren't working",
 		examples: [],
+		perms: {runner: ["manage_bot"]},
 	},
 	nr.list(),
 	async ([], info) => {
-		if (!(await Info.theirPerm.manageBot(info))) return;
 		if (!info.db || !info.guild) return await info.error("pms");
 
 		const ticketInfo = await info.db.getTicket();
@@ -525,10 +527,10 @@ nr.globalCommand(
 		description:
 			"Set the invitation message. Reacting to the invitation message will create a ticket.",
 		examples: [],
+		perms: {runner: ["manage_bot"]},
 	},
 	nr.list(...nr.a.words()),
 	async ([msglink], info) => {
-		if (!(await Info.theirPerm.manageBot(info))) return;
 		if (!info.db || !info.guild) return await info.error("pms");
 
 		// find the invitation message (maybe there could be a command to create an invitation message)

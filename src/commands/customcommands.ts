@@ -52,10 +52,10 @@ nr.globalCommand(
 		usage: "command add {Required|commandname} {Required|text...}",
 		description: "add a custom command",
 		examples: [],
+		perms: {runner: ["manage_bot"]},
 	},
 	nr.list(nr.a.backtick(), ...nr.a.words()),
 	async ([safecmdname, unsaferestext], info) => {
-		if (!(await Info.theirPerm.manageBot(info))) return;
 		if (!info.db) return await info.docs("/errors/pms", "error");
 		const safetext = await restrictTextToPerms(
 			info.message.member!,

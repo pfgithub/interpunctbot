@@ -77,10 +77,10 @@ nr.globalCommand(
 					"{Atmention|you}, {Emoji|success} Succesfully deleted 1 message.",
 			},
 		],
+		perms: {runner: ["manage_messages_thischannel"]}, // would be neat if adding "guild" here would pass in an info with guild and db guarenteed
 	},
 	nr.list(nr.a.number()),
 	async ([messageLimit], info) => {
-		if (!Info.theirPerm.manageMessages(info)) return;
 		if (!info.guild || !info.db) {
 			return await info.error(
 				messages.failure.command_cannot_be_used_in_pms(info),
@@ -203,10 +203,10 @@ nr.globalCommand(
 					"{Atmention|you}, {Emoji|success} Slowmode for {Channel|channel} set to 1 second, 000ms",
 			},
 		],
+		perms: {runner: ["manage_channels"]}
 	},
 	nr.list(nr.a.channel(), nr.a.duration()),
 	async ([channel, time], info) => {
-		if (!Info.theirPerm.manageChannels(info)) return;
 
 		const guild = info.guild;
 		if (!guild) {
@@ -292,6 +292,11 @@ function printrule(rule: AutodeleteRule, info: Info) {
 	return assertNever(rule);
 }
 
+const autodelete_perms = {
+	runner: ["manage_channels", "manage_bot"],
+	bot: ["manage_messages"],
+ } as const;
+
 nr.globalCommand(
 	"/help/autodelete/list",
 	"autodelete list",
@@ -299,11 +304,10 @@ nr.globalCommand(
 		usage: "autodelete list",
 		description: "list all autodelete rules on this server",
 		examples: [],
+		perms: {runner: autodelete_perms.runner},
 	},
 	nr.passthroughArgs,
 	async ([cmd], info) => {
-		if (!Info.theirPerm.manageChannels(info)) return;
-		if (!(await Info.theirPerm.manageBot(info))) return;
 		if (!info.db) {
 			return await info.error(
 				messages.failure.command_cannot_be_used_in_pms(info),
@@ -343,11 +347,10 @@ nr.globalCommand(
 		description:
 			"remove an autodelete rule. use {Command|autodelete list} to list.",
 		examples: [],
+		perms: {runner: autodelete_perms.runner},
 	},
 	nr.passthroughArgs,
 	async ([cmd], info) => {
-		if (!Info.theirPerm.manageChannels(info)) return;
-		if (!(await Info.theirPerm.manageBot(info))) return;
 		if (!info.db) {
 			return await info.error(
 				messages.failure.command_cannot_be_used_in_pms(info),
@@ -376,6 +379,7 @@ nr.addHelpDocsPage("/help/autodelete/add/prefix", {
 				"{Atmention|you}, {Emoji|success} These types of messages will be automatically deleted after 1 second.\nNIY\nExample of a message that will be removed: {Code|https://tenor.com/}",
 		},
 	],
+	perms: autodelete_perms,
 });
 
 // nr.addDocsShorthand("autodelete add prefix", "/help/autodelete/add/prefix");
@@ -387,6 +391,7 @@ nr.addHelpDocsPage("/help/autodelete/add/channel", {
 	description:
 		"create an autodelete rule to remove all messages in a certain channel",
 	examples: [],
+	perms: autodelete_perms,
 });
 
 nr.addHelpDocsPage("/help/autodelete/add/user", {
@@ -396,6 +401,7 @@ nr.addHelpDocsPage("/help/autodelete/add/user", {
 	description:
 		"create an autodelete rule to remove all messages from a certain user or bot",
 	examples: [],
+	perms: autodelete_perms,
 });
 
 nr.addHelpDocsPage("/help/autodelete/add/role", {
@@ -405,6 +411,7 @@ nr.addHelpDocsPage("/help/autodelete/add/role", {
 	description:
 		"create an autodelete rule to remove all messages from people with a certain role",
 	examples: [],
+	perms: autodelete_perms,
 });
 
 nr.addHelpDocsPage("/help/autodelete/add/counting", {
@@ -414,6 +421,7 @@ nr.addHelpDocsPage("/help/autodelete/add/counting", {
 	description:
 		"create an autodelete rule to remove all messages from people not counting sequentially",
 	examples: [],
+	perms: autodelete_perms,
 });
 
 nr.globalCommand(
@@ -429,12 +437,10 @@ nr.globalCommand(
 {UsageSummary|/help/autodelete/add/channel}
 {UsageSummary|/help/autodelete/add/role}`,
 		examples: [],
+		perms: autodelete_perms,
 	},
 	nr.passthroughArgs,
 	async ([cmd], info) => {
-		if (!Info.theirPerm.manageChannels(info)) return;
-		if (!(await Info.theirPerm.manageBot(info))) return;
-		if (!Info.ourPerm.manageMessages(info)) return;
 		if (!info.db) {
 			return await info.error(
 				messages.failure.command_cannot_be_used_in_pms(info),
@@ -520,6 +526,7 @@ nr.globalCommand(
 		description:
 			"Restrict an autodelete rule so it only applies to people with certain roles",
 		examples: [],
+		perms: {runner: autodelete_perms.runner},
 	},
 	nr.list(nr.a.number(), ...nr.a.role()),
 	async ([number, role], info) => {
@@ -538,6 +545,7 @@ nr.globalCommand(
 			"People with manage messages perms can always use \\{\\{DoNotDelete\\}\\} in their" +
 			"messages to manually bypass autodelete even if no bypass roles are set for that rule",
 		examples: [],
+		perms: {runner: autodelete_perms.runner},
 	},
 	nr.list(nr.a.number(), ...nr.a.role()),
 	async ([number, role], info) => {
@@ -560,11 +568,10 @@ nr.globalCommand(
 					"{Atmention|you}, {Emoji|success} Your message was sent to {Channel|channel-one}, {Channel|channel-two}",
 			},
 		],
+		perms: {runner: ["manage_channels"]},
 	},
 	nr.passthroughArgs,
 	async ([cmd], info) => {
-		if (!Info.theirPerm.manageChannels(info)) return;
-
 		const channelsToSendTo = info.message.mentions.channels.array();
 
 		if (channelsToSendTo.length === 0) {
@@ -625,13 +632,13 @@ nr.globalCommand(
 					"{Atmention|you}, {Emoji|success} Goodbye message set. Here is an example of what might be sent to {Channel|welcome} when someone leaves:\n\nGoodbye person leaving ({Atmention|person leaving}), we will miss you!",
 			},
 		],
+		perms: {runner: ["manage_bot"]},
 	},
 	nr.list(nr.a.channel(), ...nr.a.words()),
 	async ([channel, message], info) => {
 		if (!info.db) {
 			return await info.docs("/errors/pms", "error");
 		}
-		if (!(await Info.theirPerm.manageBot(info))) return;
 		const theyCanMention = info.message.member!.hasPermission(
 			"MENTION_EVERYONE",
 		);
@@ -679,13 +686,13 @@ nr.globalCommand(
 		usage: "messages remove welcome",
 		description: "disable the welcome message",
 		examples: [],
+		perms: {runner: ["manage_bot"]},
 	},
 	nr.list(),
 	async ([], info) => {
 		if (!info.db) {
 			return await info.docs("/errors/pms", "error");
 		}
-		if (!(await Info.theirPerm.manageBot(info))) return;
 
 		const events = await info.db.getEvents();
 		events.userJoin = {
@@ -704,13 +711,13 @@ nr.globalCommand(
 		usage: "messages remove goodbye",
 		description: "disable the goodbye message",
 		examples: [],
+		perms: {runner: ["manage_bot"]},
 	},
 	nr.list(),
 	async ([], info) => {
 		if (!info.db) {
 			return await info.docs("/errors/pms", "error");
 		}
-		if (!(await Info.theirPerm.manageBot(info))) return;
 
 		const events = await info.db.getEvents();
 		events.userLeave = {
@@ -738,13 +745,13 @@ nr.globalCommand(
 					"{Atmention|you}, {Emoji|success} Welcome message set. Here is an example of what might be sent to {Channel|#welcome} when someone joins:\n\nWelcome to the server {Atmention|person joining} (person joining)!!! Make sure to check out the {Channel|rules}!",
 			},
 		],
+		perms: {runner: ["manage_bot"]},
 	},
 	nr.list(nr.a.channel(), ...nr.a.words()),
 	async ([channel, message], info) => {
 		if (!info.db) {
 			return await info.docs("/errors/pms", "error");
 		}
-		if (!(await Info.theirPerm.manageBot(info))) return;
 		const theyCanMention = info.message.member!.hasPermission(
 			"MENTION_EVERYONE",
 		);
@@ -825,13 +832,13 @@ nr.globalCommand(
 		description:
 			"{Interpunct} will send a message and make sure it always stays at the bottom of the channel",
 		examples: [],
+		perms: {runner: ["manage_bot"]},
 	},
 	nr.list(nr.a.channel(), ...nr.a.words()),
 	async ([channel, message], info) => {
 		if (!info.db) {
 			return await info.docs("/errors/pms", "error");
 		}
-		if (!(await Info.theirPerm.manageBot(info))) return;
 		const theyCanMention = info.message.member!.hasPermission(
 			"MENTION_EVERYONE",
 		);

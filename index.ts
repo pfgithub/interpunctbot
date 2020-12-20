@@ -104,6 +104,7 @@ nr.globalCommand(
 		usage: "spoiler {Required|message}",
 		description: "depricated",
 		examples: [],
+		perms: {},
 	},
 	nr.passthroughArgs,
 	async ([], info) => {
@@ -154,6 +155,7 @@ function depricate(oldcmd: string, newcmd: string, version = "3.0") {
 			usage: oldcmd.toLowerCase(),
 			description: "depricated",
 			examples: [],
+			perms: {},
 		},
 		nr.list(),
 		async ([], info) => {
@@ -172,6 +174,7 @@ function remove(oldcmd: string, reason: string, version = "3.0") {
 			usage: oldcmd.toLowerCase(),
 			description: "removed",
 			examples: [],
+			perms: {},
 		},
 		nr.passthroughArgs,
 		async ([], info) => {

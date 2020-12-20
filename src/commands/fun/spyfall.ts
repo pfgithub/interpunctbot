@@ -41,6 +41,7 @@ nr.globalCommand(
 		usage: "spyfall",
 		description: "play a game of spyfall",
 		examples: [],
+		perms: {fun: true}
 	},
 	nr.list(...nr.a.words()),
 	async ([cmd], info) => {
@@ -54,7 +55,7 @@ nr.globalCommand(
 		const playersInGame: Set<string> = new Set([info.message.author.id]);
 		const genInviteMessage = () =>
 			info.message.author.toString() +
-			` is looking to start a game of **Spyfall**. 3-6 players are needed to play.
+			` is looking to start a game of **Spyfall**. 3-8 players are needed to play.
 === **Players** (${playersInGame.size}) ===
 ${[...playersInGame].map(pl => "<@" + pl + ">").join("\n")}
 ==============
@@ -117,7 +118,7 @@ React ➕ to join. ${info.message.author.toString()}, React ✅ to start game.`;
 		}
 		if (playersInGame.size < 3) {
 			return await info.error(
-				"Not enough players to start game. Must have 3-6 players.",
+				"Not enough players to start game. Must have 3-8 players.",
 			);
 		}
 		if (playersInGame.size > 8) {

@@ -37,6 +37,7 @@ nr.globalCommand(
 		usage: "about",
 		description: "displays information about the bot",
 		examples: [],
+		perms: {},
 	},
 	nr.list(),
 	async ([], info) => {

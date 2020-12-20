@@ -8,7 +8,7 @@ import {
 	list,
 	a,
 } from "./commands/argumentparser";
-import { ilt, perr } from "..";
+import { assertNever, ilt, perr } from "..";
 import { confirmDocs } from "./parseDiscordDG";
 import { docsGenMode } from "../bot";
 import { DocsGen } from "./DocsGen";
@@ -25,6 +25,11 @@ export type HelpData = {
 	description: string;
 	extendedDescription?: string;
 	examples: { in: string; out: string }[];
+	perms: {
+		fun?: boolean;
+		runner?: readonly Permission[];
+		bot?: readonly BotPermission[];
+	};
 };
 export type ErrorData = {
 	overview: string;
@@ -239,6 +244,9 @@ export function reportError(error: Error, info: Info) {
 export const noArgs = list();
 export const passthroughArgs = list(...a.words());
 
+type Permission = "manage_channels" | "manage_bot" | "manage_emoji" | "manage_messages_thischannel" | "ban_members" | "dm_only" | "bot_owner";
+type BotPermission = "manage_channels" | "manage_emoji" | "manage_messages" | "ban_members";
+
 export function globalCommand<APList extends APListAny>(
 	docsPath: string,
 	uniqueGlobalName: string,
@@ -254,6 +262,42 @@ export function globalCommand<APList extends APListAny>(
 	addHelpDocsPage(docsPath, Object.assign({ title: uniqueGlobalName }, help));
 
 	const handleCommand = async (cmd: string, info: Info) => {
+		// 1: check perms
+		if(help.perms.fun) {
+			if (info.db ? !(await info.db.getFunEnabled()) : false) {
+				return await info.error(messages.fun.fun_disabled(info));
+			}
+		}
+		for(const permission of help.perms.runner || []) {
+			if(permission === "manage_channels") {
+				if(!Info.theirPerm.manageChannels(info)) return;
+			} else if(permission === "manage_bot") {
+				if(!await Info.theirPerm.manageBot(info)) return;
+			} else if(permission === "manage_emoji") {
+				if(!Info.theirPerm.manageEmoji(info)) return;
+			} else if(permission === "manage_messages_thischannel") {
+				if(!Info.theirPerm.manageMessages(info)) return;
+			} else if(permission === "ban_members") {
+				if(!Info.theirPerm.banMembers(info)) return;
+			} else if(permission === "dm_only") {
+				if(!Info.theirPerm.pm(true)(info)) return;
+			} else if(permission === "bot_owner") {
+				if(!Info.theirPerm.owner(info)) return;
+			} else assertNever(permission);
+		}
+		for(const permission of help.perms.bot || []) {
+			if(permission === "manage_channels") {
+				if(!Info.theirPerm.manageChannels(info)) return;
+			} else if(permission === "manage_emoji") {
+				if(!await Info.theirPerm.manageBot(info)) return;
+			} else if(permission === "manage_messages") {
+				if(!Info.theirPerm.manageEmoji(info)) return;
+			} else if(permission === "ban_members") {
+				if(!Info.theirPerm.manageMessages(info)) return;
+			} else assertNever(permission);
+		}
+
+		// 2: check AP
 		const apresult = await ilt(
 			AP({ info, cmd, help: docsPath, partial: false }, ...aplist.list),
 			"running command ap " + uniqueGlobalName,
@@ -267,10 +311,14 @@ export function globalCommand<APList extends APListAny>(
 			return;
 		}
 		if (!apresult.result) return;
+
+		// 3: run command
 		const cbResult = await ilt(
 			cb(apresult.result.result as any, info),
 			"running command " + uniqueGlobalName,
 		);
+
+		// 4: if(err) report(err)
 		if (cbResult.error) {
 			reportError(cbResult.error, info);
 		}

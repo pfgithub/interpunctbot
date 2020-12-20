@@ -172,6 +172,7 @@ nr.globalCommand(
 		usage: "help {Optional|command}",
 		description: "Bot help",
 		examples: [],
+		perms: {},
 	},
 	nr.passthroughArgs,
 	async ([cmd], info) => {

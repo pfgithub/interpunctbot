@@ -29,7 +29,7 @@ import fetch from "node-fetch";
 
 import moment from "moment";
 
-const ctime = () => new Date().getTime();
+const ctime = () => Date.now();
 
 nr.addDocsWebPage(
 	"/help/speedrun",
@@ -361,6 +361,7 @@ nr.globalCommand(
 		usage: "wr {Optional|Category%}",
 		description: "Get the current speedrun world record holder",
 		examples: [],
+		perms: {},
 	},
 	nr.passthroughArgs,
 	async ([cmd], info) => {
@@ -381,11 +382,13 @@ nr.globalCommand(
 		description:
 			"Show the speedrun leaderboard, optionally in a specific category / including a person in #th place",
 		examples: [],
+		perms: {},
 	},
 	nr.list(nr.a.number(), ...nr.a.words()),
 	async ([position, cmd], info) => {
 		await info.startLoading();
 		if (!position || !isNormalInteger("" + position)) {
+			// todo display top 5
 			return await info.error(messages.speedrun.position_required(info));
 		}
 		await displayLeaderboard(position, cmd, info);
@@ -399,6 +402,7 @@ nr.globalCommand(
 		usage: "pb {Required|username} {Optional|Category%}",
 		description: "Get the pb for a specific speedrun person",
 		examples: [],
+		perms: {},
 	},
 	nr.list(nr.a.word(), ...nr.a.words()),
 	async ([username, cmd], info) => {
@@ -414,6 +418,7 @@ nr.globalCommand(
 		usage: "speedrun rules {Optional|Category%}",
 		description: "Get the speedrun rules",
 		examples: [],
+		perms: {},
 	},
 	nr.passthroughArgs,
 	async ([cmd], info) => {
@@ -462,11 +467,10 @@ nr.globalCommand(
 		usage: "speedrun disable",
 		description: "disable speedrun commands",
 		examples: [],
+		perms: {runner: ["manage_bot"]},
 	},
 	nr.list(),
 	async ([], info) => {
-		if (!(await Info.theirPerm.manageBot(info))) return;
-
 		if (!info.db) {
 			return await info.error(
 				"Cannot use speedrun commands in private pm messages",
@@ -486,11 +490,10 @@ nr.globalCommand(
 			"speedrun set {Required|https://speedrun.com/game%} {Required|Category%}",
 		description: "Set the speedrun game",
 		examples: [],
+		perms: {runner: ["manage_bot"]}
 	},
 	nr.list(nr.a.word(), ...nr.a.words()),
 	async ([speedrunpage, categoryName], info) => {
-		if (!(await Info.theirPerm.manageBot(info))) return;
-
 		const startTime = ctime();
 		// extract the abbreviation from the command
 

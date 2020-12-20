@@ -12,6 +12,7 @@ nr.globalCommand(
 		usage: "test",
 		description: "Test the bot",
 		examples: [],
+		perms: {},
 	},
 	nr.list(),
 	async ([], info) => {
@@ -29,6 +30,7 @@ nr.globalCommand(
 		description:
 			"{Emoji|success} succeed. Note that success may return failure if it is passed any arguments.",
 		examples: [],
+		perms: {},
 	},
 	nr.list(),
 	async ([], info) => {
@@ -43,6 +45,7 @@ nr.globalCommand(
 		usage: "error",
 		description: "{Emoji|failure} Error :(",
 		examples: [],
+		perms: {},
 	},
 	nr.list(),
 	async ([], info) => {
@@ -57,6 +60,7 @@ nr.globalCommand(
 		usage: "warn",
 		description: "{Emoji|warning} warn :(",
 		examples: [],
+		perms: {},
 	},
 	nr.list(),
 	async ([], info) => {
@@ -71,6 +75,7 @@ nr.globalCommand(
 		usage: "warn eventually",
 		description: "{Emoji|warning} warn :(",
 		examples: [],
+		perms: {},
 	},
 	nr.list(),
 	async ([], info) => {
@@ -92,6 +97,7 @@ nr.globalCommand(
 				out: `@you, {Emoji|failure} An internal error occured while running this command. Error code: {Code|8oywx5uxsi}`,
 			},
 		],
+		perms: {},
 	},
 	nr.list(),
 	async ([]) => {
@@ -106,10 +112,10 @@ nr.globalCommand(
 		usage: "restart",
 		description: "restart the shard",
 		examples: [],
+		perms: {runner: ["bot_owner"]},
 	},
 	nr.list(),
 	async ([], info) => {
-		if (!Info.theirPerm.owner(info)) return;
 		const msg = (await info.result(
 			"<a:loading:682804438783492139> Restarting...",
 		))![0];
@@ -151,10 +157,13 @@ nr.globalCommand(
 				out: "{Atmention|you}, 1824",
 			},
 		],
+		perms: {},
 	},
 	nr.passthroughArgs,
 	async ([cmd], info) => {
 		cmd = cmd.replace(/(^\`|\`$)/g, "").trim();
+		if(cmd === "1 + 1")
+			return await info.result("2");
 		if (cmd === "client.guilds.cache.size")
 			return await info.result(
 				"" +

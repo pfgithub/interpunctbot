@@ -185,6 +185,7 @@ nr.globalCommand(
 					"{Atmention|you}, {Bold|Lists}:\n{Blockquote|motivation: {Link|https://pastebin.com/NFuKYjUN}}",
 			},
 		],
+		perms: {}
 	},
 	nr.list(),
 	async ([], info) => {
@@ -289,10 +290,10 @@ Each quote should be separated by two lines (quote, blank line, quote). If you w
 					"{Atmention|you}, {Emoji|success} Added list motivation with pastebin URL {Link|https://pastebin.com/NFuKYjUN}\nTry it out with {Command|motivation}",
 			},
 		],
+		perms: {runner: ["manage_bot"]},
 	},
 	nr.passthroughArgs,
 	async ([cmd], info) => {
-		if (!(await Info.theirPerm.manageBot(info))) return;
 		return await addOrEditList(true, cmd, info);
 	},
 );
@@ -314,10 +315,10 @@ nr.globalCommand(
 					"{Atmention|you}, {Emoji|success} Updated list motivation with new pastebin URL {Link|https://pastebin.com/NFuKYjUN}\nTry it out with {Command|motivation}",
 			},
 		],
+		perms: {runner: ["manage_bot"]},
 	},
 	nr.passthroughArgs,
 	async ([cmd], info) => {
-		if (!(await Info.theirPerm.manageBot(info))) return;
 		return await addOrEditList(false, cmd, info);
 	},
 );
@@ -334,10 +335,10 @@ nr.globalCommand(
 				out: "{Emoji|success} Command removed",
 			},
 		],
+		perms: {runner: ["manage_bot"]},
 	},
 	nr.passthroughArgs,
 	async ([listName], info) => {
-		if (!(await Info.theirPerm.manageBot(info))) return;
 		if (!info.db) {
 			return await info.error(
 				messages.failure.command_cannot_be_used_in_pms(info),
