@@ -44,3 +44,18 @@ nr.globalCommand(
 		await info.docs("/about", "full");
 	},
 );
+
+nr.globalCommand(
+	"/help/invite",
+	"invite",
+	{
+		usage: "invite",
+		description: "displays the invite link",
+		examples: [],
+		perms: {},
+	},
+	nr.list(),
+	async ([], info) => {
+		await info.result("Invite: <https://interpunct.info/invite>");
+	},
+);
