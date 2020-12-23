@@ -4,6 +4,7 @@ import { ilt, production } from "..";
 import { globalConfig } from "./config";
 import Info, {MessageLike} from "./Info";
 import { globalCommandNS, globalDocs } from "./NewRouter";
+import deepEqual from "deep-equal";
 
 const api = client as any as ApiHolder;
 
@@ -16,7 +17,11 @@ type ApiHandler = {
 
 type ApiHolder = {api: ApiHandler};
 
-type UsedCommandOption = {name: string};
+type UsedCommandOption = {
+    name: string;
+    options?: UsedCommandOption[];
+    value?: string;
+};
 type UsedCommand = {
     name: string;
     id: string;
@@ -41,6 +46,20 @@ type SlashCommandOption = {
     type: 1;
     name: string;
     description: string;
+    options?: SlashCommandOption[];
+} | {
+    // string
+    type: 3;
+    name: string;
+    description: string;
+    required: boolean;
+    choices?: {name: string; value: string}[];
+} | {
+    // boolean. this is pretty much useless and string should always be used instead.
+    type: 5;
+    name: string;
+    description: string;
+    required: boolean;
 };
 type SlashCommandNameless = {
     description: string;
@@ -74,7 +93,7 @@ async function do_handle_interaction(interaction: DiscordInteraction) {
     }});
     await api.api.webhooks(client.user!.id, interaction.token).messages("@original").delete();
 
-    console.log("Got interaction: ",interaction, interaction.data);
+    console.log("Got interaction: ", interaction.data);
     // construct an info object
     const guild = client.guilds.cache.get(interaction.guild_id)!;
     const channel = client.channels.cache.get(interaction.channel_id)! as discord.Message["channel"];
@@ -98,35 +117,51 @@ async function do_handle_interaction(interaction: DiscordInteraction) {
 
     const data = interaction.data;
 
-    if(data.name === "play") {
-        const game_name = data.options?.[0];
-        if(!game_name) return await info.error("No game");
+    if(data.name === "play" || data.name === "set") {
+        const subcommand = data.options?.[0];
+        if(!subcommand) return await info.error("No subcommand. This should never happen.");
         
-        const handler = globalCommandNS[game_name.name];
-        if(!handler) return await info.error("Could not find handler");
+        const handler = globalCommandNS[subcommand.name];
+        if(!handler) return await info.error("Could not find handler. This should never happen.");
 
-        return handler.handler("", info);
+        return handler.handler((subcommand.options || []).map(opt => opt.value || "").join(" "), info);
     }else {
         return await info.error("Unsupported interaction");
     }
     // globalCommandNS["tic tac toe"].handler("", info);
 }
 
+function createBaseCommandItem(base_command: string, options?: SlashCommandOption[]): {name: string; description: string; type: 1; options?: SlashCommandOption[]} {
+    let desc = globalDocs[globalCommandNS[base_command].docsPath].summaries.description;
+    if(desc.length > 100) {
+        desc = desc.substring(0, 99) + "…";
+    }
+    return {
+        name: base_command,
+        description: desc,
+        type: 1,
+        options,
+    };
+}
+
 function createBaseCommandMenu(...base_commands: string[]): SlashCommandOption[] {
     const res: SlashCommandOption[] = [];
     for(const base_command of base_commands) {
-        let desc = globalDocs[globalCommandNS[base_command].docsPath].summaries.description;
-        if(desc.length > 100) {
-            desc = desc.substring(0, 99) + "…";
-        }
-        res.push({
-            name: base_command,
-            description: desc,
-            type: 1,
-        });
+        res.push(createBaseCommandItem(base_command));
     }
     if(res.length > 10) throw new Error("Max 10 subcommands per command");
     return res;
+}
+
+function pickOption(name: string, description: string, choices: {[key: string]: string}): SlashCommandOption {
+    // object order is defined.
+    return {
+        type: 3,
+        name,
+        description,
+        required: true,
+        choices: Object.entries(choices).map(([value, key]) => ({name: key, value})),
+    }
 }
 
 const global_slash_commands: {[key: string]: SlashCommandNameless} = {
@@ -148,6 +183,15 @@ const global_slash_commands: {[key: string]: SlashCommandNameless} = {
             "needle"
         ),
     },
+    set: {
+        description: "Configure settings",
+        // this could be done the other way around - {fun: do({to: oneof({enable: "On", disable: "Off"})})}
+        // things might change though so who knows
+        options: [
+            createBaseCommandItem("fun", [pickOption("to", "allow or deny fun", {enable: "On", disable: "Off"})]),
+        ],
+    },
+    // TODO a command like /set fun on/off that accepts one of those parameter things
 };
 if(Object.entries(global_slash_commands).length > 50) throw new Error("Max 50 slash commands");
 
@@ -194,9 +238,14 @@ async function removeCommand(command_id: string): Promise<void> {
     }
 }
 
+function compareOptions(remote: SlashCommandOption[], local: SlashCommandOption[]): "same" | "different" {
+    if(deepEqual(local, remote)) return "same";
+    return "different";
+}
+
 function compareCommands(remote: SlashCommand, local: SlashCommandUser): "same" | "different" {
     if(remote.description !== local.description) return "different";
-    if(JSON.stringify(remote.options) !== JSON.stringify(local.options)) return "different";
+    if(compareOptions(remote.options ?? [], local.options ?? []) === "different") return "different";
     return "same";
 }
 
