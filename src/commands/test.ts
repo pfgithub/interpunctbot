@@ -157,7 +157,7 @@ nr.globalCommand(
 				out: "{Atmention|you}, 1824",
 			},
 		],
-		perms: {},
+		perms: {raw_message: true},
 	},
 	nr.passthroughArgs,
 	async ([cmd], info) => {
@@ -175,8 +175,9 @@ nr.globalCommand(
 			const origmsg = await info.result(
 				'<a:loading:682804438783492139> Promise { <state>: "pending" }',
 			);
-			const armsg = await info.message.reply(
+			const armsg = await info.raw_message!.reply(
 				stripMentions(cmd.substring(15, cmd.length - 2)),
+				Info.msgopts,
 			);
 			if (origmsg && origmsg[0])
 				await origmsg[0].edit(

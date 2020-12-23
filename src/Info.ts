@@ -2,7 +2,7 @@ import * as Discord from "discord.js";
 import { MessageBuilder } from "./MessageBuilder";
 import Database from "./Database";
 import { ilt, perr } from "..";
-import { safe, raw, messages, templateGenerator } from "../messages";
+import { safe, messages, templateGenerator } from "../messages";
 import { TimedEvents } from "./TimedEvents";
 import { globalConfig } from "./config";
 import { globalDocs } from "./NewRouter";
@@ -237,11 +237,22 @@ export type MessageParametersType =
 	| [string, MessageOptionsParameter | undefined]
 	| [string];
 
+export type MessageLike = {
+	channel: Discord.Message["channel"];
+	guild: Discord.Message["guild"];
+	member: Discord.Message["member"];
+	author: Discord.Message["author"];
+	client: Discord.Message["client"];
+	content: Discord.Message["content"];
+	delete: () => Promise<void>;
+};
+
 export default class Info {
 	loading: boolean;
 	channel: Discord.TextChannel | Discord.DMChannel | Discord.NewsChannel;
 	guild?: Discord.Guild | null;
-	message: Discord.Message;
+	message: MessageLike;
+	raw_message?: Discord.Message;
 	other?: {
 		startTime: number;
 		infoPerSecond: number;
@@ -251,11 +262,12 @@ export default class Info {
 	prefix: string;
 	timedEvents: TimedEvents;
 	constructor(
-		message: Discord.Message,
+		message: MessageLike,
 		timedEvents: TimedEvents,
 		other?: {
 			startTime: number;
 			infoPerSecond: number;
+			raw_message?: Discord.Message;
 		},
 	) {
 		this.timedEvents = timedEvents;
@@ -263,6 +275,8 @@ export default class Info {
 		this.channel = message.channel;
 		this.guild = message.guild;
 		this.message = message;
+		if(other?.raw_message) this.raw_message = other.raw_message;
+
 		this.member = message.member;
 		this.other = other;
 		this.db = this.guild ? new Database(this.guild.id) : undefined;
@@ -280,6 +294,11 @@ export default class Info {
 			this.prefix = "";
 		}
 	}
+
+	static msgopts = {
+		allowedMentions: { parse: [], roles: [], users: [] },
+		split: false,
+	} as {allowedMentions: {parse: []; roles: []; users: []}; split: false}; // Discord.MessageOptions
 	static get result() {
 		return result;
 	}
@@ -365,11 +384,13 @@ export default class Info {
 		return [`${type} ${values[0]}`, values[1]];
 	}
 	shouldAlert(): boolean {
-		return new Date().getTime() - this.message.createdAt.getTime() > 3000
-			? true
-			: this.message.channel.lastMessageID === this.message.id
-			? false
-			: true;
+		if(this.raw_message) {
+			if(Date.now() - this.raw_message.createdAt.getTime() > 3000) return true;
+			if(this.raw_message.channel.lastMessageID !== this.raw_message.id) return true;
+			return false;
+		}else{
+			return false;
+		}
 	}
 	async _tryReply(
 		...values: MessageParametersType
@@ -397,7 +418,10 @@ export default class Info {
 				}),
 				false,
 			);
-			if (iltres.error) return console.log(iltres.error); // oop
+			if (iltres.error) {
+				console.log(iltres.error);
+				return;
+			} // oop
 			resmsgs.push(iltres.result);
 		}
 		return resmsgs;
@@ -444,8 +468,8 @@ export default class Info {
 	async errorAlways(...msg: MessageParametersType) {
 		const reactOrNot = this.shouldAlert();
 
-		if (reactOrNot) {
-			await ilt(this.message.react("❌"), false);
+		if (reactOrNot && this.raw_message) {
+			await ilt(this.raw_message.react("❌"), false);
 		}
 		let res;
 		if (
@@ -461,8 +485,8 @@ export default class Info {
 	}
 	async warn(...msg: MessageParametersType) {
 		const reactOrNot = this.shouldAlert();
-		if (reactOrNot) {
-			await ilt(this.message.react("⚠"), false);
+		if (reactOrNot && this.raw_message) {
+			await ilt(this.raw_message.react("⚠"), false);
 		}
 		let res;
 		if (
@@ -478,8 +502,8 @@ export default class Info {
 	}
 	async success(...msg: MessageParametersType) {
 		const reactOrNot = this.shouldAlert();
-		if (reactOrNot) {
-			await ilt(this.message.react("✅"), false);
+		if (reactOrNot && this.raw_message) {
+			await ilt(this.raw_message.react("✅"), false);
 		}
 		let res;
 		if (
@@ -588,7 +612,7 @@ export function handleReactions(
 		});
 	return {
 		end: () => reactionCollector.stop(),
-		done: new Promise((resolve, reject) => {
+		done: new Promise<void>((resolve, reject) => {
 			errCb = reject;
 			reactionCollector.addListener("end", () => resolve());
 		}),

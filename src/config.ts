@@ -17,6 +17,7 @@ type Config = {
 	testing: {
 		users: string[];
 	};
+	slashCommandServer?: string;
 };
 
 type RawConfig = {
@@ -34,6 +35,7 @@ type RawConfig = {
 	testing?: {
 		users?: string[];
 	};
+	slashCommandServer?: string;
 };
 
 let rawConfig: RawConfig = {};
@@ -65,4 +67,5 @@ export const globalConfig: Config = {
 	testing: {
 		users: rawConfig.testing?.users || [],
 	},
+	slashCommandServer: rawConfig.slashCommandServer,
 };

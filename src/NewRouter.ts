@@ -12,7 +12,7 @@ import { assertNever, ilt, perr } from "..";
 import { confirmDocs } from "./parseDiscordDG";
 import { docsGenMode } from "../bot";
 import { DocsGen } from "./DocsGen";
-import { andlist, messages } from "../messages";
+import { messages } from "../messages";
 export { list, a };
 
 export type CmdCb<APList extends APListAny> = (
@@ -27,6 +27,7 @@ export type HelpData = {
 	examples: { in: string; out: string }[];
 	perms: {
 		fun?: boolean;
+		raw_message?: boolean;
 		runner?: readonly Permission[];
 		bot?: readonly BotPermission[];
 	};
@@ -222,7 +223,7 @@ export function globalAlias(original: string, aliasname: string) {
 
 export function reportError(error: Error, info: Info) {
 	// TODO if discord api error no permission, say "interpunct does not have permission"
-	if (!info.message.deleted) {
+	if ( info.raw_message ? !info.raw_message.deleted : true ) {
 		if (error instanceof Discord.DiscordAPIError) {
 			perr(
 				info.error(
@@ -272,6 +273,11 @@ export function globalCommand<APList extends APListAny>(
 
 	const handleCommand = async (cmd: string, info: Info) => {
 		// 1: check perms
+		if(help.perms.raw_message) {
+			if(!info.raw_message) {
+				return await info.error("This command cannot be used as a slash command :(");
+			}
+		}
 		if(help.perms.fun) {
 			if (info.db ? !(await info.db.getFunEnabled()) : false) {
 				return await info.error(messages.fun.fun_disabled(info));

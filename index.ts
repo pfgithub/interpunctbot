@@ -39,6 +39,8 @@ import fetch from "node-fetch";
 import { deleteLogs } from "./src/commands/logging";
 import { sendPinBottom } from "./src/commands/channelmanagement";
 
+import * as SlashCommandManager from "./src/SlashCommandManager";
+
 mdf(moment as any);
 
 try {
@@ -47,7 +49,7 @@ try {
 
 export let serverStartTime = 0;
 
-const production = process.env.NODE_ENV === "production";
+export const production = process.env.NODE_ENV === "production";
 
 const mostRecentCommands: { content: string; date: string }[] = [];
 
@@ -391,6 +393,8 @@ client.on("ready", () => {
 	global.console.log("Ready");
 	serverStartTime = new Date().getTime();
 	perr(updateActivity(), "activity update");
+
+	perr(SlashCommandManager.start(), "slash command manager");
 });
 
 setInterval(() => perr(updateActivity(), "activity update"), 30 * 60 * 1000); // update every 30 min
@@ -577,7 +581,6 @@ async function guildLog(id: string, log: string) {
 	);
 }
 
-const msgid = 0;
 async function onMessage(msg: Discord.Message | Discord.PartialMessage) {
 	if (msg.partial) {
 		// partial is not supported
@@ -596,9 +599,21 @@ async function onMessage(msg: Discord.Message | Discord.PartialMessage) {
 		devlog(`i> ${msg.content}`);
 	}
 
-	const info = new Info(msg, timedEvents!, {
+	
+	const message_like = {
+		channel: msg.channel,
+		guild: msg.guild,
+		member: msg.member,
+		author: msg.author,
+		client: msg.client,
+		content: msg.content,
+		delete: async () => {await msg.delete({timeout: 10})},
+	};
+
+	const info = new Info(message_like, timedEvents!, {
 		startTime: new Date().getTime(),
 		infoPerSecond: -1,
+		raw_message: msg,
 	});
 
 	if (info.db) {
@@ -636,7 +651,7 @@ async function onMessage(msg: Discord.Message | Discord.PartialMessage) {
 					return number;
 				};
 				const pma = msg.channel.messages.cache.array();
-				const pmsg = pma[pma.length - 2];
+				// const pmsg = pma[pma.length - 2];
 				let i = 2;
 				const thisnum = findNumber(msg.content);
 				if (thisnum === undefined) {
@@ -657,7 +672,7 @@ async function onMessage(msg: Discord.Message | Discord.PartialMessage) {
 					}
 					if (cnum + 1 !== thisnum) {
 						deleteMsg = true;
-						msg.reply("" + (cnum + 1)).catch(e => {});
+						msg.reply("" + (cnum + 1)).catch(() => {});
 					}
 				}
 				if (deleteMsg) {
@@ -781,7 +796,7 @@ async function onMessage(msg: Discord.Message | Discord.PartialMessage) {
 				}) <#${msg.channel.id}> ${msg.author.bot ? "[BOT] " : ""}\`${
 					msg.author.id
 				}\`: ${msg.content}`,
-			).catch(e => {});
+			).catch(() => {});
 		} catch (e) {}
 
 		const allCommands = Object.keys(nr.globalCommandNS)
@@ -1082,9 +1097,9 @@ client.on("messageReactionAdd", (reaction, user) => {
 //    }
 //});
 
-function getEmojiKey(emoji: any) {
-	return emoji.id ? `${emoji.name}:${emoji.id}` : emoji.name;
-}
+// function getEmojiKey(emoji: any) {
+// 	return emoji.id ? `${emoji.name}:${emoji.id}` : emoji.name;
+// }
 //
 // bot.on("raw", async event => {
 // 	if (event.t !== "MESSAGE_REACTION_ADD") {

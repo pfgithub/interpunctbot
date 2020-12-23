@@ -240,10 +240,10 @@ nr.globalCommand(
 	async ([finalressafe], info) => {
 		const prefix =
 			"<@" + info.message.author.id + ">, <a:loading:682804438783492139>";
-		const msg = (await info.channel.send(
+		const msg = await info.channel.send(
 			prefix,
-			msgopts,
-		)) as discord.Message;
+			Info.msgopts,
+		);
 		info.message.delete().catch(() => {});
 		await ms(3000);
 		await msg.edit(prefix + " Just one moment...");
@@ -260,7 +260,7 @@ nr.globalCommand(
 				(messages.emoji.success + " " + finalressafe.trim() ||
 					messages.emoji.failure +
 						" Huh, it seems something went wrong."),
-			msgopts as discord.MessageEditOptions,
+			Info.msgopts,
 		);
 	},
 );
@@ -588,7 +588,7 @@ nr.globalCommand(
 			const results: string[] = [];
 			for (const role of roles) {
 				if (info.guild.members.cache.size != info.guild.memberCount) {
-					info.message.channel.startTyping().catch(e => {});
+					info.message.channel.startTyping().catch(() => {});
 					await info.guild.members.fetch();
 					info.message.channel.stopTyping();
 				}
@@ -685,14 +685,14 @@ nr.globalCommand(
 		usage: "vote2 {Required|contraversial statement}",
 		description: "allows other people to vote on your message",
 		examples: [],
-		perms: { fun: true },
+		perms: { fun: true, raw_message: true },
 	},
 	nr.passthroughArgs,
 	async ([cmd], info) => {
 		if (!cmd) {
 			return await info.docs("/help/fun/vote2", "usage");
 		}
-		await Promise.all([info.message.react("👍"), info.message.react("👎")]);
+		await Promise.all([info.raw_message!.react("👍"), info.raw_message!.react("👎")]);
 	},
 );
 
@@ -726,11 +726,6 @@ nr.globalCommand(
 		);
 	},
 );
-
-const msgopts: discord.MessageOptions = {
-	allowedMentions: { parse: [], roles: [], users: [] },
-	split: false,
-};
 
 async function getMsgFrom(
 	info: Info,
@@ -794,7 +789,7 @@ nr.globalCommand(
 			);
 		const msgval = await getMsgFrom(info, wrds, "c", "R", "/help/sendmsg"); // zig: getMsgFrom(wrds) orelse return (or more likely, catch |err| return reportMsgFromErr(err))
 		if (!msgval) return;
-		await info.channel.send(msgval, { ...msgopts, split: true });
+		await info.channel.send(msgval, { ...Info.msgopts, split: true });
 	},
 );
 
@@ -993,10 +988,10 @@ nr.globalCommand(
 	},
 	nr.passthroughArgs,
 	async ([message], info) => {
-		const msg = (await info.channel.send(
+		const msg = await info.channel.send(
 			"VOTE: " + message,
-			msgopts,
-		)) as discord.Message;
+			Info.msgopts,
+		);
 		await Promise.all([msg.react("👍"), msg.react("👎")]);
 
 		let endhandler: () => void = () => {
@@ -1032,7 +1027,7 @@ nr.globalCommand(
 				(over ? ", Voting ended." : "") +
 				")";
 			if (msg.content !== content)
-				await msg.edit(content, msgopts as discord.MessageEditOptions);
+				await msg.edit(content, Info.msgopts);
 		}
 		const msgEditInterval = setEditInterval(async () => {
 			await editMessage();
@@ -1047,7 +1042,7 @@ nr.globalCommand(
 			// if downvote && user upvoted, remove upvote
 			// if upvote && user downvoted, remove downvote
 		);
-		await new Promise(resolve => (endhandler = resolve));
+		await new Promise<void>(resolve => (endhandler = resolve));
 		msgEditInterval.end();
 		rxnh.end();
 		await editMessage(true);
@@ -1195,13 +1190,13 @@ nr.globalCommand(
 			)}
 > **Handled in**: ${new Date().getTime() - info.other!.startTime}ms.`;
 		const msgs = await info.result(msg, undefined);
-		if (msgs && msgs[0])
+		if (msgs && msgs[0] && info.raw_message)
 			await msgs[0].edit(
 				msg +
 					"\n> **Took**: " +
 					durationFormat(
 						msgs[0].createdAt.getTime() -
-							info.message.createdAt.getTime(),
+							info.raw_message.createdAt.getTime(),
 					) +
 					" to send this message.",
 			);
@@ -1221,7 +1216,7 @@ nr.globalCommand(
 				out: "{Emoji|success} Reminder set for 10 years.",
 			},
 		],
-		perms: { fun: true },
+		perms: { fun: true, raw_message: true },
 	},
 	nr.passthroughArgs,
 	async ([cmd], info) => {
@@ -1240,7 +1235,7 @@ nr.globalCommand(
 		await info.timedEvents.queue(
 			{
 				type: "pmuser",
-				message: `Reminder: ${info.message.url}\n${message
+				message: `Reminder: ${info.raw_message!.url}\n${message
 					.split("\n")
 					.map(l => "> " + l)
 					.join("\n")}`,
@@ -1390,7 +1385,6 @@ nr.globalCommand(
 		// if (info.myChannelPerms ? info.myChannelPerms.has("EMBED_LINKS") : true) {
 		// ...
 		// }
-		const linesUnder2000: string[] = [];
 		const splitQuotedBoard = generatedBoard.boardStr
 			.split("\n")
 			.map(l => `> ${l}`);
@@ -1401,19 +1395,7 @@ nr.globalCommand(
 				flag ? "flag " : ""
 			}${group ? "group" : ""}`,
 		);
-		splitQuotedBoard.forEach(line => {
-			const newLine = `${linesUnder2000[linesUnder2000.length - 1] ||
-				""}\n${line}`; // puts an extra \n on the first line
-			if (newLine.length < 1999) {
-				linesUnder2000.pop();
-				linesUnder2000.push(newLine);
-			} else {
-				linesUnder2000.push(line.substr(0, 1999));
-			}
-		});
-		for (const line of linesUnder2000) {
-			await info.channel.send(line);
-		}
+		await info.channel.send(splitQuotedBoard.join("\n"), {split: true});
 	},
 );
 

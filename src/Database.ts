@@ -199,7 +199,7 @@ class Database {
 		let data = (await globalKnex!("guilds").where({ id: this.guild }))[0]; // THIS IS NOT THE RIGHT WAY
 		if (!data) {
 			if (lock[this.guild]) {
-				await new Promise(r => lock[this.guild].push(() => r()));
+				await new Promise<void>(r => lock[this.guild].push(() => r()));
 				return this.getOrLoadData();
 			}
 			lock[this.guild] = [];

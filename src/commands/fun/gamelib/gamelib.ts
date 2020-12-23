@@ -18,9 +18,9 @@ function oneway<T>(): {
 	let over = false;
 	return {
 		read: () => {
-			return new Promise(resolve => {
+			return new Promise<T>(resolve => {
 				if (stream.length > 0) {
-					return resolve(stream.shift());
+					return resolve(stream.shift()!);
 				} else {
 					waitingnow = v => {
 						waitingnow = undefined;

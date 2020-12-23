@@ -36,7 +36,7 @@ nr.globalCommand(
 					"{Atmention|you}, Log files:\n{Screenshot|https://i.imgur.com/D9GVOoC.png}",
 			},
 		],
-		perms: { runner: ["manage_bot"] },
+		perms: { runner: ["manage_bot"], raw_message: true },
 	},
 	nr.list(),
 	async ([], info) => {
@@ -52,7 +52,7 @@ nr.globalCommand(
 		}
 		await info.startLoading();
 		const logDownloadMessageResult = await ilt(
-			info.message.reply(
+			info.raw_message!.reply(
 				"Log files:",
 				new MessageAttachment(
 					`./logs/${info.guild.id}.log`,

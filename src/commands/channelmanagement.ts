@@ -568,11 +568,11 @@ nr.globalCommand(
 					"{Atmention|you}, {Emoji|success} Your message was sent to {Channel|channel-one}, {Channel|channel-two}",
 			},
 		],
-		perms: { runner: ["manage_channels"] },
+		perms: { runner: ["manage_channels"], raw_message: true },
 	},
 	nr.passthroughArgs,
 	async ([cmd], info) => {
-		const channelsToSendTo = info.message.mentions.channels.array();
+		const channelsToSendTo = info.raw_message!.mentions.channels.array();
 
 		if (channelsToSendTo.length === 0) {
 			return await info.error(

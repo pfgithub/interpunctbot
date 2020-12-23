@@ -13,5 +13,6 @@
 		"users": [
 			"Optional, A list of user IDs that messages will be processed from, even if they are bots. This is used to allow automated testing without tos-violating selfbots."
 		]
-	}
+	},
+	"slashCommandServer": "[Optional, the ID of the server to test slash commands on]"
 }
