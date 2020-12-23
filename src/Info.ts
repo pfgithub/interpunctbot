@@ -377,7 +377,7 @@ export default class Info {
 		const atThem = this.message.author.toString();
 		const shouldAlert = this.shouldAlert();
 		const allowedMentions: Discord.MessageMentionOptions = shouldAlert
-			? { users: [this.message.author.id], roles: [], parse: ["users"] }
+			? { users: [this.message.author.id], roles: [], parse: [] }
 			: { users: [], roles: [], parse: [] };
 
 		const content = values[0];
@@ -397,7 +397,7 @@ export default class Info {
 				}),
 				false,
 			);
-			if (iltres.error) return; // oop
+			if (iltres.error) return console.log(iltres.error); // oop
 			resmsgs.push(iltres.result);
 		}
 		return resmsgs;
@@ -408,13 +408,6 @@ export default class Info {
 			| [string | MessageBuilder, MessageOptionsParameter | undefined]
 			| [string | MessageBuilder]
 	) {
-		const showErrors = this.db ? await this.db.getCommandErrors() : true;
-		if (resultType === result.error && !showErrors) {
-			if (!this.authorPerms.manageBot) {
-				return; // command errors are disabled, return nothing
-			}
-		}
-
 		// Stop any loading if it is happening, we're replying now we're done loading
 		await this.stopLoading(); // not awaited for because it doesn't matter
 

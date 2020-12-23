@@ -554,7 +554,6 @@ nr.globalCommand(
 	},
 );
 
-// TODO add a note for people who use `ip!channels sendMany` still that they can switch to `ip!send`
 nr.globalCommand(
 	"/help/channels/send",
 	"send",
@@ -598,6 +597,9 @@ nr.globalCommand(
 		}
 
 		if (failures.length === 0) {
+            if(info.message.content.includes("channels sendMany")) {
+                return await info.warn(info.tag`Message sent. {Command|channels sendMany} has been renamed, next time you can use {Command|send #channels …message}`);
+            }
 			return await info.success(
 				messages.channels.send_many.succeeded_sending(info, successes),
 			);
