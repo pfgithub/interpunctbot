@@ -1,8 +1,6 @@
 import * as nr from "../NewRouter";
 
 import { messages, safe } from "../../messages";
-import Info from "../Info";
-import { KeyObject } from "crypto";
 
 nr.addDocsWebPage(
 	"/help/configuration",
