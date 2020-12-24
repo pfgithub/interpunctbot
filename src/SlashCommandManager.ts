@@ -37,31 +37,26 @@ export type DiscordInteraction = {
     data: UsedCommand;
 };
 
-type SlashCommandOptionNameless = {
-    type: 2;
-    description: string;
-    options: SlashCommandOption[];
-} | {
-    type: 1;
+type SlashCommandOptionNamelessSubcommand = {
     description: string;
     options?: SlashCommandOption[];
-} | {
-    // string
-    type: 3;
-    description: string;
-    required: boolean;
-    choices?: {name: string; value: string}[];
-} | {
-    // boolean. this is pretty much useless and string should always be used instead.
-    type: 5;
-    description: string;
-    required: boolean;
-} | {
-    // channel.
-    type: 7;
+};
+type SlashCommandOptionNamelessNormal = {
     description: string;
     required: boolean;
 };
+
+type SlashCommandOptionNameless =
+    | SlashCommandOptionNamelessSubcommand & {type: 1} // sub_command
+    | SlashCommandOptionNamelessSubcommand & {type: 2} // sub_command_group
+    | SlashCommandOptionNamelessNormal & {type: 3; choices?: {name: string; value: string}[]} // string
+    | SlashCommandOptionNamelessNormal & {type: 4; choices?: {name: string; value: number}[]} // integer
+    | SlashCommandOptionNamelessNormal & {type: 5} // boolean
+    | SlashCommandOptionNamelessNormal & {type: 6} // user
+    | SlashCommandOptionNamelessNormal & {type: 7} // channel
+    | SlashCommandOptionNamelessNormal & {type: 8} // role
+;
+
 type SlashCommandOption = SlashCommandOptionNameless & {
     name: string;
 }
@@ -167,7 +162,7 @@ async function do_handle_interaction(interaction: DiscordInteraction) {
     const guild = client.guilds.cache.get(interaction.guild_id)!;
     const channel = client.channels.cache.get(interaction.channel_id)! as discord.Message["channel"];
     const member = guild.members.add(interaction.member);
-
+    
     const mlike: MessageLike = {
         channel,
         guild,
@@ -186,8 +181,13 @@ async function do_handle_interaction(interaction: DiscordInteraction) {
         raw_interaction: interaction_helper,
     });
 
+    const my_channel_perms = info.myChannelPerms!;
+    if(!my_channel_perms.has("VIEW_CHANNEL")) {
+        return await interaction_helper.replyHiddenHideCommand("Commands cannot be used in this channel because I don't have permission to see it.");
+    }
+    
     const data = interaction.data;
-
+    
     const route = slash_command_router[data.name];
     if(!route) return await info.error("Unsupported interaction / This command should not exist.");
 
@@ -224,6 +224,19 @@ const opt = {
         if(description.length > 100) throw new Error("max 100 len desc");
         return {type: 3, description, required: true};
     },
+    // boolean is not necessary, oneOf is better in almost every case.
+    integer(description: string): SlashCommandOptionNameless {
+        if(description.length > 100) throw new Error("max 100 len desc");
+        return {type: 4, description, required: true};
+    },
+    user(description: string): SlashCommandOptionNameless {
+        if(description.length > 100) throw new Error("max 100 len desc");
+        return {type: 6, description, required: true};
+    },
+    role(description: string): SlashCommandOptionNameless {
+        if(description.length > 100) throw new Error("max 100 len desc");
+        return {type: 8, description, required: true};
+    },
     // TODO update when discord adds multiline support
     multiline(description: string): SlashCommandOptionNameless {
         if(description.length > 100) throw new Error("max 100 len desc");
@@ -236,6 +249,8 @@ const opt = {
 
 const slash_command_router: {[key: string]: SlashCommandRoute} = {
     test: {},
+    ping: {},
+    help: {args: {command: opt.optional(opt.string("Command/page to get help for"))}},
     play: {
         description: "Play a game",
         subcommands: {
@@ -281,6 +296,10 @@ const slash_command_router: {[key: string]: SlashCommandRoute} = {
                 route: "pinbottom",
                 args: {channel: opt.channel("Channel to pin the message in"), message: opt.optional(opt.multiline("Message to pin"))},
             },
+            purge: {
+                route: "purge",
+                args: {count: opt.integer("Number of messages to purge")},
+            }
         },
     }
 };

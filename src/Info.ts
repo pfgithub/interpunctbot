@@ -316,7 +316,7 @@ export default class Info {
 		return this.message.client.user!.toString();
 	}
 	get authorChannelPerms() {
-		if (this.channel instanceof Discord.TextChannel) {
+		if (!(this.channel instanceof Discord.DMChannel)) {
 			return this.channel.permissionsFor(this.member!);
 		}
 		return undefined;
@@ -328,7 +328,7 @@ export default class Info {
 		return undefined;
 	}
 	get myChannelPerms() {
-		if (this.channel instanceof Discord.TextChannel) {
+		if (!(this.channel instanceof Discord.DMChannel)) {
 			return this.channel.permissionsFor(this.guild!.me!);
 		}
 		return undefined;
