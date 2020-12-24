@@ -98,19 +98,19 @@ export class InteractionHelper {
     async reply(message: string) {
         await this.sendRaw({
             type: 4,
-            data: {content: message},
+            data: {content: message, allowed_mentions: {parse: []}},
         });
     }
     async replyHidden(message: string) {
         await this.sendRaw({
             type: 4,
-            data: {content: message, flags: 1 << 6},
+            data: {content: message, flags: 1 << 6, allowed_mentions: {parse: []}},
         });
     }
     async replyHiddenHideCommand(message: string) {
         await this.sendRaw({
             type: 2,
-            data: {content: message, flags: 1 << 6},
+            data: {content: message, flags: 1 << 6, allowed_mentions: {parse: []}},
         });
     }
 }
