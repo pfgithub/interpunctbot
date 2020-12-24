@@ -30,6 +30,7 @@ export type HelpData = {
 		raw_message?: boolean;
 		runner?: readonly Permission[];
 		bot?: readonly BotPermission[];
+		slash_do_not_interact?: boolean;
 	};
 };
 export type ErrorData = {
@@ -41,6 +42,7 @@ export type CommandData = {
 	docsPath: string;
 	command: string;
 	handler: (cmd: string, info: Info) => void;
+	config: {supports_slash: boolean};
 };
 
 export type CommandNS = { [key: string]: CommandData };
@@ -347,6 +349,9 @@ export function globalCommand<APList extends APListAny>(
 				handleCommand(cmd, info),
 				"running command ns handler " + uniqueGlobalName,
 			);
+		},
+		config: {
+			supports_slash: help.perms.slash_do_not_interact ?? false,
 		},
 	};
 

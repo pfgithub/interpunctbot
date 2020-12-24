@@ -1072,13 +1072,32 @@ nr.globalCommand(
 				out: "{Screenshot|https://i.imgur.com/dWOoTBM.png}",
 			},
 		],
-		perms: { fun: true },
+		perms: { fun: true, slash_do_not_interact: true },
 	},
-	nr.list(),
-	async ([], info) => {
+	nr.passthroughArgs,
+	async ([requested_word], info) => {
+		if(requested_word && !info.raw_interaction) {
+			return await info.docs("/help/fun/randomword", "usage");
+		}
+		if(requested_word && info.raw_interaction) {
+			const trophy_count = localtrophycount[info.message.author.id] || 0;
+			if(trophy_count < 5) {
+				return await info.raw_interaction.replyHiddenHideCommand("You need 5 trophies to set the word.");
+			}
+			localtrophycount[info.message.author.id] -= 5;
+		}
+		if(info.raw_interaction) {
+			if(requested_word) {
+				await info.raw_interaction.acceptHideCommand();
+				await info.message.channel.send(info.message.author.toString()+" used /randomword with a custom word", Info.msgopts);
+			}else{
+				await info.raw_interaction.accept();
+			}
+		}
+
 		const msg = info.message;
 
-		const rword = allwords[Math.floor(Math.random() * allwords.length)];
+		const rword = requested_word || allwords[Math.random() * allwords.length >> 0];
 		await msg.channel.send("Quick, type the word!", {
 			files: [
 				{

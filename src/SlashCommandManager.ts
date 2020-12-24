@@ -5,8 +5,6 @@ import { globalConfig } from "./config";
 import Info, {MessageLike} from "./Info";
 import { globalCommandNS, globalDocs } from "./NewRouter";
 import deepEqual from "deep-equal";
-import { openStdin } from "process";
-import { LOADIPHLPAPI } from "dns";
 
 const api = client as any as ApiHolder;
 
@@ -30,7 +28,7 @@ type UsedCommand = {
     options?: UsedCommandOption[];
 };
 
-type DiscordInteraction = {
+export type DiscordInteraction = {
     id: string; // interaction id
     token: string; // interaction token
     guild_id: string;
@@ -79,19 +77,65 @@ type SlashCommand = SlashCommandUser & {
     application_id: string;
 };
 
+export class InteractionHelper {
+    raw_interaction: DiscordInteraction;
+    has_ackd: boolean;
+
+    constructor(raw_interaction: DiscordInteraction) {
+        this.raw_interaction = raw_interaction;
+        this.has_ackd = false;
+    }
+    async sendRaw(value: object) {
+        if(this.has_ackd) throw new Error("cannot double interact");
+        this.has_ackd = true;
+        await api.api.interactions(this.raw_interaction.id, this.raw_interaction.token).callback.post({data: value});
+    }
+    async accept() {
+        await this.sendRaw({
+            type: 5,
+        });
+    }
+    async acceptHideCommand() {
+        await this.sendRaw({
+            type: 2,
+        });
+    }
+    async replyHidden(message: string) {
+        try {
+            await this.sendRaw({
+                type: 4,
+                data: {content: message, flags: 1 << 6},
+            });
+        }catch(e) {
+            console.log(e);
+            await this.accept();
+        }
+    }
+    async replyHiddenHideCommand(message: string) {
+        try {
+            await this.sendRaw({
+                type: 2,
+                data: {content: message, flags: 1 << 6},
+            });
+        }catch(e) {
+            console.log(e);
+            await this.acceptHideCommand();
+        }
+    }
+}
+
 function on_interaction(interaction: DiscordInteraction) {
     ilt(do_handle_interaction(interaction), false).then(async res => {
         if(res.error) {
             console.log("handle interaction failed with", res.error);
             await api.api.webhooks(client.user!.id, interaction.token).post({data: {
-                type: 4,
-                data: {content: "Uh oh! Something went wrong while handling this interaction"},
+                content: "Uh oh! Something went wrong while handling this interaction",
             }});
             return;
         }
     }).catch(e => console.log("handle interaction x2 failed", e));
 }
-async function handle_interaction_routed(info: Info, route_name: string, route: SlashCommandRoute, options: UsedCommandOption[]): Promise<unknown> {
+async function handle_interaction_routed(info: Info, route_name: string, route: SlashCommandRoute, options: UsedCommandOption[], interaction: InteractionHelper): Promise<unknown> {
     if('subcommands' in route) {
         // read option
         if(options.length !== 1) return await info.error("Expected subcommand. This should never happen.");
@@ -101,7 +145,7 @@ async function handle_interaction_routed(info: Info, route_name: string, route: 
         const next_route = route.subcommands[optnme];
         if(!next_route) return await info.error(info.tag`Subcommand ${optnme} not found. This should never happen.`);
 
-        return await handle_interaction_routed(info, optnme, next_route, opt0.options ?? []);
+        return await handle_interaction_routed(info, optnme, next_route, opt0.options ?? [], interaction);
     }else{
         // (subcommand.options || []).map(opt => opt.value || ""
         const ns_path = route.route ?? route_name;
@@ -109,17 +153,15 @@ async function handle_interaction_routed(info: Info, route_name: string, route: 
         const handler = globalCommandNS[ns_path];
         if(!handler) return await info.error("Could not find handler for ns_path `"+ns_path+"`. This should never happen.");
 
+        if(!handler.config.supports_slash) {
+            await interaction.accept();
+        }
+
         return handler.handler((options || []).map(opt => opt.value || "").join(" "), info);
     }
 }
 async function do_handle_interaction(interaction: DiscordInteraction) {
     const startTime = Date.now();
-    await api.api.interactions(interaction.id, interaction.token).callback.post({data: {
-        type: 4,
-        data: {content: "Handling interaction…"},
-    }});
-    api.api.webhooks(client.user!.id, interaction.token).messages("@original").delete()
-        .catch(e => console.log("Failed to delete first interaction message"));
 
     console.log("Got interaction: ", require("util").inspect(interaction.data, false, null, true));
     // construct an info object
@@ -138,9 +180,11 @@ async function do_handle_interaction(interaction: DiscordInteraction) {
             // nothing to do.
         },
     };
+    const interaction_helper = new InteractionHelper(interaction);
     const info = new Info(mlike, timedEvents!, {
         startTime,
         infoPerSecond: -1,
+        raw_interaction: interaction_helper,
     });
 
     const data = interaction.data;
@@ -148,51 +192,7 @@ async function do_handle_interaction(interaction: DiscordInteraction) {
     const route = slash_command_router[data.name];
     if(!route) return await info.error("Unsupported interaction / This command should not exist.");
 
-    return await handle_interaction_routed(info, data.name, route, data.options || []);
-}
-
-function createBaseCommandItem(base_command: string, options?: SlashCommandOption[]): {name: string; description: string; type: 1; options?: SlashCommandOption[]} {
-    let desc = globalDocs[globalCommandNS[base_command].docsPath].summaries.description;
-    if(desc.length > 100) {
-        desc = desc.substring(0, 99) + "…";
-    }
-    return {
-        name: base_command,
-        description: desc,
-        type: 1,
-        options,
-    };
-}
-
-function createBaseCommandMenu(...base_commands: string[]): SlashCommandOption[] {
-    const res: SlashCommandOption[] = [];
-    for(const base_command of base_commands) {
-        res.push(createBaseCommandItem(base_command));
-    }
-    if(res.length > 10) throw new Error("Max 10 subcommands per command");
-    return res;
-}
-
-function pickOption(name: string, description: string, choices: {[key: string]: string}): SlashCommandOption {
-    // object order is defined.
-    if(description.length > 100) throw new Error("max 100 len desc");
-    return {
-        type: 3,
-        name,
-        description,
-        required: true,
-        choices: Object.entries(choices).map(([value, key]) => ({name: key, value})),
-    }
-}
-
-function stringOption(name: string, description: string, required = true): SlashCommandOption {
-    if(description.length > 100) throw new Error("max 100 len desc");
-    return {type: 3, name, description, required};
-}
-
-function channelOption(name: string, description: string, required = true): SlashCommandOption {
-    if(description.length > 100) throw new Error("max 100 len desc");
-    return {type: 7, name, description, required};
+    return await handle_interaction_routed(info, data.name, route, data.options || [], interaction_helper);
 }
 
 type SlashCommandRouteBottomLevel = {
@@ -243,13 +243,15 @@ const slash_command_router: {[key: string]: SlashCommandRoute} = {
             connect4: {}, minesweeper: {},
             papersoccer: {}, ultimatetictactoe: {},
             checkers: {}, circlegame: {},
-            tictactoe: {}, randomword: {},
+            tictactoe: {},
+            randomword: {args: {custom_word: opt.optional(opt.string("A custom word. Costs 5 trophies."))}},
             trivia: {}, needle: {},
         },
     },
     set: {
         description: "Configure bot",
         subcommands: {
+            prefix: {args: {to: opt.string("the new bot prefix. default is ip!")}},
             fun: {args: {to: opt.oneOf("allow or deny fun", {enable: "On", disable: "Off"})}},
         },
     },
@@ -336,8 +338,6 @@ for(const [cmdname, cmddata] of Object.entries(slash_command_router)) {
 
 if(Object.entries(global_slash_commands).length > 50) throw new Error("Max 50 slash commands");
 
-require("fs").writeFileSync(__dirname+"/commands.json", JSON.stringify(global_slash_commands), "utf-8");
-
 let __is_First_Shard: boolean | undefined = undefined;
 function firstShard() {
     if(__is_First_Shard !== undefined) return __is_First_Shard;
@@ -406,7 +406,7 @@ export async function start() {
 
     const current_slash_commands = await getCommands();
 
-    console.log("Current slash commands: ",current_slash_commands);
+    // console.log("Current slash commands: ",current_slash_commands);
     // update slash commands to match global slash commands
 
     for(const remote of current_slash_commands) {
