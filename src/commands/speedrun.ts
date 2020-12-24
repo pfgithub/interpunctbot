@@ -474,7 +474,6 @@ nr.globalCommand(
 		if (!info.db) {
 			return await info.error(
 				"Cannot use speedrun commands in private pm messages",
-				undefined,
 			);
 		}
 
@@ -500,7 +499,6 @@ nr.globalCommand(
 		if (!info.db) {
 			return await info.error(
 				"Cannot use speedrun commands in private pm messages",
-				undefined,
 			);
 		}
 
@@ -509,13 +507,12 @@ nr.globalCommand(
 		if (!abbreviation || !categoryName) {
 			return await info.error(
 				`Usage: \`speedrun set https://speedrun.com/mygame My Category\``,
-				undefined,
 			);
 		}
 		await info.startLoading();
 		const game = await getGameAtPage(abbreviation);
 		if (typeof game === "string") {
-			return await info.error(game, undefined);
+			return await info.error(game);
 		}
 
 		// get the provided category
@@ -529,7 +526,6 @@ nr.globalCommand(
 				new TextBuilder()
 					.tag`The category \`${categoryName}\` is not in the game.
 	Valid categories: ${categories.map(cat => cat.name).join(`, `)}`.build(),
-				undefined,
 			);
 		}
 
@@ -538,11 +534,9 @@ nr.globalCommand(
 
 		// success
 		return await info.success(
-			new TextBuilder()
-				.tag`Default speedrun page updated to ${abbreviation}: ${categoryName} (ids: ${gameID}, ${
+			info.tag`Default speedrun page updated to ${abbreviation}: ${categoryName} (ids: ${gameID}, ${
 				category.id
-			}). Took ${`${ctime() - startTime}`} ms.`.build(),
-			undefined,
+			}). Took ${`${ctime() - startTime}`} ms.`
 		);
 	},
 ); // set <abbreviaton> <category> // sets the default category

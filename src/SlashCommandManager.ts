@@ -100,27 +100,23 @@ export class InteractionHelper {
             type: 2,
         });
     }
+    async reply(message: string) {
+        await this.sendRaw({
+            type: 4,
+            data: {content: message},
+        });
+    }
     async replyHidden(message: string) {
-        try {
-            await this.sendRaw({
-                type: 4,
-                data: {content: message, flags: 1 << 6},
-            });
-        }catch(e) {
-            console.log(e);
-            await this.accept();
-        }
+        await this.sendRaw({
+            type: 4,
+            data: {content: message, flags: 1 << 6},
+        });
     }
     async replyHiddenHideCommand(message: string) {
-        try {
-            await this.sendRaw({
-                type: 2,
-                data: {content: message, flags: 1 << 6},
-            });
-        }catch(e) {
-            console.log(e);
-            await this.acceptHideCommand();
-        }
+        await this.sendRaw({
+            type: 2,
+            data: {content: message, flags: 1 << 6},
+        });
     }
 }
 
@@ -154,7 +150,10 @@ async function handle_interaction_routed(info: Info, route_name: string, route: 
         if(!handler) return await info.error("Could not find handler for ns_path `"+ns_path+"`. This should never happen.");
 
         if(!handler.config.supports_slash) {
-            await interaction.accept();
+            setTimeout(() => {
+                if(interaction.has_ackd) return;
+                interaction.accept().catch(e => console.log("Failed to accept interaction", e));
+            }, 200);
         }
 
         return handler.handler((options || []).map(opt => opt.value || "").join(" "), info);

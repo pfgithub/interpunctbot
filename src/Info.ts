@@ -456,8 +456,8 @@ export default class Info {
 		// Reply to the message (or author)
 		return await this._tryReply(...message);
 	}
-	async error(...msg: MessageParametersType) {
-		if(!this.raw_message) return this.errorAlways(...msg);
+	async error(msg: string) {
+		if(this.raw_interaction) return await this.errorAlways(msg);
 		
 		const unknownCommandMessages = this.db
 			? await this.db.getCommandErrors()
@@ -469,9 +469,15 @@ export default class Info {
 		} else {
 			return [];
 		}
-		return this.errorAlways(...msg);
+		return this.errorAlways(msg);
 	}
-	async errorAlways(...msg: MessageParametersType) {
+	async errorAlways(msg: string) {
+		if(this.raw_interaction && !this.raw_interaction.has_ackd) {
+			try{
+				return await this.raw_interaction.replyHidden("<:error:508841130503438356> "+msg);
+			}catch(e) {console.log(e);}
+		}
+
 		const reactOrNot = this.shouldAlert();
 
 		if (reactOrNot && this.raw_message) {
@@ -482,14 +488,20 @@ export default class Info {
 			!this.myChannelPerms ||
 			this.myChannelPerms.has("USE_EXTERNAL_EMOJIS")
 		) {
-			res = await this.reply("<:error:508841130503438356>", ...msg);
+			res = await this.reply("<:error:508841130503438356>", msg);
 		} else {
-			res = await this.reply("❌", ...msg);
+			res = await this.reply("❌", msg);
 		}
 		// res && res.forEach(r => r.delete({ timeout: 20 * 1000 }));
 		return res;
 	}
-	async warn(...msg: MessageParametersType) {
+	async warn(msg: string) {
+		if(this.raw_interaction && !this.raw_interaction.has_ackd) {
+			try{
+				return await this.raw_interaction.reply("<:warning:508842207089000468> "+msg);
+			}catch(e) {console.log(e);}
+		}
+
 		const reactOrNot = this.shouldAlert();
 		if (reactOrNot && this.raw_message) {
 			await ilt(this.raw_message.react("⚠"), false);
@@ -499,14 +511,20 @@ export default class Info {
 			!this.myChannelPerms ||
 			this.myChannelPerms.has("USE_EXTERNAL_EMOJIS")
 		) {
-			res = await this.reply("<:warning:508842207089000468>", ...msg);
+			res = await this.reply("<:warning:508842207089000468>", msg);
 		} else {
-			res = await this.reply("⚠", ...msg);
+			res = await this.reply("⚠", msg);
 		}
 		// res && res.forEach(r => r.delete({ timeout: 20 * 1000 }));
 		return res;
 	}
-	async success(...msg: MessageParametersType) {
+	async success(msg: string) {
+		if(this.raw_interaction && !this.raw_interaction.has_ackd) {
+			try{
+				return await this.raw_interaction.reply("<:success:508840840416854026> "+msg);
+			}catch(e) {console.log(e);}
+		}
+
 		const reactOrNot = this.shouldAlert();
 		if (reactOrNot && this.raw_message) {
 			await ilt(this.raw_message.react("✅"), false);
@@ -516,9 +534,9 @@ export default class Info {
 			!this.myChannelPerms ||
 			this.myChannelPerms.has("USE_EXTERNAL_EMOJIS")
 		) {
-			res = await this.reply("<:success:508840840416854026>", ...msg);
+			res = await this.reply("<:success:508840840416854026>", msg);
 		} else {
-			res = await this.reply("✅", ...msg);
+			res = await this.reply("✅", msg);
 		}
 		// res && res.forEach(r => r.delete({ timeout: 20 * 1000 }));
 		return res;
