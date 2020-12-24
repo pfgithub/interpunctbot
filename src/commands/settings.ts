@@ -217,7 +217,7 @@ nr.globalCommand(
 			return await info.docs("/errors/pms", "error");
 		}
 		const ad = await info.db.getAutoban();
-		await info.success(
+		await info.result(
 			"Users with these words in their name (not case-sensitive) will be banned when they join the server:\n" +
 				(ad.length
 					? ad.map(q => "- " + safe(q)).join("\n")
