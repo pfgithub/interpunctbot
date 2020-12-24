@@ -6,6 +6,7 @@ import Info, {MessageLike} from "./Info";
 import { globalCommandNS, globalDocs } from "./NewRouter";
 import deepEqual from "deep-equal";
 import { openStdin } from "process";
+import { LOADIPHLPAPI } from "dns";
 
 const api = client as any as ApiHolder;
 
@@ -90,16 +91,37 @@ function on_interaction(interaction: DiscordInteraction) {
         }
     }).catch(e => console.log("handle interaction x2 failed", e));
 }
+async function handle_interaction_routed(info: Info, route_name: string, route: SlashCommandRoute, options: UsedCommandOption[]): Promise<unknown> {
+    if('subcommands' in route) {
+        // read option
+        if(options.length !== 1) return await info.error("Expected subcommand. This should never happen.");
+        const opt0 = options[0];
+        const optnme = opt0.name;
+
+        const next_route = route.subcommands[optnme];
+        if(!next_route) return await info.error(info.tag`Subcommand ${optnme} not found. This should never happen.`);
+
+        return await handle_interaction_routed(info, optnme, next_route, opt0.options ?? []);
+    }else{
+        // (subcommand.options || []).map(opt => opt.value || ""
+        const ns_path = route.route ?? route_name;
+
+        const handler = globalCommandNS[ns_path];
+        if(!handler) return await info.error("Could not find handler for ns_path `"+ns_path+"`. This should never happen.");
+
+        return handler.handler((options || []).map(opt => opt.value || "").join(" "), info);
+    }
+}
 async function do_handle_interaction(interaction: DiscordInteraction) {
     const startTime = Date.now();
-    api.api.interactions(interaction.id, interaction.token).callback.post({data: {
+    await api.api.interactions(interaction.id, interaction.token).callback.post({data: {
         type: 4,
         data: {content: "Handling interaction…"},
-    }}).then(async () => {
-        await api.api.webhooks(client.user!.id, interaction.token).messages("@original").delete();
-    }).catch(e => console.log("Failed to send first interaction message"));
+    }});
+    api.api.webhooks(client.user!.id, interaction.token).messages("@original").delete()
+        .catch(e => console.log("Failed to delete first interaction message"));
 
-    console.log("Got interaction: ", interaction.data);
+    console.log("Got interaction: ", require("util").inspect(interaction.data, false, null, true));
     // construct an info object
     const guild = client.guilds.cache.get(interaction.guild_id)!;
     const channel = client.channels.cache.get(interaction.channel_id)! as discord.Message["channel"];
@@ -123,18 +145,10 @@ async function do_handle_interaction(interaction: DiscordInteraction) {
 
     const data = interaction.data;
 
-    if(data.name === "play" || data.name === "set") {
-        const subcommand = data.options?.[0];
-        if(!subcommand) return await info.error("No subcommand. This should never happen.");
-        
-        const handler = globalCommandNS[subcommand.name];
-        if(!handler) return await info.error("Could not find handler. This should never happen.");
+    const route = slash_command_router[data.name];
+    if(!route) return await info.error("Unsupported interaction / This command should not exist.");
 
-        return handler.handler((subcommand.options || []).map(opt => opt.value || "").join(" "), info);
-    }else {
-        return await info.error("Unsupported interaction");
-    }
-    // globalCommandNS["tic tac toe"].handler("", info);
+    return await handle_interaction_routed(info, data.name, route, data.options || []);
 }
 
 function createBaseCommandItem(base_command: string, options?: SlashCommandOption[]): {name: string; description: string; type: 1; options?: SlashCommandOption[]} {
@@ -245,7 +259,7 @@ const slash_command_router: {[key: string]: SlashCommandRoute} = {
             user_join: {
                 description: "Set/remove join message",
                 subcommands: {
-                    to: {route: "messages set welcome", args: {
+                    set: {route: "messages set welcome", args: {
                         channel: opt.channel("Channel to send join messages in"),
                         message: opt.multiline("Join message. Use `{Mention}` or `{Name}` to include the name of the joiner."),
                     }},
@@ -255,7 +269,7 @@ const slash_command_router: {[key: string]: SlashCommandRoute} = {
             user_leave: {
                 description: "Set/remove leave message",
                 subcommands: {
-                    to: {route: "messages set goodbye", args: {
+                    set: {route: "messages set goodbye", args: {
                         channel: opt.channel("Channel to send leave messages in"),
                         message: opt.multiline("Use `{Mention}` or `{Name}` to include the name of the leaver."),
                     }},

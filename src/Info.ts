@@ -453,6 +453,8 @@ export default class Info {
 		return await this._tryReply(...message);
 	}
 	async error(...msg: MessageParametersType) {
+		if(!this.raw_message) return this.errorAlways(...msg);
+		
 		const unknownCommandMessages = this.db
 			? await this.db.getCommandErrors()
 			: "always";
