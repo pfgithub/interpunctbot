@@ -5,6 +5,7 @@ import { globalConfig } from "./config";
 import Info, {MessageLike} from "./Info";
 import { globalCommandNS, globalDocs } from "./NewRouter";
 import deepEqual from "deep-equal";
+import { openStdin } from "process";
 
 const api = client as any as ApiHolder;
 
@@ -37,30 +38,34 @@ type DiscordInteraction = {
     data: UsedCommand;
 };
 
-type SlashCommandOption = {
+type SlashCommandOptionNameless = {
     type: 2;
-    name: string;
     description: string;
     options: SlashCommandOption[];
 } | {
     type: 1;
-    name: string;
     description: string;
     options?: SlashCommandOption[];
 } | {
     // string
     type: 3;
-    name: string;
     description: string;
     required: boolean;
     choices?: {name: string; value: string}[];
 } | {
     // boolean. this is pretty much useless and string should always be used instead.
     type: 5;
-    name: string;
+    description: string;
+    required: boolean;
+} | {
+    // channel.
+    type: 7;
     description: string;
     required: boolean;
 };
+type SlashCommandOption = SlashCommandOptionNameless & {
+    name: string;
+}
 type SlashCommandNameless = {
     description: string;
     options?: SlashCommandOption[];
@@ -87,11 +92,12 @@ function on_interaction(interaction: DiscordInteraction) {
 }
 async function do_handle_interaction(interaction: DiscordInteraction) {
     const startTime = Date.now();
-    await api.api.interactions(interaction.id, interaction.token).callback.post({data: {
+    api.api.interactions(interaction.id, interaction.token).callback.post({data: {
         type: 4,
         data: {content: "Handling interaction…"},
-    }});
-    await api.api.webhooks(client.user!.id, interaction.token).messages("@original").delete();
+    }}).then(async () => {
+        await api.api.webhooks(client.user!.id, interaction.token).messages("@original").delete();
+    }).catch(e => console.log("Failed to send first interaction message"));
 
     console.log("Got interaction: ", interaction.data);
     // construct an info object
@@ -155,6 +161,7 @@ function createBaseCommandMenu(...base_commands: string[]): SlashCommandOption[]
 
 function pickOption(name: string, description: string, choices: {[key: string]: string}): SlashCommandOption {
     // object order is defined.
+    if(description.length > 100) throw new Error("max 100 len desc");
     return {
         type: 3,
         name,
@@ -164,36 +171,158 @@ function pickOption(name: string, description: string, choices: {[key: string]: 
     }
 }
 
-const global_slash_commands: {[key: string]: SlashCommandNameless} = {
-    test: {
-        description: "Test a slash command from botdev",
+function stringOption(name: string, description: string, required = true): SlashCommandOption {
+    if(description.length > 100) throw new Error("max 100 len desc");
+    return {type: 3, name, description, required};
+}
+
+function channelOption(name: string, description: string, required = true): SlashCommandOption {
+    if(description.length > 100) throw new Error("max 100 len desc");
+    return {type: 7, name, description, required};
+}
+
+type SlashCommandRouteBottomLevel = {
+    route?: string;
+    description?: string; // if no description is specified, it will be chosen from the route
+    args?: {[key: string]: SlashCommandOptionNameless};
+    arg_stringifier?: (args: UsedCommandOption[]) => string;
+};
+type SlashCommandRouteSubcommand = {
+    description: string;
+    subcommands: {[key: string]: SlashCommandRouteBottomLevel} | {[key: string]: SlashCommandRouteSubcommand};
+};
+type SlashCommandRoute = SlashCommandRouteBottomLevel | SlashCommandRouteSubcommand;
+
+const opt = {
+    oneOf(description: string, choices: {[key: string]: string}): SlashCommandOptionNameless {
+        if(description.length > 100) throw new Error("max 100 len desc");
+        return {
+            type: 3,
+            description,
+            required: true,
+            choices: Object.entries(choices).map(([value, key]) => ({name: key, value})),
+        }
     },
+    channel(description: string): SlashCommandOptionNameless {
+        if(description.length > 100) throw new Error("max 100 len desc");
+        return {type: 7, description, required: true};
+    },
+    string(description: string): SlashCommandOptionNameless {
+        if(description.length > 100) throw new Error("max 100 len desc");
+        return {type: 3, description, required: true};
+    },
+    // TODO update when discord adds multiline support
+    multiline(description: string): SlashCommandOptionNameless {
+        if(description.length > 100) throw new Error("max 100 len desc");
+        return {type: 3, description, required: true};
+    },
+    optional(scon: SlashCommandOptionNameless): SlashCommandOptionNameless {
+        return {...scon, required: false} as any;
+    },
+};
+
+const slash_command_router: {[key: string]: SlashCommandRoute} = {
+    test: {},
     play: {
         description: "Play a game",
-        options: createBaseCommandMenu(
-            "connect4",
-            "minesweeper",
-            "papersoccer",
-            "ultimatetictactoe",
-            "checkers",
-            "circlegame",
-            "tictactoe",
-            "randomword",
-            "trivia",
-            "needle"
-        ),
+        subcommands: {
+            connect4: {}, minesweeper: {},
+            papersoccer: {}, ultimatetictactoe: {},
+            checkers: {}, circlegame: {},
+            tictactoe: {}, randomword: {},
+            trivia: {}, needle: {},
+        },
     },
     set: {
-        description: "Configure settings",
-        // this could be done the other way around - {fun: do({to: oneof({enable: "On", disable: "Off"})})}
-        // things might change though so who knows
-        options: [
-            createBaseCommandItem("fun", [pickOption("to", "allow or deny fun", {enable: "On", disable: "Off"})]),
-        ],
+        description: "Configure bot",
+        subcommands: {
+            fun: {args: {to: opt.oneOf("allow or deny fun", {enable: "On", disable: "Off"})}},
+        },
     },
-    // TODO a command like /set fun on/off that accepts one of those parameter things
+    messages: {
+        description: "Configure messages",
+        subcommands: {
+            user_join: {
+                description: "Set/remove join message",
+                subcommands: {
+                    to: {route: "messages set welcome", args: {
+                        channel: opt.channel("Channel to send join messages in"),
+                        message: opt.multiline("Join message. Use `{Mention}` or `{Name}` to include the name of the joiner."),
+                    }},
+                    off: {route: "messages remove welcome"},
+                },
+            },
+            user_leave: {
+                description: "Set/remove leave message",
+                subcommands: {
+                    to: {route: "messages set goodbye", args: {
+                        channel: opt.channel("Channel to send leave messages in"),
+                        message: opt.multiline("Use `{Mention}` or `{Name}` to include the name of the leaver."),
+                    }},
+                    off: {route: "messages remove goodbye"},
+                },
+            },
+            pinbottom: {
+                route: "pinbottom",
+                args: {channel: opt.channel("Channel to pin the message in"), message: opt.optional(opt.multiline("Message to pin"))},
+            },
+        },
+    }
 };
+
+const global_slash_commands: {[key: string]: SlashCommandNameless} = {};
+
+function createBottomLevelCommand(cmdname: string, cmddata: SlashCommandRouteBottomLevel): SlashCommandUser {
+    const base_command_name = cmddata.route ?? cmdname;
+    const base_command = globalCommandNS[base_command_name];
+    if(!base_command) throw new Error("Undefined command `"+base_command_name+"`");
+    const base_command_docs = globalDocs[base_command.docsPath];
+    const docs_desc = base_command_docs.summaries.description;
+
+    if(cmddata.description && cmddata.description.length > 100) throw new Error("max length 100");
+    let final_desc = cmddata.description ?? docs_desc;
+    if(final_desc.length > 100) final_desc = final_desc.substr(0, 99) + "…";
+
+    return {
+        name: cmdname,
+        description: final_desc,
+        options: Object.entries(cmddata.args ?? {}).map(([optname, optvalue]) => {
+            return {...optvalue, name: optname};
+        }),
+    };
+}
+
+for(const [cmdname, cmddata] of Object.entries(slash_command_router)) {
+    if('subcommands' in cmddata) {
+        global_slash_commands[cmdname] = {
+            description: cmddata.description,
+            options: Object.entries(cmddata.subcommands).map(([scname, scdata_raw]) => {
+                const scdata = scdata_raw as SlashCommandRouteBottomLevel | SlashCommandRouteSubcommand;
+                if('subcommands' in scdata) {
+                    return {
+                        type: 2,
+                        name: scname,
+                        description: scdata.description,
+                        options: Object.entries(scdata.subcommands).map(([sscname, sscdata_raw]) => {
+                            if('subcommands' in sscdata_raw) throw new Error("too nested!");
+                            const sscdata = sscdata_raw as SlashCommandRouteBottomLevel;
+                            return {type: 1, ...createBottomLevelCommand(sscname, sscdata)};
+                        }),
+                    };
+                } else {
+                    return {type: 1, ...createBottomLevelCommand(scname, scdata)};
+                }
+            }),
+        };
+        continue;
+    }
+    const v = createBottomLevelCommand(cmdname, cmddata);
+    global_slash_commands[cmdname] = v;
+}
+
 if(Object.entries(global_slash_commands).length > 50) throw new Error("Max 50 slash commands");
+
+require("fs").writeFileSync(__dirname+"/commands.json", JSON.stringify(global_slash_commands), "utf-8");
 
 let __is_First_Shard: boolean | undefined = undefined;
 function firstShard() {

@@ -619,6 +619,18 @@ nr.globalCommand(
 	},
 );
 
+async function cannotSendIn(channel: Discord.GuildChannel, info: Info): Promise<boolean> {
+	if(channel.type !== "text" && channel.type !== "news") {
+		await info.error("Cannot send messages in a "+channel.type+" channel. Please select a text channel.");
+		return true;
+	}
+	if(!channel.permissionsFor(channel.guild.me!)?.has("SEND_MESSAGES")) {
+		await info.error("I do not have permissions to send messages in "+channel.toString()+".");
+		return true;
+	}
+	return false;
+}
+
 nr.globalCommand(
 	"/help/messages/set-goodbye",
 	"messages set goodbye",
@@ -645,6 +657,8 @@ nr.globalCommand(
 		const theyCanMention = info.message.member!.hasPermission(
 			"MENTION_EVERYONE",
 		);
+
+		if(await cannotSendIn(channel, info)) return;
 
 		if (!theyCanMention) {
 			const nmsg = stripMentions(message);
@@ -759,6 +773,8 @@ nr.globalCommand(
 			"MENTION_EVERYONE",
 		);
 
+		if(await cannotSendIn(channel, info)) return;
+
 		if (!theyCanMention) {
 			const nmsg = stripMentions(message);
 			if (nmsg !== message)
@@ -833,7 +849,7 @@ nr.globalCommand(
 	{
 		usage: "pinbottom {Required|{Channel|channel}} {Required|message...}",
 		description:
-			"{Interpunct} will send a message and make sure it always stays at the bottom of the channel",
+			"{Interpunct} will send a message and make sure it always stays near the bottom of the channel",
 		examples: [],
 		perms: { runner: ["manage_bot"] },
 	},
@@ -856,12 +872,9 @@ nr.globalCommand(
 		}
 		message = message.trim();
 
-		const chopts = await info.db.getChannelOptions();
-		if (!chopts[channel.id]) chopts[channel.id] = {};
-		chopts[channel.id].pinBottom = message;
-		chopts[channel.id].lastestPinBottom = undefined;
-		lastUpdatedTimesCache[channel.id] = undefined;
-		await info.db.setChannelOptions(chopts);
+		if(await cannotSendIn(channel, info)) return;
+
+		// try sending once before committing to the pinbottom
 		try {
 			await sendPinBottom(info, channel.id);
 		} catch (e) {
@@ -872,6 +885,14 @@ nr.globalCommand(
 			);
 			return;
 		}
+
+		const chopts = await info.db.getChannelOptions();
+		if (!chopts[channel.id]) chopts[channel.id] = {};
+		chopts[channel.id].pinBottom = message;
+		chopts[channel.id].lastestPinBottom = undefined;
+		lastUpdatedTimesCache[channel.id] = undefined;
+		await info.db.setChannelOptions(chopts);
+
 		await info.success("Success!");
 	},
 );
