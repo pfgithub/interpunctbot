@@ -555,11 +555,11 @@ ${boardRender}
 			update: state => {
 				if (state.status.s === "winner") assertNever(0 as never);
 				if (state.status.s === "tie") assertNever(0 as never);
-				const currentplayer = state.players[state.status.turn];
+				const nextplayer = state.players[state.status.turn === "red" ? "black" : "red"];
 				state.status = {
 					s: "winner",
 					reason: "Time out.",
-					winner: currentplayer,
+					winner: nextplayer,
 				};
 				updateOverlay(state);
 				return state;
