@@ -380,13 +380,6 @@ export default class Info {
 	async stopLoading() {
 		this.channel.stopTyping();
 	}
-	_formatMessageWithResultType(
-		type: string,
-		...values: MessageParametersType
-	): MessageParametersType {
-		// In the future maybe adjust richembeds maybe probably not
-		return [`${type} ${values[0]}`, values[1]];
-	}
 	shouldAlert(): boolean {
 		if(this.raw_message) {
 			if(Date.now() - this.raw_message.createdAt.getTime() > 3000) return true;
@@ -433,25 +426,23 @@ export default class Info {
 	async reply(
 		resultType: string,
 		...value:
-			| [string | MessageBuilder, MessageOptionsParameter | undefined]
-			| [string | MessageBuilder]
+			| [string, MessageOptionsParameter | undefined]
+			| [string]
 	) {
 		// Stop any loading if it is happening, we're replying now we're done loading
 		await this.stopLoading(); // not awaited for because it doesn't matter
 
-		let message: MessageParametersType;
-
-		// If the message is a messagebuilder, build the message builder
-		if (value[0] instanceof MessageBuilder) {
-			message = value[0].build(true);
-		} else if (typeof value[0] === "string") {
-			message = [value[0], value[1]];
-		} else {
-			message = [value[0]];
-		}
+		let message: MessageParametersType = [value[0], value[1]];
 
 		// Format the message with the correct result type
-		message = this._formatMessageWithResultType(resultType, ...message);
+		message[0] = resultType + " " + message[0];
+
+		if(this.raw_interaction && !message[1]) {
+			try {
+				await this.raw_interaction.reply(message[0]);
+				return undefined;
+			} catch(e) {console.log(e);}
+		}
 
 		// Reply to the message (or author)
 		return await this._tryReply(...message);

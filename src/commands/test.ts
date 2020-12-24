@@ -116,9 +116,9 @@ nr.globalCommand(
 	},
 	nr.list(),
 	async ([], info) => {
-		const msg = (await info.result(
+		const msg = (await info.message.channel.send(
 			"<a:loading:682804438783492139> Restarting...",
-		))![0];
+		));
 		await fs.writeFile(
 			path.join(process.cwd(), ".restarting"),
 			msg.channel + ":" + msg.id + ":" + new Date().getTime(),

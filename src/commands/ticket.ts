@@ -362,7 +362,7 @@ nr.globalCommand(
 	{
 		usage: "ticket logs {Channel|ticket-transcripts}",
 		description:
-			"Log all messages sent in a ticket to {Channel|#ticket-transcripts}. Does not log edits.",
+			"Log all messages sent in a ticket to {Channel|ticket-transcripts}. Does not log edits.",
 		examples: [],
 		perms: { runner: ["manage_bot"] },
 	},

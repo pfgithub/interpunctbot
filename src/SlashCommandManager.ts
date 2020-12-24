@@ -151,7 +151,7 @@ async function handle_interaction_routed(info: Info, route_name: string, route: 
             }, 200);
         }
 
-        return handler.handler((options || []).map(opt => opt.value || "").join(" "), info);
+        return handler.handler([route.preload ?? [], (options || []).map(opt => opt.value || "")].flat().join(" "), info);
     }
 }
 async function do_handle_interaction(interaction: DiscordInteraction) {
@@ -196,6 +196,7 @@ async function do_handle_interaction(interaction: DiscordInteraction) {
 
 type SlashCommandRouteBottomLevel = {
     route?: string;
+    preload?: string;
     description?: string; // if no description is specified, it will be chosen from the route
     args?: {[key: string]: SlashCommandOptionNameless};
     arg_stringifier?: (args: UsedCommandOption[]) => string;
@@ -269,7 +270,7 @@ const slash_command_router: {[key: string]: SlashCommandRoute} = {
             fun: {args: {to: opt.oneOf("allow or deny fun", {enable: "On", disable: "Off"})}},
         },
     },
-    messages: {
+    msgs: {
         description: "Configure messages",
         subcommands: {
             user_join: {
@@ -293,15 +294,52 @@ const slash_command_router: {[key: string]: SlashCommandRoute} = {
                 },
             },
             pinbottom: {
-                route: "pinbottom",
                 args: {channel: opt.channel("Channel to pin the message in"), message: opt.optional(opt.multiline("Message to pin"))},
-            },
-            purge: {
-                route: "purge",
-                args: {count: opt.integer("Number of messages to purge")},
             }
         },
-    }
+    },
+    slowmode: {
+        description: "Configure slowmode",
+        subcommands: {
+            set: {
+                route: "slowmode set",
+                args: {channel: opt.channel("Channel to set slowmode in"), duration: opt.string("How long to set slowmode. Min: 1s, Max: 6h")}
+            },
+        },
+    },
+    purge: {
+        args: {count: opt.integer("Number of messages to purge")},
+    },
+    ticket: {
+        description: "Configure tickets",
+        subcommands: {
+            setup: {route: "help", preload: "ticket setup", description: "Get help setting up tickets"},
+            category: {route: "ticket category", args: {category: opt.channel("Category to use tickets in")}},
+            invitation: {route: "ticket invitation", args: {category: opt.string("Link to the invitation message")}},
+            welcome: {route: "ticket welcome", args: {message: opt.optional(opt.string("The message. Use `{Mention}` and `{Name}`, or leave empty to unset"))}},
+            logs: {route: "ticket logs", args: {log_channel: opt.channel("Channel for pretty logs"), upload_channel: opt.channel("Channel for uploading files.")}},
+            logs_transcripts: {route: "ticket logs", args: {log_channel: opt.channel("Channel for immediate transcripts of every message sent in a ticket")}},
+            ping: {route: "ticket ping", args: {who: opt.string("Who to ping after someone says something in their ticket")}},
+            autoclose: {route: "ticket autoclose", args: {time: opt.string("How long until the ticket is auto closed. Eg: 15 min. Use 0s to disable.")}},
+            deletetime: {route: "ticket deletetime", args: {time: opt.string("How long from trash can to gone ticket. Default: 1 min")}},
+            diagnose: {route: "ticket diagnose"},
+        },
+    },
+    // // this will require a rework of autodelete
+    // autodelete: {
+    //     description: "Configure autodelete",
+    //     subcommands: {
+    //         add: {
+    //             description: "Add an autodelete rule",
+    //             subcommands: {
+    //                 prefix: {args: {delete_time: opt.string("How long to wait before deleting the message. eg 100ms or 1h"), prefix: opt.string("Delete all messages starting with this prefix")}},
+    //                 user: {args: {delete_time: opt.string("How long to wait before deleting the message. eg 100ms or 1h"), user: opt.user("Delete all messages from this user")}},
+    //                 channel: {args: {delete_time: opt.string("How long to wait before deleting the message. eg 100ms or 1h"), channel: opt.user("Delete all messages in this channel")}},
+    //                 role: {args: {delete_time: opt.string("How long to wait before deleting the message. eg 100ms or 1h"), channel: opt.role("Delete all messages from users with this role")}},
+    //             },
+    //         },
+    //     }
+    // },
 };
 
 const global_slash_commands: {[key: string]: SlashCommandNameless} = {};
