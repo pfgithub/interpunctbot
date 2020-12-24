@@ -268,6 +268,9 @@ const slash_command_router: {[key: string]: SlashCommandRoute} = {
         subcommands: {
             prefix: {args: {to: opt.string("the new bot prefix. default is ip!")}},
             fun: {args: {to: opt.oneOf("allow or deny fun", {enable: "On", disable: "Off"})}},
+            show_errors: {route: "set showerrors", args: {to: opt.oneOf("who to show errors to", {always: "Everyone", admins: "Admins", never: "Hidden"})}},
+            show_unknown_command: {route: "set showunknowncommand", args: {to: opt.oneOf("who to show unknown command messages to", {always: "Everyone", admins: "Admins", never: "Hidden"})}},
+            manage_bot_role: {route: "set managebotrole", args: {to: opt.role("Bot manager role")}},
         },
     },
     msgs: {
