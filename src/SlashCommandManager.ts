@@ -403,6 +403,7 @@ function firstShard() {
     const values = client.guilds.cache.values();
     const first = values.next();
     if(first.done) return false;
+    console.log("This shard is:",first.value.shardID);
     __is_First_Shard = first.value.shardID == 0;
     return __is_First_Shard;
 }
@@ -440,8 +441,19 @@ async function removeCommand(command_id: string): Promise<void> {
     }
 }
 
+function normalizeSCO(inv: SlashCommandOption[]): SlashCommandOption[] {
+    return JSON.parse(JSON.stringify(inv), (key, value) => {
+        if(typeof value === "object") {
+            for(const [k, v] of Object.entries(value)) {
+                if(Array.isArray(v) && v.length == 0) delete value[k];
+                if(k === "required" && v === false) delete value[k];
+            }
+        }
+    });
+}
+
 function compareOptions(remote: SlashCommandOption[], local: SlashCommandOption[]): "same" | "different" {
-    if(deepEqual(local, remote)) return "same";
+    if(deepEqual(normalizeSCO(local), normalizeSCO(remote), {strict: false})) return "same";
     return "different";
 }
 

@@ -1198,10 +1198,11 @@ nr.globalCommand(
 		const totalServers = await getGuilds(info.message.client);
 		const totalMembers = await getMembers(info.message.client);
 		const now = new Date().getTime();
+		const shardv = info.guild ? ` (id ${info.guild.shardID})` : "";
 		const msg = `**Statistics**:
 > **Servers**: ${totalServers.toLocaleString()} total, ${
 			info.message.client.guilds.cache.size
-		} on this shard. Serving about ${totalMembers.toLocaleString()} users.
+		} on this shard${shardv}. Serving about ${totalMembers.toLocaleString()} users.
 > **Uptime**: ${moment
 			.duration(now - serverStartTime)
 			.format(
