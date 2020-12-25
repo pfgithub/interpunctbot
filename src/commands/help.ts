@@ -35,6 +35,8 @@ Interpunct is a discord bot developed by {Atmention|pfg#4865}
 {Link|https://top.gg/bot/433078185555656705}
 {Link|https://discord.bots.gg/bots/433078185555656705}
 
+Invite (no slash commands) {Link|https://interpunct.info/invite_no_slash/}
+
 {Screenshot|https://top.gg/api/widget/433078185555656705.png}`,
 );
 

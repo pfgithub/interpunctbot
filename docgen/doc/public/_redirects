@@ -3,4 +3,5 @@
 /role-id								/role
 /lists									/#lists
 /support/* 								https://discord.gg/e7BmyqD
-/invite/* 								https://discordapp.com/oauth2/authorize?client_id=433078185555656705&permissions=3072&scope=bot
+/invite/* 								https://discordapp.com/oauth2/authorize?client_id=433078185555656705&permissions=3072&scope=bot%20applications.commands
+/invite_no_slash/*						https://discordapp.com/oauth2/authorize?client_id=433078185555656705&permissions=3072&scope=bot
