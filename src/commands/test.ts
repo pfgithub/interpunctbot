@@ -198,3 +198,36 @@ nr.globalCommand(
 		);
 	},
 );
+
+let stateful_handlers = {
+	start(...a: any[]) {},
+	register(...a: any[]) {},
+};
+stateful_handlers.register(
+	"permessage",
+	// ok the idea:
+	// a flow like this
+	//    React [reaction] to join
+	// and a 60s countdown
+	// huh the 60s countdown part makes this uuh
+	// not as doable
+	// because timedevents is completely broken on production
+	() => {
+
+	},
+);
+
+nr.globalCommand(
+	"/help/owner/permessage",
+	"permessage",
+	{
+		usage: "permessage",
+		description: "permessage test",
+		examples: [],
+		perms: {},
+	},
+	nr.passthroughArgs,
+	async ([cmd], info) => {
+		stateful_handlers.start(info, "permessage");
+	}
+);
