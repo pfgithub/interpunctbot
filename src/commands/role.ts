@@ -43,7 +43,7 @@ nr.addDocsWebPage(
 Quickrank can be set up to allow admins to rank people quickly on a server.
 
 After setup, you can react like this:
-{ExampleUserMessage|Give me a rank
+{ExampleUserMessageNoPfx|Give me a rank
 {Reaction|sub10|1} {Reaction|success|1}}
 Or send a message like this:
 {ExampleUserMessage|rank {Atmention|person} sub-10}

@@ -759,7 +759,7 @@ nr.globalCommand(
 				in:
 					"messages set goodbye {Channel|welcome}\nWelcome to the server \\{Mention\\} (\\{Name\\})!!! Make sure to check out the {Channel|rules}!",
 				out:
-					"{Atmention|you}, {Emoji|success} Welcome message set. Here is an example of what might be sent to {Channel|#welcome} when someone joins:\n\nWelcome to the server {Atmention|person joining} (person joining)!!! Make sure to check out the {Channel|rules}!",
+					"{Atmention|you}, {Emoji|success} Welcome message set. Here is an example of what might be sent to {Channel|welcome} when someone joins:\n\nWelcome to the server {Atmention|person joining} (person joining)!!! Make sure to check out the {Channel|rules}!",
 			},
 		],
 		perms: { runner: ["manage_bot"] },
