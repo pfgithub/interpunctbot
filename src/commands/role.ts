@@ -63,7 +63,6 @@ To add some roles to react with emojis for, they need to be given emojis.
 {CmdSummary|rank}
 {CmdSummary|quickrank list}
 {CmdSummary|quickrank add named}
-{CmdSummary|quickrank add time}
 {CmdSummary|quickrank add reaction}
 {CmdSummary|quickrank add provides}
 {CmdSummary|quickrank remove role}
@@ -128,6 +127,8 @@ ip!rank @user gold pot
 			await info.docs("/errors/pms", "error");
 			return;
 		}
+
+		console.log("checking manage role permissions. args: `"+name+"`, "+role.toString());
 
 		if (!(await permTheyCanManageRole(role, info))) return;
 		if (!(await permWeCanManageRole(role, info))) return;
@@ -339,9 +340,10 @@ nr.globalCommand(
 			return;
 		}
 
-		const arrowSplit = cmd.split("->");
+		const arrowSplit = info.raw_interaction ? info.raw_interaction.options.map(opt => opt.value!) : cmd.split("->");
+		console.log(arrowSplit);
 		if (arrowSplit.length !== 2) {
-			await info.error("missing -> thing or something");
+			await info.error("Usage: quickrank add provides @role1 -> @role2");
 			return;
 		}
 		const [role1cmd, role2cmd] = arrowSplit;
@@ -549,7 +551,7 @@ nr.globalCommand(
 			const nameAlias = qr.nameAlias[word.toLowerCase()];
 			if (nameAlias) {
 				rolesToGive.push(nameAlias.role);
-				break;
+				continue;
 			}
 			// if word is a sub-
 			if (word.toLowerCase().startsWith("sub")) {
@@ -568,7 +570,7 @@ nr.globalCommand(
 						rolesToGive.push(ta.role);
 					}
 				}
-				break;
+				continue;
 			}
 			// else error
 			return await info.docs("/errors/quickrank/invalid-role", "error"); // see ip!quickrank list for a list.
@@ -609,7 +611,7 @@ nr.globalCommand(
 			")";
 		await reciever.roles.add(discordRolesToGive, reason);
 
-		await info.message.channel.send(
+		await info.result(
 			getRankSuccessMessage(
 				info.message.member!,
 				reciever,

@@ -75,10 +75,12 @@ type SlashCommand = SlashCommandUser & {
 export class InteractionHelper {
     raw_interaction: DiscordInteraction;
     has_ackd: boolean;
+    options: UsedCommandOption[];
 
     constructor(raw_interaction: DiscordInteraction) {
         this.raw_interaction = raw_interaction;
         this.has_ackd = false;
+        this.options = undefined as any;
     }
     async sendRaw(value: object) {
         if(this.has_ackd) throw new Error("cannot double interact");
@@ -150,6 +152,8 @@ async function handle_interaction_routed(info: Info, route_name: string, route: 
                 interaction.accept().catch(e => console.log("Failed to accept interaction", e));
             }, 200);
         }
+
+        interaction.options = options || [];
 
         return handler.handler([route.preload ?? [], (options || []).map(opt => opt.value || "")].flat().join(" "), info);
     }
@@ -343,6 +347,42 @@ const slash_command_router: {[key: string]: SlashCommandRoute} = {
     //         },
     //     }
     // },
+    rank: {args: {who: opt.user("Who to rank"), ranks: opt.string("What ranks to give. Comma separated list.")}},
+    quickrank: {
+        description: "Quickrank config",
+        subcommands: {
+            list: {route: "quickrank list"},
+            add: {
+                description: "add quickrank",
+                subcommands: {
+                    named: {
+                        route: "quickrank add named",
+                        args: {name: opt.string("The name for /rank"), role: opt.role("Role to give")},
+                        // TODO arg parser needs to be updated to do options better for slash commands
+                    },
+                    reaction: {
+                        route: "quickrank add reaction",
+                        args: {reaction: opt.string("An emoji from your server"), role: opt.role("Role to give")},
+                    },
+                    provides: {
+                        route: "quickrank add provides",
+                        args: {role1: opt.role("Role"), role2: opt.role("Role to give automatically when role1 is given")},
+                    },
+                    // should provides happen on role change events too?
+                }
+            },
+            remove: {
+                route: "quickrank remove role",
+                args: {role: opt.role("Role to remove from quickrank")}
+            },
+            set: {
+                description: "set quickrank",
+                subcommands: {
+                    role: {route: "quickrank set role", args: {role: opt.role("Role of people who can bypass quickrank")}},
+                },
+            }
+        },
+    },
 };
 
 const global_slash_commands: {[key: string]: SlashCommandNameless} = {};

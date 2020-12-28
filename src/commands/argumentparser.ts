@@ -96,6 +96,7 @@ type ArgumentType<T> = (
 			safeDetails?: string;
 		},
 	) => Promise<{ result: "exit" }>,
+	readavail?: "full" | "part",
 ) => ArgumentParserResult<T>;
 
 export const a = {
@@ -249,7 +250,7 @@ function EmojiArgumentType(): ArgumentType<Discord.GuildEmoji> {
 }
 
 function WordArgumentType(): ArgumentType<string> {
-	return async (info, arg, cmd, error) => {
+	return async (info, arg, cmd, error, modev) => {
 		if (!cmd.trim()) {
 			return error("/arg/word/not-found");
 		}
@@ -462,9 +463,12 @@ function WordsArgumentType(): ArgumentType<string> {
 }
 
 function BacktickArgumentType(): ArgumentType<string> {
-	return async (info, arg, cmd, error) => {
+	return async (info, arg, cmd, error, modev) => {
 		if (!cmd.trim()) {
 			return await error("/arg/backtick/not-found");
+		}
+		if (modev === "full") {
+			return {result: "continue", value: cmd, cmd: ""};
 		}
 		const rgxMatch = /^\`(.+?)\`(.+)$/.exec(cmd);
 		if (!rgxMatch) {
@@ -648,10 +652,10 @@ export async function ArgumentParser<
 >(
 	{
 		info,
-		cmd,
+		cmd: cmd_in,
 		help,
 		partial,
-	}: { info: Info; cmd: string; help: string; partial?: boolean },
+	}: { info: Info; cmd: string | string[]; help: string; partial?: boolean },
 	...schema: ArgTypes
 ): Promise<
 	| { result: ArgTypeArrayToReturnType<ArgTypes>; remaining: string }
@@ -696,24 +700,61 @@ export async function ArgumentParser<
 		);
 		return { result: "exit" };
 	};
-	for (const value of schema) {
-		const parseResult = await value(info, undefined, cmd, errfn);
-		if (parseResult.result === "exit") {
+
+	let remaining: string;
+	if(Array.isArray(cmd_in)) {
+		const dupe = [...cmd_in];
+		for(const value of schema) {
+			const cmdv = dupe.shift();
+			if(cmdv === undefined) {
+				console.log("empty array", dupe);
+				await errfn(help);
+				return undefined;
+			}
+
+			const parseResult = await value(info, undefined, cmdv, errfn, "full");
+			if (parseResult.result === "exit") {
+				return undefined;
+			}
+			if(parseResult.cmd) {
+				console.log("DID NOT PARSE ALL", [cmdv, parseResult.cmd]);
+				await errfn(help);
+				return undefined;
+			}
+			resarr.push(parseResult.value);
+			index++;
+		}
+		if(dupe.length && !partial) {
+			// extra arguments
+			console.log("MISSING", dupe);
+			await errfn(help);
 			return undefined;
 		}
-		resarr.push(parseResult.value);
-		cmd = parseResult.cmd;
-		index++;
+		remaining = dupe.join(" ").trim();
+	}else{
+		let cmd = cmd_in;
+		for (const value of schema) {
+			const parseResult = await value(info, undefined, cmd, errfn);
+			if (parseResult.result === "exit") {
+				return undefined;
+			}
+			resarr.push(parseResult.value);
+			cmd = parseResult.cmd;
+			index++;
+		}
+
+		if (cmd.trim() && !partial) {
+			// extra arguments
+			console.log("MISSING", cmd);
+			await errfn(help);
+			return undefined;
+		}
+		remaining = cmd.trim();
 	}
-	if (cmd.trim() && !partial) {
-		// extra arguments
-		console.log("MISSING", cmd);
-		await errfn(help);
-		return undefined;
-	}
+	
 	return {
 		result: (resarr as unknown) as ArgTypeArrayToReturnType<ArgTypes>,
-		remaining: cmd.trim(),
+		remaining: remaining,
 	};
 }
 

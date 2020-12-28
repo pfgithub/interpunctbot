@@ -117,6 +117,27 @@ nr.addErrorDocsPage("/errors/perm/manage-roles", {
 	mainPath: "/errors/perm",
 });
 
+nr.addErrorDocsPage("/errors/theirperms/manage-roles/not-high-enough", {
+	overview: "You don't have permission to manage the role you are asking me to manage.",
+	detail:
+		"Your highest role needs to be higher than the role you are trying to manage.",
+	mainPath: "/errors/perm",
+});
+
+nr.addErrorDocsPage("/errors/ourperms/manage-roles", {
+	overview: "{Interpunct} needs permission to Manage Roles to use this command.",
+	detail:
+		"This command requires that {Interpunct} has the Manage Roles permission to use it.",
+	mainPath: "/errors/perm",
+});
+
+nr.addErrorDocsPage("/errors/ourperms/manage-roles/not-high-enough", {
+	overview: "{Interpunct}'s highest role needs to be higher than the role for me to use it.",
+	detail:
+		"Increase my highest role.",
+	mainPath: "/errors/perm",
+});
+
 nr.addDocsWebPage(
 	"/help/administration",
 	"Administration",
