@@ -1095,6 +1095,7 @@ async function onReactionAdd(
 }
 
 client.on("messageReactionAdd", (reaction, user) => {
+	if(user.bot) return;
 	perr(
 		(async () => {
 			//console.log("Got reaction: {}, {}", reaction, user);
