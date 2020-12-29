@@ -390,7 +390,7 @@ nr.globalCommand(
 		usage: "quickrank list",
 		description: "list all quickrank configuration.",
 		examples: [],
-		perms: { runner: ["manage_bot"] },
+		perms: { }, // more checked in body
 	},
 	nr.list(),
 	async ([], info) => {
@@ -400,6 +400,11 @@ nr.globalCommand(
 		}
 
 		const qr = await info.db.getQuickrank();
+
+		const isManager = qr.managerRole && info.message.member!.roles.cache.has(qr.managerRole);
+		if(!isManager) {
+			if(!await Info.theirPerm.manageBot(info)) return;
+		}
 
 		const byRole: {
 			[roleID: string]: {
