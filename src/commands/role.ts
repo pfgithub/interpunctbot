@@ -434,7 +434,7 @@ nr.globalCommand(
 		}
 
 		if (!Object.entries(byRole).length)
-			await info.error(
+			return await info.error(
 				"Quickrank has not been set up yet on this server.",
 			);
 		const sortedByRole = Object.entries(byRole)
