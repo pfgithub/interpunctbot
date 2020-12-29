@@ -952,6 +952,7 @@ function getMsg(
 async function createTicket(
 	creator: discord.User | discord.PartialUser,
 	ctx: TicketCtx,
+	rxn: discord.MessageReaction,
 ) {
 	const cat = ctx.guild.channels.resolve(ctx.ticket.main.category!);
 	if (!cat) return; // oop can't create a ticket if there is no ticket category…
@@ -998,6 +999,7 @@ async function createTicket(
 		(async () => {
 			await hedrmsg.react("🗑️");
 			if (ctx.ticket.main.enable_assignment) await hedrmsg.react("📝");
+			await hedrmsg.react(rxn.emoji);
 		})(),
 		ticketLog(creator.id, "Created ticket", "green", ctx),
 	]);
@@ -1149,7 +1151,7 @@ export async function onMessageReactionAdd(
 			new Promise(r => setTimeout(r, 1000)),
 		]);
 		await rxn.users.remove(usr.id);
-		await createTicket(usr, ctx);
+		await createTicket(usr, ctx, rxn);
 		return true;
 	}
 	// console.log(rxn, usr);

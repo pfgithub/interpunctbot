@@ -612,7 +612,7 @@ nr.globalCommand(
 		await reciever.roles.add(discordRolesToGive, reason);
 
 		await info.result(
-			getRankSuccessMessage(
+			...getRankSuccessMessage(
 				info.message.member!,
 				reciever,
 
@@ -634,12 +634,15 @@ export function getRankSuccessMessage(
 	rolesToGive: Discord.Role[],
 	preExistingRoles: Discord.Role[],
 	explicitRolesToGive: string[],
-) {
+): [string, {allowedMentions: {roles: string[], users: string[]}}] {
+	const allowedMentions = {
+		allowedMentions: {roles: [], users: [...new Set([giver.id, reciever.id])]},
+	};
 	if (rolesToGive.length === 0) {
 		const explicit = explicitRolesToGive.map(
 			id => preExistingRoles.find(q => q.id == id)!,
 		);
-		return (
+		return [
 			giver.toString() +
 			", No roles were given. " +
 			safe(reciever.displayName) +
@@ -648,13 +651,14 @@ export function getRankSuccessMessage(
 				explicit
 					.sort((a, b) => b.position - a.position)
 					.map(r => messages.role(r)),
-			)
-		);
+			),
+			allowedMentions,
+		];
 	}
 	const explicitRolesNotGiven = preExistingRoles.filter(r =>
 		explicitRolesToGive.includes(r.id),
 	);
-	return (
+	return [
 		reciever.toString() +
 		", You were given the role" +
 		(rolesToGive.length == 1 ? "" : "s") +
@@ -662,7 +666,7 @@ export function getRankSuccessMessage(
 		andlist(
 			rolesToGive
 				.sort((a, b) => b.position - a.position)
-				.map(r => messages.role(r)),
+				.map(r => r.toString()),
 		) +
 		" by " +
 		giver.toString() +
@@ -674,9 +678,10 @@ export function getRankSuccessMessage(
 			  andlist(
 					explicitRolesNotGiven
 						.sort((a, b) => b.position - a.position)
-						.map(r => messages.role(r)),
+						.map(r => r.toString()),
 			  ) +
 			  " were not given because you already have them."
-			: "")
-	);
+			: ""),
+		allowedMentions,
+	];
 }

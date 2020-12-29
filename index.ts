@@ -980,7 +980,7 @@ async function rankingMessageReactionAdd(
 		return true;
 	}
 
-	const member = await msg.guild.members.fetch(msg.author);
+	let member = await msg.guild.members.fetch(msg.author);
 	if (!member) {
 		await msg.channel.send(
 			reactor.toString() +
@@ -989,6 +989,33 @@ async function rankingMessageReactionAdd(
 				" not found. Are they still on the server?",
 		);
 		return true;
+	}
+	if(member.id === client.user!.id) {
+		// oop
+		// check if in ticket
+		const ticket_info = await db.getTicket();
+
+		if((reaction.message.channel as Discord.TextChannel).parentID === ticket_info.main.category) {
+			const topic = (reaction.message.channel as Discord.TextChannel).topic;
+	
+			if(topic) {
+				const ticket_user = /\d+/.exec(topic);
+				if(ticket_user) {
+					member = await msg.guild.members.fetch(ticket_user[0]);
+	
+					if (!member) {
+						await msg.channel.send(
+							reactor.toString() +
+								", Member " +
+								msg.author.toString() +
+								" not found. Are they still on the server?",
+						);
+						return true;
+					}
+				}
+			}
+		}
+
 	}
 
 	const rolesToGive: Discord.Role[] = [];
@@ -1040,13 +1067,13 @@ async function rankingMessageReactionAdd(
 	await member.roles.add(rolesToGive, reason);
 
 	await msg.channel.send(
-		getRankSuccessMessage(
+		...getRankSuccessMessage(
 			reactor,
 			member,
 			rolesToGive,
 			rolesAlreadyGiven,
 			roleIDs,
-		),
+		)
 	);
 
 	// if(msg.reactions.has("546938940389589002") && msg.reactions.get(546938940389589002).users.contains(user)) // incase they uncheck
