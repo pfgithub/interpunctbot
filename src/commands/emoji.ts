@@ -140,8 +140,9 @@ nr.globalCommand(
 	},
 	nr.list(nr.a.emoji(), ...nr.a.role()),
 	async ([emoji, role], info) => {
-		const newRoles = emoji.roles.cache.array();
+		let newRoles = emoji.roles.cache.array();
 		newRoles.push(role);
+		newRoles = [...new Set(newRoles)];
 		await emoji.edit(
 			{ roles: newRoles },
 			`@${info.message.member!.displayName}`,
