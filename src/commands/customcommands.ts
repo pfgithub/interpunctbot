@@ -19,6 +19,7 @@ inter·punct has the ability to create custom commands and quote lists.
 
 {CmdSummary|command add}
 {CmdSummary|command remove}
+{CmdSummary|command list}
 {LinkSummary|/help/customcommands/quotes}
 `,
 );
@@ -66,9 +67,7 @@ nr.globalCommand(
 		const lists = await info.db.getCustomCommands();
 		if (lists[safecmdname.toLowerCase()])
 			return await info.error(
-				"That command already exists. Remove it with {Command|command remove " +
-					safecmdname +
-					"}",
+				info.tag`That command already exists. Remove it with {Command|command remove ${safecmdname}}`,
 			);
 		if (nr.globalCommandNS[safecmdname.toLowerCase()])
 			return await info.error(

@@ -383,6 +383,14 @@ const slash_command_router: {[key: string]: SlashCommandRoute} = {
             }
         },
     },
+    command: {
+        description: "manage custom commands",
+        subcommands: {
+            add: {route: "command add", args: {name: opt.string("Command name"), message: opt.string("What to say when the command is used")}},
+            remove: {route: "command remove", args: {name: opt.string("Command name")}},
+            list: {route: "command list"},
+        },
+    },
 };
 
 const global_slash_commands: {[key: string]: SlashCommandNameless} = {};

@@ -199,6 +199,7 @@ nr.globalCommand(
 	},
 );
 nr.globalAlias("lists list", "list lists");
+nr.globalAlias("lists list", "command list");
 
 function parsePastebinURL(url = "") {
 	const match = /^.*([A-Za-z0-9]{8})/.exec(url);
