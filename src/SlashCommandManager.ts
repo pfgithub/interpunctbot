@@ -155,7 +155,7 @@ async function handle_interaction_routed(info: Info, route_name: string, route: 
 
         interaction.options = options || [];
 
-        return handler.handler([route.preload ?? [], (options || []).map(opt => opt.value || "")].flat().join(" "), info);
+        return handler.handler([route.preload ?? [], (options || []).map(opt => "" + opt.value || "")].flat().join(" "), info);
     }
 }
 async function do_handle_interaction(interaction: DiscordInteraction) {
