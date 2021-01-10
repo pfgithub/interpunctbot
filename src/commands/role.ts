@@ -451,7 +451,7 @@ nr.globalCommand(
 					content,
 				};
 			})
-			.sort((a, b) => a.roleSort - b.roleSort);
+			.sort((a, b) => b.roleSort - a.roleSort);
 		const mngrrle = qr.managerRole
 			? info.guild!.roles.resolve(qr.managerRole)
 			: undefined;
