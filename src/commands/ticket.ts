@@ -879,6 +879,14 @@ async function closeTicket(
 	ctx: TicketCtx,
 	inactivity = false,
 ) {
+	if((channel.topic ?? "").includes(closer.id) && (channel.topic ?? "").startsWith("+")) {
+		const member = await channel.guild.members.fetch(closer.id);
+		if(!member.permissions.has("MANAGE_CHANNELS")) {
+			await channel.send("You cannot close your own ticket after sending messages in it.");
+			return;
+		}
+	}
+
 	if (channel.deleted) return;
 	if ((channel as any).__IS_CLOSING) return;
 	(channel as any).__IS_CLOSING = true;
@@ -886,7 +894,7 @@ async function closeTicket(
 	// prettier-ignore
 	await channel.edit({
 		name: "closing-" + channel.name,
-		topic: (channel.topic || "").replace("~", "×"),
+		topic: (channel.topic || "").replace("~", "×").replace("+", "×"),
 	}, "Ticket closed by "+closer.toString());
 
 	const forinactive = inactivity ? " for inactivity" : "";
@@ -966,7 +974,10 @@ async function createTicket(
 		ch => ch.name === channelName,
 	) as discord.TextChannel;
 	if (foundch) {
-		await foundch.send(getMsg(ctx, "doublejoin", creator));
+		const dbljoin = await foundch.send(getMsg(ctx, "doublejoin", creator));
+		try {
+			await dbljoin.react(rxn.emoji);
+		}catch(e) {}
 		return;
 	}
 	const cre8tedchan = await cat.guild.channels.create(channelName, {
@@ -1076,8 +1087,7 @@ export async function onMessage(
 				}
 			}
 		}
-		// @ score verifiers maybe
-		if (!msg.author.bot && (msg.channel.topic || "").startsWith("~")) {
+		if ((msg.channel.topic || "").startsWith("~") && (msg.channel.topic ?? "").includes(msg.author.id)) {
 			await msg.channel.setTopic(
 				(msg.channel.topic || "").replace("~", "+"),
 				"active",
