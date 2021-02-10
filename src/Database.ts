@@ -90,6 +90,8 @@ export type TicketConfig = {
 		enable_assignment?: boolean;
 			// {Mention} is mention, {Name} is name
 		messages?: {[key in TicketMessageType]?: string};
+
+		creator_cannot_close?: boolean;
 	};
 };
 

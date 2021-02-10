@@ -330,6 +330,10 @@ const slash_command_router: {[key: string]: SlashCommandRoute} = {
             autoclose: {route: "ticket autoclose", args: {time: opt.string("How long until the ticket is auto closed. Eg: 15 min. Use 0s to disable.")}},
             deletetime: {route: "ticket deletetime", args: {time: opt.string("How long from trash can to gone ticket. Default: 1 min")}},
             diagnose: {route: "ticket diagnose"},
+            // set:
+            // - autoclose
+            // - deletetime
+            // - creatorscanclose
         },
     },
     // // this will require a rework of autodelete

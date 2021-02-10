@@ -129,7 +129,7 @@ nr.addDocsWebPage(
 {CmdSummary|ticket ping}
 {CmdSummary|ticket autoclose}
 {CmdSummary|ticket deletetime}
-{CmdSummary|ticket diagnose}
+{CmdSummary|ticket creatorcanclose}
 
 To disable tickets, delete the invitation message and the ticket category.
 `,
@@ -285,6 +285,37 @@ nr.globalCommand(
 					  " after closing."
 					: " delete time set to default (1min).") +
 				suggestions.map(sg => "\n" + sg).join(""),
+		);
+	},
+);
+
+nr.globalCommand(
+	"/help/ticket/creatorcanclose",
+	"ticket creatorcanclose",
+	{
+		usage: "ticket creatorcanclose {Required|yes or no}",
+		description:
+			"set if the creator of the ticket can close it themself. ",
+		examples: [],
+		perms: { runner: ["manage_bot"] },
+	},
+	nr.list(nr.a.enum("yes", "no")),
+	async ([ccc], info) => {
+		if (!info.db || !info.guild) return await info.error("pms");
+
+		const ticket = await info.db.getTicket();
+		ticket.main.creator_cannot_close = ccc === "yes" ? false : true;
+		await info.db.setTicket(ticket);
+
+		const suggestions = ticketSuggestions(ticket, info);
+
+		await info.success(
+			"Success! " + ((ticket.main.creator_cannot_close
+				? "The author of the ticket can only close it before they've sent any messages."
+				: "The author of the ticket can close it themselves"
+			) + 
+				suggestions.map(sg => "\n" + sg).join("")
+			),
 		);
 	},
 );
@@ -879,7 +910,7 @@ async function closeTicket(
 	ctx: TicketCtx,
 	inactivity = false,
 ) {
-	if((channel.topic ?? "").includes(closer.id) && (channel.topic ?? "").startsWith("+")) {
+	if(ctx.ticket.main.creator_cannot_close && (channel.topic ?? "").includes(closer.id) && (channel.topic ?? "").startsWith("+")) {
 		const member = await channel.guild.members.fetch(closer.id);
 		if(!member.permissions.has("MANAGE_CHANNELS")) {
 			await channel.send("You cannot close your own ticket after sending messages in it.");
