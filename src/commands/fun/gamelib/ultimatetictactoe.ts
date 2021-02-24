@@ -319,6 +319,15 @@ https://interpunct.info/help/fun/ultimatetictactoe
 	},
 	timers: [
 		{
+			time: unit(60, "sec"),
+			message: state => {
+				if (state.status.s !== "playing") return "Never!";
+				const currentplayer = state.players[state.status.turn];
+				const playercolor = tileset.tiles[state.status.turn];
+				return `<@${currentplayer.id}> (${playercolor}), it's your turn. 5 minutes left.`;
+			},
+		},
+		{
 			time: unit(340, "sec"),
 			message: state => {
 				if (state.status.s !== "playing") return "Never!";
