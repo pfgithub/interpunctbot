@@ -168,6 +168,14 @@ Try to get 4 in a row in any direction, including diagonal.`,
 	},
 	timers: [
 		{
+			time: unit(0, "sec"),
+			message: state => {
+				const currentplayer = state.players[state.turn];
+				const playercolor = tileset.tiles[state.turn];
+				return `<@${currentplayer.id}> (${playercolor}), it's your turn.`;
+			},
+		},
+		{
 			time: unit(30, "sec"),
 			message: state => {
 				const currentplayer = state.players[state.turn];

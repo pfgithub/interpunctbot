@@ -144,6 +144,15 @@ To win Tic Tac Toe, try to be the first to get 3 in a row including diagonals`,
 	},
 	timers: [
 		{
+			time: unit(0, "sec"),
+			message: state => {
+				const currentplayer = state.players[state.turn];
+				const playercolor =
+					tileset.tiles[state.turn === "x" ? "tic" : "tac"];
+				return `<@${currentplayer.id}> (${playercolor}), it's your turn.`;
+			},
+		},
+		{
 			time: unit(30, "sec"),
 			message: state => {
 				const currentplayer = state.players[state.turn];

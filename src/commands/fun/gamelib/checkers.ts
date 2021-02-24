@@ -540,6 +540,17 @@ ${boardRender}
 	},
 	timers: [
 		{
+			time: g.unit(0, "min"),
+
+			message: state => {
+				if (state.status.s === "winner") assertNever(0 as never);
+				if (state.status.s === "tie") assertNever(0 as never);
+				const currentplayer = state.players[state.status.turn];
+				const playercolor = tileset.tiles[state.status.turn].blank;
+				return `<@${currentplayer.id}> (${playercolor}), it's your turn.`;
+			},
+		},
+		{
 			time: g.unit(3, "min"),
 
 			message: state => {

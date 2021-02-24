@@ -260,14 +260,21 @@ export const papersoccer = newGame<GameState>({
 	},
 	timers: [
 		{
-			time: unit(30, "sec"),
+			time: unit(0, "sec"),
 			message: state => {
 				const currentplayer = state.players[state.turn];
-				return `<@${currentplayer.id}>, it's your turn. 30s left.`;
+				return `<@${currentplayer.id}>, it's your turn.`;
 			},
 		},
 		{
 			time: unit(60, "sec"),
+			message: state => {
+				const currentplayer = state.players[state.turn];
+				return `<@${currentplayer.id}>, it's your turn. 1 minute left.`;
+			},
+		},
+		{
+			time: unit(120, "sec"),
 			update: state => {
 				state.turn += 1;
 				state.turn %= state.players.length;

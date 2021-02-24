@@ -132,6 +132,13 @@ export const circlegame = newGame<State>({
 	},
 	timers: [
 		{
+			time: unit(0, "sec"),
+			message: state => {
+				const currentplayer = state.players[state.turnIndex];
+				return `<@${currentplayer.id}>, it's your turn.`;
+			},
+		},
+		{
 			time: unit(30, "sec"),
 			message: state => {
 				const currentplayer = state.players[state.turnIndex];

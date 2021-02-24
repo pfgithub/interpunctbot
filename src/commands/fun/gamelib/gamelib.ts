@@ -87,6 +87,7 @@ export type GameConfig<State> = {
 		message?: (v: Readonly<State>) => string;
 		update?: (v: State) => State;
 	}[];
+	turnMsg?: (v: Readonly<State>) => {player: Player, msg: string},
 	checkGameOver: (state: Readonly<State>) => boolean;
 	help: string;
 	title: string;
@@ -133,7 +134,8 @@ export const newGame = <State>(conf: GameConfig<State>) => async (
 			id: pl,
 		})),
 	);
-	state = state; // I'm pretty sure there's a reason this is here...
+
+	state = state; // I'm pretty sure there's a reason this is here... no idea what it is though
 	const setState = (newState: State) => {
 		state = newState;
 		if (conf.checkGameOver(state)) {
@@ -198,19 +200,42 @@ export const newGame = <State>(conf: GameConfig<State>) => async (
 
 	let availableActions: MoveSet<State> | undefined; // to prevent constant recalculations. probably not a terrible performance issue but idk
 
-	let toRemoveOnNextReset: Discord.Message[] = [];
+	let turnMsg: {msg: Discord.Message, text: string} | undefined = undefined;
 
-	async function doRemoveMessages() {
-		const nr = toRemoveOnNextReset;
-		toRemoveOnNextReset = [];
-		for (const msg of nr) {
-			await msg.delete();
+	let turnMsgUpdateQueue: (string | undefined)[] = [];
+
+	function updateTurnMessage(new_msg: string | undefined) {
+		turnMsgUpdateQueue.push(new_msg);
+		if(turnMsgUpdateQueue.length > 1) return;
+
+		if(new_msg === turnMsg?.text) {
+			turnMsgUpdateQueue.pop();
+			return; // nothing to do;
 		}
+
+		const prev_msg = turnMsg?.msg;
+		turnMsg = undefined;
+
+		const gamelink = (info.message.channel.lastMessage !== initialLatestMessage
+			? "\n> <" + messages[0].msg?.url + ">"
+			: ""
+		);
+
+		if(new_msg != null) info.channel.send(new_msg + gamelink).then(sent_msg => {
+			turnMsg = {msg: sent_msg, text: new_msg!};
+
+			// in case an update is sent between the time this update starts and it completes
+			if(turnMsgUpdateQueue.length > 1) {
+				const nextUpdate = turnMsgUpdateQueue[turnMsgUpdateQueue.length - 1];
+				turnMsgUpdateQueue = [];
+				updateTurnMessage(nextUpdate);
+			}else turnMsgUpdateQueue = [];
+		})
+		if(prev_msg) perr(prev_msg.delete(), "deleting turn message");
 	}
 
 	const resetTimer = () => {
 		gameTimer.reset();
-		perr(doRemoveMessages(), "removing message in game");
 	};
 
 	async function onReactionHoisted(
@@ -248,16 +273,7 @@ export const newGame = <State>(conf: GameConfig<State>) => async (
 			timer.time,
 			async () => {
 				if (timer.message) {
-					// auto delete this message on next timer reset
-					toRemoveOnNextReset.push(
-						await info.channel.send(
-							timer.message(state) +
-								(info.message.channel.lastMessage !==
-								initialLatestMessage
-									? "\n> <" + messages[0].msg?.url + ">"
-									: ""),
-						),
-					);
+					updateTurnMessage(timer.message(state));
 				}
 				if (timer.update) {
 					const stateCopy = copyState(state);
@@ -281,7 +297,7 @@ export const newGame = <State>(conf: GameConfig<State>) => async (
 		message.rxnh.end();
 		perr(message.msg.reactions.removeAll(), false);
 	}
-	await doRemoveMessages();
+	updateTurnMessage(undefined);
 };
 
 export type Tileset<T> = { tiles: T };
