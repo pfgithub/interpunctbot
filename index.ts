@@ -388,6 +388,9 @@ export function shouldIgnore(user: Discord.User) {
 	return user.bot && !globalConfig.testing?.users?.includes(user.id);
 }
 
+client.on("debug", console.log);
+client.on("warn", console.log);
+
 client.on("ready", () => {
 	global.console.log("Ready");
 	serverStartTime = new Date().getTime();
