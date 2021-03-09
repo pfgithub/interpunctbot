@@ -1137,7 +1137,7 @@ discord-markdown@^2.3.1:
     highlight.js "^9.18.1"
     simple-markdown "^0.7.2"
 
-discord.js@^12.4.1:
+discord.js@^12.5.1:
   version "12.5.1"
   resolved "https://registry.yarnpkg.com/discord.js/-/discord.js-12.5.1.tgz#992b45753e3815526a279914ccc281d3496f5990"
   integrity sha512-VwZkVaUAIOB9mKdca0I5MefPMTQJTNg0qdgi1huF3iwsFwJ0L5s/Y69AQe+iPmjuV6j9rtKoG0Ta0n9vgEIL6w==
