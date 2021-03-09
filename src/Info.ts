@@ -465,7 +465,7 @@ export default class Info {
 	async errorAlways(msg: string) {
 		if(this.raw_interaction && !this.raw_interaction.has_ackd) {
 			try{
-				return await this.raw_interaction.replyHidden("<:error:508841130503438356> "+msg);
+				return await this.raw_interaction.replyHiddenHideCommand("<:error:508841130503438356> "+msg);
 			}catch(e) {console.log(e);}
 		}
 

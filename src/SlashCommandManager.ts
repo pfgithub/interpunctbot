@@ -92,26 +92,15 @@ export class InteractionHelper {
             type: 5,
         });
     }
-    async acceptHideCommand() {
-        await this.sendRaw({
-            type: 2,
-        });
-    }
     async reply(message: string) {
         await this.sendRaw({
             type: 4,
             data: {content: message, allowed_mentions: {parse: []}},
         });
     }
-    async replyHidden(message: string) {
-        await this.sendRaw({
-            type: 4,
-            data: {content: message, flags: 1 << 6, allowed_mentions: {parse: []}},
-        });
-    }
     async replyHiddenHideCommand(message: string) {
         await this.sendRaw({
-            type: 2,
+            type: 4,
             data: {content: message, flags: 1 << 6, allowed_mentions: {parse: []}},
         });
     }
@@ -395,6 +384,10 @@ const slash_command_router: {[key: string]: SlashCommandRoute} = {
             list: {route: "command list"},
         },
     },
+    slashbot: {
+        description: "is slashbot",
+        route: "ping",
+    }
 };
 
 const global_slash_commands: {[key: string]: SlashCommandNameless} = {};

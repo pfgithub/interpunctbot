@@ -20,7 +20,7 @@ nr.addDocsWebPage(
 	"/help/games",
 	"Games",
 	"games",
-	`{Title|Fun}\n\n{Interpunct} has a variety of games.
+	`{Title|Games}\n\n{Interpunct} has a variety of games.
 
 Note that most games work best when {Interpunct} has permission to Manage Reactions
 
@@ -1088,7 +1088,7 @@ nr.globalCommand(
 		}
 		if(info.raw_interaction) {
 			if(requested_word) {
-				await info.raw_interaction.acceptHideCommand();
+				await info.raw_interaction.replyHiddenHideCommand("Sending your custom word");
 				await info.message.channel.send(info.message.author.toString()+" used /randomword with a custom word", Info.msgopts);
 			}else{
 				await info.raw_interaction.accept();

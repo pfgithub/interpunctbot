@@ -9,7 +9,7 @@ if (!globalConfig.token)
 	);
 const manager = new ShardingManager("built/index.js", {
 	token: globalConfig.token,
-	totalShards: 3,
+	totalShards: 5,
 });
 
 manager.spawn().catch(e => console.log("spawn error", e));
