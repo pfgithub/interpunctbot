@@ -1242,11 +1242,11 @@ client.on("messageReactionAdd", (reaction, user) => {
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 client.on("guildCreate", guild => {
-	global.console.log(`_ Joined guild ${guild.name} (${guild.nameAcronym})`);
+	if(guild.available) global.console.log(`_ Joined guild ${guild.name} (${guild.nameAcronym})`);
 });
 
 client.on("guildDelete", guild => {
-	global.console.log(`_ Left guild ${guild.name} (${guild.nameAcronym})`);
+	if(guild.available) global.console.log(`_ Left guild ${guild.name} (${guild.nameAcronym})`);
 	deleteLogs(guild.id).catch(e =>
 		global.console.log("Could not delete guild logs,", e),
 	);
