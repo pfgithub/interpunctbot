@@ -1,6 +1,6 @@
 import client, { timedEvents } from "../bot";
 import * as discord from "discord.js";
-import { ilt, production } from "..";
+import { ilt, logCommand, production } from "..";
 import { globalConfig } from "./config";
 import Info, {MessageLike} from "./Info";
 import { globalCommandNS, globalDocs } from "./NewRouter";
@@ -149,6 +149,8 @@ async function handle_interaction_routed(info: Info, route_name: string, route: 
 }
 async function do_handle_interaction(interaction: DiscordInteraction) {
     const startTime = Date.now();
+
+    logCommand(interaction.guild_id, interaction.channel_id, false, interaction.member.user.id, "/"+interaction.data.name+": "+JSON.stringify(interaction.data));
 
     console.log("Got interaction: ", require("util").inspect(interaction.data, false, null, true));
     // construct an info object

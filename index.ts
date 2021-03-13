@@ -583,6 +583,19 @@ async function guildLog(id: string, log: string) {
 	);
 }
 
+export function logCommand(guild_id: string | undefined, channel_id: string, author_bot: boolean, author_id: string, message: string) {
+	try {
+		guildLog(
+			"__commands", // db ? guild! : guild?
+			`[${moment().format("YYYY-MM-DD HH:mm:ss Z")}] (${
+				guild_id || "DM"
+			}) <#${channel_id}> ${author_bot ? "[BOT] " : ""}<@${
+				author_id
+			}>: ${message}`,
+		).catch(() => {});
+	} catch (e) {}
+}
+
 async function onMessage(msg: Discord.Message | Discord.PartialMessage) {
 	if (msg.partial) {
 		// partial is not supported
@@ -790,16 +803,7 @@ async function onMessage(msg: Discord.Message | Discord.PartialMessage) {
 	if (commandText) {
 		const lcCutContent = commandText.toLowerCase();
 
-		try {
-			guildLog(
-				"__commands", // db ? guild! : guild?
-				`[${moment().format("YYYY-MM-DD HH:mm:ss Z")}] (${
-					msg.guild ? msg.guild.nameAcronym : "DM"
-				}) <#${msg.channel.id}> ${msg.author.bot ? "[BOT] " : ""}\`${
-					msg.author.id
-				}\`: ${msg.content}`,
-			).catch(() => {});
-		} catch (e) {}
+		logCommand(msg.guild?.id, msg.channel.id, msg.author.bot, msg.author.id, msg.content);
 
 		const allCommands = Object.keys(nr.globalCommandNS)
 			.sort()
