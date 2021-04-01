@@ -130,6 +130,7 @@ nr.addDocsWebPage(
 {CmdSummary|ticket autoclose}
 {CmdSummary|ticket deletetime}
 {CmdSummary|ticket creatorcanclose}
+{CmdSummary|ticket dmonclose}
 
 To disable tickets, delete the invitation message and the ticket category.
 `,
@@ -313,6 +314,38 @@ nr.globalCommand(
 			"Success! " + ((ticket.main.creator_cannot_close
 				? "The author of the ticket can only close it before they've sent any messages."
 				: "The author of the ticket can close it themselves"
+			) + 
+				suggestions.map(sg => "\n" + sg).join("")
+			),
+		);
+	},
+);
+
+nr.globalCommand(
+	"/help/ticket/dmonclose",
+	"ticket dmonclose",
+	{
+		usage: "ticket dmonclose {Required|yes or no}",
+		description:
+			"set if the creator of the ticket should be dm'd when the ticket is closed.",
+		extendedDescription: "If logs are enabled, they will be sent a link to a log of their ticket.",
+		examples: [],
+		perms: { runner: ["manage_bot"] },
+	},
+	nr.list(nr.a.enum("yes", "no")),
+	async ([ccc], info) => {
+		if (!info.db || !info.guild) return await info.error("pms");
+
+		const ticket = await info.db.getTicket();
+		ticket.main.dm_on_close = ccc === "yes" ? true : false;
+		await info.db.setTicket(ticket);
+
+		const suggestions = ticketSuggestions(ticket, info);
+
+		await info.success(
+			"Success! " + ((ticket.main.dm_on_close
+				? "The author of the ticket will be DMed when the ticket is closed."
+				: "The author of the ticket will not be DMed when the ticket is closed"
 			) + 
 				suggestions.map(sg => "\n" + sg).join("")
 			),
@@ -963,6 +996,19 @@ async function closeTicket(
 		"red",
 		ctx,
 	);
+
+	if(ctx.ticket.main.dm_on_close ?? false) {
+		try {
+			const owner_id = ticketOwnerID(channel);
+			// are you allowed to dm a partial user? this shouldn't be necessary if so
+			const owner_user = await ctx.guild.client.users.fetch(owner_id);
+
+			await owner_user.send(""
+				+ "Your ticket in <#"+(ctx.ticket.main.invitation?.channel ?? ctx.guild.name)+"> was closed by "+closer.toString()+"."
+				+ (chanLogUrl != null ? "\nView Log: "+chanLogUrl : "")
+			);
+		}catch(e) {}
+	}
 
 	await new Promise(r => setTimeout(r, deletetime));
 	await channel.delete("closed by " + closer.toString());

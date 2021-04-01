@@ -91,7 +91,8 @@ export type TicketConfig = {
 			// {Mention} is mention, {Name} is name
 		messages?: {[key in TicketMessageType]?: string};
 
-		creator_cannot_close?: boolean;
+		creator_cannot_close?: boolean; // double negative, enjoyable
+		dm_on_close?: boolean;
 	};
 };
 
@@ -383,7 +384,9 @@ class Database {
 	}
 	async getTicket(): Promise<TicketConfig> {
 		return await this._getJson("ticket", {
-			main: {},
+			main: {
+				dm_on_close: true, // defaults to true if tickets haven't been configured
+			},
 		});
 	}
 	async setTicket(nt: TicketConfig): Promise<void> {
