@@ -321,9 +321,8 @@ const slash_command_router: {[key: string]: SlashCommandRoute} = {
             autoclose: {route: "ticket autoclose", args: {time: opt.string("How long until the ticket is auto closed. Eg: 15 min. Use 0s to disable.")}},
             deletetime: {route: "ticket deletetime", args: {time: opt.string("How long from trash can to gone ticket. Default: 1 min")}},
             diagnose: {route: "ticket diagnose"},
-            // set:
-            // - autoclose
-            // - deletetime
+            creatorcanclose: {route: "ticket creatorcanclose", args: {can: opt.oneOf("Can close?", {yes: "Yes", no: "No"})}},
+            dmonclose: {route: "ticket dmonclose", args: {dm: opt.oneOf("DM creator on close?", {yes: "Yes", no: "No"})}},
             // - creatorscanclose
         },
     },
@@ -416,11 +415,13 @@ function createBottomLevelCommand(cmdname: string, cmddata: SlashCommandRouteBot
 
 for(const [cmdname, cmddata] of Object.entries(slash_command_router)) {
     if('subcommands' in cmddata) {
+        if(Object.entries(cmddata.subcommands).length > 25) throw new Error("Max 25 subcommands");
         global_slash_commands[cmdname] = {
             description: cmddata.description,
             options: Object.entries(cmddata.subcommands).map(([scname, scdata_raw]) => {
                 const scdata = scdata_raw as SlashCommandRouteBottomLevel | SlashCommandRouteSubcommand;
                 if('subcommands' in scdata) {
+                    if(Object.entries(scdata.subcommands).length > 25) throw new Error("Max 25 subsubcommands");
                     return {
                         type: 2,
                         name: scname,
@@ -496,6 +497,7 @@ function normalizeSCO(inv: SlashCommandOption[]): SlashCommandOption[] {
                 if(k === "required" && v === false) delete value[k];
             }
         }
+        return value;
     });
 }
 
