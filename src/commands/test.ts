@@ -85,6 +85,65 @@ nr.globalCommand(
 	},
 );
 
+type ApiHandler = {
+    get: <T>() => Promise<T>;
+    post: <T, Q>(value: T) => Promise<Q>;
+    patch: (value: any) => Promise<any>;
+    delete: () => Promise<any>;
+} & {[key: string]: ApiHandler} & ((...data: any[]) => ApiHandler);
+
+type ApiHolder = {api: ApiHandler};
+
+type ButtonComponent = {
+	type: 2;
+	style: 1 | 2 | 3 | 4; // blue, gray, green, red
+	label: string;
+	custom_id: string;
+	disabled: boolean;
+} | {
+	type: 2;
+	style: 5; // URL
+	label: string;
+	url: string;
+	disabled: boolean;
+};
+
+type RootComponent = {type: 1; components: ButtonComponent[]};
+
+type SampleMessage = {
+	content: string;
+	components: RootComponent[];
+};
+
+nr.globalCommand(
+	"/help/test/spooky",
+	"spooky",
+	{
+		usage: "spooky",
+		description: "spooky",
+		examples: [],
+		perms: {},
+	},
+	nr.list(),
+	async ([], info) => {
+		const api = info.message.client as any as ApiHolder;
+		await api.api.channels(info.message.channel.id).messages.post<{data: SampleMessage}, unknown>({data: {
+			content: "spooky",
+			components: [
+				{type: 1, components: [{
+					type: 2,
+					style: 1,
+					label: "Click Me!",
+
+					custom_id: "btn1",
+
+					disabled: false,
+				}]},
+			],
+		}});
+	},
+);
+
 nr.globalCommand(
 	"/help/test/crash",
 	"crash",
