@@ -133,9 +133,9 @@ nr.globalCommand(
 				{type: 1, components: [{
 					type: 2,
 					style: 1,
-					label: "Click Me!",
+					label: "👻 Boo!",
 
-					custom_id: "btn1",
+					custom_id: "boo_btn",
 
 					disabled: false,
 				}]},
