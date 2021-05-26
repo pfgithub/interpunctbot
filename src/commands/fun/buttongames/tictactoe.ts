@@ -283,9 +283,10 @@ const TTTGame: Game = {
                     ? "It's your turn <@"+state.players[state.player]+">, You are "+state.player
                     : state.mode === "won"
                     ? state.win
-                    ? state.win.player === "Tie"
-                    ? "There was a tie. ("+state.win.reason+")"
-                    : "<@"+state.players[state.win.player]+"> won! ("+state.win.reason+"). Players: X <@"+state.players.X+">, O: <@"+state.players.O+">"
+                    ? (state.win.player === "Tie"
+                    ? "There was a tie. ("+state.win.reason+"). "
+                    : "<@"+state.players[state.win.player]+"> won!")
+                    + " ("+state.win.reason+"). Players: X <@"+state.players.X+">, O: <@"+state.players.O+">"
                     : "Someone won but I'm not sure who."
                     : "never",
                 components: [
