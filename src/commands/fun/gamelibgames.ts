@@ -5,6 +5,7 @@ import { tictactoe } from "./gamelib/tictactoe";
 import { ultimatetictactoe } from "./gamelib/ultimatetictactoe";
 import { checkers } from "./gamelib/checkers";
 import { papersoccer } from "./gamelib/papersoccer";
+import "./buttongames/tictactoe";
 
 nr.globalCommand(
 	"/help/fun/connect4",

@@ -3,7 +3,7 @@ import * as discord from "discord.js";
 import { ilt, logCommand, production } from "..";
 import { globalConfig } from "./config";
 import Info, {MessageLike} from "./Info";
-import { globalCommandNS, globalDocs } from "./NewRouter";
+import { ginteractionhandler, globalCommandNS, globalDocs } from "./NewRouter";
 import deepEqual from "deep-equal";
 
 const api = client as any as ApiHolder;
@@ -27,14 +27,35 @@ type UsedCommand = {
     id: string;
     options?: UsedCommandOption[];
 };
+type ClickedButton = {
+    custom_id: string;
+    component_type: number;
+};
 
-export type DiscordInteraction = {
+export type DiscordInteraction = DiscordCommandInteraction | DiscordButtonClickInteraction;
+
+export type DiscordBaseInteraction = {
     id: string; // interaction id
     token: string; // interaction token
+};
+
+export type DiscordCommandInteraction = DiscordBaseInteraction & {
+    type: 2;
+    name: string;
     guild_id: string;
     channel_id: string;
     member: {user: {id: string}}; // TODO add this to the discord member cache // in the future this will be done automatically so nah
     data: UsedCommand;
+};
+export type DiscordButtonClickInteraction = DiscordBaseInteraction & {
+    type: 3;
+    version: 1;
+    guild_id: string;
+    channel_id: string;
+    application_id: string;
+    message: {id: string; channel_id: string};
+    member: {user: {id: string}};
+    data: ClickedButton;
 };
 
 type SlashCommandOptionNamelessSubcommand = {
@@ -72,6 +93,9 @@ type SlashCommand = SlashCommandUser & {
     application_id: string;
 };
 
+export type InteractionHandled = {__interaction_handled: true};
+const interaction_handled: InteractionHandled = {__interaction_handled: true};
+
 export class InteractionHelper {
     raw_interaction: DiscordInteraction;
     has_ackd: boolean;
@@ -87,22 +111,32 @@ export class InteractionHelper {
         this.has_ackd = true;
         await api.api.interactions(this.raw_interaction.id, this.raw_interaction.token).callback.post({data: value});
     }
-    async accept() {
+    async acceptLater() {
         await this.sendRaw({
             type: 5,
         });
+        return interaction_handled;
+    }
+    async accept() {
+        await this.sendRaw({
+            type: 4,
+            data: {content: "✓", flags: 1 << 6, allowed_mentions: {parse: []}},
+        });
+        return interaction_handled;
     }
     async reply(message: string) {
         await this.sendRaw({
             type: 4,
             data: {content: message, allowed_mentions: {parse: []}},
         });
+        return interaction_handled;
     }
-    async replyHiddenHideCommand(message: string) {
+    async replyHiddenHideCommand(message: string, components: unknown = undefined) {
         await this.sendRaw({
             type: 4,
-            data: {content: message, flags: 1 << 6, allowed_mentions: {parse: []}},
+            data: {content: message, flags: 1 << 6, allowed_mentions: {parse: []}, components},
         });
+        return interaction_handled;
     }
 }
 
@@ -147,10 +181,67 @@ async function handle_interaction_routed(info: Info, route_name: string, route: 
         return handler.handler([route.preload ?? [], (options || []).map(opt => "" + opt.value || "")].flat().join(" "), info);
     }
 }
+
 async function do_handle_interaction(interaction: DiscordInteraction) {
     const startTime = Date.now();
 
-    logCommand(interaction.guild_id, interaction.channel_id, false, interaction.member.user.id, "/"+interaction.data.name+": "+JSON.stringify(interaction.data));
+    const interaction_helper = new InteractionHelper(interaction);
+
+    logCommand(interaction.guild_id, interaction.channel_id, false, interaction.member.user.id, 
+        (interaction.type === 2 ? "/"+interaction.data.name : "@"+interaction.type)+": "+JSON.stringify(interaction.data)
+    );
+    
+    if(interaction.type === 3) {
+        const data = interaction.data;
+
+        console.log(interaction);
+
+        const guild = client.guilds.cache.get(interaction.guild_id)!;
+        const channel = client.channels.cache.get(interaction.channel_id)! as discord.Message["channel"];
+        const member = guild.members.add(interaction.member);
+        let message: discord.Message | undefined;
+
+        if('type' in interaction.message) {
+            message = channel.messages.add(interaction.message);
+        }else{}
+
+        const message_like = { // weird; the message is sent by interpunct but the author is set to the interactor
+            channel: message?.channel ?? channel,
+            guild: message?.guild ?? guild,
+            member: member,
+            author: member.user,
+            client: message?.client ?? client,
+            content: message?.content ?? "*no content*",
+            delete: async () => {
+                if(message) {
+                    await message.delete({timeout: 10})
+                }
+            },
+        };
+
+        const info = new Info(message_like, timedEvents!, {
+            startTime,
+            infoPerSecond: -1,
+            raw_interaction: interaction_helper,
+        });
+
+        const idv = data.custom_id.split("|")[0]!;
+        const inh = ginteractionhandler[idv];
+        // note: does not check for channel view perms
+        if(inh) {
+            try {
+                return await inh.handle(info, data.custom_id);
+            }catch(e) {
+                console.log(e);
+                return await info.error("An error occured while handling this button click.");
+            }
+        }
+        return await info.error("Unsupported button.");
+    }else if(interaction.type !== 2) {
+        return await interaction_helper.replyHiddenHideCommand("× Interaction not supported.");
+    }
+    
+    const data = interaction.data;
 
     console.log("Got interaction: ", require("util").inspect(interaction.data, false, null, true));
     // construct an info object
@@ -169,7 +260,6 @@ async function do_handle_interaction(interaction: DiscordInteraction) {
             // nothing to do.
         },
     };
-    const interaction_helper = new InteractionHelper(interaction);
     const info = new Info(mlike, timedEvents!, {
         startTime,
         infoPerSecond: -1,
@@ -180,8 +270,6 @@ async function do_handle_interaction(interaction: DiscordInteraction) {
     if(!my_channel_perms.has("VIEW_CHANNEL")) {
         return await interaction_helper.replyHiddenHideCommand("Commands cannot be used in this channel because I don't have permission to see it.");
     }
-    
-    const data = interaction.data;
     
     const route = slash_command_router[data.name];
     if(!route) return await info.error("Unsupported interaction / This command should not exist.");

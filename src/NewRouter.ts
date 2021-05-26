@@ -367,3 +367,9 @@ export function globalCommand<APList extends APListAny>(
 }
 
 // export function nsCommand<APList>(ns: CommandNS) // eg ip!quote, the help page has to be for lists in general not just the specific quote one
+
+export interface InteractionHandler {
+    handle(info: Info, custom_id: string): Promise<void>;
+};
+
+export const ginteractionhandler: {[key: string]: InteractionHandler} = {};

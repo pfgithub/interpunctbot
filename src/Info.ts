@@ -7,7 +7,7 @@ import { TimedEvents } from "./TimedEvents";
 import { globalConfig } from "./config";
 import { globalDocs } from "./NewRouter";
 import { dgToDiscord } from "./parseDiscordDG";
-import { DiscordInteraction, InteractionHelper } from "./SlashCommandManager";
+import { DiscordInteraction, InteractionHandled, InteractionHelper } from "./SlashCommandManager";
 
 const result = {
 	error: "<:failure:508841130503438356> Error: ",
@@ -423,6 +423,11 @@ export default class Info {
 		}
 		return resmsgs;
 	}
+	async accept(): Promise<void> {
+		if(this.raw_interaction && !this.raw_interaction.has_ackd) {
+			await this.raw_interaction.accept();
+		}
+	}
 	async reply(
 		resultType: string,
 		...value:
@@ -462,10 +467,11 @@ export default class Info {
 		}
 		return this.errorAlways(msg);
 	}
-	async errorAlways(msg: string) {
+	async errorAlways(msg: string): Promise<void> {
 		if(this.raw_interaction && !this.raw_interaction.has_ackd) {
 			try{
-				return await this.raw_interaction.replyHiddenHideCommand("<:error:508841130503438356> "+msg);
+				await this.raw_interaction.replyHiddenHideCommand("<:error:508841130503438356> "+msg);
+				return;
 			}catch(e) {console.log(e);}
 		}
 
@@ -484,7 +490,7 @@ export default class Info {
 			res = await this.reply("❌", msg);
 		}
 		// res && res.forEach(r => r.delete({ timeout: 20 * 1000 }));
-		return res;
+		return;
 	}
 	async warn(msg: string) {
 		if(this.raw_interaction && !this.raw_interaction.has_ackd) {
