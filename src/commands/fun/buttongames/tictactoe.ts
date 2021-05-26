@@ -297,9 +297,14 @@ const TTTGame: Game = {
                     ])] : [],
                 ],
             }});
+        }else if(state.mode === "canceled"){
+            await api.api.channels(channel_id).messages.post<{data: SampleMessage}, unknown>({data: {
+                content: "Canceled game.",
+                components: [],
+            }});
         }else{
             await api.api.channels(channel_id).messages.post<{data: SampleMessage}, unknown>({data: {
-                content: "TODO "+state.mode,
+                content: "Unsupported "+state.mode,
                 components: [],
             }});
         }
@@ -408,6 +413,8 @@ const TTTGame: Game = {
             }
         }else if(state.mode === "won") {
             return await errorGame(info, "This game is over.");
+        }else if(state.mode === "canceled") {
+            return await errorGame(info, "This game was not started.");
         }else{
             return await errorGame(info, "TODO support "+state.mode);
         }
