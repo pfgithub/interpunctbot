@@ -165,6 +165,8 @@ async function updateGameState<T>(info: Info, ikey: {game_id: GameID; kind: Game
     // 3: update in db
     await globalKnex!("games").where({id: gameIDToNum(ikey.game_id)}).update({data: JSON.stringify(upd_game_data)});
     // 4: delete original
+    // TODO rather than deleting, what about patching the previous interaction
+    // response and changing all the buttons to "disabled"?
     await info.message.delete();
     // return handle token
     return {__interaction_handled: true};
