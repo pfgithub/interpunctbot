@@ -257,7 +257,7 @@ function tttDetectWin(grid: Grid<" " | "O" | "X">, placedX: number, placedY: num
 	return false;
 }
 function tttDetectTie(grid: Grid<" " | "O" | "X">): boolean {
-    return grid.every(l => l.every(t => t === " "));
+    return grid.every(l => l.every(t => t !== " "));
 }
 
 const TTTGame: Game = {
