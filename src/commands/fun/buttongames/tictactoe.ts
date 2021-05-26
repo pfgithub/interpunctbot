@@ -55,6 +55,7 @@ function button(id: string, label: string | undefined, style: ButtonStyle, opts:
 
 type ActionRow = {type: 1; components: ButtonComponent[]};
 function componentRow(children: ButtonComponent[]): ActionRow {
+    if(children.length > 5) throw new Error("too many buttons");
 	return {type: 1, components: children};
 }
 
