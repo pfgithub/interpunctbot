@@ -99,6 +99,14 @@ nr.globalCommand(
 	},
 );
 
+nr.ginteractionhandler["boo_btn"] = {
+    async handle(info, custom_id) {
+        if(info.raw_interaction) {
+            await info.raw_interaction.replyHiddenHideCommand("👻");
+        }
+    }
+};
+
 type GameKind =
     | "TTT" // tic tac toe
 ;
