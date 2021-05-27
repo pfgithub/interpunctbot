@@ -37,6 +37,7 @@ export type DiscordInteraction = DiscordCommandInteraction | DiscordButtonClickI
 export type DiscordBaseInteraction = {
     id: string; // interaction id
     token: string; // interaction token
+    application_id: string;
 };
 
 export type DiscordCommandInteraction = DiscordBaseInteraction & {
@@ -52,7 +53,6 @@ export type DiscordButtonClickInteraction = DiscordBaseInteraction & {
     version: 1;
     guild_id: string;
     channel_id: string;
-    application_id: string;
     message: {id: string; channel_id: string};
     member: {user: {id: string}};
     data: ClickedButton;
@@ -110,6 +110,12 @@ export class InteractionHelper {
         if(this.has_ackd) throw new Error("cannot double interact");
         this.has_ackd = true;
         await api.api.interactions(this.raw_interaction.id, this.raw_interaction.token).callback.post({data: value});
+    }
+    async edit(value: object) {
+        await api.api.webhooks(this.raw_interaction.application_id, this.raw_interaction.id, this.raw_interaction.token).messages("@original").patch({data: value});
+    }
+    async delete(value: object) {
+        await api.api.webhooks(this.raw_interaction.application_id, this.raw_interaction.id, this.raw_interaction.token).messages("@original").delete({data: value});
     }
     async acceptLater() {
         await this.sendRaw({

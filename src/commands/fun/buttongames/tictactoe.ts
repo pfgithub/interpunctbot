@@ -153,13 +153,17 @@ async function getGameData(game_id: GameID): Promise<GameData> {
     return JSON.parse(res[0].data);
 }
 
-async function renderGame(channel_id: string, game_id: GameID) {
+async function renderGame(info: Info, game_id: GameID) {
     const game_data = await getGameData(game_id);
-    await games[game_data.kind].render(game_data.state, channel_id, game_id, game_data.kind, game_data.stage);
+
+    const api = client as any as ApiHolder;
+    await api.api.channels(info.message.channel.id).messages.post<{data: SampleMessage}, unknown>({data:
+        games[game_data.kind].render(game_data.state, game_id, game_data.kind, game_data.stage, info)
+    });
 }
 
 interface Game {
-    render: (state: unknown, channel_id: string, game_id: GameID, game_kind: GameKind, game_stage: number) => Promise<void>;
+    render: (state: unknown, game_id: GameID, game_kind: GameKind, game_stage: number, info: Info) => SampleMessage;
     handleInteraction: (info: Info, custom_id: string) => Promise<InteractionHandled>;
 };
 
@@ -170,10 +174,24 @@ const TTTKeys = {
 async function updateGameState<T>(info: Info, ikey: {game_id: GameID; kind: GameKind; stage: number}, state: T): Promise<InteractionHandled> {
     // get new game data
     const upd_game_data: GameData = {kind: ikey.kind, stage: ikey.stage + 1, state: state};
-    // 1: send updated message
-    await games[upd_game_data.kind].render(upd_game_data.state, info.message.channel.id, ikey.game_id, upd_game_data.kind, upd_game_data.stage);
+    // 1: send updated message    
+    
+    const msgv = games[upd_game_data.kind].render(upd_game_data.state, ikey.game_id, upd_game_data.kind, upd_game_data.stage, info);
+    if(info.raw_interaction) {
+        await info.raw_interaction.sendRaw({
+            type: 4,
+            data: {...msgv, allowed_mentions: {parse: []}},
+        });
+    }else{
+        await info.accept();
+        const api = client as any as ApiHolder;
+        await api.api.channels(info.message.channel.id).messages.post<{data: SampleMessage}, unknown>({data:
+            msgv
+        });
+    }
+
     // 2: accept interaction
-    await info.accept();
+    // await info.accept();
     // TODO use interactions rather than info.accept()
     // 3: update in db
     await globalKnex!("games").where({id: gameIDToNum(ikey.game_id)}).update({data: JSON.stringify(upd_game_data)});
@@ -273,14 +291,13 @@ function tttDetectTie(grid: Grid<" " | "O" | "X">): boolean {
 }
 
 const TTTGame: Game = {
-    async render(state_in, channel_id, game_id, game_kind, game_stage) {
+    render(state_in, game_id, game_kind, game_stage, info): SampleMessage {
         const state = state_in as TicTacToeState;
-		const api = client as any as ApiHolder;
 
         const key = (name: string) => getInteractionKey(game_id, game_kind, game_stage, name);
 
         if(state.mode === "joining") {
-            await api.api.channels(channel_id).messages.post<{data: SampleMessage}, unknown>({data: {
+            return {
                 content: "<@"+state.first_player+"> is starting a game of Tic Tac Toe",
                 components: [
                     componentRow([
@@ -288,9 +305,9 @@ const TTTGame: Game = {
                         button(key(TTTKeys.joining.end), "Cancel", "deny", {}),
                     ]),
                 ],
-            }});
+            };
         }else if(state.mode === "playing" || state.mode === "won") {
-            await api.api.channels(channel_id).messages.post<{data: SampleMessage}, unknown>({data: {
+            return {
                 content: state.mode === "playing"
                     ? "It's your turn <@"+state.players[state.player]+">, You are "+state.player
                     : state.mode === "won"
@@ -312,17 +329,17 @@ const TTTGame: Game = {
                         button(key(TTTKeys.playing.give_up), "Give Up", "deny", {}),
                     ])] : [],
                 ],
-            }});
+            };
         }else if(state.mode === "canceled"){
-            await api.api.channels(channel_id).messages.post<{data: SampleMessage}, unknown>({data: {
+            return {
                 content: "Canceled game.",
                 components: [],
-            }});
+            };
         }else{
-            await api.api.channels(channel_id).messages.post<{data: SampleMessage}, unknown>({data: {
+            return {
                 content: "Unsupported "+state.mode,
                 components: [],
-            }});
+            };
         }
     },
     async handleInteraction(info, custom_id): Promise<InteractionHandled> {
@@ -471,7 +488,7 @@ nr.globalCommand(
 	nr.list(),
 	async ([], info) => {
 		const game_id = await createGame<TicTacToeState>("TTT", {mode: "joining", first_player: info.message.author.id});
-        await renderGame(info.message.channel.id, game_id);
+        await renderGame(info, game_id);
         
 		// renderTicTacToe(game_id);
 
