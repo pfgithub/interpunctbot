@@ -27,6 +27,12 @@ type ButtonComponent = {
 	label: string;
 	url: string;
 	disabled: boolean;
+} | {
+    type: 3;
+    label: string;
+    style: 1;
+    custom_id: string;
+    options: {value: string; label: string}[];
 };
 
 const buttonStyles = {
@@ -80,8 +86,14 @@ nr.globalCommand(
 			content: "spooky",
 			components: [
 				componentRow([
-					button("boo_btn", "👻 Boo!", "primary", {}),
+                    button("boo_btn", "👻 Boo!", "primary", {}),
 				]),
+                componentRow([
+                    {type: 3, style: 1, label: "Down", custom_id: "dropdown", options: [
+                        {value: "one", label: "One"},
+                        {value: "two", label: "Two"},
+                    ]},
+                ]),
 			],
 		}});
 	},
