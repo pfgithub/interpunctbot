@@ -851,9 +851,11 @@ const PSGame: Game<PSState> = {
             const index = PS.xyToPtIndex(...state.ball);
             const point = state.board.points[index];
 
+            const rulesbtn = button(key(PSKeys.playing.rules), "Rules", "secondary", {emoji: {name: "rules", id: "476514294075490306", animated: false}});
+
             return {
                 content: PS.displayBoard(state.board, state.ball, !!state.over, state.players[state.player], state.player === 1),
-                components: [
+                components: state.over ? [componentRow([rulesbtn])] : [
                     ...[[..."↖↑↗"], [..."← →"], [..."↙↓↘"]].map((itm, y) => 
                         componentRow(itm.map((v, x) => {
                             if(v === " ") return button(key("none"), v, "secondary", {disabled: true});
@@ -863,7 +865,10 @@ const PSGame: Game<PSState> = {
                             return button(key("MOVE,"+dirxn), v, "secondary", {disabled: conxn ? state.board.connections[conxn.active] : true});
                         })),
                     ),
-                    componentRow([button(key(PSKeys.playing.rules), "Rules", "secondary", {emoji: {name: "rules", id: "476514294075490306", animated: false}})]),
+                    componentRow([
+                        rulesbtn,
+                        button(key(BasicKeys.playing.give_up), "Give Up", "deny", {}),
+                    ]),
                 ],
             };
         }else if(state.mode === "canceled") {
@@ -933,7 +938,9 @@ const PSGame: Game<PSState> = {
                         "⬇️ <@"+state.players[1]+"> wins win by getting the ball to the **bottom** of the screen.\n"+
                         "You cannot move across a line that has already been drawn.\n"+
                         "If the location you move to already has a line, you get to keep going.\n"+
-                        "If you get the ball stuck, your opponent wins."
+                        "If you get the ball stuck, your opponent wins."+(state.over ? "\n"+
+                        "\n"+
+                        "This game is over. <@"+state.players[state.player]+"> won ("+state.over.reason+")" : "")
                     );
                 }else{
                     await info.accept();
@@ -946,6 +953,15 @@ const PSGame: Game<PSState> = {
                     return await errorGame(info, "You're not in this game");
                 }
                 return await errorGame(info, "It's not your turn");
+            }
+            if(ikey.name === BasicKeys.playing.give_up) {
+                // other player wins
+                state.player += 1;
+                state.player %= state.players.length;
+                state.over = {
+                    reason: "Other player gave up",
+                };
+                return await updateGameState<PSState>(info, ikey, state);
             }
             if(ikey.name.startsWith("MOVE,")) {
                 const dirxn = ikey.name.split(",")[1]! as PS.Direction;
@@ -983,7 +999,7 @@ const PSGame: Game<PSState> = {
                     state.player += 1;
                     state.player %= state.players.length;
                     state.over = {
-                        reason: "Other player got stuck",
+                        reason: "Other player was unable to move",
                     };
                 }else{
                     // current player goes again
@@ -998,6 +1014,48 @@ const PSGame: Game<PSState> = {
         }
     }
 };
+
+nr.globalCommand(
+	"/help/test/uttt2",
+	"uttt2",
+	{
+		usage: "uttt2",
+		description: "uttt2",
+		examples: [],
+		perms: {fun: true},
+	},
+	nr.list(),
+	async ([], info) => {
+		const api = info.message.client as any as ApiHolder;
+		await api.api.channels(info.message.channel.id).messages.post<{data: SampleMessage}, unknown>({data: {
+			content: "uttt2",
+			components: [
+                // maybe use secondary for top level choice and primary for final choice? idk
+                // yeah then the back button being secondary colored makes sense
+				componentRow([
+                    button("boo_btn", "1", "secondary", {}),
+                    button("boo_btn", "2", "secondary", {}),
+                    button("boo_btn", "3", "secondary", {}),
+				]),
+				componentRow([
+                    button("boo_btn", "4", "secondary", {}),
+                    button("boo_btn", "5", "secondary", {disabled: true}),
+                    button("boo_btn", "6", "secondary", {}),
+				]),
+				componentRow([
+                    button("boo_btn", "7", "secondary", {disabled: true}),
+                    button("boo_btn", "8", "secondary", {disabled: true}),
+                    button("boo_btn", "9", "secondary", {}),
+				]),
+                componentRow([
+                    button("back", "⎌", "secondary", {disabled: true}),
+                    button("rules", "Rules", "secondary", {emoji: {name: "rules", id: "476514294075490306", animated: false}}),
+                    button("give up", "Give Up", "deny", {}),
+                ]),
+			],
+		}});
+	},
+);
 
 const games: {[key in GameKind]: Game<unknown>} = {
     "TTT": TTTGame,
