@@ -148,11 +148,10 @@ async function createGame<T>(game_kind: GameKind, game_state: T) {
         state: game_state,
         stage: 0,
     };
-	const res = await globalKnex!("games").insert({
+	const [id] = await globalKnex!("games").insert({
         id: undefined,
         data: JSON.stringify(gd),
-    });
-    const id = res[0]!;
+    }).returning("id");
 
     return numToGameID(id);
 }
