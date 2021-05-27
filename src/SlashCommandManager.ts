@@ -242,7 +242,7 @@ async function do_handle_interaction(interaction: DiscordInteraction) {
                 return await info.error("An error occured while handling this button click.");
             }
         }
-        return await info.error("Unsupported button.");
+        return await info.error("Unsupported button kind `"+idv+"`.");
     }else if(interaction.type !== 2) {
         return await interaction_helper.replyHiddenHideCommand("× Interaction not supported.");
     }

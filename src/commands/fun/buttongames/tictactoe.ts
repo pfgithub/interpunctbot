@@ -1,7 +1,7 @@
 import * as nr from "../../../NewRouter";
 import {globalKnex} from "../../../db";
 import client from "../../../../bot";
-import Info from "../../../Info";
+import Info, {permTheyCanManageRole, permWeCanManageRole} from "../../../Info";
 import { InteractionHandled } from "../../../SlashCommandManager";
 import { globalConfig } from "../../../config";
 
@@ -521,25 +521,51 @@ nr.ginteractionhandler["GRANTROLE"] = {
     }
 };
 
-// nr.globalCommand(
-// 	"/help/test/atme",
-// 	"atme",
-// 	{
-// 		usage: "atme",
-// 		description: "atme",
-// 		examples: [],
-// 		perms: {},
-// 	},
-// 	nr.list(),
-// 	async ([], info) => {
-// 		const api = info.message.client as any as ApiHolder;
-// 		await api.api.channels(info.message.channel.id).messages.post<{data: SampleMessage}, unknown>({data: {
-// 			content: "spooky",
-// 			components: [
-// 				componentRow([
-//                     button("GRANTROLE|417128720151871489", "@ me", "primary", {}),
-// 				]),
-// 			],
-// 		}});
-// 	},
-// );
+nr.globalCommand(
+	"/help/test/grantrolebtn",
+	"grantrolebtn",
+	{
+		usage: "grantrolebtn",
+		description: "grantrolebtn `button text` <role>",
+		examples: [],
+		perms: {runner: ["manage_bot"]},
+	},
+	nr.list(nr.a.backtick(), ...nr.a.role()),
+	async ([word, role], info) => {
+        if(!await permTheyCanManageRole(role, info)) return;
+        if(!await permWeCanManageRole(role, info)) return;
+
+		const api = info.message.client as any as ApiHolder;
+		await api.api.channels(info.message.channel.id).messages.post<{data: SampleMessage}, unknown>({data: {
+			content: "​",
+			components: [
+				componentRow([
+                    button("GRANTROLE|"+role.id, word, "primary", {}),
+				]),
+			],
+		}});
+	},
+);
+
+nr.globalCommand(
+	"/help/test/createticketbtn",
+	"createticketbtn",
+	{
+		usage: "createticketbtn",
+		description: "createticketbtn `Ticket message`",
+		examples: [],
+		perms: {runner: ["manage_bot"]},
+	},
+	nr.list(nr.a.backtick()),
+	async ([word], info) => {
+		const api = info.message.client as any as ApiHolder;
+		await api.api.channels(info.message.channel.id).messages.post<{data: SampleMessage}, unknown>({data: {
+			content: "​",
+			components: [
+				componentRow([
+                    button("CREATETICKET", word, "primary", {}),
+				]),
+			],
+		}});
+	},
+);
