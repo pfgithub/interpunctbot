@@ -489,32 +489,57 @@ nr.globalCommand(
 	async ([], info) => {
 		const game_id = await createGame<TicTacToeState>("TTT", {mode: "joining", first_player: info.message.author.id});
         await renderGame(info, game_id);
-        
-		// renderTicTacToe(game_id);
-
-		// const api = info.message.client as any as ApiHolder;
-		// await api.api.channels(info.message.channel.id).messages.post<{data: SampleMessage}, unknown>({data: {
-		// 	content: "<@341076015663153153>, You are X",
-		// 	components: [
-		// 		componentRow([
-		// 			button("ttt_1", " ", "secondary", {}),
-		// 			button("ttt_1", "O", "accept", {}),
-		// 			button("ttt_1", " ", "secondary", {}),
-		// 		]),
-		// 		componentRow([
-		// 			button("ttt_1", "X", "primary", {}),
-		// 			button("ttt_1", "X", "primary", {}),
-		// 			button("ttt_1", " ", "secondary", {}),
-		// 		]),
-		// 		componentRow([
-		// 			button("ttt_1", "O", "accept", {}),
-		// 			button("ttt_1", "X", "primary", {}),
-		// 			button("ttt_1", " ", "secondary", {}),
-		// 		]),
-		// 		componentRow([
-		// 			button("ttt_1", "Give Up", "deny", {}),
-		// 		]),
-		// 	],
-		// }});
 	},
 );
+
+nr.ginteractionhandler["GRANTROLE"] = {
+    async handle(info, custom_id) {
+        const [, role_id] = custom_id.split("|");
+        let adding_role = true;
+        try {
+            if(info.member!.roles.cache.has(role_id)) {
+                adding_role = false;
+                await info.member!.roles.remove(role_id);
+            }else{
+                await info.member!.roles.add(role_id);
+            }
+        }catch(e) {
+            console.log(e);
+            if(info.raw_interaction) {
+                await info.raw_interaction.replyHiddenHideCommand("<:failure:508841130503438356> There was an error "+
+                    (adding_role ? "giving you" : "removing")+" the role <@&"+role_id+">")
+                ;
+                return;
+            }
+        }
+        if(info.raw_interaction) {
+            await info.raw_interaction.replyHiddenHideCommand(
+                (adding_role ? "<:success:508840840416854026> Given" : "<:info:508842207089000468> Removed")+" role <@&"+role_id+">"
+            );
+        }
+        return;
+    }
+};
+
+// nr.globalCommand(
+// 	"/help/test/atme",
+// 	"atme",
+// 	{
+// 		usage: "atme",
+// 		description: "atme",
+// 		examples: [],
+// 		perms: {},
+// 	},
+// 	nr.list(),
+// 	async ([], info) => {
+// 		const api = info.message.client as any as ApiHolder;
+// 		await api.api.channels(info.message.channel.id).messages.post<{data: SampleMessage}, unknown>({data: {
+// 			content: "spooky",
+// 			components: [
+// 				componentRow([
+//                     button("GRANTROLE|417128720151871489", "@ me", "primary", {}),
+// 				]),
+// 			],
+// 		}});
+// 	},
+// );
