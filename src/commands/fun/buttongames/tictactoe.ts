@@ -369,7 +369,7 @@ const TTTGame: Game = {
                     if(info.raw_interaction) {
                         await info.raw_interaction.replyHiddenHideCommand("You are already in the game.", [
                             componentRow([
-                                button(key(TTTKeys.joining.join_anyway), "Play by yourself", "secondary", {}),
+                                button(key(TTTKeys.joining.join_anyway), "Play against yourself", "secondary", {}),
                             ]),
                         ]);
                     }else{
