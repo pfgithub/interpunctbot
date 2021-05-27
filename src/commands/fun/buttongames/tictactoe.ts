@@ -82,7 +82,7 @@ nr.globalCommand(
 		usage: "spooky",
 		description: "spooky",
 		examples: [],
-		perms: {},
+		perms: {fun: true},
 	},
 	nr.list(),
 	async ([], info) => {
@@ -491,7 +491,7 @@ nr.globalCommand(
 		usage: "ttt2",
 		description: "ttt2",
 		examples: [],
-		perms: {},
+		perms: {fun: true},
 	},
 	nr.list(),
 	async ([], info) => {
@@ -777,7 +777,7 @@ nr.globalCommand(
 		usage: "circlegame2",
 		description: "circlegame2",
 		examples: [],
-		perms: {},
+		perms: {fun: true},
 	},
 	nr.list(),
 	async ([], info) => {
@@ -801,7 +801,7 @@ nr.globalCommand(
 		usage: "papersoccer2",
 		description: "papersoccer2",
 		examples: [],
-		perms: {},
+		perms: {fun: true},
 	},
 	nr.list(),
 	async ([], info) => {
