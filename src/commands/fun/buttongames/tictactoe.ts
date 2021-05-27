@@ -157,7 +157,9 @@ async function createGame<T>(game_kind: GameKind, game_state: T) {
 }
 async function getGameData(game_id: GameID): Promise<GameData> {
     const res = await globalKnex!("games").where({id: gameIDToNum(game_id)});
-    return JSON.parse(res[0].data);
+    const rd = res[0].data;
+    if(typeof rd !== "string") return rd;
+    return JSON.parse(rd);
 }
 
 async function renderGame(info: Info, game_id: GameID) {

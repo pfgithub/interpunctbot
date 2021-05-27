@@ -113,6 +113,8 @@ function tryParse<T>(json: string | undefined, defaultValue: T): T {
 		return defaultValue;
 	}
 	if (typeof json !== "string") return json; // ? not sure why this is needed
+	// the answer, from you in the future: it turns out that knex sqlite returns strings
+	// but knex postgres returns json-decoded data… uuh
 	try {
 		return JSON.parse(json);
 	} catch (e) {
