@@ -93,8 +93,8 @@ type SlashCommand = SlashCommandUser & {
     application_id: string;
 };
 
-export type InteractionHandled = {__interaction_handled: true};
-const interaction_handled: InteractionHandled = {__interaction_handled: true};
+export type InteractionHandled<T> = {__interaction_handled: T};
+const interaction_handled: InteractionHandled<any> = {__interaction_handled: true};
 
 export class InteractionHelper {
     raw_interaction: DiscordInteraction;

@@ -109,6 +109,7 @@ nr.ginteractionhandler["boo_btn"] = {
 
 type GameKind =
     | "TTT" // tic tac toe
+    | "CG" // circlegame
 ;
 
 type GameData = {
@@ -171,16 +172,16 @@ async function renderGame(info: Info, game_id: GameID) {
     });
 }
 
-interface Game {
+interface Game<T> {
     render: (state: unknown, game_id: GameID, game_kind: GameKind, game_stage: number, info: Info) => SampleMessage;
-    handleInteraction: (info: Info, custom_id: string) => Promise<InteractionHandled>;
+    handleInteraction: (info: Info, custom_id: string) => Promise<InteractionHandled<T>>;
 };
 
 const TTTKeys = {
     joining: {join: "join", end: "end", join_anyway: "join_anyway"},
     playing: {give_up: "give_up"},
 };
-async function updateGameState<T>(info: Info, ikey: {game_id: GameID; kind: GameKind; stage: number}, state: T): Promise<InteractionHandled> {
+async function updateGameState<T>(info: Info, ikey: {game_id: GameID; kind: GameKind; stage: number}, state: T): Promise<InteractionHandled<T>> {
     // get new game data
     const upd_game_data: GameData = {kind: ikey.kind, stage: ikey.stage + 1, state: state};
     // 1: send updated message    
@@ -209,9 +210,9 @@ async function updateGameState<T>(info: Info, ikey: {game_id: GameID; kind: Game
     // response and changing all the buttons to "disabled"?
     await info.message.delete();
     // return handle token
-    return {__interaction_handled: true};
+    return {__interaction_handled: true as unknown as T};
 }
-async function errorGame(info: Info, message: string): Promise<InteractionHandled> {
+async function errorGame(info: Info, message: string): Promise<InteractionHandled<any>> {
     await info.error(message);
     return {__interaction_handled: true};
 }
@@ -299,7 +300,7 @@ function tttDetectTie(grid: Grid<" " | "O" | "X">): boolean {
     return grid.every(l => l.every(t => t !== " "));
 }
 
-const TTTGame: Game = {
+const TTTGame: Game<TicTacToeState> = {
     render(state_in, game_id, game_kind, game_stage, info): SampleMessage {
         const state = state_in as TicTacToeState;
 
@@ -351,7 +352,7 @@ const TTTGame: Game = {
             };
         }
     },
-    async handleInteraction(info, custom_id): Promise<InteractionHandled> {
+    async handleInteraction(info, custom_id): Promise<InteractionHandled<TicTacToeState>> {
         const ikey = parseInteractionKey(custom_id);
         const game_state = await getGameData(ikey.game_id);
         const key = (name: string) => getInteractionKey(ikey.game_id, ikey.kind, ikey.stage, name);
@@ -375,7 +376,7 @@ const TTTGame: Game = {
                     }else{
                         await info.accept();
                     }
-                    return {__interaction_handled: true};
+                    return {__interaction_handled: true as unknown as TicTacToeState};
                 }else{
                     return await updateGameState<TicTacToeState>(info, ikey, {
                         mode: "playing",
@@ -481,10 +482,6 @@ nr.ginteractionhandler["GAME"] = {
     }
 };
 
-const games: {[key in GameKind]: Game} = {
-    "TTT": TTTGame,
-};
-
 nr.globalCommand(
 	"/help/test/ttt2",
 	"ttt2",
@@ -578,3 +575,256 @@ nr.globalCommand(
 		}});
 	},
 );
+
+type Circle = "O" | "X" | " ";
+type CirclegameState = {
+    mode: "joining",
+    initiator: string,
+} | {
+    mode: "playing",
+    over?: {
+        winner: "O" | "X" | "Tie",
+        reason: string,
+    },
+    lines: Circle[][],
+    player: "O" | "X",
+    players: {
+        "O": string,
+        "X": string,
+    },
+    // ooo! change the colors of the removed circles based on
+    // who removed them! that'd be neat
+} | {
+    mode: "canceled",
+} | {mode: "__never__"};
+const CGKeys = {
+    joining: {join: "join", end: "end", join_anyway: "join_anyway"},
+    playing: {give_up: "give_up"},
+};
+const CGGame: Game<CirclegameState> = {
+    render(state_in, game_id, game_kind, game_stage, info): SampleMessage {
+        const state = state_in as CirclegameState;
+
+        const key = (name: string) => getInteractionKey(game_id, game_kind, game_stage, name);
+
+        if(state.mode === "joining") {
+            return {
+                content: "<@"+state.initiator+"> is starting a circle game",
+                components: [
+                    componentRow([
+                        button(key(CGKeys.joining.join), "Join Game", "accept", {}),
+                        button(key(CGKeys.joining.end), "Cancel", "deny", {}),
+                    ]),
+                ],
+            };
+        }else if(state.mode === "playing") {
+            return {
+                content: !state.over
+                    ? "It's your turn <@"+state.players[state.player]+">, You are "+state.player+"\n"
+                    + "Try to be the last player to take a circle."
+                    : (state.over.winner === "Tie"
+                    ? "There was a tie. ("+state.over.reason+"). "
+                    : "<@"+state.players[state.over.winner]+"> won!")
+                    + " ("+state.over.reason+"). Players: <@"+state.players.X+">, <@"+state.players.O+">",
+                components: [
+                    ...state.lines.map((yr, y) => {
+                        const vc = yr.filter(itm => itm === " ").length;
+                        return componentRow([
+                            ...yr.map((tile, x) =>
+                                button(key("C,"+(vc - x)+","+y), tile === " " ? "" + (vc - x) : " ",
+                                    ({" ": "secondary", "X": "primary", "O": "accept"} as const)[tile],
+                                    {disabled: tile === " " ? false : true},
+                                ),
+                            ),
+                            ...y == 0 && !state.over ?
+                            [
+                                button(key(CGKeys.playing.give_up), "Give Up", "deny", {}),
+                            ] : [],
+                        ]);
+                    }),
+                ],
+            };
+        }else if(state.mode === "canceled") {
+            return {
+                content: "Canceled game.",
+                components: [],
+            };
+        }else{
+            return {
+                content: "Unsupported "+state.mode,
+                components: [],
+            };
+        }
+    },
+    async handleInteraction(info, custom_id): Promise<InteractionHandled<CirclegameState>> {
+        const ikey = parseInteractionKey(custom_id);
+        const game_state = await getGameData(ikey.game_id);
+        const key = (name: string) => getInteractionKey(ikey.game_id, ikey.kind, ikey.stage, name);
+
+        if(game_state.stage != ikey.stage) {
+            return await errorGame(info, "This button is no longer active.");
+        }
+        const state = game_state.state as CirclegameState;
+
+        console.log(game_state);
+
+        if(state.mode === "joining") {
+            if(ikey.name === CGKeys.joining.join || ikey.name === CGKeys.joining.join_anyway) {
+                if(ikey.name !== CGKeys.joining.join_anyway && info.message.author.id === state.initiator) {
+                    if(info.raw_interaction) {
+                        await info.raw_interaction.replyHiddenHideCommand("You are already in the game.", [
+                            componentRow([
+                                button(key(CGKeys.joining.join_anyway), "Play against yourself", "secondary", {}),
+                            ]),
+                        ]);
+                    }else{
+                        await info.accept();
+                    }
+                    return {__interaction_handled: true as any};
+                }else{
+                    return await updateGameState<CirclegameState>(info, ikey, {
+                        mode: "playing",
+                        // initiator: state.first_player,
+                        lines: [
+                            [" "],
+                            [" ", " "],
+                            [" ", " ", " "],
+                            [" ", " ", " ", " "],
+                            [" ", " ", " ", " ", " "],
+                        ],
+                        player: "X",
+                        players: {
+                            "X": state.initiator,
+                            "O": info.message.author.id,
+                        },
+                    });
+                }
+            }else if(ikey.name === CGKeys.joining.end) {
+                if(info.message.author.id === state.initiator) {
+                    return await updateGameState<CirclegameState>(info, ikey, {
+                        mode: "canceled",
+                    });
+                }else{
+                    return await errorGame(info, "Only <@"+state.initiator+"> can cancel.");
+                }
+            }else{
+                return await errorGame(info, "Error! Unsupported "+ikey.name);
+            }
+        }else if(state.mode === "playing") {
+            if(state.over) return await errorGame(info, "This game is over.");
+            if(info.message.author.id !== state.players[state.player]) {
+                if(!JSON.stringify(state.player).includes(info.message.author.id)) { // hack
+                    return await errorGame(info, "You're not in this game");
+                }
+                return await errorGame(info, "It's not your turn");
+            }
+            if(ikey.name.startsWith("C,")) {
+                const [, tc, ty] = ikey.name.split(",") as [string, string, string];
+
+                const line = state.lines[+ty];
+                let index = line.lastIndexOf(" ") + 1;
+                for(let i = Math.max(0, index -+ tc); i < index; i++){
+                    line[i] = state.player;
+                }
+
+                if(state.lines.every(line => line.lastIndexOf(" ") === -1)) {
+                    return await updateGameState<CirclegameState>(info, ikey, {
+                        ...state,
+                        over: {
+                            winner: state.player,
+                            reason: "Took the last circle",
+                        },
+                    });
+                }
+
+                return await updateGameState<CirclegameState>(info, ikey, {
+                    ...state,
+                    player: advanceCGPlayer(state.player),
+                });
+                return await errorGame(info, "TODO: "+tc+", "+ty);
+            }else if(ikey.name === CGKeys.playing.give_up) {
+                return await updateGameState<CirclegameState>(info, ikey, {
+                    ...state,
+                    mode: "playing",
+                    over: {
+                        winner: advanceCGPlayer(state.player),
+                        reason: "Other player gave up.",
+                    },
+                });
+            }else{
+                return await errorGame(info, "Error! Unsupported "+ikey.name);
+            }
+        }else if(state.mode === "canceled") {
+            return await errorGame(info, "This game was not started.");
+        }else{
+            return await errorGame(info, "TODO support "+state.mode);
+        }
+
+        // if(info.raw_interaction) {
+        //     await info.raw_interaction.replyHiddenHideCommand("Interaction "+custom_id);
+        // }
+
+        // if(info.raw_interaction) {
+        //     await info.raw_interaction.accept();
+        // }
+    }
+};
+function advanceCGPlayer(player: "X" | "O"): "O" | "X" {
+    return ({"X": "O", "O": "X"} as const)[player];
+}
+
+nr.globalCommand(
+	"/help/test/circlegame2",
+	"circlegame2",
+	{
+		usage: "circlegame2",
+		description: "circlegame2",
+		examples: [],
+		perms: {},
+	},
+	nr.list(),
+	async ([], info) => {
+		const api = info.message.client as any as ApiHolder;
+
+		const game_id = await createGame<CirclegameState>("CG", {mode: "joining", initiator: info.message.author.id});
+        await renderGame(info, game_id);
+
+        // const nums = [..."12345"];
+        // const circles = new Array(5).fill(0).map((_, it) => it + 1);
+		// await api.api.channels(info.message.channel.id).messages.post<{data: SampleMessage}, unknown>({data: {
+		// 	content: "Circlegame. Try to be the last person to take a circle.",
+		// 	components: circles.map(itm => new Array(itm).fill(0).map((_, it, ar) => ar.length - it)).map(q => {
+        //         return componentRow(q.map(r => button("boo_btn", "" + nums[r - 1], "primary", {})));
+        //     }),
+		// }});
+	},
+);
+nr.globalCommand(
+	"/help/test/papersoccer2",
+	"papersoccer2",
+	{
+		usage: "papersoccer2",
+		description: "papersoccer2",
+		examples: [],
+		perms: {},
+	},
+	nr.list(),
+	async ([], info) => {
+		const api = info.message.client as any as ApiHolder;
+
+        // const nums = [..."12345"];
+        // const circles = new Array(5).fill(0).map((_, it) => it + 1);
+		await api.api.channels(info.message.channel.id).messages.post<{data: SampleMessage}, unknown>({data: {
+			content: "Papersoccer. TODO",
+			components: [[..."↖↑↗"], [..."← →"], [..."↙↓↘"]].map(itm => 
+                componentRow(itm.map(v => button("todo", v, "secondary", {disabled: v === " "}))),
+            ),
+            // oh and it can even show which directions are valid w/ disabled
+		}});
+	},
+);
+
+const games: {[key in GameKind]: Game<unknown>} = {
+    "TTT": TTTGame,
+    "CG": CGGame,
+};
