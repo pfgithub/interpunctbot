@@ -114,8 +114,8 @@ export class InteractionHelper {
     async edit(value: object) {
         await api.api.webhooks(this.raw_interaction.application_id, this.raw_interaction.id, this.raw_interaction.token).messages("@original").patch({data: value});
     }
-    async delete(value: object) {
-        await api.api.webhooks(this.raw_interaction.application_id, this.raw_interaction.id, this.raw_interaction.token).messages("@original").delete({data: value});
+    async delete() {
+        await api.api.webhooks(this.raw_interaction.application_id, this.raw_interaction.id, this.raw_interaction.token).messages("@original").delete();
     }
     async acceptLater() {
         await this.sendRaw({
