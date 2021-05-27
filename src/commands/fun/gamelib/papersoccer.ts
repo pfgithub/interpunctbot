@@ -24,7 +24,7 @@ const emojis = JSON.parse(fs.readFileSync("config/emojis/papersoccer.json", "utf
 // }
 
 // a: -1, b: 0, c: 1
-type Direction = "aa" | "ab" | "ac" | "ba" | "bc" | "ca" | "cb" | "cc";
+export type Direction = "aa" | "ab" | "ac" | "ba" | "bc" | "ca" | "cb" | "cc";
 type Connection = {to: number; active: number};
 type Point = {
 	x: number; y: number;
@@ -33,18 +33,18 @@ type Point = {
 	};
 };
 
-type Board = {
+export type Board = {
 	points: Point[];
 	connections: boolean[];
 };
 
-function directionToDiff(direction: Direction): [number, number] {
+export function directionToDiff(direction: Direction): [number, number] {
 	return direction.split("").map(itm => ({a: -1, b: 0, c: 1}[itm as "a" | "b" | "c"])) as [number, number];
 }
 function diffToDirection(diff: [number, number]): Direction {
 	return diff.map(v => v === -1 ? "a" : v === 0 ? "b" : v === 1 ? "c" : (() => {throw new Error("bad v: "+v)})()).join("") as Direction;
 }
-const xyToPtIndex = (x: number, y: number) => y * 11 + x;
+export const xyToPtIndex = (x: number, y: number) => y * 11 + x;
 const inBoard = (x: number, y: number) => {
 	if(x >= 1 && x <= 9 && y >= 2 && y <= 12) return true;
 	if(x >= 4 && x <= 6 && (y === 1 || y === 13)) return true;
@@ -66,7 +66,7 @@ type DisplayTile = {
 	diagonur: boolean;
 	ball: BallPosition;
 } | undefined;
-function displayBoard(board: Board, ball: [number, number], winner: boolean, player: string) {
+export function displayBoard(board: Board, ball: [number, number], winner: boolean, player: string, bottom: boolean) {
 	const glboard = newGamelibBoard<DisplayTile>(8, 12, (rvx, rvy) => {
 		const [x, y] = [rvx + 1, rvy + 1];
 		if(!inBoard(x, y) || !inBoard(x+1, y) || !inBoard(x, y+1) || !inBoard(x+1, y+1)) return undefined;
@@ -99,10 +99,12 @@ function displayBoard(board: Board, ball: [number, number], winner: boolean, pla
 	for(const line of [0, res.length - 1]) {
 		res[line] = res[line].substr(0, res[line].length - 3);
 	}
-	return (winner ? "<@"+player+"> won!" : "<@"+player+">'s turn:") + "\n\n" + res.join("\n");
+	const pl = winner ? "<@"+player+"> won." : "<@"+player+">'s turn";
+	return "-\n"+(bottom ? "-" : pl)+"\n" + res.join("\n")+"\n"+(bottom ? pl : "-");
+	// put <@player> on the bottom if they win by getting to the bottom
 }
 
-function initBoard(): Board {
+export function initBoard(): Board {
 	const res: Board = {points: new Array(10 * 13).fill(undefined), connections: []};
 	const getOrMakeConnection = (x: number, y: number, direction: Direction): Connection | undefined => {
 		if(!inBoard(x, y)) return undefined;
@@ -168,7 +170,7 @@ type GameState = {
 	winner?: Player;
 };
 
-function availableConnections(state: GameState, x: number, y: number): "none" | "some" | "all" {
+export function availableConnections(state: {board: Board}, x: number, y: number): "none" | "some" | "all" {
 	let connections = 0;
 	let maxConnections = 0;
 	
@@ -253,9 +255,9 @@ export const papersoccer = newGame<GameState>({
 			"⬆️ <@"+state.players[0].id+">, you win by getting the ball to the **top** of the screen.\n"+
 			"⬇️ <@"+state.players[1].id+">, you win by getting the ball to the **bottom** of the screen.\n"+
 			"You cannot move across a line that has already been drawn.\n"+
-			"If the ball has already been in the location you move to, you get another turn.\n"+
+			"If the location you move to already has a line, you get another turn.\n"+
 			"If you get the ball stuck, your opponent wins.",
-			displayBoard(state.board, state.ball, !!state.winner, (state.winner || state.players[state.turn]).id),
+			displayBoard(state.board, state.ball, !!state.winner, (state.winner || state.players[state.turn]).id, state.turn === 1),
 		];
 	},
 	timers: [

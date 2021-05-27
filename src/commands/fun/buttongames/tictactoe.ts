@@ -5,6 +5,11 @@ import Info, {permTheyCanManageRole, permWeCanManageRole} from "../../../Info";
 import { InteractionHandled } from "../../../SlashCommandManager";
 import { globalConfig } from "../../../config";
 
+const BasicKeys = {
+    joining: {join: "join", end: "end", join_anyway: "join_anyway"},
+    playing: {give_up: "give_up"},
+};
+
 type ApiHandler = {
     get: <T>() => Promise<T>;
     post: <T, Q>(value: T) => Promise<Q>;
@@ -110,6 +115,7 @@ nr.ginteractionhandler["boo_btn"] = {
 type GameKind =
     | "TTT" // tic tac toe
     | "CG" // circlegame
+    | "PS" // paper soccer
 ;
 
 type GameData = {
@@ -177,10 +183,6 @@ interface Game<T> {
     handleInteraction: (info: Info, custom_id: string) => Promise<InteractionHandled<T>>;
 };
 
-const TTTKeys = {
-    joining: {join: "join", end: "end", join_anyway: "join_anyway"},
-    playing: {give_up: "give_up"},
-};
 async function updateGameState<T>(info: Info, ikey: {game_id: GameID; kind: GameKind; stage: number}, state: T): Promise<InteractionHandled<T>> {
     // get new game data
     const upd_game_data: GameData = {kind: ikey.kind, stage: ikey.stage + 1, state: state};
@@ -311,8 +313,8 @@ const TTTGame: Game<TicTacToeState> = {
                 content: "<@"+state.first_player+"> is starting a game of Tic Tac Toe",
                 components: [
                     componentRow([
-                        button(key(TTTKeys.joining.join), "Join Game", "accept", {}),
-                        button(key(TTTKeys.joining.end), "Cancel", "deny", {}),
+                        button(key(BasicKeys.joining.join), "Join Game", "accept", {}),
+                        button(key(BasicKeys.joining.end), "Cancel", "deny", {}),
                     ]),
                 ],
             };
@@ -336,7 +338,7 @@ const TTTGame: Game<TicTacToeState> = {
                     )),
                     ...state.mode === "playing" ?
                     [componentRow([
-                        button(key(TTTKeys.playing.give_up), "Give Up", "deny", {}),
+                        button(key(BasicKeys.playing.give_up), "Give Up", "deny", {}),
                     ])] : [],
                 ],
             };
@@ -365,12 +367,12 @@ const TTTGame: Game<TicTacToeState> = {
         console.log(game_state);
 
         if(state.mode === "joining") {
-            if(ikey.name === TTTKeys.joining.join || ikey.name === TTTKeys.joining.join_anyway) {
-                if(ikey.name !== TTTKeys.joining.join_anyway && info.message.author.id === state.first_player) {
+            if(ikey.name === BasicKeys.joining.join || ikey.name === BasicKeys.joining.join_anyway) {
+                if(ikey.name !== BasicKeys.joining.join_anyway && info.message.author.id === state.first_player) {
                     if(info.raw_interaction) {
                         await info.raw_interaction.replyHiddenHideCommand("You are already in the game.", [
                             componentRow([
-                                button(key(TTTKeys.joining.join_anyway), "Play against yourself", "secondary", {}),
+                                button(key(BasicKeys.joining.join_anyway), "Play against yourself", "secondary", {}),
                             ]),
                         ]);
                     }else{
@@ -395,7 +397,7 @@ const TTTGame: Game<TicTacToeState> = {
                         },
                     });
                 }
-            }else if(ikey.name === TTTKeys.joining.end) {
+            }else if(ikey.name === BasicKeys.joining.end) {
                 if(info.message.author.id === state.first_player) {
                     return await updateGameState<TicTacToeState>(info, ikey, {
                         mode: "canceled",
@@ -442,7 +444,7 @@ const TTTGame: Game<TicTacToeState> = {
                     mode: "playing",
                     player: advanceTTTPlayer(state.player),
                 });
-            }else if(ikey.name === TTTKeys.playing.give_up) {
+            }else if(ikey.name === BasicKeys.playing.give_up) {
                 return await updateGameState<TicTacToeState>(info, ikey, {
                     ...state,
                     mode: "won",
@@ -597,10 +599,6 @@ type CirclegameState = {
 } | {
     mode: "canceled",
 } | {mode: "__never__"};
-const CGKeys = {
-    joining: {join: "join", end: "end", join_anyway: "join_anyway"},
-    playing: {give_up: "give_up"},
-};
 const CGGame: Game<CirclegameState> = {
     render(state_in, game_id, game_kind, game_stage, info): SampleMessage {
         const state = state_in as CirclegameState;
@@ -612,8 +610,8 @@ const CGGame: Game<CirclegameState> = {
                 content: "<@"+state.initiator+"> is starting a circle game",
                 components: [
                     componentRow([
-                        button(key(CGKeys.joining.join), "Join Game", "accept", {}),
-                        button(key(CGKeys.joining.end), "Cancel", "deny", {}),
+                        button(key(BasicKeys.joining.join), "Join Game", "accept", {}),
+                        button(key(BasicKeys.joining.end), "Cancel", "deny", {}),
                     ]),
                 ],
             };
@@ -638,7 +636,7 @@ const CGGame: Game<CirclegameState> = {
                             ),
                             ...y == 0 && !state.over ?
                             [
-                                button(key(CGKeys.playing.give_up), "Give Up", "deny", {}),
+                                button(key(BasicKeys.playing.give_up), "Give Up", "deny", {}),
                             ] : [],
                         ]);
                     }),
@@ -669,12 +667,12 @@ const CGGame: Game<CirclegameState> = {
         console.log(game_state);
 
         if(state.mode === "joining") {
-            if(ikey.name === CGKeys.joining.join || ikey.name === CGKeys.joining.join_anyway) {
-                if(ikey.name !== CGKeys.joining.join_anyway && info.message.author.id === state.initiator) {
+            if(ikey.name === BasicKeys.joining.join || ikey.name === BasicKeys.joining.join_anyway) {
+                if(ikey.name !== BasicKeys.joining.join_anyway && info.message.author.id === state.initiator) {
                     if(info.raw_interaction) {
                         await info.raw_interaction.replyHiddenHideCommand("You are already in the game.", [
                             componentRow([
-                                button(key(CGKeys.joining.join_anyway), "Play against yourself", "secondary", {}),
+                                button(key(BasicKeys.joining.join_anyway), "Play against yourself", "secondary", {}),
                             ]),
                         ]);
                     }else{
@@ -684,7 +682,6 @@ const CGGame: Game<CirclegameState> = {
                 }else{
                     return await updateGameState<CirclegameState>(info, ikey, {
                         mode: "playing",
-                        // initiator: state.first_player,
                         lines: [
                             [" "],
                             [" ", " "],
@@ -699,7 +696,7 @@ const CGGame: Game<CirclegameState> = {
                         },
                     });
                 }
-            }else if(ikey.name === CGKeys.joining.end) {
+            }else if(ikey.name === BasicKeys.joining.end) {
                 if(info.message.author.id === state.initiator) {
                     return await updateGameState<CirclegameState>(info, ikey, {
                         mode: "canceled",
@@ -742,7 +739,7 @@ const CGGame: Game<CirclegameState> = {
                     player: advanceCGPlayer(state.player),
                 });
                 return await errorGame(info, "TODO: "+tc+", "+ty);
-            }else if(ikey.name === CGKeys.playing.give_up) {
+            }else if(ikey.name === BasicKeys.playing.give_up) {
                 return await updateGameState<CirclegameState>(info, ikey, {
                     ...state,
                     mode: "playing",
@@ -784,8 +781,6 @@ nr.globalCommand(
 	},
 	nr.list(),
 	async ([], info) => {
-		const api = info.message.client as any as ApiHolder;
-
 		const game_id = await createGame<CirclegameState>("CG", {mode: "joining", initiator: info.message.author.id});
         await renderGame(info, game_id);
 
@@ -812,19 +807,200 @@ nr.globalCommand(
 	async ([], info) => {
 		const api = info.message.client as any as ApiHolder;
 
-        // const nums = [..."12345"];
-        // const circles = new Array(5).fill(0).map((_, it) => it + 1);
-		await api.api.channels(info.message.channel.id).messages.post<{data: SampleMessage}, unknown>({data: {
-			content: "Papersoccer. TODO",
-			components: [[..."↖↑↗"], [..."← →"], [..."↙↓↘"]].map(itm => 
-                componentRow(itm.map(v => button("todo", v, "secondary", {disabled: v === " "}))),
-            ),
-            // oh and it can even show which directions are valid w/ disabled
-		}});
+		const game_id = await createGame<PSState>("PS", {mode: "joining", initiator: info.message.author.id});
+        await renderGame(info, game_id);
 	},
 );
+
+import * as PS from "../gamelib/papersoccer";
+
+type PSState = {mode: "joining", initiator: string} | {mode: "canceled"} | {
+    mode: "playing";
+
+	board: PS.Board;
+	players: string[];
+	player: number;
+	ball: [number, number];
+    over?: {
+        reason: string;
+    },
+} | {mode: "__never__"};
+
+const PSKeys = {
+    playing: {
+        rules: "rules",
+    },
+};
+const PSGame: Game<PSState> = {
+    render(state_in, game_id, game_kind, game_stage, info): SampleMessage {
+        const state = state_in as PSState;
+
+        const key = (name: string) => getInteractionKey(game_id, game_kind, game_stage, name);
+
+        if(state.mode === "joining") {
+            return {
+                content: "<@"+state.initiator+"> is starting a paper soccer game",
+                components: [
+                    componentRow([
+                        button(key(BasicKeys.joining.join), "Join Game", "accept", {}),
+                        button(key(BasicKeys.joining.end), "Cancel", "deny", {}),
+                    ]),
+                ],
+            };
+        }else if(state.mode === "playing") {
+            const index = PS.xyToPtIndex(...state.ball);
+            const point = state.board.points[index];
+
+            return {
+                content: PS.displayBoard(state.board, state.ball, !!state.over, state.players[state.player], state.player === 1),
+                components: [
+                    ...[[..."↖↑↗"], [..."← →"], [..."↙↓↘"]].map((itm, y) => 
+                        componentRow(itm.map((v, x) => {
+                            if(v === " ") return button(key("none"), v, "secondary", {disabled: true});
+                            const dirxn = (["a", "b", "c"][x])+(["a", "b", "c"][y]) as PS.Direction;
+                            const conxn = point.connections[dirxn];
+
+                            return button(key("MOVE,"+dirxn), v, "secondary", {disabled: conxn ? state.board.connections[conxn.active] : true});
+                        })),
+                    ),
+                    componentRow([button(key(PSKeys.playing.rules), "Rules", "secondary", {emoji: {name: "rules", id: "476514294075490306", animated: false}})]),
+                ],
+            };
+        }else if(state.mode === "canceled") {
+            return {
+                content: "Canceled game.",
+                components: [],
+            };
+        }else{
+            return {
+                content: "Unsupported "+state.mode,
+                components: [],
+            };
+        }
+    },
+    async handleInteraction(info, custom_id): Promise<InteractionHandled<PSState>> {
+        const ikey = parseInteractionKey(custom_id);
+        const game_state = await getGameData(ikey.game_id);
+        const key = (name: string) => getInteractionKey(ikey.game_id, ikey.kind, ikey.stage, name);
+
+        if(game_state.stage != ikey.stage) {
+            return await errorGame(info, "This button is no longer active.");
+        }
+        const state = game_state.state as PSState;
+
+        console.log(game_state);
+
+        if(state.mode === "joining") {
+            if(ikey.name === BasicKeys.joining.join || ikey.name === BasicKeys.joining.join_anyway) {
+                if(ikey.name !== BasicKeys.joining.join_anyway && info.message.author.id === state.initiator) {
+                    if(info.raw_interaction) {
+                        await info.raw_interaction.replyHiddenHideCommand("You are already in the game.", [
+                            componentRow([
+                                button(key(BasicKeys.joining.join_anyway), "Play against yourself", "secondary", {}),
+                            ]),
+                        ]);
+                    }else{
+                        await info.accept();
+                    }
+                    return {__interaction_handled: true as any};
+                }else{
+                    return await updateGameState<PSState>(info, ikey, {
+                        mode: "playing",
+
+                        board: PS.initBoard(),
+                        player: 0,
+                        players: [state.initiator, info.message.author.id],
+                        ball: [5, 7],
+                    });
+                }
+            }else if(ikey.name === BasicKeys.joining.end) {
+                if(info.message.author.id === state.initiator) {
+                    return await updateGameState<PSState>(info, ikey, {
+                        mode: "canceled",
+                    });
+                }else{
+                    return await errorGame(info, "Only <@"+state.initiator+"> can cancel.");
+                }
+            }else{
+                return await errorGame(info, "Error! Unsupported "+ikey.name);
+            }
+        }else if(state.mode === "playing") {
+            if(ikey.name === PSKeys.playing.rules) {
+                if(info.raw_interaction) {
+                    await info.raw_interaction.replyHiddenHideCommand(
+                        "== **Paper Soccer** ==\n"+
+                        "⬆️ <@"+state.players[0]+"> wins by getting the ball to the **top** of the screen.\n"+
+                        "⬇️ <@"+state.players[1]+"> wins win by getting the ball to the **bottom** of the screen.\n"+
+                        "You cannot move across a line that has already been drawn.\n"+
+                        "If the location you move to already has a line, you get to keep going.\n"+
+                        "If you get the ball stuck, your opponent wins."
+                    );
+                }else{
+                    await info.accept();
+                }
+                return {__interaction_handled: true as any};
+            }
+            if(state.over) return await errorGame(info, "This game is over.");
+            if(info.message.author.id !== state.players[state.player]) {
+                if(!JSON.stringify(state.player).includes(info.message.author.id)) { // hack
+                    return await errorGame(info, "You're not in this game");
+                }
+                return await errorGame(info, "It's not your turn");
+            }
+            if(ikey.name.startsWith("MOVE,")) {
+                const dirxn = ikey.name.split(",")[1]! as PS.Direction;
+                
+                const index = PS.xyToPtIndex(...state.ball);
+                const point = state.board.points[index];
+                const conxn = point.connections[dirxn];
+
+                if(!conxn) return await errorGame(info, "You can't go off the edge of the board");
+
+                const [ofstx, ofsty] = PS.directionToDiff(dirxn);
+                state.ball[0] += ofstx;
+                state.ball[1] += ofsty;
+                const conxnCnt = PS.availableConnections({board: state.board}, ...state.ball);
+                if(state.board.connections[conxn.active]) return await errorGame(info, "You can't go over a line");
+                state.board.connections[conxn.active] = true;
+                if(state.ball[1] === 1) {
+                    // p0 wins
+                    state.player = 0;
+                    state.over = {
+                        reason: "Got in goal",
+                    };
+                } else if(state.ball[1] === 13) {
+                    // p1 wins
+                    state.player = 1;
+                    state.over = {
+                        reason: "Got in goal",
+                    };
+                } else if(conxnCnt === "all") {
+                    // next turn
+                    state.player += 1;
+                    state.player %= state.players.length;
+                }else if(conxnCnt === "none") {
+                    // other player wins
+                    state.player += 1;
+                    state.player %= state.players.length;
+                    state.over = {
+                        reason: "Other player got stuck",
+                    };
+                }else{
+                    // current player goes again
+                }
+                return await updateGameState<PSState>(info, ikey, state);
+            }
+            return await errorGame(info, "TODO move: "+ikey.name+".");
+        }else if(state.mode === "canceled") {
+            return await errorGame(info, "This game was not started.");
+        }else{
+            return await errorGame(info, "TODO support "+state.mode);
+        }
+    }
+};
 
 const games: {[key in GameKind]: Game<unknown>} = {
     "TTT": TTTGame,
     "CG": CGGame,
+    "PS": PSGame,
 };
