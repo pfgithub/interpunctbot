@@ -191,7 +191,7 @@ async function updateGameState<T>(info: Info, ikey: {game_id: GameID; kind: Game
     const msgv = games[upd_game_data.kind].render(upd_game_data.state, ikey.game_id, upd_game_data.kind, upd_game_data.stage, info);
     if(info.raw_interaction) {
         await info.raw_interaction.sendRaw({
-            type: 4,
+            type: 7,
             data: {...msgv, allowed_mentions: {parse: []}},
         });
     }else{
@@ -207,10 +207,6 @@ async function updateGameState<T>(info: Info, ikey: {game_id: GameID; kind: Game
     // TODO use interactions rather than info.accept()
     // 3: update in db
     await globalKnex!("games").where({id: gameIDToNum(ikey.game_id)}).update({data: JSON.stringify(upd_game_data)});
-    // 4: delete original
-    // TODO rather than deleting, what about patching the previous interaction
-    // response and changing all the buttons to "disabled"?
-    await info.message.delete();
     // return handle token
     return {__interaction_handled: true as unknown as T};
 }
