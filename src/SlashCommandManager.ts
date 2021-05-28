@@ -10,69 +10,69 @@ import * as util from "util";
 const api = client as any as ApiHolder;
 
 type ApiHandler = {
-    get: <T>() => Promise<T>;
-    post: <T, Q>(value: T) => Promise<Q>;
-    patch: (value: any) => Promise<any>;
-    delete: () => Promise<any>;
+    get: <T>() => Promise<T>,
+    post: <T, Q>(value: T) => Promise<Q>,
+    patch: (value: any) => Promise<any>,
+    delete: () => Promise<any>,
 } & {[key: string]: ApiHandler} & ((...data: any[]) => ApiHandler);
 
 type ApiHolder = {api: ApiHandler};
 
 type UsedCommandOption = {
-    name: string;
-    options?: UsedCommandOption[];
-    value?: string;
+    name: string,
+    options?: UsedCommandOption[],
+    value?: string,
 };
 type UsedCommand = {
-    name: string;
-    id: string;
-    options?: UsedCommandOption[];
+    name: string,
+    id: string,
+    options?: UsedCommandOption[],
 };
 type ClickedButton = {
-    custom_id: string;
-    component_type: number;
+    custom_id: string,
+    component_type: number,
 };
 
 export type DiscordInteraction = DiscordCommandInteraction | DiscordButtonClickInteraction;
 
 export type DiscordBaseInteraction = {
-    id: string; // interaction id
-    token: string; // interaction token
-    application_id: string;
+    id: string, // interaction id
+    token: string, // interaction token
+    application_id: string,
 };
 
 export type DiscordCommandInteraction = DiscordBaseInteraction & {
-    type: 2;
-    name: string;
-    guild_id: string;
-    channel_id: string;
-    member: {user: {id: string}}; // TODO add this to the discord member cache // in the future this will be done automatically so nah
-    data: UsedCommand;
+    type: 2,
+    name: string,
+    guild_id: string,
+    channel_id: string,
+    member: {user: {id: string}}, // TODO add this to the discord member cache // in the future this will be done automatically so nah
+    data: UsedCommand,
 };
 export type DiscordButtonClickInteraction = DiscordBaseInteraction & {
-    type: 3;
-    version: 1;
-    guild_id: string;
-    channel_id: string;
-    message: {id: string; channel_id: string};
-    member: {user: {id: string}};
-    data: ClickedButton;
+    type: 3,
+    version: 1,
+    guild_id: string,
+    channel_id: string,
+    message: {id: string, channel_id: string},
+    member: {user: {id: string}},
+    data: ClickedButton,
 };
 
 type SlashCommandOptionNamelessSubcommand = {
-    description: string;
-    options?: SlashCommandOption[];
+    description: string,
+    options?: SlashCommandOption[],
 };
 type SlashCommandOptionNamelessNormal = {
-    description: string;
-    required: boolean;
+    description: string,
+    required: boolean,
 };
 
 type SlashCommandOptionNameless =
     | SlashCommandOptionNamelessSubcommand & {type: 1} // sub_command
     | SlashCommandOptionNamelessSubcommand & {type: 2} // sub_command_group
-    | SlashCommandOptionNamelessNormal & {type: 3; choices?: {name: string; value: string}[]} // string
-    | SlashCommandOptionNamelessNormal & {type: 4; choices?: {name: string; value: number}[]} // integer
+    | SlashCommandOptionNamelessNormal & {type: 3, choices?: {name: string, value: string}[]} // string
+    | SlashCommandOptionNamelessNormal & {type: 4, choices?: {name: string, value: number}[]} // integer
     | SlashCommandOptionNamelessNormal & {type: 5} // boolean
     | SlashCommandOptionNamelessNormal & {type: 6} // user
     | SlashCommandOptionNamelessNormal & {type: 7} // channel
@@ -80,18 +80,18 @@ type SlashCommandOptionNameless =
 ;
 
 type SlashCommandOption = SlashCommandOptionNameless & {
-    name: string;
+    name: string,
 };
 type SlashCommandNameless = {
-    description: string;
-    options?: SlashCommandOption[];
+    description: string,
+    options?: SlashCommandOption[],
 };
 type SlashCommandUser = SlashCommandNameless & {
-    name: string;
+    name: string,
 };
 type SlashCommand = SlashCommandUser & {
-    id: string;
-    application_id: string;
+    id: string,
+    application_id: string,
 };
 
 export type InteractionHandled<T> = {__interaction_handled: T};
@@ -285,15 +285,15 @@ async function do_handle_interaction(interaction: DiscordInteraction) {
 }
 
 type SlashCommandRouteBottomLevel = {
-    route?: string;
-    preload?: string;
-    description?: string; // if no description is specified, it will be chosen from the route
-    args?: {[key: string]: SlashCommandOptionNameless};
-    arg_stringifier?: (args: UsedCommandOption[]) => string;
+    route?: string,
+    preload?: string,
+    description?: string, // if no description is specified, it will be chosen from the route
+    args?: {[key: string]: SlashCommandOptionNameless},
+    arg_stringifier?: (args: UsedCommandOption[]) => string,
 };
 type SlashCommandRouteSubcommand = {
-    description: string;
-    subcommands: {[key: string]: SlashCommandRouteBottomLevel} | {[key: string]: SlashCommandRouteSubcommand};
+    description: string,
+    subcommands: {[key: string]: SlashCommandRouteBottomLevel} | {[key: string]: SlashCommandRouteSubcommand},
 };
 type SlashCommandRoute = SlashCommandRouteBottomLevel | SlashCommandRouteSubcommand;
 

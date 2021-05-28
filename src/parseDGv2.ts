@@ -1,5 +1,5 @@
 type DgToken =
-	| { type: "text"; text: string }
+	| { type: "text", text: string }
 	| { type: "lbracket" }
 	| { type: "rbracket" }
 	| { type: "argseparator" }; // union(enun) {char: u8, lbracket: void, rbracket: void, argseparator: void} // switch(token) {.char => |c| c, .lbracket => '{'}
@@ -46,14 +46,14 @@ export function parseDG(
 	dgIn: string,
 	callFunction: (
 		fnName: string,
-		args: { raw: string; safe: string }[],
+		args: { raw: string, safe: string }[],
 	) => string,
 ): {raw: string, safe: string} {
 	const tokens = tokenizeDG(dgIn);
 	const state: {
-		type: "callaction";
-		action: string;
-		args: { raw: string; safe: string }[];
+		type: "callaction",
+		action: string,
+		args: { raw: string, safe: string }[],
 	}[] = [
 	    { type: "callaction", action: "__HOME", args: [{ raw: "", safe: "" }] },
 	];

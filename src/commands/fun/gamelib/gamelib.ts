@@ -2,16 +2,16 @@ export type Player = { id: string };
 export type Tile = string;
 
 export type Move<State> = {
-	button: Tile;
-	player: Player;
-	apply: (state: State) => State;
+	button: Tile,
+	player: Player,
+	apply: (state: State) => State,
 };
 export type MoveSet<State> = Move<State>[];
 export type GameConfig<State> = {
-	setup: (player: Player[]) => State;
-	getMoves: (state: State) => MoveSet<State>;
-	render: (state: Readonly<State>) => string[];
-	checkGameOver: (state: Readonly<State>) => boolean;
+	setup: (player: Player[]) => State,
+	getMoves: (state: State) => MoveSet<State>,
+	render: (state: Readonly<State>) => string[],
+	checkGameOver: (state: Readonly<State>) => boolean,
 };
 
 export const newGame = <State>(conf: GameConfig<State>): GameConfig<State> => {
@@ -27,9 +27,9 @@ export function newTileset<T>(tiles: T): Tileset<T> {
 // TODO rename gamelib to board
 // rename all board functions to just their names directly eg get, set, render
 export type Board<TileData> = {
-	w: number;
-	h: number;
-	tiles: TileData[][];
+	w: number,
+	h: number,
+	tiles: TileData[][],
 };
 export function boardGet<T>(board: Board<T>, x: number, y: number): T | undefined {
 	return board.tiles[y]?.[x];
@@ -79,8 +79,8 @@ export function boardForEach<T>(board: Board<T>, cb: (tile: T, x: number, y: num
 }
 export function boardFilter<T>(board: Board<T>,
 	filtration: (tile: T, x: number, y: number) => boolean,
-): { tile: T; x: number; y: number }[] {
-	const results: { tile: T; x: number; y: number }[] = [];
+): { tile: T, x: number, y: number }[] {
+	const results: { tile: T, x: number, y: number }[] = [];
 	boardForEach(board, (tile, x, y) => {
 		if (filtration(tile, x, y)) results.push({ tile, x, y });
 	});
@@ -93,7 +93,7 @@ export function boardSearch<T>(board: Board<T>,
 		x: number,
 		y: number,
 	) => Pos | "current" | "previous",
-): { x: number; y: number; distance: number } | undefined {
+): { x: number, y: number, distance: number } | undefined {
 	let [cx, cy] = startingPosition;
 	let [x, y] = startingPosition;
 
@@ -115,23 +115,23 @@ export function boardSearch<T>(board: Board<T>,
 }
 
 export type Board_OLD<TileData> = {
-	get(x: number, y: number): TileData | undefined;
+	get(x: number, y: number): TileData | undefined,
 	set( // or mutate tile
 		x: number,
 		y: number,
 		tile: TileData,
-	): void;
-	fill(tile: (tile: TileData, x: number, y: number) => TileData): void;
-	render(draw: (tile: TileData, x: number, y: number) => string): string;
+	): void,
+	fill(tile: (tile: TileData, x: number, y: number) => TileData): void,
+	render(draw: (tile: TileData, x: number, y: number) => string): string,
 	megarender(
 		w: number,
 		h: number,
 		draw: (tile: TileData, x: number, y: number) => string[],
-	): string[][][];
-	forEach(cb: (tile: TileData, x: number, y: number) => void): void;
+	): string[][][],
+	forEach(cb: (tile: TileData, x: number, y: number) => void): void,
 	filter(
 		compare: (tile: TileData, x: number, y: number) => boolean,
-	): { tile: TileData; x: number; y: number }[];
+	): { tile: TileData, x: number, y: number }[],
 	search(
 		startingPosition: Pos,
 		cb: (
@@ -139,7 +139,7 @@ export type Board_OLD<TileData> = {
 			x: number,
 			y: number,
 		) => Pos | "current" | "previous",
-	): { x: number; y: number; distance: number } | undefined;
+	): { x: number, y: number, distance: number } | undefined,
 };
 export type Pos = [number, number];
 

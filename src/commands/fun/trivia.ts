@@ -37,17 +37,17 @@ declare namespace OpenTDB {
 	type Type = "multiple" | "boolean";
 
 	type Response = {
-		response_code: 0;
-		results: Question[];
+		response_code: 0,
+		results: Question[],
 	};
 
 	type Question = {
-		category: Category;
-		type: Type;
-		difficulty: Difficulty;
-		question: string;
-		correct_answer: string;
-		incorrect_answers: string[];
+		category: Category,
+		type: Type,
+		difficulty: Difficulty,
+		question: string,
+		correct_answer: string,
+		incorrect_answers: string[],
 	};
 }
 
@@ -161,8 +161,8 @@ nr.globalCommand(
 		}
 		{
 			let triviaChoices: {
-				name: string;
-				emoji: string;
+				name: string,
+				emoji: string,
 			}[] = [];
 			{
 				const choiceNames = [
@@ -206,15 +206,15 @@ nr.globalCommand(
 
 			const playerResponses: {
 				[id: string]: {
-					choiceName: string;
-					reactionPile: Discord.MessageReaction;
-					time: number;
-				};
+					choiceName: string,
+					reactionPile: Discord.MessageReaction,
+					time: number,
+				},
 			} = {};
 
 			let state = { state: "running" } as
 				| { state: "running" }
-				| { state: "over"; winners: string[] };
+				| { state: "over", winners: string[] };
 
 			const reactionWatcher = info.handleReactions(
 				gameMessage,
@@ -297,7 +297,7 @@ ${raw(
 			messageEdit.end();
 			clearTimeout(selectionEndTimer);
 
-			const winners: { id: string; time: number }[] = [];
+			const winners: { id: string, time: number }[] = [];
 			Object.entries(playerResponses).forEach(
 				([playerID, playerResponse]) => {
 					if (

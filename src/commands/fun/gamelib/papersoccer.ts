@@ -25,17 +25,17 @@ const emojis = JSON.parse(fs.readFileSync("config/emojis/papersoccer.json", "utf
 
 // a: -1, b: 0, c: 1
 export type Direction = "aa" | "ab" | "ac" | "ba" | "bc" | "ca" | "cb" | "cc";
-type Connection = {to: number; active: number};
+type Connection = {to: number, active: number};
 type Point = {
-	x: number; y: number;
+	x: number, y: number,
 	connections: {
 		[key in Direction]: Connection | undefined;
-	};
+	},
 };
 
 export type Board = {
-	points: Point[];
-	connections: boolean[];
+	points: Point[],
+	connections: boolean[],
 };
 
 export function directionToDiff(direction: Direction): [number, number] {
@@ -58,13 +58,13 @@ const isEdge = (x: number, y: number) => {
 const ballPositions = ["", "bl", "br", "ul", "ur"] as const;
 type BallPosition = typeof ballPositions[number];
 type DisplayTile = {
-	up: boolean;
-	left: boolean;
-	down: boolean;
-	right: boolean;
-	diagonbr: boolean;
-	diagonur: boolean;
-	ball: BallPosition;
+	up: boolean,
+	left: boolean,
+	down: boolean,
+	right: boolean,
+	diagonbr: boolean,
+	diagonur: boolean,
+	ball: BallPosition,
 } | undefined;
 export function displayBoard(board: Board, ball: [number, number], winner: boolean, player: string, bottom: boolean): string {
 	const glboard = newBoard<DisplayTile>(8, 12, (rvx, rvy) => {
@@ -163,11 +163,11 @@ export const buttonReactions: {[key in Direction]: string} = {
 };
 
 type GameState = {
-	board: Board;
-	players: Player[];
-	turn: number;
-	ball: [number, number];
-	over?: {reason: string};
+	board: Board,
+	players: Player[],
+	turn: number,
+	ball: [number, number],
+	over?: {reason: string},
 };
 
 export function availableConnections(state: {board: Board}, x: number, y: number): "none" | "some" | "all" {

@@ -17,33 +17,33 @@ const BasicKeys = {
 };
 
 type ApiHandler = {
-    get: <T>() => Promise<T>;
-    post: <T, Q>(value: T) => Promise<Q>;
-    patch: (value: any) => Promise<any>;
-    delete: () => Promise<any>;
+    get: <T>() => Promise<T>,
+    post: <T, Q>(value: T) => Promise<Q>,
+    patch: (value: any) => Promise<any>,
+    delete: () => Promise<any>,
 } & {[key: string]: ApiHandler} & ((...data: any[]) => ApiHandler);
 
 type ApiHolder = {api: ApiHandler};
 
 type ButtonComponent = {
-	type: 2;
-	style: 1 | 2 | 3 | 4; // primary, primary (green), secondary, destructive (red)
-	label?: string;
-	custom_id: string; // max 100 chars
-	disabled?: boolean;
-	emoji?: {name: string; id: string; animated: boolean};
+	type: 2,
+	style: 1 | 2 | 3 | 4, // primary, primary (green), secondary, destructive (red)
+	label?: string,
+	custom_id: string, // max 100 chars
+	disabled?: boolean,
+	emoji?: {name: string, id: string, animated: boolean},
 } | {
-	type: 2;
-	style: 5; // URL
-	label: string;
-	url: string;
-	disabled: boolean;
+	type: 2,
+	style: 5, // URL
+	label: string,
+	url: string,
+	disabled: boolean,
 } | {
-    type: 3;
-    label: string;
-    style: 1;
-    custom_id: string;
-    options: {value: string; label: string}[];
+    type: 3,
+    label: string,
+    style: 1,
+    custom_id: string,
+    options: {value: string, label: string}[],
 };
 
 const buttonStyles = {
@@ -55,8 +55,8 @@ const buttonStyles = {
 type ButtonStyle = keyof typeof buttonStyles;
 
 type ExtraButtonOpts = {
-	disabled?: boolean;
-	emoji?: {name: string; id: string; animated: boolean};
+	disabled?: boolean,
+	emoji?: {name: string, id: string, animated: boolean},
 };
 
 function button(id: string, label: string | undefined, style: ButtonStyle, opts: ExtraButtonOpts): ButtonComponent {
@@ -70,15 +70,15 @@ function button(id: string, label: string | undefined, style: ButtonStyle, opts:
 	};
 }
 
-type ActionRow = {type: 1; components: ButtonComponent[]};
+type ActionRow = {type: 1, components: ButtonComponent[]};
 function componentRow(children: ButtonComponent[]): ActionRow {
 	if(children.length > 5) throw new Error("too many buttons");
 	return {type: 1, components: children};
 }
 
 type SampleMessage = {
-	content: string;
-	components: ActionRow[];
+	content: string,
+	components: ActionRow[],
     allowed_mentions: {parse: []},
 };
 
@@ -121,9 +121,9 @@ nr.ginteractionhandler["boo_btn"] = {
 };
 
 type GameData = {
-    kind: GameKind;
-    state: unknown;
-    stage: number;
+    kind: GameKind,
+    state: unknown,
+    stage: number,
 };
 
 type GameID = string & {__is_game_id?: undefined};
@@ -141,7 +141,7 @@ function getInteractionKey(id: GameID, kind: GameKind, stage: number, name: stri
 	if(res.length > 100) throw new Error("interaction key too long");
 	return res;
 }
-function parseInteractionKey(key: InteractionKey): {game_id: GameID; kind: GameKind; stage: number; name: string} {
+function parseInteractionKey(key: InteractionKey): {game_id: GameID, kind: GameKind, stage: number, name: string} {
 	const [, a, b, c, d] = key.split("|") as [string, string, string, string, string];
 	return {
 		game_id: a as GameID,
@@ -181,7 +181,7 @@ async function renderGame(info: Info, game_id: GameID) {
 }
 
 interface Game<T> {
-	kind: GameKind,
+	kind: GameKind;
     render: (state: T, game_id: GameID, game_kind: GameKind, game_stage: number, info: Info) => SampleMessage;
     handleInteraction: (info: Info, custom_id: string) => Promise<InteractionHandled<T>>;
 }
@@ -192,7 +192,7 @@ interface Game<T> {
 // actually it shouldn't matter too much, the only invalid state will be in what buttons are
 // visible and that's fine
 
-async function updateGameState<T>(info: Info, ikey: {game_id: GameID; kind: GameKind; stage: number}, state: T): Promise<InteractionHandled<T>> {
+async function updateGameState<T>(info: Info, ikey: {game_id: GameID, kind: GameKind, stage: number}, state: T): Promise<InteractionHandled<T>> {
 	// get new game data
 	const upd_game_data: GameData = {kind: ikey.kind, stage: ikey.stage + 1, state: state};
 	// 1: send updated message    
@@ -227,23 +227,23 @@ async function errorGame(info: Info, message: string): Promise<InteractionHandle
 type Grid<T> = T[][];
 
 type TicTacToeState = {
-	mode: "joining";
-	first_player: string;
+	mode: "joining",
+	first_player: string,
 } | {
-	mode: "playing" | "won";
-	board: {grid: Grid<" " | "O" | "X">};
-	player: "O" | "X";
+	mode: "playing" | "won",
+	board: {grid: Grid<" " | "O" | "X">},
+	player: "O" | "X",
 	players: {
-		"O": string;
-		"X": string;
-	};
+		"O": string,
+		"X": string,
+	},
     win?: {
         player: "X" | "O" | "Tie",
         reason: string,
     },
 } | {
     mode: "canceled",
-    initiator: string;
+    initiator: string,
 };
 function gridSearch<GT>(grid: Grid<GT>, start: [number, number],
 	cb: (
@@ -251,7 +251,7 @@ function gridSearch<GT>(grid: Grid<GT>, start: [number, number],
         x: number,
         y: number,
     ) => [number, number] | "current" | "previous",
-): { x: number; y: number; distance: number } | undefined {
+): { x: number, y: number, distance: number } | undefined {
 	let [cx, cy] = start;
 	let [x, y] = start;
 	const w = grid[0]!.length;
@@ -1382,10 +1382,10 @@ const CheckersGame = gamelibGameHandler("CHK", checkers.checkers, "Checkers", ()
 import { GameConfig } from "../gamelib/gamelib";
 
 type GamelibState<T> = {
-	mode: "joining";
-	initiator: string;
+	mode: "joining",
+	initiator: string,
 } | {
-	mode: "playing";
+	mode: "playing",
 	state: T,
 } | {mode: "canceled"} | {mode: "unsupported"};
 
@@ -1396,7 +1396,7 @@ function gamelibGameHandler<State>(
 	rules: (state: State | undefined) => [string, ActionRow[]],
 	// (key, actions: GameOver | ActionsList)
 	renderPlaying: (key: (a: string) => string, mm: {[key: string]: boolean} | undefined, render: string[], state: {mode: "playing", state: State}) => SampleMessage,
-	handleGiveUp: (info: Info, ikey: {game_id: GameID; kind: GameKind; stage: number}, state: {mode: "playing", state: State}) =>
+	handleGiveUp: (info: Info, ikey: {game_id: GameID, kind: GameKind, stage: number}, state: {mode: "playing", state: State}) =>
 		Promise<InteractionHandled<GamelibState<State>>>
 	,
 ): Game<GamelibState<State>> {

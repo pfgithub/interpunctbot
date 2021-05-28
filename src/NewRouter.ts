@@ -21,28 +21,28 @@ export type CmdCb<APList extends APListAny> = (
 ) => Promise<any>;
 
 export type HelpData = {
-	usage: string;
-	description: string;
-	extendedDescription?: string;
-	examples: { in: string; out: string }[];
+	usage: string,
+	description: string,
+	extendedDescription?: string,
+	examples: { in: string, out: string }[],
 	perms: {
-		fun?: boolean;
-		raw_message?: boolean;
-		runner?: readonly Permission[];
-		bot?: readonly BotPermission[];
-		slash_do_not_interact?: boolean;
-	};
+		fun?: boolean,
+		raw_message?: boolean,
+		runner?: readonly Permission[],
+		bot?: readonly BotPermission[],
+		slash_do_not_interact?: boolean,
+	},
 };
 export type ErrorData = {
-	overview: string;
-	detail: string;
-	mainPath: string;
+	overview: string,
+	detail: string,
+	mainPath: string,
 };
 export type CommandData = {
-	docsPath: string;
-	command: string;
-	handler: (cmd: string, info: Info) => void;
-	config: {supports_slash: boolean};
+	docsPath: string,
+	command: string,
+	handler: (cmd: string, info: Info) => void,
+	config: {supports_slash: boolean},
 };
 
 export type CommandNS = { [key: string]: CommandData };
@@ -55,11 +55,11 @@ export const devMode = process.env.NODE_ENV !== "production";
 
 export type PageData = {
 	summaries: {
-		title: string;
-		usage: string;
-		description: string;
-	};
-	body: string;
+		title: string,
+		usage: string,
+		description: string,
+	},
+	body: string,
 };
 
 console.log("Loading commands...");

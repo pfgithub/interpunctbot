@@ -10,25 +10,25 @@ import { logError } from "..";
 type GuildData = { [key in keyof Fields]?: Fields[key] };
 
 type AutodeleteInfo = {
-	prefix: { prefix: string };
-	user: { user: string };
-	channel: { channel: string };
-	role: { role: string };
-	counting: { channel: string };
+	prefix: { prefix: string },
+	user: { user: string },
+	channel: { channel: string },
+	role: { role: string },
+	counting: { channel: string },
 };
 type AutodeleteDuration =
 	| number
 	| {
-			type: "autoreact";
-			reactions: string[];
+			type: "autoreact",
+			reactions: string[],
 	  };
 type OneAutodeleteRule<key extends keyof AutodeleteInfo> = {
-	type: key;
-	duration: AutodeleteDuration;
+	type: key,
+	duration: AutodeleteDuration,
 	apply_roles?: {
-		exclude: string[];
-		include_only: string[];
-	};
+		exclude: string[],
+		include_only: string[],
+	},
 };
 export type AutodeleteRule = {
 	[key in keyof AutodeleteInfo]: AutodeleteInfo[key] & OneAutodeleteRule<key> & {id: number};
@@ -38,34 +38,34 @@ export type AutodeleteRuleNoID = {
 }[keyof AutodeleteInfo];
 
 export type CustomCommand =
-	| { type: "list"; pastebin: string }
-	| { type: "command"; text: string };
+	| { type: "list", pastebin: string }
+	| { type: "command", text: string };
 type CustomCommandsFieldRaw = { [key: string]: string | CustomCommand };
 export type CustomCommandsField = { [key: string]: CustomCommand };
 
 export type AutodeleteField = {
-	rules: AutodeleteRule[];
-	nextID: number;
+	rules: AutodeleteRule[],
+	nextID: number,
 };
 export type QuickrankField = {
-	nameAlias: { [safeLCName: string]: { name: string; role: string } };
-	timeAlias: { ms: number; ltgt: "<" | ">"; role: string }[];
-	emojiAlias: { [key: string]: { role: string } };
-	providesAlias: { [roleID: string]: { role: string }[] };
-	managerRole?: string;
+	nameAlias: { [safeLCName: string]: { name: string, role: string } },
+	timeAlias: { ms: number, ltgt: "<" | ">", role: string }[],
+	emojiAlias: { [key: string]: { role: string } },
+	providesAlias: { [roleID: string]: { role: string }[] },
+	managerRole?: string,
 };
 export type Event =
 	| {
-			action: "none";
+			action: "none",
 	  }
 	| {
-			action: "message";
-			message: string;
-			channel: string;
+			action: "message",
+			message: string,
+			channel: string,
 	  };
 export type Events = {
-	userJoin?: Event;
-	userLeave?: Event;
+	userJoin?: Event,
+	userLeave?: Event,
 };
 export type TicketMessageType =
 	// clicking the join button when you already have a ticket
@@ -76,24 +76,24 @@ export type TicketMessageType =
 export type TicketConfig = {
 	main: {
 		/// category id
-		category?: string;
+		category?: string,
 		/// message id (globally unique but channel is included for resolution if necessary)
-		invitation?: { channel: string; message: string };
-		joinmsg?: string;
-		logs?: { uploads: string; pretty: string };
-		transcripts?: string;
+		invitation?: { channel: string, message: string },
+		joinmsg?: string,
+		logs?: { uploads: string, pretty: string },
+		transcripts?: string,
 		/// autodelete ms
-		autoclose?: number;
+		autoclose?: number,
 		/// time to delete ms
-		deletetime?: number;
-		ping?: string;
-		enable_assignment?: boolean;
+		deletetime?: number,
+		ping?: string,
+		enable_assignment?: boolean,
 			// {Mention} is mention, {Name} is name
-		messages?: {[key in TicketMessageType]?: string};
+		messages?: {[key in TicketMessageType]?: string},
 
-		creator_cannot_close?: boolean; // double negative, enjoyable
-		dm_on_close?: boolean;
-	};
+		creator_cannot_close?: boolean, // double negative, enjoyable
+		dm_on_close?: boolean,
+	},
 };
 
 const cache: Map<string, GuildData> = new Map();
@@ -127,50 +127,50 @@ function tryParse<T>(json: string | undefined, defaultValue: T): T {
 }
 
 type Fields = {
-	id: string;
-	prefix: string;
-	searchablePastebins?: string;
-	logging?: string;
-	quotes?: string;
-	nameScreening?: string;
-	unknownCommandMessages?: string;
-	failedPrecheckMessages?: string;
-	channel_spacing?: string;
-	speedrun?: string; // "gameID, categoryID"
-	welcome?: string;
-	goodbye?: string;
+	id: string,
+	prefix: string,
+	searchablePastebins?: string,
+	logging?: string,
+	quotes?: string,
+	nameScreening?: string,
+	unknownCommandMessages?: string,
+	failedPrecheckMessages?: string,
+	channel_spacing?: string,
+	speedrun?: string, // "gameID, categoryID"
+	welcome?: string,
+	goodbye?: string,
 	// pmonfailure?: string;
-	funEnabled?: string;
-	rankmojiChannel: string;
-	autodelete?: string;
-	autodelete_limit?: number;
-	quickrank?: string;
-	quickrank_limit?: number;
-	events?: string;
-	nameScreening2?: string;
-	managebotrole: string;
-	channeloptions: string;
-	ticket: string;
+	funEnabled?: string,
+	rankmojiChannel: string,
+	autodelete?: string,
+	autodelete_limit?: number,
+	quickrank?: string,
+	quickrank_limit?: number,
+	events?: string,
+	nameScreening2?: string,
+	managebotrole: string,
+	channeloptions: string,
+	ticket: string,
 };
 
 type JSONFields = {
-	searchablePastebins: CustomCommandsFieldRaw;
-	nameScreening: NameScreeningField;
-	nameScreening2: NameScreeningField;
-	autodelete: AutodeleteField;
-	quickrank: QuickrankField;
-	events: Events;
-	managebotrole: { role: string };
-	channeloptions: { [key: string]: ChannelOptions };
-	ticket: TicketConfig;
+	searchablePastebins: CustomCommandsFieldRaw,
+	nameScreening: NameScreeningField,
+	nameScreening2: NameScreeningField,
+	autodelete: AutodeleteField,
+	quickrank: QuickrankField,
+	events: Events,
+	managebotrole: { role: string },
+	channeloptions: { [key: string]: ChannelOptions },
+	ticket: TicketConfig,
 };
 type BooleanFields = {
-	logging: boolean;
-	channel_spacing: boolean;
-	funEnabled: boolean;
+	logging: boolean,
+	channel_spacing: boolean,
+	funEnabled: boolean,
 };
 type NameScreeningField = string[];
-type ChannelOptions = { pinBottom?: string; lastestPinBottom?: string };
+type ChannelOptions = { pinBottom?: string, lastestPinBottom?: string };
 // type SpeedrunField = { gameID: string; categoryID: string };
 
 const lock: { [key: string]: (() => void)[] } = {};

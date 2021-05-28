@@ -26,14 +26,14 @@ async function getEmojiAndRole(
 	cmd: string,
 	info: Info,
 	{ allowJustEmoji }: { allowJustEmoji: false },
-): Promise<{ emoji: Discord.GuildEmoji; role: Discord.Role } | undefined>;
+): Promise<{ emoji: Discord.GuildEmoji, role: Discord.Role } | undefined>;
 async function getEmojiAndRole(
 	cmd: string,
 	info: Info,
 	{ allowJustEmoji }: { allowJustEmoji: true },
 ): Promise<
-	| { emoji: Discord.GuildEmoji; role: Discord.Role }
-	| { emoji: Discord.GuildEmoji; role: undefined }
+	| { emoji: Discord.GuildEmoji, role: Discord.Role }
+	| { emoji: Discord.GuildEmoji, role: undefined }
 	| undefined
 >;
 async function getEmojiAndRole(
@@ -41,8 +41,8 @@ async function getEmojiAndRole(
 	info: Info,
 	{ allowJustEmoji }: { allowJustEmoji: boolean },
 ): Promise<
-	| { emoji: Discord.GuildEmoji; role: Discord.Role }
-	| { emoji: Discord.GuildEmoji; role: undefined }
+	| { emoji: Discord.GuildEmoji, role: Discord.Role }
+	| { emoji: Discord.GuildEmoji, role: undefined }
 	| undefined
 > {
 	if (!info.guild) {

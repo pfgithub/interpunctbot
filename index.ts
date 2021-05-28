@@ -51,7 +51,7 @@ export let serverStartTime = 0;
 
 export const production = process.env.NODE_ENV === "production";
 
-const mostRecentCommands: { content: string; date: string }[] = [];
+const mostRecentCommands: { content: string, date: string }[] = [];
 
 function devlog(...msg: any) {
 	if (!production) {
@@ -74,7 +74,7 @@ export async function ilt<T>(
 	v: Promise<T> /*, reason: string (added to error message)*/,
 	reason: string | false,
 ): Promise<
-	{ error: ErrorWithID; result: undefined } | { error: undefined; result: T }
+	{ error: ErrorWithID, result: undefined } | { error: undefined, result: T }
 > {
 	let result: T;
 	try {
@@ -560,7 +560,7 @@ client.on("guildMemberRemove", member => {
 // 		perr(spaceChannelIfNecessary(newC), "space channel on update"),
 // );
 
-function logMsg({ msg, prefix }: { msg: Discord.Message; prefix: string }) {
+function logMsg({ msg, prefix }: { msg: Discord.Message, prefix: string }) {
 	if (msg.guild) {
 		devlog(
 			`${prefix}< [${msg.guild.nameAcronym}] <#${

@@ -64,12 +64,12 @@ const megatiles = {
 };
 
 export type UltimateTicTacToe = {
-	board: MegaGrid;
-	players: { x: Player; o: Player };
+	board: MegaGrid,
+	players: { x: Player, o: Player },
 	status:
-		| { s: "playing"; turn: Color; board: number | "pick"; back?: boolean } // if board is full, pick which board to play on
-		| { s: "winner"; winner: Player; reason: string }
-		| { s: "tie" };
+		| { s: "playing", turn: Color, board: number | "pick", back?: boolean } // if board is full, pick which board to play on
+		| { s: "winner", winner: Player, reason: string }
+		| { s: "tie" },
 };
 
 function toXY(v: number): Pos {

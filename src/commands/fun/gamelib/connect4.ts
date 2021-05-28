@@ -15,13 +15,13 @@ type Color = "r" | "y";
 type Piece = { color?: Color };
 
 export type Connect4 = {
-	board: Board<Piece>;
-	turn: Color;
-	players: { r: Player; y: Player };
+	board: Board<Piece>,
+	turn: Color,
+	players: { r: Player, y: Player },
 	status:
 		| { s: "playing" }
-		| { s: "winner"; winner: Player; reason: string }
-		| { s: "tie" };
+		| { s: "winner", winner: Player, reason: string }
+		| { s: "tie" },
 };
 
 export const tileset = newTileset({

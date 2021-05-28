@@ -5,35 +5,35 @@ import * as g from "./gamelib";
 type Color = "red" | "black";
 
 type Piece = {
-	bg: "black" | "white";
+	bg: "black" | "white",
 	piece?: {
-		color: Color;
-		number: number;
-		king: boolean;
-	};
+		color: Color,
+		number: number,
+		king: boolean,
+	},
 	overlay?:
 		| {
-				type: "move";
-				direction: "ul" | "ur" | "dl" | "dr";
+				type: "move",
+				direction: "ul" | "ur" | "dl" | "dr",
 		  }
 		| { type: "selpiece" }
 		| { type: "select" }
-		| { type: "ghost" };
+		| { type: "ghost" },
 };
 
 export type Checkers = {
-	board: g.Board<Piece>;
-	players: { red: g.Player; black: g.Player };
+	board: g.Board<Piece>,
+	players: { red: g.Player, black: g.Player },
 	status:
 		| never
 		/// Pick which piece to move with
-		| { s: "selectpiece"; turn: Color }
+		| { s: "selectpiece", turn: Color }
 		/// Move or jump with the selected piece. Allows back button.
-		| { s: "moveany"; turn: Color; piece: number }
+		| { s: "moveany", turn: Color, piece: number }
 		/// Move or jump with the selected piece. Back button not allowed.
-		| { s: "jump"; turn: Color; piece: number }
-		| { s: "winner"; winner: g.Player; reason: string }
-		| { s: "tie"; reason: string };
+		| { s: "jump", turn: Color, piece: number }
+		| { s: "winner", winner: g.Player, reason: string }
+		| { s: "tie", reason: string },
 };
 
 export const tileset = g.newTileset({
@@ -128,10 +128,10 @@ export const tileset = g.newTileset({
 // };
 
 type MoveType = {
-	number: number;
-	from: [number, number];
-	to: [number, number];
-	direction: [number, number];
+	number: number,
+	from: [number, number],
+	to: [number, number],
+	direction: [number, number],
 };
 
 // it is required to get available moves for all pieces in normal:
@@ -140,7 +140,7 @@ type MoveType = {
 // - extrainfo should have some message like "Since a piece is available to take, you must jump"
 function getMovablePieces(
 	state: Checkers,
-): { position: [number, number]; number: number }[] {
+): { position: [number, number], number: number }[] {
 	const jumpMoves: ([number, number] | undefined)[] = new Array(12).fill(
 		undefined,
 	);
@@ -188,8 +188,8 @@ function getMoveDirectionsForPiece(
 	x: number,
 	y: number,
 ): {
-	mode: "move" | "jump";
-	moves: (MoveType & { take?: [number, number] })[];
+	mode: "move" | "jump",
+	moves: (MoveType & { take?: [number, number] })[],
 } {
 	const jumpMoves: (MoveType & { take: [number, number] })[] = [];
 	const normalMoves: MoveType[] = [];

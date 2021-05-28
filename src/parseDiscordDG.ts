@@ -47,14 +47,14 @@ const inlineOrBlockQuote = (text: string) =>
 				.join("\n")
 		: text;
 
-type Args = { raw: string; safe: string }[];
+type Args = { raw: string, safe: string }[];
 const commands: {
 	[cmd: string]: {
-		confirm: (args: Args) => never | void;
-		html: (args: Args, pageURL: string) => string;
-		discord?: (args: Args, info: Info) => string;
-		md: (args: Args) => string;
-	};
+		confirm: (args: Args) => never | void,
+		html: (args: Args, pageURL: string) => string,
+		discord?: (args: Args, info: Info) => string,
+		md: (args: Args) => string,
+	},
 } = {
 	Heading: {
 		confirm: args => {

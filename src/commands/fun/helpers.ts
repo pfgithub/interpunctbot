@@ -6,7 +6,7 @@ export { setEditInterval };
 
 export function createTimer(
 	...timerSpecs: [number, () => Promise<void>][]
-): { reset: () => void; end: () => void; over: () => Promise<void> } {
+): { reset: () => void, end: () => void, over: () => Promise<void> } {
 	let overCB: (() => void) | undefined;
 	const timers: NodeJS.Timeout[] = [];
 	let timersCompleted = 0;

@@ -238,13 +238,13 @@ export type MessageParametersType =
 	| [string];
 
 export type MessageLike = {
-	channel: Discord.Message["channel"];
-	guild: Discord.Message["guild"];
-	member: Discord.Message["member"];
-	author: Discord.Message["author"];
-	client: Discord.Message["client"];
-	content: Discord.Message["content"];
-	delete: () => Promise<void>;
+	channel: Discord.Message["channel"],
+	guild: Discord.Message["guild"],
+	member: Discord.Message["member"],
+	author: Discord.Message["author"],
+	client: Discord.Message["client"],
+	content: Discord.Message["content"],
+	delete: () => Promise<void>,
 };
 
 export default class Info {
@@ -255,8 +255,8 @@ export default class Info {
 	raw_message?: Discord.Message;
 	raw_interaction?: InteractionHelper;
 	other?: {
-		startTime: number;
-		infoPerSecond: number;
+		startTime: number,
+		infoPerSecond: number,
 	};
 	db?: Database;
 	member?: Discord.GuildMember | null;
@@ -266,10 +266,10 @@ export default class Info {
 	    message: MessageLike,
 	    timedEvents: TimedEvents,
 	    other?: {
-			startTime: number;
-			infoPerSecond: number;
-			raw_message?: Discord.Message;
-			raw_interaction?: InteractionHelper;
+			startTime: number,
+			infoPerSecond: number,
+			raw_message?: Discord.Message,
+			raw_interaction?: InteractionHelper,
 		},
 	) {
 	    this.timedEvents = timedEvents;
@@ -301,7 +301,7 @@ export default class Info {
 	static msgopts = {
 	    allowedMentions: { parse: [], roles: [], users: [] },
 	    split: false,
-	} as {allowedMentions: {parse: []; roles: []; users: []}; split: false}; // Discord.MessageOptions
+	} as {allowedMentions: {parse: [], roles: [], users: []}, split: false}; // Discord.MessageOptions
 	static get result(): typeof result {
 	    return result;
 	}

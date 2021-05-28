@@ -4,38 +4,38 @@ import fs from "fs";
 import path from "path";
 
 type Config = {
-	token?: string;
-	owners: string[];
+	token?: string,
+	owners: string[],
 	errorReporting?: {
-		server: string;
-		channel: string;
-	};
+		server: string,
+		channel: string,
+	},
 	listings: {
-		"discord.bots.gg"?: string;
-		"top.gg"?: string;
-	};
+		"discord.bots.gg"?: string,
+		"top.gg"?: string,
+	},
 	testing: {
-		users: string[];
-	};
-	slashCommandServer?: string;
+		users: string[],
+	},
+	slashCommandServer?: string,
 };
 
 type RawConfig = {
-	token?: string;
-	owner?: string;
-	owners?: string[];
+	token?: string,
+	owner?: string,
+	owners?: string[],
 	errorReporting?: {
-		server: string;
-		channel: string;
-	};
+		server: string,
+		channel: string,
+	},
 	listings?: {
-		"discord.bots.gg"?: string;
-		"top.gg"?: string;
-	};
+		"discord.bots.gg"?: string,
+		"top.gg"?: string,
+	},
 	testing?: {
-		users?: string[];
-	};
-	slashCommandServer?: string;
+		users?: string[],
+	},
+	slashCommandServer?: string,
 };
 
 let rawConfig: RawConfig = {};

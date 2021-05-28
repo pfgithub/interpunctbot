@@ -7,14 +7,14 @@ import { createTimer, setEditInterval } from "./helpers";
 
 type GoDirectionSpec = (
 	| string
-	| { msg: string; goto?: string; chance?: string }
+	| { msg: string, goto?: string, chance?: string }
 )[];
 
 type LevelSpec = {
-	text: string;
-	left: GoDirectionSpec;
-	up: GoDirectionSpec;
-	right: GoDirectionSpec;
+	text: string,
+	left: GoDirectionSpec,
+	up: GoDirectionSpec,
+	right: GoDirectionSpec,
 };
 
 let ge: { [key: string]: string | undefined };
@@ -130,7 +130,7 @@ ${
 			}
 		};
 		const doAction = (actions: GoDirectionSpec, depth = 0): void => {
-			const actionChances: { i: number; chance: number }[] = [];
+			const actionChances: { i: number, chance: number }[] = [];
 			let total = 0;
 			let i = 0;
 			for (const action of actions) {

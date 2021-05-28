@@ -8,8 +8,8 @@ import Fuse from "fuse.js";
 import { dgToDiscord } from "../parseDiscordDG";
 
 export type BaseArgType<S, T> = {
-	type: S;
-	validator?: (v: T) => Promise<boolean>;
+	type: S,
+	validator?: (v: T) => Promise<boolean>,
 };
 export type EmojiArgType = BaseArgType<"emoji", Discord.GuildEmoji>;
 export type ChannelArgType = BaseArgType<"channel", Discord.GuildChannel>;
@@ -93,7 +93,7 @@ type ArgumentType<T> = (
 	error: (
 		docsPage: string,
 		opts?: {
-			safeDetails?: string;
+			safeDetails?: string,
 		},
 	) => Promise<{ result: "exit" }>,
 	readavail?: "full" | "part",
@@ -160,7 +160,7 @@ function roleNameMatch(rolename: string, message: string) {
 }
 
 export type ArgumentParserResult<T> = Promise<
-	{ result: "continue"; value: T; cmd: string } | { result: "exit" }
+	{ result: "continue", value: T, cmd: string } | { result: "exit" }
 >;
 
 function ChannelArgumentType(): ArgumentType<Discord.GuildChannel> {
@@ -655,10 +655,10 @@ export async function ArgumentParser<
 		cmd: cmd_in,
 		help,
 		partial,
-	}: { info: Info; cmd: string | string[]; help: string; partial?: boolean },
+	}: { info: Info, cmd: string | string[], help: string, partial?: boolean },
 	...schema: ArgTypes
 ): Promise<
-	| { result: ArgTypeArrayToReturnType<ArgTypes>; remaining: string }
+	| { result: ArgTypeArrayToReturnType<ArgTypes>, remaining: string }
 	| undefined
 > {
 	const resarr: ArgTypeToReturnType<any>[] = [];

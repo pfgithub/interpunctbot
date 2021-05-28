@@ -14,25 +14,25 @@ import { ilt } from "../../";
 
 type DiscordMarkdownOptions = {
 	/// Boolean (default: false), if it should parse embed contents (rules are slightly different)
-	embed?: boolean;
+	embed?: boolean,
 	/// Boolean (default: true), if it should escape HTML
-	escapeHTML?: boolean;
+	escapeHTML?: boolean,
 	/// Boolean (default: false), if it should only parse the discord-specific stuff
-	discordOnly?: boolean;
+	discordOnly?: boolean,
 	/// Object, callbacks used for discord parsing. Each receive an object with different properties, and are expected to return an HTML escaped string
 	discordCallback?: {
-		user?: (id: { id: string }) => string;
-		channel?: (id: { id: string }) => string;
-		role?: (id: { id: string }) => string;
-		emoji?: (animated: boolean, name: string, id: string) => string;
-		everyone?: () => string;
-		here?: () => string;
-	};
+		user?: (id: { id: string }) => string,
+		channel?: (id: { id: string }) => string,
+		role?: (id: { id: string }) => string,
+		emoji?: (animated: boolean, name: string, id: string) => string,
+		everyone?: () => string,
+		here?: () => string,
+	},
 	/// Object, maps CSS class names to CSS module class names
-	cssModuleNames?: unknown;
+	cssModuleNames?: unknown,
 };
 const discordMarkdown = discordMarkdownAny as {
-	toHTML: (dsmd: string, options?: DiscordMarkdownOptions) => string;
+	toHTML: (dsmd: string, options?: DiscordMarkdownOptions) => string,
 };
 
 const msgopts: discord.MessageOptions = {
@@ -356,8 +356,8 @@ nr.globalCommand(
 
 function confirmLogPermissions(
 	channels: {
-		logsChan: discord.GuildChannel;
-		uploadsChan: discord.GuildChannel;
+		logsChan: discord.GuildChannel,
+		uploadsChan: discord.GuildChannel,
 	},
 	info: Info,
 ): string[] {
@@ -691,8 +691,8 @@ function getTicketOwnerID(channel: discord.TextChannel): string {
 }
 
 type TicketCtx = {
-	guild: discord.Guild;
-	ticket: TicketConfig;
+	guild: discord.Guild,
+	ticket: TicketConfig,
 };
 
 const verifiedbotsvg = safehtml`
@@ -854,7 +854,7 @@ function genLogMayError(messages: discord.Message[]) {
 			}
 		});
 
-	const messagesListB: { top: string; center: string; bottom: string }[] = [];
+	const messagesListB: { top: string, center: string, bottom: string }[] = [];
 	for (const msg of messagesListA) {
 		const latest = messagesListB[messagesListB.length - 1] || {
 			top: "",

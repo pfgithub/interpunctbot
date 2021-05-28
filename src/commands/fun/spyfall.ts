@@ -20,9 +20,9 @@ function ratelimit(timeout: number) {
 
 type GameData = {
 	locations: {
-		title: string;
-		roles: string[];
-	}[];
+		title: string,
+		roles: string[],
+	}[],
 };
 
 const gamedata: GameData = yaml.safeLoad(
@@ -138,7 +138,7 @@ React ➕ to join. ${info.message.author.toString()}, React ✅ to start game.`;
 
 		let i = 0;
 		for (const player of playersInGame) {
-			let data: { location: string; role: string };
+			let data: { location: string, role: string };
 			if (i === spy || spysonly) {
 				// player is spy
 				data = { location: "Spy", role: "Spy" };

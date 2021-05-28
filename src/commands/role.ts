@@ -406,11 +406,11 @@ nr.globalCommand(
 
 		const byRole: {
 			[roleID: string]: {
-				emojiMention?: string;
-				safeNameAlias?: string;
-				timeAlias?: number;
-				provides?: string[];
-			};
+				emojiMention?: string,
+				safeNameAlias?: string,
+				timeAlias?: number,
+				provides?: string[],
+			},
 		} = {};
 
 		for (const [emojiID, rule] of Object.entries(qr.emojiAlias)) {

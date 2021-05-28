@@ -1500,14 +1500,14 @@ const badMinesweeperGenerator = ({
 	customvalue,
 	group,
 }: {
-	difficulty: keyof typeof dv;
-	mode: keyof typeof modes;
-	width: number;
-	height: number;
-	flag: boolean;
-	customvalue: number;
-	group: false;
-}): { boardStr: string; mineCount: number } => {
+	difficulty: keyof typeof dv,
+	mode: keyof typeof modes,
+	width: number,
+	height: number,
+	flag: boolean,
+	customvalue: number,
+	group: false,
+}): { boardStr: string, mineCount: number } => {
 	const v = modes[mode];
 	let mineCount = 0;
 	const vals = v;

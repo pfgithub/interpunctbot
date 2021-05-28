@@ -3,13 +3,13 @@ import { logError, ilt, perr } from "..";
 import * as Discord from "discord.js";
 
 type EventTypes = {
-	pmuser: { message: string; user: string };
-	delete: { guild: string; channel: string; message: string };
-	send: { guild: string; channel: string; message: string };
+	pmuser: { message: string, user: string },
+	delete: { guild: string, channel: string, message: string },
+	send: { guild: string, channel: string, message: string },
 };
 
 export type EventOfType<Type extends keyof EventTypes> = EventTypes[Type] & {
-	type: Type;
+	type: Type,
 };
 
 export type EventData = {
@@ -23,10 +23,10 @@ export type EventHandlers = {
 };
 
 export type SqlEvent = {
-	id: number;
-	time_64b: string;
-	event: string;
-	completed: boolean;
+	id: number,
+	time_64b: string,
+	event: string,
+	completed: boolean,
 };
 
 export class TimedEvents {
@@ -78,7 +78,7 @@ export class TimedEvents {
 	        id,
 	    });
 	}
-	_queueNoAdd(ev: { event: EventData[]; time: number; id: number }): void {
+	_queueNoAdd(ev: { event: EventData[], time: number, id: number }): void {
 	    if (ev.time <= this.currentTime) {
 	        this.startEventTimeout(ev.event, ev.time, ev.id);
 	    }

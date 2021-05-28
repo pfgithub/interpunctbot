@@ -75,38 +75,38 @@ function compareCatName(cat1: string, cat2: string) {
 }
 
 type Game = {
-	id: string;
+	id: string,
 	names: {
-		international: string;
-		twitch?: string;
-		japanese?: string;
-	};
-	abbreviation: string;
-	weblink: string;
-	released: number;
-	"release-date": string;
+		international: string,
+		twitch?: string,
+		japanese?: string,
+	},
+	abbreviation: string,
+	weblink: string,
+	released: number,
+	"release-date": string,
 	ruleset: {
-		"show-miliseconds": boolean;
-		"require-verification": boolean;
-		"require-video": boolean;
-		"run-times": ("realtime" | "ingame")[];
-		"default-time": "realtime" | "ingame";
-		"emulators-allowed": boolean;
-	};
-	romhack: boolean;
-	gametypes: unknown[];
-	platforms: string[];
-	regions: unknown[];
-	genres: string[];
-	engines: string[];
-	developers: string[];
-	publishers: string[];
-	moderators: { [id: string]: "moderator" | "super-moderator" };
-	created: string;
+		"show-miliseconds": boolean,
+		"require-verification": boolean,
+		"require-video": boolean,
+		"run-times": ("realtime" | "ingame")[],
+		"default-time": "realtime" | "ingame",
+		"emulators-allowed": boolean,
+	},
+	romhack: boolean,
+	gametypes: unknown[],
+	platforms: string[],
+	regions: unknown[],
+	genres: string[],
+	engines: string[],
+	developers: string[],
+	publishers: string[],
+	moderators: { [id: string]: "moderator" | "super-moderator" },
+	created: string,
 	assets: {
-		[key: string]: { uri: string; width: number; height: number };
-	};
-	links: { rel: string; uri: string }[];
+		[key: string]: { uri: string, width: number, height: number },
+	},
+	links: { rel: string, uri: string }[],
 };
 
 async function getGamesFrom({ abbreviation }: { abbreviation: string }) {
@@ -116,26 +116,26 @@ async function getGamesFrom({ abbreviation }: { abbreviation: string }) {
 		`Getting games for abbreviation took ${ctime() - startTime}ms.`,
 	);
 	return gameData as {
-		data: (Game & { categories: { data: Category[] } })[];
+		data: (Game & { categories: { data: Category[] } })[],
 	};
 }
 
-type Link = { rel: string; url: string };
+type Link = { rel: string, url: string };
 
 type Category = {
-	id: string;
-	name: string;
-	weblink: string;
-	type: "per-game" | "per-level";
-	rules: string;
-	players: { type: "exactly"; value: 1 };
-	miscellaneous: boolean;
-	links: Link[];
+	id: string,
+	name: string,
+	weblink: string,
+	type: "per-game" | "per-level",
+	rules: string,
+	players: { type: "exactly", value: 1 },
+	miscellaneous: boolean,
+	links: Link[],
 };
 async function getCategoriesFromGameID(id: string) {
 	const startTime = ctime();
 	const res: {
-		data: Category[];
+		data: Category[],
 	} = await getURL`https://www.speedrun.com/api/v1/games/${id}/categories`;
 	console.log(`Getting categories for game took ${ctime() - startTime}ms.`);
 	res.data = res.data.filter(cat => cat.type === "per-game");
@@ -151,7 +151,7 @@ async function getGameAndCategory(
 	categoryName: string,
 	info: Info,
 ): Promise<
-	| { gameID: string; categoryID: string; error: false; category: Category }
+	| { gameID: string, categoryID: string, error: false, category: Category }
 	| { error: true }
 > {
 	if (!info.db) {
@@ -196,74 +196,74 @@ async function getGameAndCategory(
 }
 
 type Run = {
-	place: number;
+	place: number,
 	run: {
-		id: string;
-		weblink: string;
-		game: string;
-		level?: unknown;
-		category: string;
-		videos: { links: { uri: string }[] };
-		comment: string;
+		id: string,
+		weblink: string,
+		game: string,
+		level?: unknown,
+		category: string,
+		videos: { links: { uri: string }[] },
+		comment: string,
 		status: {
-			status: "verified" | unknown;
-			examiner: string;
-			"verify-date": string;
-		};
-		players: { rel: string; id: string; uri: string }[];
-		date: string;
+			status: "verified" | unknown,
+			examiner: string,
+			"verify-date": string,
+		},
+		players: { rel: string, id: string, uri: string }[],
+		date: string,
 		times: {
-			primary: string;
-			primary_t: number;
-			realtime?: string;
-			realtime_t?: number;
-			realtime_noloads?: string;
-			realtime_noloads_number?: number;
-			ingame?: string;
-			ingame_t?: number;
-		};
-		system: { platform: string; emulated: boolean; region?: unknown };
-		splits?: unknown;
-		values: unknown;
-	};
+			primary: string,
+			primary_t: number,
+			realtime?: string,
+			realtime_t?: number,
+			realtime_noloads?: string,
+			realtime_noloads_number?: number,
+			ingame?: string,
+			ingame_t?: number,
+		},
+		system: { platform: string, emulated: boolean, region?: unknown },
+		splits?: unknown,
+		values: unknown,
+	},
 };
 
 type GameData = {
-	weblink: string;
-	level?: unknown;
-	platform?: unknown;
-	region?: unknown;
-	emulators?: unknown;
-	"video-only": boolean;
-	timing: string;
-	values: unknown;
-	runs: Run[];
-	links: { rel: string; uri: string }[];
+	weblink: string,
+	level?: unknown,
+	platform?: unknown,
+	region?: unknown,
+	emulators?: unknown,
+	"video-only": boolean,
+	timing: string,
+	values: unknown,
+	runs: Run[],
+	links: { rel: string, uri: string }[],
 };
 
 type Player = {
-	rel: string;
-	id: string;
+	rel: string,
+	id: string,
 	names: {
-		international: string;
-		japanese?: unknown;
-	};
-	weblink: string;
-	"name-style": unknown;
-	role: "user";
-	signup: string;
+		international: string,
+		japanese?: unknown,
+	},
+	weblink: string,
+	"name-style": unknown,
+	role: "user",
+	signup: string,
 	location?: {
 		country: {
-			code: string;
-			names: { international: string; japanese?: unknown };
-		};
-	};
-	twitch?: unknown;
-	hitbox?: unknown;
-	youtube?: { uri: string };
-	twitter?: unknown;
-	speedrunslive?: unknown;
-	links: { rel: string; uri: string }[];
+			code: string,
+			names: { international: string, japanese?: unknown },
+		},
+	},
+	twitch?: unknown,
+	hitbox?: unknown,
+	youtube?: { uri: string },
+	twitter?: unknown,
+	speedrunslive?: unknown,
+	links: { rel: string, uri: string }[],
 };
 
 async function displayLeaderboard(
@@ -281,10 +281,10 @@ async function displayLeaderboard(
 
 	const gameData: {
 		data: GameData & {
-			category: { data: Category };
-			game: { data: Game };
-			players: { data: Player[] };
-		};
+			category: { data: Category },
+			game: { data: Game },
+			players: { data: Player[] },
+		},
 	} = await getURL`https://www.speedrun.com/api/v1/leaderboards/${gameID}/category/${categoryID}?embed=category,players,game`;
 
 	const actualGameData = gameData.data.game.data;
