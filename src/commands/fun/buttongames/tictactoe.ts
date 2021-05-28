@@ -1262,11 +1262,12 @@ const UTTTGame: Game<UTTTState> = {
 
         if(state.mode === "joining") {
             return {
-                content: "<@"+state.initiator+"> is starting a paper soccer game",
+                content: "<@"+state.initiator+"> is starting a game of Ultimate Tic Tac Toe",
                 components: [
                     componentRow([
                         button(key(BasicKeys.joining.join), "Join Game", "accept", {}),
                         button(key(BasicKeys.joining.end), "Cancel", "deny", {}),
+                        button(key(PSKeys.playing.rules), "Rules", "secondary", {emoji: {name: "rules", id: "476514294075490306", animated: false}}),
                     ]),
                 ],
             };
@@ -1280,7 +1281,7 @@ const UTTTGame: Game<UTTTState> = {
                 ];
             }else{
                 const moves = uttt.getMoves(state.state);
-                
+
                 const ts = uttt.tileset.tiles;
                 const mm: {[key: string]: boolean} = {};
                 moves.forEach(move => mm[move.button] = true);
@@ -1339,7 +1340,27 @@ const UTTTGame: Game<UTTTState> = {
 
         console.log(game_state);
 
-        if(state.mode === "joining") {
+        if(ikey.name === PSKeys.playing.rules) {
+            if(info.raw_interaction) {
+                await info.raw_interaction.replyHiddenHideCommand("" +
+                    "- On your turn, select which board to play on (if you have a choice) and then play your x/o.\n" +
+                    "- When you get 3 in a row on a small board, you win that board.\n" +
+                    "- To win the game, win 3 small boards in a row (up/down, left/right, or diagonal)\n" +
+                    "- The square you play on determines which board your opponent must play on next.", [
+                        componentRow([{
+                            type: 2,
+                            style: 5, // URL
+                            label: "More Help",
+                            url: "https://interpunct.info/help/fun/ultimatetictactoe",
+                            disabled: false,
+                        }]),
+                    ]
+                );
+            }else{
+                await info.accept();
+            }
+            return {__interaction_handled: true as any};
+        }else if(state.mode === "joining") {
             if(ikey.name === BasicKeys.joining.join || ikey.name === BasicKeys.joining.join_anyway) {
                 if(ikey.name !== BasicKeys.joining.join_anyway && info.message.author.id === state.initiator) {
                     if(info.raw_interaction) {
@@ -1371,28 +1392,6 @@ const UTTTGame: Game<UTTTState> = {
                 return await errorGame(info, "Error! Unsupported "+ikey.name);
             }
         }else if(state.mode === "playing") {
-            if(ikey.name === PSKeys.playing.rules) {
-                if(info.raw_interaction) {
-                    await info.raw_interaction.replyHiddenHideCommand("" +
-                        "- On your turn, select which board to play on (if you have a choice) and then play your x/o.\n" +
-                        "- When you get 3 in a row on a small board, you win that board.\n" +
-                        "- To win the game, win 3 small boards in a row (up/down, left/right, or diagonal)\n" +
-                        "- The square you play on determines which board your opponent must play on next.", [
-                            componentRow([{
-                                type: 2,
-                                style: 5, // URL
-                                label: "More Help",
-                                url: "https://interpunct.info/help/fun/ultimatetictactoe",
-                                disabled: false,
-                            }]),
-                        ]
-                    );
-                }else{
-                    await info.accept();
-                }
-                return {__interaction_handled: true as any};
-            }
-
             if(uttt.checkGameOver(state.state)) {
                 return await errorGame(info, "The game is over");
             }
