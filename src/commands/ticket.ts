@@ -1032,7 +1032,6 @@ async function closeTicketMayError(
 	if(iltr.error) {
 		await channel.send(":x: There was an error deleting this channel. Maybe I don't have permissions? Error code: `"+iltr.error.errorCode+"`");
 	}
-	(channel as any).__IS_CLOSING = false;
 }
 
 async function closeTicket(
@@ -1041,7 +1040,8 @@ async function closeTicket(
 	ctx: TicketCtx,
 	inactivity = false,
 ) {
-	const ires = await ilt(closeTicketMayError(channel, closer, ctx, inactivity), "close ticket")
+	const ires = await ilt(closeTicketMayError(channel, closer, ctx, inactivity), "close ticket");
+	(channel as any).__IS_CLOSING = false;
 	if(ires.error) {
 		await ilt(channel.send(":x: There was an error closing the ticket. Error code: `"+ires.error.errorCode+"`"), "close ticket error")
 	}
