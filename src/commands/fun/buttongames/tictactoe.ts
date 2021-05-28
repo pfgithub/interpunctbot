@@ -1773,12 +1773,12 @@ const CheckersGame: Game<CheckersState> = {
         if(ikey.name === PSKeys.playing.rules) {
             if(info.raw_interaction) {
                 await info.raw_interaction.replyHiddenHideCommand("" +
-                    "Try to get 4 in a row in any direction, including diagonal.", [
+                    "Try to capture all your opponent's pieces.", [
                         componentRow([{
                             type: 2,
                             style: 5, // URL
                             label: "More Help",
-                            url: "https://interpunct.info/help/fun/ultimatetictactoe",
+                            url: "http://www.darkfish.com/checkers/rules.html",
                             disabled: false,
                         }]),
                     ]
