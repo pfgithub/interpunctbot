@@ -150,7 +150,7 @@ function getMovablePieces(
 
 	if (state.status.s === "winner" || state.status.s === "tie")
 		throw new Error("Game already over");
-	if (state.status.s !== "selectpiece")
+	if (state.status.s !== "selectpiece" && state.status.s !== "moveany")
 		throw new Error(
 			"already moving. getAvailableMoves must be used instead",
 		);
@@ -271,7 +271,7 @@ export function updateOverlay(state: Checkers): void {
 		tile.overlay = undefined;
 	});
 
-	if (state.status.s === "selectpiece") {
+	if (state.status.s === "selectpiece" || state.status.s === "moveany") {
 		const movablePieces = getMovablePieces(state);
 		for (const avpc of movablePieces) {
 			// set overlay icon
@@ -409,6 +409,21 @@ function getMoves(state: Checkers): g.MoveSet<Checkers> {
 				return state;
 			},
 		});
+
+		const movablePieces = getMovablePieces(state);
+		resMoves.push(...movablePieces.map(pc => ({
+			button: tileset.tiles.interaction.pieces[pc.number],
+			player: state.players[st.turn],
+			apply: state => {
+				state.status = {
+					s: "moveany",
+					turn: st.turn,
+					piece: pc.number,
+				};
+				updateOverlay(state);
+				return state;
+			},
+		})));
 	}
 	// there is no option to preemtively end your turn if you are forced to jump. you must follow the full jump chain (any of your choosing)
 
