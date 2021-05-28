@@ -73,6 +73,7 @@ function componentRow(children: ButtonComponent[]): ActionRow {
 type SampleMessage = {
 	content: string;
 	components: ActionRow[];
+    allowed_mentions: {parse: []},
 };
 
 nr.globalCommand(
@@ -100,6 +101,7 @@ nr.globalCommand(
                     ]},
                 ]),
 			],
+            allowed_mentions: {parse: []},
 		}});
 	},
 );
@@ -168,7 +170,7 @@ async function renderGame(info: Info, game_id: GameID) {
 
     const api = client as any as ApiHolder;
     await api.api.channels(info.message.channel.id).messages.post<{data: SampleMessage}, unknown>({data:
-        games[game_data.kind].render(game_data.state, game_id, game_data.kind, game_data.stage, info)
+        games[game_data.kind].render(game_data.state, game_id, game_data.kind, game_data.stage, info),
     });
 }
 
@@ -311,6 +313,7 @@ const TTTGame: Game<TicTacToeState> = {
                         button(key(BasicKeys.joining.end), "Cancel", "deny", {}),
                     ]),
                 ],
+                allowed_mentions: {parse: []},
             };
         }else if(state.mode === "playing" || state.mode === "won") {
             return {
@@ -335,16 +338,19 @@ const TTTGame: Game<TicTacToeState> = {
                         button(key(BasicKeys.playing.give_up), "Give Up", "deny", {}),
                     ])] : [],
                 ],
+                allowed_mentions: {parse: []},
             };
         }else if(state.mode === "canceled"){
             return {
                 content: "Canceled game.",
                 components: [],
+                allowed_mentions: {parse: []},
             };
         }else{
             return {
                 content: "Unsupported "+state.mode,
                 components: [],
+                allowed_mentions: {parse: []},
             };
         }
     },
@@ -559,6 +565,7 @@ nr.globalCommand(
                     button("GRANTROLE|"+role.id, word, "primary", {}),
 				]),
 			],
+            allowed_mentions: {parse: []},
 		}});
 	},
 );
@@ -582,6 +589,7 @@ nr.globalCommand(
                     button("CREATETICKET", word, "primary", {}),
 				]),
 			],
+            allowed_mentions: {parse: []},
 		}});
 	},
 );
@@ -620,6 +628,7 @@ const CGGame: Game<CirclegameState> = {
                         button(key(BasicKeys.joining.end), "Cancel", "deny", {}),
                     ]),
                 ],
+                allowed_mentions: {parse: []},
             };
         }else if(state.mode === "playing") {
             return {
@@ -647,16 +656,19 @@ const CGGame: Game<CirclegameState> = {
                         ]);
                     }),
                 ],
+                allowed_mentions: {parse: []},
             };
         }else if(state.mode === "canceled") {
             return {
                 content: "Canceled game.",
                 components: [],
+                allowed_mentions: {parse: []},
             };
         }else{
             return {
                 content: "Unsupported "+state.mode,
                 components: [],
+                allowed_mentions: {parse: []},
             };
         }
     },
@@ -866,6 +878,7 @@ const PSGame: Game<PSState> = {
                         button(key(BasicKeys.joining.end), "Cancel", "deny", {}),
                     ]),
                 ],
+                allowed_mentions: {parse: []},
             };
         }else if(state.mode === "playing") {
             const index = PS.xyToPtIndex(...state.ball);
@@ -890,16 +903,19 @@ const PSGame: Game<PSState> = {
                         button(key(BasicKeys.playing.give_up), "Give Up", "deny", {}),
                     ]),
                 ],
+                allowed_mentions: {parse: []},
             };
         }else if(state.mode === "canceled") {
             return {
                 content: "Canceled game.",
                 components: [],
+                allowed_mentions: {parse: []},
             };
         }else{
             return {
                 content: "Unsupported "+state.mode,
                 components: [],
+                allowed_mentions: {parse: []},
             };
         }
     },
@@ -1121,6 +1137,7 @@ const Calculator: Game<CalcState> = {
                     button(key("O,+"), "+", "secondary", {disabled: !operations_enabled}),
                 ]),
             ],
+            allowed_mentions: {parse: []},
         };
     },
     async handleInteraction(info, custom_id): Promise<InteractionHandled<CalcState>> {
@@ -1300,6 +1317,7 @@ const UTTTGame: Game<UTTTState> = {
                         button(key(PSKeys.playing.rules), "Rules", "secondary", {emoji: {name: "rules", id: "476514294075490306", animated: false}}),
                     ]),
                 ],
+                allowed_mentions: {parse: []},
             };
         }else if(state.mode === "playing") {
             let components: ActionRow[];
@@ -1343,16 +1361,19 @@ const UTTTGame: Game<UTTTState> = {
             return {
                 content: uttt.render(state.state)[0],
                 components,
+                allowed_mentions: {parse: []},
             };
         }else if(state.mode === "canceled") {
             return {
                 content: "Canceled game.",
                 components: [],
+                allowed_mentions: {parse: []},
             };
         }else{
             return {
                 content: "Unsupported "+state.mode,
                 components: [],
+                allowed_mentions: {parse: []},
             };
         }
     },
@@ -1499,6 +1520,7 @@ const Conn4Game: Game<Conn4State> = {
                         button(key(PSKeys.playing.rules), "Rules", "secondary", {emoji: {name: "rules", id: "476514294075490306", animated: false}}),
                     ]),
                 ],
+                allowed_mentions: {parse: []},
             };
         }else if(state.mode === "playing") {
             let components: ActionRow[];
@@ -1535,16 +1557,19 @@ const Conn4Game: Game<Conn4State> = {
             return {
                 content: conn4.connect4.render(state.state)[0],
                 components,
+                allowed_mentions: {parse: []},
             };
         }else if(state.mode === "canceled") {
             return {
                 content: "Canceled game.",
                 components: [],
+                allowed_mentions: {parse: []},
             };
         }else{
             return {
                 content: "Unsupported "+state.mode,
                 components: [],
+                allowed_mentions: {parse: []},
             };
         }
     },
@@ -1696,6 +1721,7 @@ const CheckersGame: Game<CheckersState> = {
                         button(key(PSKeys.playing.rules), "Rules", "secondary", {emoji: {name: "rules", id: "476514294075490306", animated: false}}),
                     ]),
                 ],
+                allowed_mentions: {parse: []},
             };
         }else if(state.mode === "playing") {
             let components: ActionRow[];
@@ -1745,16 +1771,19 @@ const CheckersGame: Game<CheckersState> = {
             return {
                 content: chec.checkers.render(state.state)[0],
                 components,
+                allowed_mentions: {parse: []},
             };
         }else if(state.mode === "canceled") {
             return {
                 content: "Canceled game.",
                 components: [],
+                allowed_mentions: {parse: []},
             };
         }else{
             return {
                 content: "Unsupported "+state.mode,
                 components: [],
+                allowed_mentions: {parse: []},
             };
         }
     },
