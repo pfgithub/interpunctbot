@@ -4,7 +4,6 @@ import {
 	Player,
 	newGame,
 	MoveSet,
-	unit,
 	Board,
 } from "./gamelib";
 import * as gl from "./gamelib";
@@ -83,8 +82,6 @@ function checkTie(gameState: Connect4): boolean {
 }
 
 export const connect4 = newGame<Connect4>({
-	title: "Connect 4",
-	help: "/help/fun/connect4",
 	setup(players) {
 		return {
 			board: newBoard(7, 6, () => ({})),
@@ -134,9 +131,6 @@ export const connect4 = newGame<Connect4>({
 		}
 		return resmoves;
 	},
-	renderSetup() {
-		return [{ type: "once", actions: [...tileset.tiles.buttons] }];
-	},
 	checkGameOver(state) {
 		return state.status.s === "winner" || state.status.s === "tie";
 	},
@@ -167,33 +161,4 @@ ${renderedBoard}
 Try to get 4 in a row in any direction, including diagonal.`,
 		];
 	},
-	timers: [
-		{
-			time: unit(0, "sec"),
-			message: state => {
-				const currentplayer = state.players[state.turn];
-				const playercolor = tileset.tiles[state.turn];
-				return `<@${currentplayer.id}> (${playercolor}), it's your turn.`;
-			},
-		},
-		{
-			time: unit(30, "sec"),
-			message: state => {
-				const currentplayer = state.players[state.turn];
-				const playercolor = tileset.tiles[state.turn];
-				return `<@${currentplayer.id}> (${playercolor}), it's your turn. 30s left.`;
-			},
-		},
-		{
-			time: unit(60, "sec"),
-			update: state => {
-				state.status = {
-					s: "winner",
-					winner: state.players[state.turn === "r" ? "y" : "r"],
-					reason: "Time out!",
-				};
-				return state;
-			},
-		},
-	],
 });

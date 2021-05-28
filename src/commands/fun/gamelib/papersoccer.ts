@@ -3,7 +3,6 @@ import {
 	Player,
 	newGame,
 	MoveSet,
-	unit,
 } from "./gamelib";
 import * as gl from "./gamelib";
 import * as fs from "fs";
@@ -190,8 +189,6 @@ export function availableConnections(state: {board: Board}, x: number, y: number
 }
 
 export const papersoccer = newGame<GameState>({
-	title: "Paper Soccer",
-	help: "/help/fun/papersoccer",
 	setup(players) {
 		return {
 			board: initBoard(),
@@ -244,9 +241,6 @@ export const papersoccer = newGame<GameState>({
 		
 		return resMoves;
 	},
-	renderSetup() {
-		return [{type: "once", actions: []}, { type: "once", actions: Object.values(buttonReactions) }];
-	},
 	checkGameOver(state) {
 		return !!state.winner;
 	},
@@ -261,29 +255,4 @@ export const papersoccer = newGame<GameState>({
 			displayBoard(state.board, state.ball, !!state.winner, (state.winner || state.players[state.turn]).id, state.turn === 1),
 		];
 	},
-	timers: [
-		{
-			time: unit(0, "sec"),
-			message: state => {
-				const currentplayer = state.players[state.turn];
-				return `<@${currentplayer.id}>, it's your turn.`;
-			},
-		},
-		{
-			time: unit(60, "sec"),
-			message: state => {
-				const currentplayer = state.players[state.turn];
-				return `<@${currentplayer.id}>, it's your turn. 1 minute left.`;
-			},
-		},
-		{
-			time: unit(120, "sec"),
-			update: state => {
-				state.turn += 1;
-				state.turn %= state.players.length;
-				state.winner = state.players[state.turn];
-				return state;
-			},
-		},
-	],
 });

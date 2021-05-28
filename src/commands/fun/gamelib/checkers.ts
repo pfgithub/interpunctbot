@@ -431,8 +431,6 @@ function assertNever(a: never): never {
 }
 
 export const checkers = g.newGame<Checkers>({
-	title: "Checkers",
-	help: "/help/fun/checkers",
 	setup(players) {
 		const u___ = {};
 		const r = (n: number): Partial<Piece> => ({
@@ -466,18 +464,6 @@ export const checkers = g.newGame<Checkers>({
 
 		updateOverlay(initialState);
 		return initialState;
-	},
-	renderSetup() {
-		return [
-			{
-				type: "once",
-				actions: [
-					tileset.tiles.interaction.back,
-					...tileset.tiles.interaction.pieces,
-					...Object.values(tileset.tiles.interaction.arrows),
-				],
-			},
-		];
 	},
 	render(state) {
 		const mode = state.status;
@@ -538,43 +524,4 @@ ${boardRender}
 	checkGameOver(state) {
 		return state.status.s === "winner" || state.status.s === "tie";
 	},
-	timers: [
-		{
-			time: g.unit(0, "min"),
-
-			message: state => {
-				if (state.status.s === "winner") assertNever(0 as never);
-				if (state.status.s === "tie") assertNever(0 as never);
-				const currentplayer = state.players[state.status.turn];
-				const playercolor = tileset.tiles[state.status.turn].blank;
-				return `<@${currentplayer.id}> (${playercolor}), it's your turn.`;
-			},
-		},
-		{
-			time: g.unit(3, "min"),
-
-			message: state => {
-				if (state.status.s === "winner") assertNever(0 as never);
-				if (state.status.s === "tie") assertNever(0 as never);
-				const currentplayer = state.players[state.status.turn];
-				const playercolor = tileset.tiles[state.status.turn].blank;
-				return `<@${currentplayer.id}> (${playercolor}), it's your turn. 30s left.`;
-			},
-		},
-		{
-			time: g.unit(4, "min"),
-			update: state => {
-				if (state.status.s === "winner") assertNever(0 as never);
-				if (state.status.s === "tie") assertNever(0 as never);
-				const nextplayer = state.players[state.status.turn === "red" ? "black" : "red"];
-				state.status = {
-					s: "winner",
-					reason: "Time out.",
-					winner: nextplayer,
-				};
-				updateOverlay(state);
-				return state;
-			},
-		},
-	],
 });

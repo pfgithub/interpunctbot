@@ -1,73 +1,3 @@
-import * as Discord from "discord.js";
-
-import Info from "../../../Info";
-import { perr } from "../../../..";
-import { getTwoPlayers, createTimer } from "../helpers";
-
-/// pass data async
-/// stream.write()
-/// await stream.read()
-/// adapted from https://github.com/pfgithub/advent-of-code-2019/blob/master/solutions/_defaults/_defaults.0.ts
-function oneway<T>(): {
-	read: () => Promise<T>;
-	write: (v: T) => void;
-	close: () => void;
-} {
-	const stream: T[] = [];
-	let waitingnow: ((v: T) => void) | undefined;
-	let over = false;
-	return {
-		read: () => {
-			return new Promise<T>(resolve => {
-				if (stream.length > 0) {
-					return resolve(stream.shift()!);
-				} else {
-					waitingnow = v => {
-						waitingnow = undefined;
-						resolve(v);
-					};
-				}
-			});
-		},
-		write: v => {
-			if (over) throw new Error("cannot write to closed oneway");
-			if (waitingnow) {
-				waitingnow(v);
-			} else {
-				stream.push(v);
-			}
-		},
-		close: () => {
-			over = true;
-			if (stream.length > 0)
-				throw new Error("oneway closed while items are in stream");
-		},
-	};
-}
-
-export const ratelimit = (frequency: number & { __unit: "ms" }) => {
-	let timeout: NodeJS.Timeout | undefined;
-	let nextExec: undefined | (() => Promise<void>);
-	return (action: () => Promise<void>) => {
-		if (timeout) {
-			nextExec = action;
-			return;
-		}
-		perr(action(), "executing ratelimit");
-		timeout = setTimeout(() => {
-			timeout = undefined;
-			if (nextExec) perr(nextExec(), "executing ratelimit (nextexec)");
-		}, frequency);
-	};
-};
-
-export function unit(v: number, name: "ms" | "sec" | "min") {
-	if (name === "min") return (v * 1000 * 60) as number & { __unit: "ms" };
-	if (name === "sec") return (v * 1000) as number & { __unit: "ms" };
-	if (name === "ms") return v as number & { __unit: "ms" };
-	throw new Error("invalid unit " + name);
-}
-
 export type Player = { id: string };
 export type Tile = string;
 
@@ -80,17 +10,8 @@ export type MoveSet<State> = Move<State>[];
 export type GameConfig<State> = {
 	setup: (player: Player[]) => State;
 	getMoves: (state: State) => MoveSet<State>;
-	renderSetup: () => { type: "once"; actions: Tile[] }[];
 	render: (state: Readonly<State>) => string[];
-	timers: {
-		time: number & { __unit: "ms" };
-		message?: (v: Readonly<State>) => string;
-		update?: (v: State) => State;
-	}[];
-	turnMsg?: (v: Readonly<State>) => {player: Player, msg: string},
 	checkGameOver: (state: Readonly<State>) => boolean;
-	help: string;
-	title: string;
 };
 
 export const newGame = <State>(conf: GameConfig<State>): GameConfig<State> => {
