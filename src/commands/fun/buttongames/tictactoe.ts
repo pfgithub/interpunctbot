@@ -1268,14 +1268,7 @@ async (info, ikey, state) => {
 import * as connect4 from "../gamelib/connect4";
 
 const Conn4Game = gamelibGameHandler("C4", connect4.connect4, "Connect 4", () => ["" +
-	"Try to get 4 in a row in any direction, including diagonal.", [
-	componentRow([{
-		type: 2,
-		style: 5, // URL
-		label: "More Help",
-		url: "https://interpunct.info/help/fun/ultimatetictactoe",
-		disabled: false,
-	}])]],
+	"Try to get 4 in a row in any direction, including diagonal.", []],
 (key, mm, render) => {
 	let components: ActionRow[];
 	if(!mm) {
