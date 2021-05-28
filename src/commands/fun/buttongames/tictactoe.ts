@@ -112,12 +112,6 @@ nr.ginteractionhandler["boo_btn"] = {
     }
 };
 
-type GameKind =
-    | "TTT" // tic tac toe
-    | "CG" // circlegame
-    | "PS" // paper soccer
-;
-
 type GameData = {
     kind: GameKind;
     state: unknown;
@@ -1063,8 +1057,212 @@ nr.globalCommand(
 	},
 );
 
+// TODO edit the original message rather than sending a new one
+
+type CalcOp = "+" | "-" | "×" | "÷" | "^";
+type CalcState = {
+    current: string,
+    previous?: {
+        operation: CalcOp,
+        number: string,
+    },
+    before_eq?: {
+        operation: CalcOp,
+        lhs: string,
+        number: string,
+    },
+};
+
+nr.globalCommand(
+	"/help/test/calculator",
+	"calculator",
+	{
+		usage: "calculator",
+		description: "calculator",
+		examples: [],
+		perms: {fun: true},
+	},
+	nr.list(),
+	async ([], info) => {
+		const api = info.message.client as any as ApiHolder;
+
+		const game_id = await createGame<CalcState>("CALC", {
+            current: "",
+        });
+        await renderGame(info, game_id);
+	},
+);
+const Calculator: Game<CalcState> = {
+    render(state_in, game_id, game_kind, game_stage, info): SampleMessage {
+        const state = state_in as CalcState;
+
+        const key = (name: string) => getInteractionKey(game_id, game_kind, game_stage, name);
+
+        const currentText = (state.current || "0");
+        let renderedCalculator = (state.previous ? state.previous.number + " " + state.previous.operation + " " : "")
+            + currentText
+        ;
+        if(state.previous && state.previous.operation === "^") {
+            renderedCalculator = state.previous.number + [...currentText].map(c => [..."⁰¹²³⁴⁵⁶⁷⁸⁹"][+c]).join("");
+        }
+        if(state.before_eq) {
+            renderedCalculator = "= " + renderedCalculator;
+            if(!state.previous) {
+                renderedCalculator = state.before_eq.operation + " " + state.before_eq.number + " " + renderedCalculator;
+            }
+        }
+        const operations_enabled = !!state.current;
+        const eq_enabled = calculate(JSON.parse(JSON.stringify(state)));
+        return {
+            content: "```\n"+renderedCalculator+"\n```",
+            components: [
+                componentRow([
+                    button(key("O,^"), "xʸ", "secondary", {disabled: !operations_enabled}),
+                    button(key("negative"), "±", "secondary", {}),
+                    button(key("bksp"), "⌫", "secondary", {}),
+                    button(key("ac"), "AC", "deny", {}),
+                ]),
+                componentRow([
+                    button(key("I,7"), "7", "secondary", {}),
+                    button(key("I,8"), "8", "secondary", {}),
+                    button(key("I,9"), "9", "secondary", {}),
+                    button(key("O,÷"), "÷", "secondary", {disabled: !operations_enabled}),
+                ]),
+                componentRow([
+                    button(key("I,4"), "4", "secondary", {}),
+                    button(key("I,5"), "5", "secondary", {}),
+                    button(key("I,6"), "6", "secondary", {}),
+                    button(key("O,×"), "×", "secondary", {disabled: !operations_enabled}),
+                ]),
+                componentRow([
+                    button(key("I,1"), "1", "secondary", {}),
+                    button(key("I,2"), "2", "secondary", {}),
+                    button(key("I,3"), "3", "secondary", {}),
+                    button(key("O,-"), "-", "secondary", {disabled: !operations_enabled}),
+                ]),
+                componentRow([
+                    button(key("I,0"), "0", "secondary", {}),
+                    button(key("I,."), ".", "secondary", {disabled: state.current.includes(".")}),
+                    button(key("eq"), "=", eq_enabled ? "primary" : "secondary", {disabled: !eq_enabled}),
+                    button(key("O,+"), "+", "secondary", {disabled: !operations_enabled}),
+                ]),
+            ],
+        };
+    },
+    async handleInteraction(info, custom_id): Promise<InteractionHandled<CalcState>> {
+        const ikey = parseInteractionKey(custom_id);
+        const game_state = await getGameData(ikey.game_id);
+        const key = (name: string) => getInteractionKey(ikey.game_id, ikey.kind, ikey.stage, name);
+
+        if(game_state.stage != ikey.stage) {
+            return await errorGame(info, "This button is no longer active.");
+        }
+        const state = game_state.state as CalcState;
+
+        console.log(game_state);
+
+        if(ikey.name.startsWith("I,")) {
+            const insert = ikey.name.replace("I,", "");
+            state.current += insert;
+            return await updateGameState<CalcState>(info, ikey, state);
+        }else if(ikey.name.startsWith("O,")) {
+            const op = ikey.name.replace("O,", "");
+            if(state.previous) {
+                if(!calculate(state)) return await errorGame(info, "Never.");
+            }
+            state.previous = {
+                operation: op as any,
+                number: state.current,
+            };
+            state.current = "";
+            return await updateGameState<CalcState>(info, ikey, state);
+        }else if(ikey.name === "ac") {
+            state.before_eq = undefined;
+            state.previous = undefined;
+            state.current = "";
+            return await updateGameState<CalcState>(info, ikey, state);
+        }else if(ikey.name === "bksp") {
+            if(!state.current) {
+                if(state.previous) {
+                    state.current = state.previous.number;
+                    state.previous = undefined;
+                }else{
+                    if(state.before_eq) {
+                        state.current = state.before_eq.number;
+                        state.previous = {number: state.before_eq.lhs, operation: state.before_eq.operation};
+                        state.before_eq = undefined;
+                    }
+                }
+            }else{
+                state.current = state.current.substr(0, state.current.length - 1);
+            }
+            return await updateGameState<CalcState>(info, ikey, state);
+        }else if(ikey.name === "eq") {
+            if(!calculate(state)) return await errorGame(info, "Cannot = nothing");
+
+            // state.before_eq = {
+            //     operation: prev.operation,
+            //     lhs: state.current,
+            //     number: prev.number,
+            // };
+
+            return await updateGameState<CalcState>(info, ikey, state);
+        }else if(ikey.name === "negative") {
+            if(state.current.includes("-")) {
+                state.current = state.current.replace("-", "");
+            }else{
+                state.current = "-" + state.current;
+            }
+            return await updateGameState<CalcState>(info, ikey, state);
+        } else return await errorGame(info, "TODO support "+ikey.name);
+    }
+};
+
+function calculateValue(lhs_str: string, op: CalcOp, rhs_str: string): number {
+    const lhs =+ lhs_str;
+    const rhs =+ rhs_str;
+
+    if(op === "+") {
+        return lhs + rhs;
+    }else if(op === "-") {
+        return lhs - rhs;
+    }else if(op === "×") {
+        return lhs * rhs;
+    }else if(op === "÷") {
+        return lhs / rhs;
+    }else if(op === "^") {
+        return lhs ** rhs;
+    }else{
+        throw new Error("bad calculation")
+    }
+}
+function calculate(state: CalcState): boolean {
+    const lhs = state.previous?.number ?? state.current;
+    const rhs = state.previous ? state.current : state.before_eq?.number;
+    const op = state.previous ? state.previous.operation : state.before_eq?.operation;
+    if(rhs == null || op == null) return false;
+
+    state.before_eq = {
+        operation: op,
+        lhs,
+        number: rhs,
+    };
+    state.previous = undefined;
+    state.current = "" + calculateValue(lhs, op, rhs);
+
+    return true;
+}
+
+type GameKind =
+    | "TTT" // tic tac toe
+    | "CG" // circlegame
+    | "PS" // paper soccer
+    | "CALC" // calculator
+;
+
 const games: {[key in GameKind]: Game<unknown>} = {
     "TTT": TTTGame,
     "CG": CGGame,
     "PS": PSGame,
+    "CALC": Calculator,
 };
