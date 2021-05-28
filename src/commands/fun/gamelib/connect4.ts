@@ -15,7 +15,7 @@ type Color = "r" | "y";
 
 type Piece = { color?: Color };
 
-type Connect4 = {
+export type Connect4 = {
 	board: Board<Piece>;
 	turn: Color;
 	players: { r: Player; y: Player };
@@ -25,7 +25,7 @@ type Connect4 = {
 		| { s: "tie" };
 };
 
-const tileset = newTileset({
+export const tileset = newTileset({
 	r: "<:r:648226318017626132>",
 	y: "<:y:648226318118420500>",
 	empty: "<:w:648296516406083595>",

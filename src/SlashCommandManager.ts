@@ -350,7 +350,6 @@ const slash_command_router: {[key: string]: SlashCommandRoute} = {
             tictactoe: {},
             randomword: {args: {custom_word: opt.optional(opt.string("A custom word. Costs 5 trophies."))}},
             trivia: {}, needle: {},
-            tictactoe2: {route: "ttt2"},
         },
     },
     set: {

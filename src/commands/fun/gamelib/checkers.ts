@@ -21,7 +21,7 @@ type Piece = {
 		| { type: "ghost" };
 };
 
-type Checkers = {
+export type Checkers = {
 	board: g.Board<Piece>;
 	players: { red: g.Player; black: g.Player };
 	status:
@@ -36,7 +36,7 @@ type Checkers = {
 		| { s: "tie"; reason: string };
 };
 
-const tileset = g.newTileset({
+export const tileset = g.newTileset({
 	red: {
 		pieces: [
 			"<:r1:649845887715115009>",
@@ -266,7 +266,7 @@ function getAvailableMoves(
 }
 
 // this could be called by render or something. it won't be, but it could.
-function updateOverlay(state: Checkers) {
+export function updateOverlay(state: Checkers) {
 	g.boardForEach(state.board, tile => {
 		tile.overlay = undefined;
 	});
