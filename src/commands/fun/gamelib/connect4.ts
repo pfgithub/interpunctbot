@@ -7,6 +7,7 @@ import {
 	unit,
 	Board,
 } from "./gamelib";
+import * as gl from "./gamelib";
 
 //
 
@@ -47,10 +48,10 @@ function checkWin(gameState: Connect4, [placedX, placedY]: [number, number]) {
 		[-1, 1],
 		[0, -1],
 	];
-	const tile = gameState.board.get(placedX, placedY)!;
+	const tile = gl.boardGet(gameState.board, placedX, placedY)!;
 	if (!tile.color) throw new Error("checkWin called at invalid location");
 	for (const check of checks) {
-		const downmost = gameState.board.search(
+		const downmost = gl.boardSearch(gameState.board,
 			[placedX, placedY],
 			(tileh, x, y) => {
 				if (tileh.color !== tile.color) return "previous";
@@ -58,7 +59,7 @@ function checkWin(gameState: Connect4, [placedX, placedY]: [number, number]) {
 			},
 		);
 		if (!downmost) throw new Error("tile was not found but it must be");
-		const upmost = gameState.board.search(
+		const upmost = gl.boardSearch(gameState.board,
 			[downmost.x, downmost.y],
 			(tileh, x, y) => {
 				if (tileh.color !== tile.color) return "previous";
@@ -73,7 +74,7 @@ function checkWin(gameState: Connect4, [placedX, placedY]: [number, number]) {
 
 function checkTie(gameState: Connect4): boolean {
 	for (let tx = 0; tx < 7; tx++) {
-		const found = gameState.board.search([tx, 0], (tile, x, y) => {
+		const found = gl.boardSearch(gameState.board, [tx, 0], (tile, x, y) => {
 			return tile.color ? "previous" : [x, y + 1];
 		});
 		if (found) return false;
@@ -98,7 +99,7 @@ export const connect4 = newGame<Connect4>({
 	getMoves(state) {
 		const resmoves: MoveSet<Connect4> = [];
 		for (let tx = 0; tx < 7; tx++) {
-			const found = state.board.search([tx, 0], (tile, x, y) => {
+			const found = gl.boardSearch(state.board, [tx, 0], (tile, x, y) => {
 				return tile.color ? "previous" : [x, y + 1];
 			});
 			if (!found) continue;
@@ -108,7 +109,7 @@ export const connect4 = newGame<Connect4>({
 				player: state.players[state.turn],
 				apply: state => {
 					// we're pretending state is a copy (even though it isn't because that isn't implemented yet), it should be mutated
-					state.board.set(x, y, { color: state.turn });
+					gl.boardSet(state.board, x, y, { color: state.turn });
 
 					if (checkWin(state, [x, y])) {
 						state.status = {
@@ -151,7 +152,7 @@ export const connect4 = newGame<Connect4>({
 				: state.status.s === "tie"
 				? `Tie`
 				: "never.";
-		const renderedBoard = state.board.render(tile => {
+		const renderedBoard = gl.boardRender(state.board, tile => {
 			if (tile.color) return tileset.tiles[tile.color];
 			return tileset.tiles.empty;
 		});

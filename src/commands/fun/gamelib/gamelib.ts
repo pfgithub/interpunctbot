@@ -306,7 +306,97 @@ export function newTileset<T>(tiles: T): Tileset<T> {
 	// TODO: create tilesets from png images and have this automatically manage emojis in a set list of emoji servers provided by id in the config
 }
 
+// TODO rename gamelib to board
+// rename all board functions to just their names directly eg get, set, render
 export type Board<TileData> = {
+	w: number;
+	h: number;
+	tiles: TileData[][];
+};
+export function boardGet<T>(board: Board<T>, x: number, y: number): T | undefined {
+	return board.tiles[y]?.[x];
+}
+export function boardSet<T>(board: Board<T>, x: number, y: number, tile: T): void {
+	board.tiles[y]![x] = tile;
+}
+/// like boardMap, but mutates the board. also, there is no boardMap.
+export function boardFill<T>(board: Board<T>, tile: (tile: T, x: number, y: number) => T): void {
+	boardForEach(board, (tilec, x, y) => {
+		boardSet(board, x, y, tile(tilec, x, y));
+	});
+}
+export function boardRender<T>(board: Board<T>, draw: (tile: T, x: number, y: number) => string): string {
+	return board.tiles
+		.map((row, y) =>
+			row.map((tile, x) => draw(tile, x, y)).join(""),
+		)
+		.join("\n")
+	;
+}
+export function boardMegarender<T>(board: Board<T>,
+	_w: number,
+	h: number,
+	draw: (tile: T, x: number, y: number) => string[],
+): string[][][] {
+	const res: string[][][] = [];
+	board.tiles.forEach((row, y) => {
+		const rly: string[][] = new Array(h).fill(0).map(() => []);
+		res.push(rly);
+		row.forEach((tile, x) => {
+			const drawn = draw(tile, x, y);
+			drawn.forEach((line, i) => {
+				const ty = i;
+				rly[ty].push(line);
+			});
+		});
+	});
+	return res;
+}
+export function boardForEach<T>(board: Board<T>, cb: (tile: T, x: number, y: number) => void): void {
+	for (let y = 0; y < board.h; y++) {
+		for (let x = 0; x < board.w; x++) {
+			cb(boardGet(board, x, y)!, x, y);
+		}
+	}
+}
+export function boardFilter<T>(board: Board<T>,
+	filtration: (tile: T, x: number, y: number) => boolean,
+): { tile: T; x: number; y: number }[] {
+	const results: { tile: T; x: number; y: number }[] = [];
+	boardForEach(board, (tile, x, y) => {
+		if (filtration(tile, x, y)) results.push({ tile, x, y });
+	});
+	return results;
+}
+export function boardSearch<T>(board: Board<T>,
+	startingPosition: Pos,
+	cb: (
+		tile: T,
+		x: number,
+		y: number,
+	) => Pos | "current" | "previous",
+): { x: number; y: number; distance: number } | undefined {
+	let [cx, cy] = startingPosition;
+	let [x, y] = startingPosition;
+
+	let i = 0;
+	for (; i < 1000;) {
+		const result =
+			cx >= board.w || cx < 0 || cy >= board.h || cy < 0
+				? "previous" // search will now automatically return prev when off board
+				: cb(board.tiles[cy][cx], cx, cy);
+		if (result === "previous")
+			if (i === 0) return undefined;
+			else return { x, y, distance: i };
+		[x, y] = [cx, cy];
+		i++;
+		if (result === "current") return { x, y, distance: i };
+		[cx, cy] = result;
+	}
+	throw new Error("Potentially infinite find!:(passed 1000)");
+}
+
+export type Board_OLD<TileData> = {
 	get(x: number, y: number): TileData | undefined;
 	set( // or mutate tile
 		x: number,
@@ -334,6 +424,7 @@ export type Board<TileData> = {
 	): { x: number; y: number; distance: number } | undefined;
 };
 export type Pos = [number, number];
+
 // this should just be a class instead of this function thing
 export function newBoard<TileData>(
 	w: number,
@@ -347,77 +438,5 @@ export function newBoard<TileData>(
 			tiles[y][x] = fill(x, y);
 		}
 	}
-
-	const board: Board<TileData> = {
-		// returns undefined when out of map
-		get(x, y) {
-			return tiles[y]?.[x];
-		},
-		set(x, y, tile) {
-			tiles[y][x] = tile;
-		},
-		fill(tile) {
-			board.forEach((tilec, x, y) => {
-				board.set(x, y, tile(tilec, x, y));
-			});
-		},
-		render(draw) {
-			return tiles
-				.map((row, y) =>
-					row.map((tile, x) => draw(tile, x, y)).join(""),
-				)
-				.join("\n");
-		},
-		megarender(_w, h, draw) {
-			const res: string[][][] = [];
-			tiles.forEach((row, y) => {
-				const rly: string[][] = new Array(h).fill(0).map(() => []);
-				res.push(rly);
-				row.forEach((tile, x) => {
-					const drawn = draw(tile, x, y);
-					drawn.forEach((line, i) => {
-						const ty = i;
-						rly[ty].push(line);
-					});
-				});
-			});
-			return res;
-		},
-		forEach(cb) {
-			for (let y = 0; y < h; y++) {
-				for (let x = 0; x < w; x++) {
-					cb(board.get(x, y)!, x, y);
-				}
-			}
-		},
-		filter(filtration) {
-			const results: { tile: TileData; x: number; y: number }[] = [];
-			board.forEach((tile, x, y) => {
-				if (filtration(tile, x, y)) results.push({ tile, x, y });
-			});
-			return results;
-		},
-		search(startingPosition, cb) {
-			let [cx, cy] = startingPosition;
-			let [x, y] = startingPosition;
-			let i = 0;
-			while (true) {
-				if (i > 1000)
-					throw new Error("Potentially infinite find!:(passed 1000)");
-				const result = // in zig this could be a normal if statement instead of a ternary thing. that is the obvious way to do it, why doesn't every language do it that way
-					cx >= w || cx < 0 || cy >= h || cy < 0
-						? "previous" // search will now automatically fail when off board
-						: cb(tiles[cy][cx], cx, cy);
-				if (result === "previous")
-					if (i === 0) return undefined;
-					else return { x, y, distance: i };
-				[x, y] = [cx, cy];
-				i++;
-				if (result === "current") return { x, y, distance: i };
-				[cx, cy] = result;
-			}
-		},
-	};
-
-	return board;
+	return {tiles, w, h};
 }

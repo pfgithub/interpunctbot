@@ -173,7 +173,7 @@ async function renderGame(info: Info, game_id: GameID) {
 }
 
 interface Game<T> {
-    render: (state: unknown, game_id: GameID, game_kind: GameKind, game_stage: number, info: Info) => SampleMessage;
+    render: (state: T, game_id: GameID, game_kind: GameKind, game_stage: number, info: Info) => SampleMessage;
     handleInteraction: (info: Info, custom_id: string) => Promise<InteractionHandled<T>>;
 };
 
@@ -299,9 +299,7 @@ function tttDetectTie(grid: Grid<" " | "O" | "X">): boolean {
 }
 
 const TTTGame: Game<TicTacToeState> = {
-    render(state_in, game_id, game_kind, game_stage, info): SampleMessage {
-        const state = state_in as TicTacToeState;
-
+    render(state, game_id, game_kind, game_stage, info): SampleMessage {
         const key = (name: string) => getInteractionKey(game_id, game_kind, game_stage, name);
 
         if(state.mode === "joining") {
@@ -596,9 +594,7 @@ type CirclegameState = {
     mode: "canceled",
 } | {mode: "__never__"};
 const CGGame: Game<CirclegameState> = {
-    render(state_in, game_id, game_kind, game_stage, info): SampleMessage {
-        const state = state_in as CirclegameState;
-
+    render(state, game_id, game_kind, game_stage, info): SampleMessage {
         const key = (name: string) => getInteractionKey(game_id, game_kind, game_stage, name);
 
         if(state.mode === "joining") {
@@ -828,9 +824,7 @@ const PSKeys = {
     },
 };
 const PSGame: Game<PSState> = {
-    render(state_in, game_id, game_kind, game_stage, info): SampleMessage {
-        const state = state_in as PSState;
-
+    render(state, game_id, game_kind, game_stage, info): SampleMessage {
         const key = (name: string) => getInteractionKey(game_id, game_kind, game_stage, name);
 
         if(state.mode === "joining") {
@@ -1011,50 +1005,6 @@ const PSGame: Game<PSState> = {
     }
 };
 
-nr.globalCommand(
-	"/help/test/uttt2",
-	"uttt2",
-	{
-		usage: "uttt2",
-		description: "uttt2",
-		examples: [],
-		perms: {fun: true},
-	},
-	nr.list(),
-	async ([], info) => {
-		const api = info.message.client as any as ApiHolder;
-		await api.api.channels(info.message.channel.id).messages.post<{data: SampleMessage}, unknown>({data: {
-			content: "uttt2",
-			components: [
-                // maybe use secondary for top level choice and primary for final choice? idk
-                // yeah then the back button being secondary colored makes sense
-				componentRow([
-                    button("boo_btn", "1", "secondary", {}),
-                    button("boo_btn", "2", "secondary", {}),
-                    button("boo_btn", "3", "secondary", {}),
-				]),
-				componentRow([
-                    button("boo_btn", "4", "secondary", {}),
-                    button("boo_btn", "5", "secondary", {disabled: true}),
-                    button("boo_btn", "6", "secondary", {}),
-				]),
-				componentRow([
-                    button("boo_btn", "7", "secondary", {disabled: true}),
-                    button("boo_btn", "8", "secondary", {disabled: true}),
-                    button("boo_btn", "9", "secondary", {}),
-				]),
-                componentRow([
-                    button("back", "⎌", "secondary", {disabled: true}),
-                    button("rules", "Rules", "secondary", {emoji: {name: "rules", id: "476514294075490306", animated: false}}),
-                    button("give up", "Give Up", "deny", {}),
-                ]),
-			],
-		}});
-	},
-);
-
-// TODO edit the original message rather than sending a new one
-
 type CalcOp = "+" | "-" | "×" | "÷" | "^";
 type CalcState = {
     current: string,
@@ -1089,9 +1039,7 @@ nr.globalCommand(
 	},
 );
 const Calculator: Game<CalcState> = {
-    render(state_in, game_id, game_kind, game_stage, info): SampleMessage {
-        const state = state_in as CalcState;
-
+    render(state, game_id, game_kind, game_stage, info): SampleMessage {
         const key = (name: string) => getInteractionKey(game_id, game_kind, game_stage, name);
 
         const currentText = (state.current || "0");
@@ -1249,16 +1197,270 @@ function calculate(state: CalcState): boolean {
     return true;
 }
 
+nr.globalCommand(
+	"/help/test/uttt2",
+	"uttt2",
+	{
+		usage: "uttt2",
+		description: "uttt2",
+		examples: [],
+		perms: {fun: true},
+	},
+	nr.list(),
+	async ([], info) => {
+		const api = info.message.client as any as ApiHolder;
+
+		const game_id = await createGame<UTTTState>("UTTT", {
+            mode: "joining",
+            initiator: info.message.author.id,
+        });
+        await renderGame(info, game_id);
+
+		// const api = info.message.client as any as ApiHolder;
+		// await api.api.channels(info.message.channel.id).messages.post<{data: SampleMessage}, unknown>({data: {
+		// 	content: "uttt2",
+		// 	components: [
+        //         // maybe use secondary for top level choice and primary for final choice? idk
+        //         // yeah then the back button being secondary colored makes sense
+		// 		componentRow([
+        //             button("boo_btn", "1", "secondary", {}),
+        //             button("boo_btn", "2", "secondary", {}),
+        //             button("boo_btn", "3", "secondary", {}),
+		// 		]),
+		// 		componentRow([
+        //             button("boo_btn", "4", "secondary", {}),
+        //             button("boo_btn", "5", "secondary", {disabled: true}),
+        //             button("boo_btn", "6", "secondary", {}),
+		// 		]),
+		// 		componentRow([
+        //             button("boo_btn", "7", "secondary", {disabled: true}),
+        //             button("boo_btn", "8", "secondary", {disabled: true}),
+        //             button("boo_btn", "9", "secondary", {}),
+		// 		]),
+        //         componentRow([
+        //             button("back", "⎌", "secondary", {disabled: true}),
+        //             button("rules", "Rules", "secondary", {emoji: {name: "rules", id: "476514294075490306", animated: false}}),
+        //             button("give up", "Give Up", "deny", {}),
+        //         ]),
+		// 	],
+		// }});
+	},
+);
+
+import * as uttt from "../gamelib/ultimatetictactoe";
+type UTTTState = {
+    mode: "joining";
+    initiator: string;
+} | {
+    mode: "playing";
+    state: uttt.UltimateTicTacToe,
+} | {mode: "canceled"} | {mode: "unsupported"};
+
+const UTTTGame: Game<UTTTState> = {
+    render(state, game_id, game_kind, game_stage, info): SampleMessage {
+        const key = (name: string) => getInteractionKey(game_id, game_kind, game_stage, name);
+
+        if(state.mode === "joining") {
+            return {
+                content: "<@"+state.initiator+"> is starting a paper soccer game",
+                components: [
+                    componentRow([
+                        button(key(BasicKeys.joining.join), "Join Game", "accept", {}),
+                        button(key(BasicKeys.joining.end), "Cancel", "deny", {}),
+                    ]),
+                ],
+            };
+        }else if(state.mode === "playing") {
+            let components: ActionRow[];
+            if(uttt.checkGameOver(state.state)) {
+                components = [
+                    componentRow([
+                        button(key(PSKeys.playing.rules), "Rules", "secondary", {emoji: {name: "rules", id: "476514294075490306", animated: false}}),
+                    ]),
+                ];
+            }else{
+                const moves = uttt.getMoves(state.state);
+                
+                const ts = uttt.tileset.tiles;
+                const mm: {[key: string]: boolean} = {};
+                moves.forEach(move => mm[move.button] = true);
+                const is_l2 = state.state.status.s === "playing" ? state.state.status.board === "pick" : false;
+                const bstyl = is_l2 ? "primary" : "secondary";
+                components = [
+                    // maybe use secondary for top level choice and primary for final choice? idk
+                    // yeah then the back button being secondary colored makes sense
+                    componentRow([
+                        button(key("E,"+ts.buttons[0]), "1", bstyl, {disabled: !mm[ts.buttons[0]]}),
+                        button(key("E,"+ts.buttons[1]), "2", bstyl, {disabled: !mm[ts.buttons[1]]}),
+                        button(key("E,"+ts.buttons[2]), "3", bstyl, {disabled: !mm[ts.buttons[2]]}),
+                    ]),
+                    componentRow([
+                        button(key("E,"+ts.buttons[3]), "4", bstyl, {disabled: !mm[ts.buttons[3]]}),
+                        button(key("E,"+ts.buttons[4]), "5", bstyl, {disabled: !mm[ts.buttons[4]]}),
+                        button(key("E,"+ts.buttons[5]), "6", bstyl, {disabled: !mm[ts.buttons[5]]}),
+                    ]),
+                    componentRow([
+                        button(key("E,"+ts.buttons[6]), "7", bstyl, {disabled: !mm[ts.buttons[6]]}),
+                        button(key("E,"+ts.buttons[7]), "8", bstyl, {disabled: !mm[ts.buttons[7]]}),
+                        button(key("E,"+ts.buttons[8]), "9", bstyl, {disabled: !mm[ts.buttons[8]]}),
+                    ]),
+                    componentRow([
+                        button(key("E,"+ts.backbtn), "⎌", "primary", {disabled: !mm[ts.backbtn]}),
+                        button(key(PSKeys.playing.rules), "Rules", "secondary", {emoji: {name: "rules", id: "476514294075490306", animated: false}}),
+                        button(key(BasicKeys.playing.give_up), "Give Up", "deny", {}),
+                    ]),
+                ];
+            }
+            return {
+                content: uttt.render(state.state)[0],
+                components,
+            };
+        }else if(state.mode === "canceled") {
+            return {
+                content: "Canceled game.",
+                components: [],
+            };
+        }else{
+            return {
+                content: "Unsupported "+state.mode,
+                components: [],
+            };
+        }
+    },
+    async handleInteraction(info, custom_id): Promise<InteractionHandled<UTTTState>> {
+        const ikey = parseInteractionKey(custom_id);
+        const game_state = await getGameData(ikey.game_id);
+        const key = (name: string) => getInteractionKey(ikey.game_id, ikey.kind, ikey.stage, name);
+
+        if(game_state.stage != ikey.stage) {
+            return await errorGame(info, "This button is no longer active.");
+        }
+        const state = game_state.state as UTTTState;
+
+        console.log(game_state);
+
+        if(state.mode === "joining") {
+            if(ikey.name === BasicKeys.joining.join || ikey.name === BasicKeys.joining.join_anyway) {
+                if(ikey.name !== BasicKeys.joining.join_anyway && info.message.author.id === state.initiator) {
+                    if(info.raw_interaction) {
+                        await info.raw_interaction.replyHiddenHideCommand("You are already in the game.", [
+                            componentRow([
+                                button(key(BasicKeys.joining.join_anyway), "Play against yourself", "secondary", {}),
+                            ]),
+                        ]);
+                    }else{
+                        await info.accept();
+                    }
+                    return {__interaction_handled: true as any};
+                }else{
+                    return await updateGameState<UTTTState>(info, ikey, {
+                        mode: "playing",
+
+                        state: uttt.setup([state.initiator, info.message.author.id]),
+                    });
+                }
+            }else if(ikey.name === BasicKeys.joining.end) {
+                if(info.message.author.id === state.initiator) {
+                    return await updateGameState<UTTTState>(info, ikey, {
+                        mode: "canceled",
+                    });
+                }else{
+                    return await errorGame(info, "Only <@"+state.initiator+"> can cancel.");
+                }
+            }else{
+                return await errorGame(info, "Error! Unsupported "+ikey.name);
+            }
+        }else if(state.mode === "playing") {
+            if(ikey.name === PSKeys.playing.rules) {
+                if(info.raw_interaction) {
+                    await info.raw_interaction.replyHiddenHideCommand("" +
+                        "- On your turn, select which board to play on (if you have a choice) and then play your x/o.\n" +
+                        "- When you get 3 in a row on a small board, you win that board.\n" +
+                        "- To win the game, win 3 small boards in a row (up/down, left/right, or diagonal)\n" +
+                        "- The square you play on determines which board your opponent must play on next.", [
+                            componentRow([{
+                                type: 2,
+                                style: 5, // URL
+                                label: "More Help",
+                                url: "https://interpunct.info/help/fun/ultimatetictactoe",
+                                disabled: false,
+                            }]),
+                        ]
+                    );
+                }else{
+                    await info.accept();
+                }
+                return {__interaction_handled: true as any};
+            }
+
+            if(uttt.checkGameOver(state.state)) {
+                return await errorGame(info, "The game is over");
+            }
+
+            if(ikey.name === BasicKeys.playing.give_up) {
+                if(state.state.status.s === "playing" && state.state.players[state.state.status.turn].id === info.message.author.id) {
+                    state.state.status = {
+                        s: "winner",
+                        winner:
+                            state.state.players[state.state.status.turn === "x" ? "o" : "x"],
+                        reason: "Other player gave up",
+                    };
+                    return await updateGameState(info, ikey, state);
+                }else{
+                    return await errorGame(info, "You can't do that.");
+                }
+            }
+
+            if(ikey.name.startsWith("E,")) {
+                const kbtn = ikey.name.replace("E,", "");
+                const moves = uttt.getMoves(state.state);
+                const move = moves.find(move => move.button === kbtn);
+                if(!move) return await errorGame(info, "You can't do that.");
+                if(move.player.id !== info.message.author.id) return await errorGame(info, "You can't do that.");
+                return await updateGameState(info, ikey, {mode: "playing", state: move.apply(state.state)});
+            }
+
+            // if(state.over) return await errorGame(info, "This game is over.");
+            // if(info.message.author.id !== state.players[state.player]) {
+            //     if(!JSON.stringify(state.player).includes(info.message.author.id)) { // hack
+            //         return await errorGame(info, "You're not in this game");
+            //     }
+            //     return await errorGame(info, "It's not your turn");
+            // }
+            // if(ikey.name === BasicKeys.playing.give_up) {
+            //     // other player wins
+            //     state.player += 1;
+            //     state.player %= state.players.length;
+            //     state.over = {
+            //         reason: "Other player gave up",
+            //     };
+            //     return await updateGameState<PSState>(info, ikey, state);
+            // }
+
+            // what we're going to do is call uttt and get a list of supported moves
+            //, find the move == the clicked button, activate it if the player id matches
+            
+            return await errorGame(info, "TODO support "+ikey.name);
+        }else if(state.mode === "canceled") {
+            return await errorGame(info, "This game was not started.");
+        }else{
+            return await errorGame(info, "TODO support "+state.mode);
+        }
+    }
+};
+
 type GameKind =
     | "TTT" // tic tac toe
     | "CG" // circlegame
     | "PS" // paper soccer
     | "CALC" // calculator
+    | "UTTT" // ultimate tic tac toe
 ;
 
-const games: {[key in GameKind]: Game<unknown>} = {
+const games: {[key in GameKind]: Game<any>} = {
     "TTT": TTTGame,
     "CG": CGGame,
     "PS": PSGame,
     "CALC": Calculator,
+    "UTTT": UTTTGame,
 };

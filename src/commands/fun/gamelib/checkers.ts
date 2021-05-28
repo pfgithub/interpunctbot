@@ -156,7 +156,7 @@ function getMovablePieces(
 		);
 	const st = state.status;
 
-	const pieces = state.board.filter(t => t.piece?.color === st.turn);
+	const pieces = g.boardFilter(state.board, t => t.piece?.color === st.turn);
 
 	for (const piece of pieces) {
 		const moveDirections = getMoveDirectionsForPiece(
@@ -207,7 +207,7 @@ function getMoveDirectionsForPiece(
 
 	for (const [dx, dy] of possibledirs) {
 		const [nx, ny] = [x + dx, y + dy];
-		const moveto = state.board.get(nx, ny);
+		const moveto = g.boardGet(state.board, nx, ny);
 		if (!moveto) continue; // off screen
 		if (!moveto.piece) {
 			normalMoves.push({
@@ -221,7 +221,7 @@ function getMoveDirectionsForPiece(
 		if (moveto.piece.color === pcdat.color) continue; // cannot jump same-color piece
 
 		const [fx, fy] = [nx + dx, ny + dy];
-		const jumpto = state.board.get(fx, fy);
+		const jumpto = g.boardGet(state.board, fx, fy);
 		if (!jumpto) continue; // off screen
 		if (jumpto.piece) continue; // cannot jump over piece to piece
 
@@ -248,7 +248,7 @@ function getAvailableMoves(
 	if (state.status.s === "selectpiece") throw new Error("not moving yet");
 	const st = state.status;
 
-	const piece = state.board.filter(
+	const piece = g.boardFilter(state.board,
 		t => t.piece?.number === st.piece && t.piece?.color === st.turn,
 	)[0];
 	if (!piece) throw new Error("Could not find selected piece");
@@ -267,7 +267,7 @@ function getAvailableMoves(
 
 // this could be called by render or something. it won't be, but it could.
 function updateOverlay(state: Checkers) {
-	state.board.forEach(tile => {
+	g.boardForEach(state.board, tile => {
 		tile.overlay = undefined;
 	});
 
@@ -275,7 +275,7 @@ function updateOverlay(state: Checkers) {
 		const movablePieces = getMovablePieces(state);
 		for (const avpc of movablePieces) {
 			// set overlay icon
-			const pc = state.board.get(...avpc.position);
+			const pc = g.boardGet(state.board, ...avpc.position);
 			if (!pc || !pc.piece) throw new Error("bad movable piece");
 			pc.overlay = { type: "select" };
 		}
@@ -286,7 +286,7 @@ function updateOverlay(state: Checkers) {
 		for (const moveDir of moveDirs) {
 			// set dir icon
 			console.log("movedir: ", moveDir);
-			const mvpc = state.board.get(...moveDir.to);
+			const mvpc = g.boardGet(state.board, ...moveDir.to);
 			if (!mvpc || mvpc.piece) throw new Error("bad movedir tile");
 			mvpc.overlay = {
 				type: "move",
@@ -294,12 +294,12 @@ function updateOverlay(state: Checkers) {
 			};
 
 			if (moveDir.take) {
-				const takepce = state.board.get(...moveDir.take);
+				const takepce = g.boardGet(state.board, ...moveDir.take);
 				if (!takepce || !takepce.piece) throw new Error("bad takepce");
 				takepce.overlay = { type: "ghost" };
 			}
 
-			const selxtdpc = state.board.get(...moveDir.from);
+			const selxtdpc = g.boardGet(state.board, ...moveDir.from);
 			if (!selxtdpc || !selxtdpc.piece)
 				throw new Error("bad movedir current");
 			selxtdpc.overlay = { type: "selpiece" };
@@ -343,16 +343,16 @@ function getMoves(state: Checkers): g.MoveSet<Checkers> {
 				],
 			player: state.players[st.turn],
 			apply: state => {
-				const from = state.board.get(...move.from)!;
-				const to = state.board.get(...move.to)!;
+				const from = g.boardGet(state.board, ...move.from)!;
+				const to = g.boardGet(state.board, ...move.to)!;
 				to.piece = from.piece;
 				from.piece = undefined;
 
 				// TODO: show a ghost overlay?
 				if (move.take) {
-					state.board.get(...move.take)!.piece = undefined;
+					g.boardGet(state.board, ...move.take)!.piece = undefined;
 					// prettier-ignore
-					if(state.board.filter(t => t.piece ? t.piece.color !== st.turn : false).length === 0) {
+					if(g.boardFilter(state.board, t => t.piece ? t.piece.color !== st.turn : false).length === 0) {
 						state.status = {s: "winner", winner: state.players[st.turn], reason: ""};
 						updateOverlay(state);
 						return state;
@@ -501,7 +501,7 @@ export const checkers = g.newGame<Checkers>({
 				: mode.s === "tie"
 				? `Tie!`
 				: assertNever(mode);
-		const boardRender = state.board.render(tile => {
+		const boardRender = g.boardRender(state.board, tile => {
 			if (tile.overlay) {
 				if (tile.overlay.type === "move")
 					return tileset.tiles.board.arrows[tile.overlay.direction];

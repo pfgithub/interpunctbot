@@ -9,15 +9,16 @@ import {
 	Board,
 	Pos,
 } from "./gamelib";
+import * as gl from "./gamelib";
 
 type MegaTile = OneGrid | Color | "~";
 type MegaGrid = Board<MegaTile>;
 type OneGrid = Board<OneTile>;
-type OneTile = Color | undefined;
+type OneTile = Color | null;
 type Color = "x" | "o";
 
 function checkTie(board: Board<MegaTile | OneTile>) {
-	return board.filter(q => typeof q !== "string").length === 0;
+	return gl.boardFilter(board, q => typeof q !== "string").length === 0;
 }
 
 function checkWin(
@@ -30,16 +31,16 @@ function checkWin(
 		[-1, 1],
 		[0, -1],
 	];
-	const tile = board.get(placedX, placedY)!;
+	const tile = gl.boardGet(board, placedX, placedY)!;
 	if (tile !== "x" && tile !== "o")
 		throw new Error("checkWin called at invalid location");
 	for (const check of checks) {
-		const downmost = board.search([placedX, placedY], (tileh, x, y) => {
+		const downmost = gl.boardSearch(board, [placedX, placedY], (tileh, x, y) => {
 			if (tileh !== tile) return "previous";
 			return [x + check[0], y + check[1]];
 		});
 		if (!downmost) throw new Error("tile was not found but it must be");
-		const upmost = board.search([downmost.x, downmost.y], (tileh, x, y) => {
+		const upmost = gl.boardSearch(board, [downmost.x, downmost.y], (tileh, x, y) => {
 			if (tileh !== tile) return "previous";
 			return [x - check[0], y - check[1]];
 		});
@@ -49,7 +50,7 @@ function checkWin(
 	return false;
 }
 
-const tileset = newTileset({
+export const tileset = newTileset({
 	x: "❎",
 	o: "🅾️",
 	blank: "⬜",
@@ -63,7 +64,7 @@ const megatiles = {
 	o: ["⬛🟥⬛", "🟥🟥🟥", "⬛🟥⬛"],
 };
 
-type UltimateTicTacToe = {
+export type UltimateTicTacToe = {
 	board: MegaGrid;
 	players: { x: Player; o: Player };
 	status:
@@ -90,108 +91,232 @@ function joinBetween<T>(
 	return res;
 }
 
-export const ultimatetictactoe = newGame<UltimateTicTacToe>({
-	title: "Ultimate Tic Tac Toe",
-	help: "/help/fun/ultimatetictactoe",
-	setup(players) {
-		return {
-			board: newBoard<MegaTile>(3, 3, () =>
-				newBoard(3, 3, () => undefined),
-			),
-			players: {
-				x: players[0], // person who ran the command
-				o: players[1], // next person to join
-			},
-			status: { s: "playing", turn: "x", board: "pick" },
-		};
-	},
-	// getMoves should be called before render change my mind
-	getMoves(state) {
-		if (state.status.s !== "playing")
-			throw new Error("Get moves called while game over");
+export function getMoves(state: UltimateTicTacToe): MoveSet<UltimateTicTacToe> {
+	if (state.status.s !== "playing")
+		throw new Error("Get moves called while game over");
 
-		const turn = state.status.turn;
+	const turn = state.status.turn;
 
-		// check if target board is "pick"
-		// if so, choose which board
-		if (state.status.board === "pick") {
-			const resmoves: MoveSet<UltimateTicTacToe> = [];
-			state.board.forEach((tile, x, y) => {
-				if (typeof tile === "string") return;
-				resmoves.push({
-					button: tileset.tiles.buttons[y * 3 + x],
-					player: state.players[turn],
-					apply: state => {
-						state.status = {
-							s: "playing",
-							turn,
-							board: y * 3 + x,
-							back: true,
-						};
-						return state;
-					},
-				});
-			});
-			return resmoves;
-		}
-		const onboard = state.status.board;
-
-		// else, choose where to go on that board
+	// check if target board is "pick"
+	// if so, choose which board
+	if (state.status.board === "pick") {
 		const resmoves: MoveSet<UltimateTicTacToe> = [];
-
-		const [tx, ty] = toXY(onboard);
-		const minitile = state.board.get(tx, ty) as Board<OneTile>;
-		console.log(onboard, tx, ty, minitile);
-
-		minitile.forEach((tile, x, y) => {
-			if (tile === "x" || tile === "o") return; // invalid move
+		gl.boardForEach(state.board, (tile, x, y) => {
+			if (typeof tile === "string") return;
 			resmoves.push({
 				button: tileset.tiles.buttons[y * 3 + x],
 				player: state.players[turn],
 				apply: state => {
-					minitile.set(x, y, turn);
-					if (checkWin(minitile, [x, y])) {
-						state.board.set(tx, ty, turn);
-						if (checkWin(state.board, [tx, ty])) {
-							state.status = {
-								s: "winner",
-								winner: state.players[turn],
-								reason: "good at the game",
-							};
-						} else if (checkTie(state.board)) {
-							state.status = { s: "tie" };
-						}
-					} else if (checkTie(minitile)) {
-						state.board.set(tx, ty, "~");
-						if (checkTie(state.board)) {
-							state.status = { s: "tie" };
-						}
-					}
-					if (state.status.s === "playing") {
-						const bv = state.board.get(x, y);
-						const bsel =
-							typeof bv === "string" ? "pick" : y * 3 + x;
-						state.status = {
-							s: "playing",
-							turn: turn === "x" ? "o" : "x",
-							board: bsel,
-						};
-					}
+					state.status = {
+						s: "playing",
+						turn,
+						board: y * 3 + x,
+						back: true,
+					};
 					return state;
 				},
 			});
 		});
-		if (state.status.back) {
-			resmoves.push({
-				button: tileset.tiles.backbtn,
-				player: state.players[turn],
-				apply: state => {
-					state.status = { s: "playing", turn, board: "pick" };
-					return state;
-				},
-			});
-		}
 		return resmoves;
+	}
+	const onboard = state.status.board;
+
+	// else, choose where to go on that board
+	const resmoves: MoveSet<UltimateTicTacToe> = [];
+
+	const [tx, ty] = toXY(onboard);
+	const minitile = gl.boardGet(state.board, tx, ty) as Board<OneTile>;
+	console.log(onboard, tx, ty, minitile);
+
+	gl.boardForEach(minitile, (tile, x, y) => {
+		if (tile === "x" || tile === "o") return; // invalid move
+		resmoves.push({
+			button: tileset.tiles.buttons[y * 3 + x],
+			player: state.players[turn],
+			apply: state => {
+				gl.boardSet(minitile, x, y, turn);
+				if (checkWin(minitile, [x, y])) {
+					gl.boardSet(state.board, tx, ty, turn);
+					if (checkWin(state.board, [tx, ty])) {
+						state.status = {
+							s: "winner",
+							winner: state.players[turn],
+							reason: "good at the game",
+						};
+					} else if (checkTie(state.board)) {
+						state.status = { s: "tie" };
+					}
+				} else if (checkTie(minitile)) {
+					gl.boardSet(state.board, tx, ty, "~");
+					if (checkTie(state.board)) {
+						state.status = { s: "tie" };
+					}
+				}
+				if (state.status.s === "playing") {
+					const bv = gl.boardGet(state.board, x, y);
+					const bsel =
+						typeof bv === "string" ? "pick" : y * 3 + x;
+					state.status = {
+						s: "playing",
+						turn: turn === "x" ? "o" : "x",
+						board: bsel,
+					};
+				}
+				return state;
+			},
+		});
+	});
+	if (state.status.back) {
+		resmoves.push({
+			button: tileset.tiles.backbtn,
+			player: state.players[turn],
+			apply: state => {
+				state.status = { s: "playing", turn, board: "pick" };
+				return state;
+			},
+		});
+	}
+	return resmoves;
+}
+export function render(state: UltimateTicTacToe) {
+	// when picking a 3x3 grid to play on
+	// show all empty tiles as numbers.
+	// each grid numbered 1-9
+
+	// when picking normally, show blank tiles
+	// and only the grid that is yours has real numbers.
+
+	let statusbar = "never";
+	if (state.status.s === "playing") {
+		const currentplayer = state.players[state.status.turn];
+		const playercolor = tileset.tiles[state.status.turn];
+		statusbar = `<@${currentplayer.id}>'s turn (${playercolor})`;
+	} else if (state.status.s === "winner") {
+		statusbar = `<@${state.status.winner.id}> won! (${state.status.reason})`;
+	} else if (state.status.s === "tie") {
+		statusbar = `Tie!`;
+	}
+
+	// make tiles like
+	const renderedBoard = gl.boardMegarender(state.board, 3, 3, (tile, x, y) => {
+		if (typeof tile === "string") return megatiles[tile];
+		return gl.boardRender(tile, (tyle, tx, ty) => {
+			if (tyle) return tileset.tiles[tyle];
+			if (state.status.s === "playing") {
+				if (state.status.board === "pick")
+					return tileset.tiles.buttons[y * 3 + x];
+				if (state.status.board === y * 3 + x)
+					return tileset.tiles.buttons[ty * 3 + tx];
+			}
+			return tileset.tiles.blank;
+		})
+		.split("\n");
+	});
+
+	// do some magic to outline all tiles with 1 layer of black tiles
+	const rbth: string[][][] = joinBetween(
+		renderedBoard.map(q =>
+			q.map(v => joinBetween(v, () => "⬛", "startend")),
+		),
+		() => [
+			[
+				"⬛",
+				"⬛".repeat(3),
+				"⬛",
+				"⬛".repeat(3),
+				"⬛",
+				"⬛".repeat(3),
+				"⬛",
+			],
+		],
+		"startend",
+	);
+
+	// resulting structure looks like this (numbers represent # of emojis in a string)
+	// [
+	//  [[1 3 1 3 1 3 1]]
+	//  [[1 3 1 3 1 3 1]
+	//   [1 3 1 3 1 3 1]
+	//   [1 3 1 3 1 3 1]]
+	//  [[1 3 1 3 1 3 1]]
+	//  [[1 3 1 3 1 3 1]
+	//   [1 3 1 3 1 3 1]
+	//   [1 3 1 3 1 3 1]]
+	//  [[1 3 1 3 1 3 1]]
+	//  [[1 3 1 3 1 3 1]
+	//   [1 3 1 3 1 3 1]
+	//   [1 3 1 3 1 3 1]]
+	//  [[1 3 1 3 1 3 1]]
+	// ]
+
+	// do some magic to outline either the current board or the whole map depending on what is available rn
+	if (state.status.s === "playing") {
+		if (state.status.board === "pick") {
+			rbth.forEach((fl, yv) => {
+				for (const fq of fl) {
+					let lim = [0, 6];
+					if (yv === 0 || yv === 6) lim = [0, 1, 2, 3, 4, 5, 6];
+					for (const i of lim) {
+						fq[i] = fq[i].split("⬛").join("🟨");
+					}
+				}
+			});
+		} else {
+			// surround
+			const [x, y] = toXY(state.status.board);
+			const [rx, ry] = [x * 2 + 1, y * 2 + 1];
+			const fixlines = rbth.slice(ry - 1, ry + 2);
+			for (const fixlinel of fixlines) {
+				for (const fixline of fixlinel) {
+					for (let i = rx - 1; i < rx + 2; i++) {
+						fixline[i] = fixline[i].split("⬛").join("🟨");
+					}
+				}
+			}
+		}
+	}
+
+	const finalboard = rbth
+		.map(q => q.map(i => i.join("")).join("\n"))
+		.join("\n");
+	return [
+		`
+**Ultimate Tic Tac Toe**
+${statusbar}
+==============
+${finalboard}
+==============
+https://interpunct.info/help/fun/ultimatetictactoe
+`,
+	];
+}
+
+export function setup(players: string[]): UltimateTicTacToe {
+	return {
+		board: newBoard<MegaTile>(3, 3, () =>
+			newBoard(3, 3, () => null),
+		),
+		players: {
+			x: {id: players[0]}, // person who ran the command
+			o: {id: players[1]}, // next person to join
+		},
+		status: { s: "playing", turn: "x", board: "pick" },
+	};
+}
+
+export function checkGameOver(state: UltimateTicTacToe): boolean {
+	return state.status.s === "winner" || state.status.s === "tie";
+}
+
+export const ultimatetictactoe = newGame<UltimateTicTacToe>({
+	title: "Ultimate Tic Tac Toe",
+	help: "/help/fun/ultimatetictactoe",
+	setup(players) {
+		return setup(players.map(pl => pl.id));
+	},
+	// getMoves should be called before render change my mind
+	getMoves(state) {
+		return getMoves(state);
 	},
 	renderSetup() {
 		return [
@@ -201,121 +326,9 @@ export const ultimatetictactoe = newGame<UltimateTicTacToe>({
 			},
 		];
 	},
-	checkGameOver(state) {
-		return state.status.s === "winner" || state.status.s === "tie";
-	},
+	checkGameOver,
 	render(state: UltimateTicTacToe): string[] {
-		// when picking a 3x3 grid to play on
-		// show all empty tiles as numbers.
-		// each grid numbered 1-9
-
-		// when picking normally, show blank tiles
-		// and only the grid that is yours has real numbers.
-
-		let statusbar = "never";
-		if (state.status.s === "playing") {
-			const currentplayer = state.players[state.status.turn];
-			const playercolor = tileset.tiles[state.status.turn];
-			statusbar = `<@${currentplayer.id}>'s turn (${playercolor})`;
-		} else if (state.status.s === "winner") {
-			statusbar = `<@${state.status.winner.id}> won! (${state.status.reason})`;
-		} else if (state.status.s === "tie") {
-			statusbar = `Tie!`;
-		}
-
-		// make tiles like
-		const renderedBoard = state.board.megarender(3, 3, (tile, x, y) => {
-			if (typeof tile === "string") return megatiles[tile];
-			return tile
-				.render((tyle, tx, ty) => {
-					if (tyle) return tileset.tiles[tyle];
-					if (state.status.s === "playing") {
-						if (state.status.board === "pick")
-							return tileset.tiles.buttons[y * 3 + x];
-						if (state.status.board === y * 3 + x)
-							return tileset.tiles.buttons[ty * 3 + tx];
-					}
-					return tileset.tiles.blank;
-				})
-				.split("\n");
-		});
-
-		// do some magic to outline all tiles with 1 layer of black tiles
-		const rbth: string[][][] = joinBetween(
-			renderedBoard.map(q =>
-				q.map(v => joinBetween(v, () => "⬛", "startend")),
-			),
-			() => [
-				[
-					"⬛",
-					"⬛".repeat(3),
-					"⬛",
-					"⬛".repeat(3),
-					"⬛",
-					"⬛".repeat(3),
-					"⬛",
-				],
-			],
-			"startend",
-		);
-
-		// resulting structure looks like this (numbers represent # of emojis in a string)
-		// [
-		//  [[1 3 1 3 1 3 1]]
-		//  [[1 3 1 3 1 3 1]
-		//   [1 3 1 3 1 3 1]
-		//   [1 3 1 3 1 3 1]]
-		//  [[1 3 1 3 1 3 1]]
-		//  [[1 3 1 3 1 3 1]
-		//   [1 3 1 3 1 3 1]
-		//   [1 3 1 3 1 3 1]]
-		//  [[1 3 1 3 1 3 1]]
-		//  [[1 3 1 3 1 3 1]
-		//   [1 3 1 3 1 3 1]
-		//   [1 3 1 3 1 3 1]]
-		//  [[1 3 1 3 1 3 1]]
-		// ]
-
-		// do some magic to outline either the current board or the whole map depending on what is available rn
-		if (state.status.s === "playing") {
-			if (state.status.board === "pick") {
-				rbth.forEach((fl, yv) => {
-					for (const fq of fl) {
-						let lim = [0, 6];
-						if (yv === 0 || yv === 6) lim = [0, 1, 2, 3, 4, 5, 6];
-						for (const i of lim) {
-							fq[i] = fq[i].split("⬛").join("🟨");
-						}
-					}
-				});
-			} else {
-				// surround
-				const [x, y] = toXY(state.status.board);
-				const [rx, ry] = [x * 2 + 1, y * 2 + 1];
-				const fixlines = rbth.slice(ry - 1, ry + 2);
-				for (const fixlinel of fixlines) {
-					for (const fixline of fixlinel) {
-						for (let i = rx - 1; i < rx + 2; i++) {
-							fixline[i] = fixline[i].split("⬛").join("🟨");
-						}
-					}
-				}
-			}
-		}
-
-		const finalboard = rbth
-			.map(q => q.map(i => i.join("")).join("\n"))
-			.join("\n");
-		return [
-			`
-**Ultimate Tic Tac Toe**
-${statusbar}
-==============
-${finalboard}
-==============
-https://interpunct.info/help/fun/ultimatetictactoe
-`,
-		];
+		return render(state);
 	},
 	timers: [
 		{

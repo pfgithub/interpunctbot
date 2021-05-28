@@ -7,6 +7,7 @@ import {
 	unit,
 	Board,
 } from "./gamelib";
+import * as gl from "./gamelib";
 
 //
 
@@ -32,7 +33,7 @@ const tileset = newTileset({
 });
 
 function checkTie(gameState: TicTacToe) {
-	return gameState.board.filter(q => !q.color).length === 0;
+	return gl.boardFilter(gameState.board, q => !q.color).length === 0;
 }
 
 function checkWin(gameState: TicTacToe, [placedX, placedY]: [number, number]) {
@@ -42,10 +43,10 @@ function checkWin(gameState: TicTacToe, [placedX, placedY]: [number, number]) {
 		[-1, 1],
 		[0, -1],
 	];
-	const tile = gameState.board.get(placedX, placedY)!;
+	const tile = gl.boardGet(gameState.board, placedX, placedY)!;
 	if (!tile.color) throw new Error("checkWin called at invalid location");
 	for (const check of checks) {
-		const downmost = gameState.board.search(
+		const downmost = gl.boardSearch(gameState.board,
 			[placedX, placedY],
 			(tileh, x, y) => {
 				if (tileh.color !== tile.color) return "previous";
@@ -53,7 +54,7 @@ function checkWin(gameState: TicTacToe, [placedX, placedY]: [number, number]) {
 			},
 		);
 		if (!downmost) throw new Error("tile was not found but it must be");
-		const upmost = gameState.board.search(
+		const upmost = gl.boardSearch(gameState.board,
 			[downmost.x, downmost.y],
 			(tileh, x, y) => {
 				if (tileh.color !== tile.color) return "previous";
@@ -82,13 +83,13 @@ export const tictactoe = newGame<TicTacToe>({
 	},
 	getMoves(state) {
 		const resmoves: MoveSet<TicTacToe> = [];
-		state.board.forEach((tile, x, y) => {
+		gl.boardForEach(state.board, (tile, x, y) => {
 			if (tile.color) return; // invalid move
 			resmoves.push({
 				button: tileset.tiles.buttons[y * 3 + x],
 				player: state.players[state.turn],
 				apply: state => {
-					state.board.set(x, y, { color: state.turn });
+					gl.boardSet(state.board, x, y, { color: state.turn });
 					if (checkWin(state, [x, y])) {
 						state.status = {
 							s: "winner",
@@ -125,7 +126,7 @@ export const tictactoe = newGame<TicTacToe>({
 				: state.status.s === "tie"
 				? `Tie!`
 				: "never.";
-		const renderedBoard = state.board.render((tile, x, y) => {
+		const renderedBoard = gl.boardRender(state.board, (tile, x, y) => {
 			if (tile.color)
 				return tileset.tiles[tile.color === "x" ? "tic" : "tac"];
 			if (state.status.s === "playing")

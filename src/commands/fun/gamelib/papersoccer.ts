@@ -1,10 +1,11 @@
 import {
-	newBoard as newGamelibBoard,
+	newBoard,
 	Player,
 	newGame,
 	MoveSet,
 	unit,
 } from "./gamelib";
+import * as gl from "./gamelib";
 import * as fs from "fs";
 
 const emojis = JSON.parse(fs.readFileSync("config/emojis/papersoccer.json", "utf-8"));
@@ -67,7 +68,7 @@ type DisplayTile = {
 	ball: BallPosition;
 } | undefined;
 export function displayBoard(board: Board, ball: [number, number], winner: boolean, player: string, bottom: boolean) {
-	const glboard = newGamelibBoard<DisplayTile>(8, 12, (rvx, rvy) => {
+	const glboard = newBoard<DisplayTile>(8, 12, (rvx, rvy) => {
 		const [x, y] = [rvx + 1, rvy + 1];
 		if(!inBoard(x, y) || !inBoard(x+1, y) || !inBoard(x, y+1) || !inBoard(x+1, y+1)) return undefined;
 		const ul = board.points[xyToPtIndex(x, y)];
@@ -86,7 +87,7 @@ export function displayBoard(board: Board, ball: [number, number], winner: boole
 		};
 		return res;
 	});
-	const res = glboard.render(tile => {
+	const res = gl.boardRender(glboard, tile => {
 		if(!tile) return "⬛";
 		
 		const mode = [0, +tile.down, +tile.left, +tile.right, +tile.up,
