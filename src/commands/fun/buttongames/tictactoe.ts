@@ -183,6 +183,12 @@ interface Game<T> {
     handleInteraction: (info: Info, custom_id: string) => Promise<InteractionHandled<T>>;
 };
 
+// TODO rather than incrementing stage, generate a random id
+// this will prevent a race condition when two buttons are clicked
+// at the same time and both fetch from the db before the db is updated by either.
+// actually it shouldn't matter too much, the only invalid state will be in what buttons are
+// visible and that's fine
+
 async function updateGameState<T>(info: Info, ikey: {game_id: GameID; kind: GameKind; stage: number}, state: T): Promise<InteractionHandled<T>> {
     // get new game data
     const upd_game_data: GameData = {kind: ikey.kind, stage: ikey.stage + 1, state: state};
