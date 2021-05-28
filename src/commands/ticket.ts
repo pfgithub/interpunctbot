@@ -815,9 +815,9 @@ function genLogOneMessage(msg: discord.Message) {
 	return {
 		top: safehtml`<div class="message"
             ><img class="profile" src="${msg.author.displayAvatarURL({
-				dynamic: true,
-				size: 64,
-			})}"
+		dynamic: true,
+		size: 64,
+	})}"
             /><div class="author" style="color: ${memberColor}"
             title="${authorign}" data-id="${msg.author.id}">
                 ${msg.member?.displayName || authorign} ${raw(bottag)}</div
@@ -931,7 +931,7 @@ async function sendChannelLog(
 		sendTo.stopTyping();
 		const stres = await ilt(sendTo.send(":x: There was an error uploading the channel log. Error code: `"+iltres.error.errorCode+"`"), "send log error");
 		if(stres.error) {
-			await ilt(channel.send(":x: There was an error uploading the channel log to <#"+sendTo.id+">. Error code: `"+iltres.error.errorCode+"`"), "send error 2")
+			await ilt(channel.send(":x: There was an error uploading the channel log to <#"+sendTo.id+">. Error code: `"+iltres.error.errorCode+"`"), "send error 2");
 		}
 		throw new Error("log upload error");
 	}
@@ -1043,7 +1043,7 @@ async function closeTicket(
 	const ires = await ilt(closeTicketMayError(channel, closer, ctx, inactivity), "close ticket");
 	(channel as any).__IS_CLOSING = false;
 	if(ires.error) {
-		await ilt(channel.send(":x: There was an error closing the ticket. Error code: `"+ires.error.errorCode+"`"), "close ticket error")
+		await ilt(channel.send(":x: There was an error closing the ticket. Error code: `"+ires.error.errorCode+"`"), "close ticket error");
 	}
 }
 

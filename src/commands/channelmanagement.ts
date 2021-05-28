@@ -127,7 +127,7 @@ nr.globalCommand(
 				progressMessage.edit(
 					`Deleting messages... [\`${"X".repeat(progressPerdeci) +
 						" ".repeat(
-							10 - progressPerdeci,
+						    10 - progressPerdeci,
 						)}\`] (${deletedCount} / ${messagesToDelete.size})`,
 				),
 				"purge messages progress bar",
@@ -323,18 +323,18 @@ nr.globalCommand(
 		return await info.result(
 			"Autodelete Rules:\n" +
 				autodelete.rules
-					.map(
-						(
-							rule, // {Command|"+escape("autodelete remove "+rule.id)+"}
-						) =>
-							"`" +
+				    .map(
+				        (
+				            rule, // {Command|"+escape("autodelete remove "+rule.id)+"}
+				        ) =>
+				            "`" +
 							safe(info.prefix) +
 							"autodelete remove " +
 							rule.id +
 							"` - " +
 							printrule(rule, info),
-					)
-					.join("\n"),
+				    )
+				    .join("\n"),
 		);
 	},
 );
@@ -597,9 +597,9 @@ nr.globalCommand(
 		}
 
 		if (failures.length === 0) {
-            if(info.message.content.includes("channels sendMany")) {
-                return await info.warn(info.tag`Message sent. {Command|channels sendMany} has been renamed, next time you can use {Command|send #channels …message}`);
-            }
+			if(info.message.content.includes("channels sendMany")) {
+				return await info.warn(info.tag`Message sent. {Command|channels sendMany} has been renamed, next time you can use {Command|send #channels …message}`);
+			}
 			return await info.success(
 				messages.channels.send_many.succeeded_sending(info, successes),
 			);
@@ -688,10 +688,10 @@ nr.globalCommand(
 				channel.id +
 				"> when someone leaves:\n\n" +
 				message
-					.split("{Name}")
-					.join("inter·punct")
-					.split("{Mention}")
-					.join(info.atme),
+				    .split("{Name}")
+				    .join("inter·punct")
+				    .split("{Mention}")
+				    .join(info.atme),
 		);
 	},
 );
@@ -803,10 +803,10 @@ nr.globalCommand(
 				channel.id +
 				"> when someone joins:\n\n" +
 				message
-					.split("{Name}")
-					.join("inter·punct")
-					.split("{Mention}")
-					.join(info.atme),
+				    .split("{Name}")
+				    .join("inter·punct")
+				    .split("{Mention}")
+				    .join(info.atme),
 		);
 	},
 );

@@ -53,11 +53,11 @@ nr.globalCommand(
 		await info.startLoading();
 		const logDownloadMessageResult = await ilt(
 			info.raw_message!.reply(
-				"Log files:",
-				new MessageAttachment(
-					`./logs/${info.guild.id}.log`,
-					`${info.guild.name}.log`,
-				),
+			    "Log files:",
+			    new MessageAttachment(
+			        `./logs/${info.guild.id}.log`,
+			        `${info.guild.name}.log`,
+			    ),
 			),
 			"downloading log",
 		);

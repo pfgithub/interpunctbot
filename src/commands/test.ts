@@ -167,7 +167,7 @@ nr.globalCommand(
 			return await info.result(
 				"" +
 					info.message.client.guilds.cache.size.toLocaleString(
-						"en-US",
+					    "en-US",
 					),
 			);
 		if (cmd === "client.token") return await info.error("no");

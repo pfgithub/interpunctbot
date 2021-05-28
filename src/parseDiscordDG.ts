@@ -41,9 +41,9 @@ const inlineOrBlockQuote = (text: string) =>
 	text.includes("\n")
 		? "\n" +
 		  text
-				.split("\n")
-				.map(q => "> " + q)
-				.join("\n")
+		      .split("\n")
+		      .map(q => "> " + q)
+		      .join("\n")
 		: text;
 
 type Args = { raw: string; safe: string }[];
@@ -436,21 +436,21 @@ const commands: {
 				": " +
 				// renderdiscord`{Command|${docs.path.split("/").join(" ")}}` would be nice
 				commands.Command.discord!(
-					[
-						{
-							safe:
+				    [
+				        {
+				            safe:
 								docs.path.split("/")[1] === "help"
 									? safe(
-											docs.path
-												.slice(1)
-												.split("/")
-												.join(" "),
+									    docs.path
+									        .slice(1)
+									        .split("/")
+									        .join(" "),
 									  )
 									: "help " + safe(docs.path),
-							raw: "never",
-						},
-					],
-					info,
+				            raw: "never",
+				        },
+				    ],
+				    info,
 				) +
 				" — " +
 				dgToDiscord(docs.summaries.description, info)
@@ -500,21 +500,21 @@ const commands: {
 			return (
 				// renderdiscord`{Command|${docs.path.split("/").join(" ")}}` would be nice
 				commands.Command.discord!(
-					[
-						{
-							safe:
+				    [
+				        {
+				            safe:
 								docs.path.split("/")[1] === "help"
 									? safe(
-											docs.path
-												.slice(1)
-												.split("/")
-												.join(" "),
+									    docs.path
+									        .slice(1)
+									        .split("/")
+									        .join(" "),
 									  )
 									: "help " + safe(docs.path),
-							raw: "never",
-						},
-					],
-					info,
+				            raw: "never",
+				        },
+				    ],
+				    info,
 				)
 			);
 		},

@@ -254,27 +254,27 @@ nr.globalCommand(
 **Question**: ${decodeHTML(triviaQuestion.question)}
 **Answers**:
 ${raw(
-	triviaChoices
-		.map(({ name, emoji }) => {
-			return `> ${emoji} - ${safe`${decodeHTML(name)}`}`;
-		})
-		.join("\n"),
-)}
+		triviaChoices
+			.map(({ name, emoji }) => {
+				return `> ${emoji} - ${safe`${decodeHTML(name)}`}`;
+			})
+			.join("\n"),
+	)}
 ${raw(
 	state.state === "running"
 		? `**Time Left**: ${(
-				(startTime + 20000 - new Date().getTime()) /
+		    (startTime + 20000 - new Date().getTime()) /
 				1000
 		  ).toFixed(0)}s`
 		: `**Correct Answer**: ${
 				triviaChoices.find(
-					cd => cd.name === triviaQuestion.correct_answer,
+				    cd => cd.name === triviaQuestion.correct_answer,
 				)!.emoji
 		  } - ${safe`${decodeHTML(triviaQuestion.correct_answer)}`}
 **Winners**: ${
 				andlist(state.winners.map(w => `<@${w}>`))
 		  }`,
-)}`,
+	)}`,
 				);
 
 			await updateResultMessage();

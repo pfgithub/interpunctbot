@@ -264,334 +264,334 @@ export default class Info {
 	prefix: string;
 	timedEvents: TimedEvents;
 	constructor(
-		message: MessageLike,
-		timedEvents: TimedEvents,
-		other?: {
+	    message: MessageLike,
+	    timedEvents: TimedEvents,
+	    other?: {
 			startTime: number;
 			infoPerSecond: number;
 			raw_message?: Discord.Message;
 			raw_interaction?: InteractionHelper;
 		},
 	) {
-		this.timedEvents = timedEvents;
-		this.loading = false;
-		this.channel = message.channel;
-		this.guild = message.guild;
-		this.message = message;
-		if(other?.raw_message) this.raw_message = other.raw_message;
-		if(other?.raw_interaction) this.raw_interaction = other.raw_interaction;
+	    this.timedEvents = timedEvents;
+	    this.loading = false;
+	    this.channel = message.channel;
+	    this.guild = message.guild;
+	    this.message = message;
+	    if(other?.raw_message) this.raw_message = other.raw_message;
+	    if(other?.raw_interaction) this.raw_interaction = other.raw_interaction;
 
-		this.member = message.member;
-		this.other = other;
-		this.db = this.guild ? new Database(this.guild.id) : undefined;
-		// start fetching prefix
-		this.prefix = "@inter·punct ";
-		if (this.db) {
-			ilt(this.db.getPrefix(), "get db prefix")
-				.then(res => {
-					if (!res.error) {
-						this.prefix = res.result;
-					}
-				})
-				.catch(_ => _ as never);
-		} else {
-			this.prefix = "";
-		}
+	    this.member = message.member;
+	    this.other = other;
+	    this.db = this.guild ? new Database(this.guild.id) : undefined;
+	    // start fetching prefix
+	    this.prefix = "@inter·punct ";
+	    if (this.db) {
+	        ilt(this.db.getPrefix(), "get db prefix")
+	            .then(res => {
+	                if (!res.error) {
+	                    this.prefix = res.result;
+	                }
+	            })
+	            .catch(_ => _ as never);
+	    } else {
+	        this.prefix = "";
+	    }
 	}
 
 	static msgopts = {
-		allowedMentions: { parse: [], roles: [], users: [] },
-		split: false,
+	    allowedMentions: { parse: [], roles: [], users: [] },
+	    split: false,
 	} as {allowedMentions: {parse: []; roles: []; users: []}; split: false}; // Discord.MessageOptions
 	static get result() {
-		return result;
+	    return result;
 	}
 	static get theirPerm() {
-		return theirPerm;
+	    return theirPerm;
 	}
 	static get ourPerm() {
-		return ourPerm;
+	    return ourPerm;
 	}
 	get atme() {
-		return this.message.client.user!.toString();
+	    return this.message.client.user!.toString();
 	}
 	get authorChannelPerms() {
-		if (!(this.channel instanceof Discord.DMChannel)) {
-			return this.channel.permissionsFor(this.member!);
-		}
-		return undefined;
+	    if (!(this.channel instanceof Discord.DMChannel)) {
+	        return this.channel.permissionsFor(this.member!);
+	    }
+	    return undefined;
 	}
 	get authorGuildPerms() {
-		if (this.member) {
-			return this.member.permissions;
-		}
-		return undefined;
+	    if (this.member) {
+	        return this.member.permissions;
+	    }
+	    return undefined;
 	}
 	get myChannelPerms() {
-		if (!(this.channel instanceof Discord.DMChannel)) {
-			return this.channel.permissionsFor(this.guild!.me!);
-		}
-		return undefined;
+	    if (!(this.channel instanceof Discord.DMChannel)) {
+	        return this.channel.permissionsFor(this.guild!.me!);
+	    }
+	    return undefined;
 	}
 	get authorPerms() {
-		return {
-			manageBot: this.authorGuildPerms
+	    return {
+	        manageBot: this.authorGuildPerms
 				? this.authorGuildPerms.has("MANAGE_GUILD")
 				: true,
-			manageChannel: this.authorGuildPerms
+	        manageChannel: this.authorGuildPerms
 				? this.authorGuildPerms.has("MANAGE_CHANNELS")
 				: true,
-			manageEmoji: this.authorGuildPerms
+	        manageEmoji: this.authorGuildPerms
 				? this.authorGuildPerms.has("MANAGE_EMOJIS")
 				: true,
-			manageMessages: this.authorChannelPerms
+	        manageMessages: this.authorChannelPerms
 				? this.authorChannelPerms.has("MANAGE_MESSAGES")
 				: true,
-			banMembers: this.authorGuildPerms
+	        banMembers: this.authorGuildPerms
 				? this.authorGuildPerms.has("BAN_MEMBERS")
 				: true,
-		};
+	    };
 	}
 	get myPerms() {
-		return {
-			manageBot: this.myChannelPerms
+	    return {
+	        manageBot: this.myChannelPerms
 				? this.myChannelPerms.has("MANAGE_GUILD")
 				: true,
-			manageChannel: this.myChannelPerms
+	        manageChannel: this.myChannelPerms
 				? this.myChannelPerms.has("MANAGE_CHANNELS")
 				: true,
-			manageEmoji: this.myChannelPerms
+	        manageEmoji: this.myChannelPerms
 				? this.myChannelPerms.has("MANAGE_EMOJIS")
 				: true,
-			manageMessages: this.myChannelPerms
+	        manageMessages: this.myChannelPerms
 				? this.myChannelPerms.has("MANAGE_MESSAGES")
 				: true,
-			banMembers: this.myChannelPerms
+	        banMembers: this.myChannelPerms
 				? this.myChannelPerms.has("BAN_MEMBERS")
 				: true,
-		};
+	    };
 	}
 	get pm() {
-		return !this.guild;
+	    return !this.guild;
 	}
 	async startLoading() {
-		perr(this.channel.startTyping(), "started typing"); // never finishes?
+	    perr(this.channel.startTyping(), "started typing"); // never finishes?
 	}
 	async stopLoading() {
-		this.channel.stopTyping();
+	    this.channel.stopTyping();
 	}
 	shouldAlert(): boolean {
-		if(this.raw_message) {
-			if(Date.now() - this.raw_message.createdAt.getTime() > 3000) return true;
-			if(this.raw_message.channel.lastMessageID !== this.raw_message.id) return true;
-			return false;
-		}else{
-			return false;
-		}
+	    if(this.raw_message) {
+	        if(Date.now() - this.raw_message.createdAt.getTime() > 3000) return true;
+	        if(this.raw_message.channel.lastMessageID !== this.raw_message.id) return true;
+	        return false;
+	    }else{
+	        return false;
+	    }
 	}
 	async _tryReply(
-		...values: MessageParametersType
+	    ...values: MessageParametersType
 	): Promise<Discord.Message[] | undefined> {
-		const atThem = this.message.author.toString();
-		const shouldAlert = this.shouldAlert();
-		const allowedMentions: Discord.MessageMentionOptions = shouldAlert
+	    const atThem = this.message.author.toString();
+	    const shouldAlert = this.shouldAlert();
+	    const allowedMentions: Discord.MessageMentionOptions = shouldAlert
 			? { users: [this.message.author.id], roles: [], parse: [] }
 			: { users: [], roles: [], parse: [] };
 
-		const content = values[0];
-		const options = values[1];
-		// returns the message
+	    const content = values[0];
+	    const options = values[1];
+	    // returns the message
 
-		const msgtxt = atThem + ", " + content;
-		const splitmsg = Discord.Util.splitMessage(msgtxt);
+	    const msgtxt = atThem + ", " + content;
+	    const splitmsg = Discord.Util.splitMessage(msgtxt);
 
-		const resmsgs: Discord.Message[] = [];
-		for (const msgpart of splitmsg) {
-			const iltres = await ilt(
-				this.message.channel.send(msgpart, {
-					...options,
-					split: false,
-					allowedMentions,
-				}),
-				false,
-			);
-			if (iltres.error) {
-				console.log(iltres.error);
-				return;
-			} // oop
-			resmsgs.push(iltres.result);
-		}
-		return resmsgs;
+	    const resmsgs: Discord.Message[] = [];
+	    for (const msgpart of splitmsg) {
+	        const iltres = await ilt(
+	            this.message.channel.send(msgpart, {
+	                ...options,
+	                split: false,
+	                allowedMentions,
+	            }),
+	            false,
+	        );
+	        if (iltres.error) {
+	            console.log(iltres.error);
+	            return;
+	        } // oop
+	        resmsgs.push(iltres.result);
+	    }
+	    return resmsgs;
 	}
 	async accept(): Promise<void> {
-		if(this.raw_interaction && !this.raw_interaction.has_ackd) {
-			await this.raw_interaction.accept();
-		}
+	    if(this.raw_interaction && !this.raw_interaction.has_ackd) {
+	        await this.raw_interaction.accept();
+	    }
 	}
 	async reply(
-		resultType: string,
-		...value:
+	    resultType: string,
+	    ...value:
 			| [string, MessageOptionsParameter | undefined]
 			| [string]
 	) {
-		// Stop any loading if it is happening, we're replying now we're done loading
-		await this.stopLoading(); // not awaited for because it doesn't matter
+	    // Stop any loading if it is happening, we're replying now we're done loading
+	    await this.stopLoading(); // not awaited for because it doesn't matter
 
-		let message: MessageParametersType = [value[0], value[1]];
+	    const message: MessageParametersType = [value[0], value[1]];
 
-		// Format the message with the correct result type
-		message[0] = resultType + " " + message[0];
+	    // Format the message with the correct result type
+	    message[0] = resultType + " " + message[0];
 
-		if(this.raw_interaction && !message[1]) {
-			try {
-				await this.raw_interaction.reply(message[0]);
-				return undefined;
-			} catch(e) {console.log(e);}
-		}
+	    if(this.raw_interaction && !message[1]) {
+	        try {
+	            await this.raw_interaction.reply(message[0]);
+	            return undefined;
+	        } catch(e) {console.log(e)}
+	    }
 
-		// Reply to the message (or author)
-		return await this._tryReply(...message);
+	    // Reply to the message (or author)
+	    return await this._tryReply(...message);
 	}
 	async error(msg: string) {
-		if(this.raw_interaction) return await this.errorAlways(msg);
+	    if(this.raw_interaction) return await this.errorAlways(msg);
 		
-		const unknownCommandMessages = this.db
+	    const unknownCommandMessages = this.db
 			? await this.db.getCommandErrors()
 			: "always";
-		if (
-			unknownCommandMessages === "always" ||
+	    if (
+	        unknownCommandMessages === "always" ||
 			(unknownCommandMessages === "admins" && this.authorPerms.manageBot)
-		) {
-		} else {
-			return [];
-		}
-		return this.errorAlways(msg);
+	    ) {
+	    } else {
+	        return [];
+	    }
+	    return this.errorAlways(msg);
 	}
 	async errorAlways(msg: string): Promise<void> {
-		if(this.raw_interaction && !this.raw_interaction.has_ackd) {
-			try{
-				await this.raw_interaction.replyHiddenHideCommand("<:error:508841130503438356> "+msg);
-				return;
-			}catch(e) {console.log(e);}
-		}
+	    if(this.raw_interaction && !this.raw_interaction.has_ackd) {
+	        try{
+	            await this.raw_interaction.replyHiddenHideCommand("<:error:508841130503438356> "+msg);
+	            return;
+	        }catch(e) {console.log(e)}
+	    }
 
-		const reactOrNot = this.shouldAlert();
+	    const reactOrNot = this.shouldAlert();
 
-		if (reactOrNot && this.raw_message) {
-			await ilt(this.raw_message.react("❌"), false);
-		}
-		let res;
-		if (
-			!this.myChannelPerms ||
+	    if (reactOrNot && this.raw_message) {
+	        await ilt(this.raw_message.react("❌"), false);
+	    }
+	    let res;
+	    if (
+	        !this.myChannelPerms ||
 			this.myChannelPerms.has("USE_EXTERNAL_EMOJIS")
-		) {
-			res = await this.reply("<:error:508841130503438356>", msg);
-		} else {
-			res = await this.reply("❌", msg);
-		}
-		// res && res.forEach(r => r.delete({ timeout: 20 * 1000 }));
-		return;
+	    ) {
+	        res = await this.reply("<:error:508841130503438356>", msg);
+	    } else {
+	        res = await this.reply("❌", msg);
+	    }
+	    // res && res.forEach(r => r.delete({ timeout: 20 * 1000 }));
+	    return;
 	}
 	async warn(msg: string) {
-		if(this.raw_interaction && !this.raw_interaction.has_ackd) {
-			try{
-				return await this.raw_interaction.reply("<:warning:508842207089000468> "+msg);
-			}catch(e) {console.log(e);}
-		}
+	    if(this.raw_interaction && !this.raw_interaction.has_ackd) {
+	        try{
+	            return await this.raw_interaction.reply("<:warning:508842207089000468> "+msg);
+	        }catch(e) {console.log(e)}
+	    }
 
-		const reactOrNot = this.shouldAlert();
-		if (reactOrNot && this.raw_message) {
-			await ilt(this.raw_message.react("⚠"), false);
-		}
-		let res;
-		if (
-			!this.myChannelPerms ||
+	    const reactOrNot = this.shouldAlert();
+	    if (reactOrNot && this.raw_message) {
+	        await ilt(this.raw_message.react("⚠"), false);
+	    }
+	    let res;
+	    if (
+	        !this.myChannelPerms ||
 			this.myChannelPerms.has("USE_EXTERNAL_EMOJIS")
-		) {
-			res = await this.reply("<:warning:508842207089000468>", msg);
-		} else {
-			res = await this.reply("⚠", msg);
-		}
-		// res && res.forEach(r => r.delete({ timeout: 20 * 1000 }));
-		return res;
+	    ) {
+	        res = await this.reply("<:warning:508842207089000468>", msg);
+	    } else {
+	        res = await this.reply("⚠", msg);
+	    }
+	    // res && res.forEach(r => r.delete({ timeout: 20 * 1000 }));
+	    return res;
 	}
 	async success(msg: string) {
-		if(this.raw_interaction && !this.raw_interaction.has_ackd) {
-			try{
-				return await this.raw_interaction.reply("<:success:508840840416854026> "+msg);
-			}catch(e) {console.log(e);}
-		}
+	    if(this.raw_interaction && !this.raw_interaction.has_ackd) {
+	        try{
+	            return await this.raw_interaction.reply("<:success:508840840416854026> "+msg);
+	        }catch(e) {console.log(e)}
+	    }
 
-		const reactOrNot = this.shouldAlert();
-		if (reactOrNot && this.raw_message) {
-			await ilt(this.raw_message.react("✅"), false);
-		}
-		let res;
-		if (
-			!this.myChannelPerms ||
+	    const reactOrNot = this.shouldAlert();
+	    if (reactOrNot && this.raw_message) {
+	        await ilt(this.raw_message.react("✅"), false);
+	    }
+	    let res;
+	    if (
+	        !this.myChannelPerms ||
 			this.myChannelPerms.has("USE_EXTERNAL_EMOJIS")
-		) {
-			res = await this.reply("<:success:508840840416854026>", msg);
-		} else {
-			res = await this.reply("✅", msg);
-		}
-		// res && res.forEach(r => r.delete({ timeout: 20 * 1000 }));
-		return res;
+	    ) {
+	        res = await this.reply("<:success:508840840416854026>", msg);
+	    } else {
+	        res = await this.reply("✅", msg);
+	    }
+	    // res && res.forEach(r => r.delete({ timeout: 20 * 1000 }));
+	    return res;
 	}
 	async docs(path: string, mode: "usage" | "error" | "full") {
-		const docsPage = globalDocs[path];
-		if (!docsPage) {
-			return await this.error(
-				"Uh oh! This is an invalid message:( https://interpunct.info" +
+	    const docsPage = globalDocs[path];
+	    if (!docsPage) {
+	        return await this.error(
+	            "Uh oh! This is an invalid message:( https://interpunct.info" +
 					safe(path) +
 					" ):",
-			);
-		}
-		if (mode === "usage") {
-			return await this.error(
-				"Usage: " +
+	        );
+	    }
+	    if (mode === "usage") {
+	        return await this.error(
+	            "Usage: " +
 					dgToDiscord(docsPage.summaries.usage, this) +
 					" (<https://interpunct.info" +
 					path +
 					">)",
-			);
-		}
-		if (mode === "error") {
-			return await this.error(
-				dgToDiscord(docsPage.summaries.description, this) +
+	        );
+	    }
+	    if (mode === "error") {
+	        return await this.error(
+	            dgToDiscord(docsPage.summaries.description, this) +
 					"\n\n> More Info: <https://interpunct.info" +
 					path +
 					">",
-			);
-		}
-		if (mode === "full") {
-			return await this.result(
-				dgToDiscord(docsPage.body, this) +
+	        );
+	    }
+	    if (mode === "full") {
+	        return await this.result(
+	            dgToDiscord(docsPage.body, this) +
 					"\n\n> Full Page: <https://interpunct.info" +
 					path +
 					">",
-			);
-		}
-		throw new Error("bad help :{ !! }:");
+	        );
+	    }
+	    throw new Error("bad help :{ !! }:");
 	}
 	tag(str: TemplateStringsArray, ...values: (string | {__raw: string})[]) {
-		const s = templateGenerator((q: string) =>
-			q.replace(/[\\{|}]/g, "\\$1"),
-		);
-		return dgToDiscord(s(str, ...values), this);
-		// return await info.error(info.tag`{Command|test} is {Reaction|${user input}}`)
+	    const s = templateGenerator((q: string) =>
+	        q.replace(/[\\{|}]/g, "\\$1"),
+	    );
+	    return dgToDiscord(s(str, ...values), this);
+	    // return await info.error(info.tag`{Command|test} is {Reaction|${user input}}`)
 	}
 	async result(...msg: MessageParametersType) {
-		return await this.reply(result.result, ...msg);
+	    return await this.reply(result.result, ...msg);
 	}
 	async redirect(newcmd: string) {
-		throw new Error("NOT IMPLEMENTED YET " + newcmd); // TODO for example .wr is just .speedrun leaderboard 1, so it could res.redirect("speedrun leaderboard 1 "+arguments)
+	    throw new Error("NOT IMPLEMENTED YET " + newcmd); // TODO for example .wr is just .speedrun leaderboard 1, so it could res.redirect("speedrun leaderboard 1 "+arguments)
 	}
 	// async confirm(who: string): boolean{
 	//
 	// }
 	get handleReactions() {
-		return handleReactions;
+	    return handleReactions;
 	}
 }
 
@@ -624,12 +624,12 @@ export function handleReactions(
 	});
 	rxnRemove &&
 		reactionCollector.on("remove", (reaction, user) => {
-			if (user.bot) {
-				return;
-			}
-			ilt(rxnRemove(reaction, user), false)
-				.then(v => (v.error ? errCb(v.error) : 0))
-				.catch(_ => _ as never);
+		    if (user.bot) {
+		        return;
+		    }
+		    ilt(rxnRemove(reaction, user), false)
+		        .then(v => (v.error ? errCb(v.error) : 0))
+		        .catch(_ => _ as never);
 		});
 	return {
 		end: () => reactionCollector.stop(),

@@ -155,11 +155,11 @@ export function addHelpDocsPage(
 			(help.extendedDescription || "") +
 			"\n\n" +
 			help.examples
-				.map(
-					ex =>
-						`{ExampleUserMessage|${ex.in}}\n{ExampleBotMessage|${ex.out}}`,
-				)
-				.join("\n{Nothing}\n"),
+			    .map(
+			        ex =>
+			            `{ExampleUserMessage|${ex.in}}\n{ExampleBotMessage|${ex.out}}`,
+			    )
+			    .join("\n{Nothing}\n"),
 		summaries: {
 			title: docsPath.substr(docsPath.lastIndexOf("/") + 1),
 			usage: "{Command|" + help.usage + "|" + docsPath + "}",
@@ -370,6 +370,6 @@ export function globalCommand<APList extends APListAny>(
 
 export interface InteractionHandler {
     handle(info: Info, custom_id: string): Promise<void>;
-};
+}
 
 export const ginteractionhandler: {[key: string]: InteractionHandler} = {};

@@ -209,7 +209,7 @@ export function render(state: UltimateTicTacToe) {
 			}
 			return tileset.tiles.blank;
 		})
-		.split("\n");
+			.split("\n");
 	});
 
 	// do some magic to outline all tiles with 1 layer of black tiles

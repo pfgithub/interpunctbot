@@ -49,11 +49,11 @@ const inBoard = (x: number, y: number) => {
 	if(x >= 1 && x <= 9 && y >= 2 && y <= 12) return true;
 	if(x >= 4 && x <= 6 && (y === 1 || y === 13)) return true;
 	return false;
-}
+};
 const isEdge = (x: number, y: number) => {
 	if(!inBoard(x+1, y+1) || !inBoard(x+1, y-1) || !inBoard(x-1, y-1) || !inBoard(x-1, y+1)) return true;
 	return false;
-}
+};
 
 const ballPositions = ["", "bl", "br", "ul", "ur"] as const;
 type BallPosition = typeof ballPositions[number];
@@ -122,7 +122,7 @@ export function initBoard(): Board {
 			const nidx = res.connections.push(edge) - 1;
 			return {to: dpos, active: nidx};
 		}
-	}
+	};
 	// connections are links between two points
 	// getting the pt index is easy but connection index is a bit more difficult
 	// nvm ez
@@ -182,7 +182,7 @@ export function availableConnections(state: {board: Board}, x: number, y: number
 				connections += 1;
 		}
 	}
-	console.log(connections, maxConnections)
+	console.log(connections, maxConnections);
 	if(connections === maxConnections) return "all";
 	if(connections === 1) return "none";
 	return "some";
@@ -195,7 +195,7 @@ export const papersoccer = newGame<GameState>({
 			turn: 0,
 			players,
 			ball: [5, 7],
-		}
+		};
 	},
 	getMoves(state) {
 		const resMoves: MoveSet<GameState> = [];

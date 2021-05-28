@@ -293,11 +293,11 @@ async function displayLeaderboard(
 	const runs =
 		typeof position === "string"
 			? gameData.data.runs.filter(
-					run =>
-						run.run.players &&
+			    run =>
+			        run.run.players &&
 						run.run.players[0] &&
 						getPlayer(
-							run.run.players[0].id,
+						    run.run.players[0].id,
 						)?.names?.international?.toLowerCase() ===
 							position.toLowerCase(),
 			  )
@@ -341,7 +341,7 @@ async function displayLeaderboard(
 
 	const assetIcon =
 		actualGameData.assets[
-			`trophy-${["1st", "2nd", "3rd", "4th"][run_.place - 1]}`
+		    `trophy-${["1st", "2nd", "3rd", "4th"][run_.place - 1]}`
 		];
 	if (assetIcon) {
 		mb.setThumbnail(assetIcon.uri);

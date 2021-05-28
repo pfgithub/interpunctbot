@@ -186,19 +186,19 @@ export async function DocsGen() {
 		const navbar =
 			'<div class="navlinks">' +
 			docItem.path
-				.split("/")
-				.map((q, i, a) => {
-					// if (!q) return "";
-					let current = false;
-					if (i === a.length - 1) current = true;
-					if (!q) return;
-					const title = q || "home";
-					return safehtml`/<a href="${a.slice(0, i + 1).join("/") ||
+			    .split("/")
+			    .map((q, i, a) => {
+			        // if (!q) return "";
+			        let current = false;
+			        if (i === a.length - 1) current = true;
+			        if (!q) return;
+			        const title = q || "home";
+			        return safehtml`/<a href="${a.slice(0, i + 1).join("/") ||
 						"/"}" class="${
 						current ? "navitem current" : "navitem"
-					}">${title}</a>`;
-				})
-				.join("") +
+			        }">${title}</a>`;
+			    })
+			    .join("") +
 			"</div>";
 		await fs.mkdir(dirname(webfile), { recursive: true });
 		await fs.writeFile(

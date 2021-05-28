@@ -124,9 +124,9 @@ export async function handleList(
 	}
 	const resm = await info.result(`${quoteAuthor || "Quote"}
 ${quoteFull
-	.split("\n")
-	.map(l => `> *${l}*`)
-	.join("\n")}
+		.split("\n")
+		.map(l => `> *${l}*`)
+		.join("\n")}
 ${line + 1}/${allQuotesList.length}`);
 	await new Promise(r => setTimeout(r, 1000));
 	if (quickread && resm) {

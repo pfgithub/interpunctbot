@@ -119,9 +119,9 @@ nr.globalCommand(
 		await info.result(
 			"Find the needle (|):\n" +
 				new Array(size)
-					.fill("")
-					.map((_, i) => (i === item ? "|||||" : "|| ||"))
-					.join(""),
+				    .fill("")
+				    .map((_, i) => (i === item ? "|||||" : "|| ||"))
+				    .join(""),
 		);
 	},
 );
@@ -146,14 +146,14 @@ nr.globalCommand(
 		await info.result(
 			"​\n" +
 			new Array(h)
-			.fill("")
-			.map((_, y) =>
-				new Array(w)
-				.fill("")
-				.map((_, x) =>
+			    .fill("")
+			    .map((_, y) =>
+			        new Array(w)
+			            .fill("")
+			            .map((_, x) =>
 					(x === cx && y === cy) ? "||Pöp||" : "||Pop||",
-				).join(" "),
-			).join("\n"),
+			            ).join(" "),
+			    ).join("\n"),
 		);
 	},
 );
@@ -179,8 +179,8 @@ nr.globalCommand(
 			`
 **=============== 🏅 =================**
 ${" ".repeat(
-	Math.max(30 - userDisplayName.length, 0),
-)}Congratulations ${user.toString()},
+		Math.max(30 - userDisplayName.length, 0),
+	)}Congratulations ${user.toString()},
                You have been granted the award:
 ${" ".repeat(Math.max(43 - award.length, 0))}**${safe(award)}**
             for all your dedication and hard work!
@@ -600,11 +600,11 @@ nr.globalCommand(
 						messages.role(role) +
 						" (" +
 						(
-							rolemembers / info.guild.members.cache.size
+						    rolemembers / info.guild.members.cache.size
 						).toLocaleString("en-US", {
-							style: "percent",
-							minimumSignificantDigits: 3,
-							maximumSignificantDigits: 3,
+						    style: "percent",
+						    minimumSignificantDigits: 3,
+						    maximumSignificantDigits: 3,
 						}) +
 						")",
 				);
@@ -1017,11 +1017,11 @@ nr.globalCommand(
 				", " +
 				(upvotes + downvotes > 0
 					? (upvotes / (upvotes + downvotes)).toLocaleString(
-							"en-US",
-							{
-								style: "percent",
-								maximumSignificantDigits: 3,
-							},
+					    "en-US",
+					    {
+					        style: "percent",
+					        maximumSignificantDigits: 3,
+					    },
 					  )
 					: "No Votes") +
 				(over ? ", Voting ended." : "") +
@@ -1201,13 +1201,13 @@ nr.globalCommand(
 		const shardv = info.guild ? ` (id ${info.guild.shardID})` : "";
 		const msg = `**Statistics**:
 > **Servers**: ${totalServers.toLocaleString()} total, ${
-			info.message.client.guilds.cache.size
-		} on this shard${shardv}. Serving about ${totalMembers.toLocaleString()} users.
+	info.message.client.guilds.cache.size
+} on this shard${shardv}. Serving about ${totalMembers.toLocaleString()} users.
 > **Uptime**: ${moment
-			.duration(now - serverStartTime)
-			.format(
-				"y [years] M [months] w [weeks] d [days,] h[h]:mm[m]:s.SSS[s]",
-			)}
+		.duration(now - serverStartTime)
+		.format(
+			"y [years] M [months] w [weeks] d [days,] h[h]:mm[m]:s.SSS[s]",
+		)}
 > **Handled in**: ${new Date().getTime() - info.other!.startTime}ms.`;
 		const msgs = await info.result(msg, undefined);
 		if (msgs && msgs[0] && info.raw_message)
@@ -1215,7 +1215,7 @@ nr.globalCommand(
 				msg +
 					"\n> **Took**: " +
 					durationFormat(
-						msgs[0].createdAt.getTime() -
+					    msgs[0].createdAt.getTime() -
 							info.raw_message.createdAt.getTime(),
 					) +
 					" to send this message.",

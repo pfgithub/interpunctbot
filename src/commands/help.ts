@@ -208,7 +208,7 @@ nr.globalCommand(
 			nr.globalDocs[cmd || "/help"] ||
 			nr.globalDocs[autoResolution] ||
 			nr.globalDocs[
-				nr.globalCommandNS[cmd.toLowerCase()]?.docsPath || ""
+			    nr.globalCommandNS[cmd.toLowerCase()]?.docsPath || ""
 			];
 		if (docsPage) {
 			const bodyText = dgToDiscord(docsPage.body, info);

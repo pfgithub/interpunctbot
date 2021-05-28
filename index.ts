@@ -1268,8 +1268,8 @@ It is now ${Date.now()}
 ==============================
 Recent commands (check __commands.log)
 ${mostRecentCommands
-	.map(c => `\`${c.content}\` / ${moment(c.date).fromNow()}`)
-	.join(`\n`)}
+		.map(c => `\`${c.content}\` / ${moment(c.date).fromNow()}`)
+		.join(`\n`)}
 ==============================
 ${(message.stack ?? "errno")}
 ==============================
@@ -1304,8 +1304,8 @@ Hey ${atEveryone ? "@everyone" : "the void of discord"}, there was an error
 
 **Recent Commands:**
 ${mostRecentCommands
-	.map(c => `\`${c.content}\` / ${moment(c.date).fromNow()}`)
-	.join(`\n`)}
+				.map(c => `\`${c.content}\` / ${moment(c.date).fromNow()}`)
+				.join(`\n`)}
 
 **Stacktrace**:
 \`\`\`

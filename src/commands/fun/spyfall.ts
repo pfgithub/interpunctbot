@@ -72,12 +72,12 @@ React ➕ to join. ${info.message.author.toString()}, React ✅ to start game.`;
 		const editMessage = () =>
 			!cancelGame &&
 			ratelimitEdit.do(() =>
-				perr(
-					inviteMessage
-						.edit(genInviteMessage())
-						.catch(e => (cancelGame = true)),
-					"spyfall join msg",
-				),
+			    perr(
+			        inviteMessage
+			            .edit(genInviteMessage())
+			            .catch(e => (cancelGame = true)),
+			        "spyfall join msg",
+			    ),
 			);
 
 		let startGameReq = false;
@@ -132,7 +132,7 @@ React ➕ to join. ${info.message.author.toString()}, React ✅ to start game.`;
 
 		const location =
 			gamedata.locations[
-				Math.floor(Math.random() * gamedata.locations.length)
+			    Math.floor(Math.random() * gamedata.locations.length)
 			];
 
 		const availableRoles = [...location.roles];

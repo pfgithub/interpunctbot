@@ -608,7 +608,7 @@ nr.globalCommand(
 		}
 
 		// await info.startLoading();
-		let reason =
+		const reason =
 			"Given by " +
 			info.message.member!.toString() +
 			" (" +
@@ -653,9 +653,9 @@ export function getRankSuccessMessage(
 			safe(reciever.displayName) +
 			" already has " +
 			andlist(
-				explicit
-					.sort((a, b) => b.position - a.position)
-					.map(r => messages.role(r)),
+			    explicit
+			        .sort((a, b) => b.position - a.position)
+			        .map(r => messages.role(r)),
 			),
 			allowedMentions,
 		];
@@ -669,9 +669,9 @@ export function getRankSuccessMessage(
 		(rolesToGive.length == 1 ? "" : "s") +
 		" " +
 		andlist(
-			rolesToGive
-				.sort((a, b) => b.position - a.position)
-				.map(r => r.toString()),
+		    rolesToGive
+		        .sort((a, b) => b.position - a.position)
+		        .map(r => r.toString()),
 		) +
 		" by " +
 		giver.toString() +
@@ -681,9 +681,9 @@ export function getRankSuccessMessage(
 			  (explicitRolesNotGiven.length == 1 ? "" : "s") +
 			  " " +
 			  andlist(
-					explicitRolesNotGiven
-						.sort((a, b) => b.position - a.position)
-						.map(r => r.toString()),
+			      explicitRolesNotGiven
+			          .sort((a, b) => b.position - a.position)
+			          .map(r => r.toString()),
 			  ) +
 			  " were not given because you already have them."
 			: ""),

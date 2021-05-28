@@ -114,9 +114,9 @@ nr.globalCommand(
 ${
 	goilevels[level]
 		? goilevels[level].text.replace(/{(.+?)}/g, (_, v) => {
-				v = v.trim();
-				if (v === "player") return ge.normalcharacter!;
-				return ge[v] || "{err`" + v + "`}";
+		    v = v.trim();
+		    if (v === "player") return ge.normalcharacter!;
+		    return ge[v] || "{err`" + v + "`}";
 		  })
 		: `404! Level \`${level}\` not found!`
 }${events.map(ev => `\n${ev}`).join("")}`);

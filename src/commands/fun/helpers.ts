@@ -60,11 +60,11 @@ export async function getTwoPlayers(
 		const getJoinMessageText = () =>
 			`${info.message.author.toString()} has started a game of ${gameName}.
 > (${`${playersInGame.length}`}/2) ${playersInGame
-				.map(pl => `<@${pl}>`)
-				.join(", ")}
+	.map(pl => `<@${pl}>`)
+	.join(", ")}
 > React <:j:455896379210989568> to join. (${`${60 -
 				Math.floor(
-					(new Date().getTime() - startTime) / 1000,
+				    (new Date().getTime() - startTime) / 1000,
 				)}`}s left)`;
 
 		const joinRequestMessage = await info.channel.send(

@@ -189,13 +189,13 @@ nr.globalCommand(
 		await info.success(
 			"Users with these words in their name (not case-sensitive) will be banned when they join the server:\n" +
 				ad
-					.map(
-						q =>
-							(nlsep.includes(q) ? "(new) " : "") +
+				    .map(
+				        q =>
+				            (nlsep.includes(q) ? "(new) " : "") +
 							"- " +
 							safe(q),
-					)
-					.join("\n"),
+				    )
+				    .join("\n"),
 		);
 	},
 );

@@ -339,7 +339,7 @@ function getMoves(state: Checkers): g.MoveSet<Checkers> {
 		resMoves.push({
 			button:
 				tileset.tiles.interaction.arrows[
-					directionToDirectionString(move.direction)
+				    directionToDirectionString(move.direction)
 				],
 			player: state.players[st.turn],
 			apply: state => {
@@ -353,9 +353,9 @@ function getMoves(state: Checkers): g.MoveSet<Checkers> {
 					g.boardGet(state.board, ...move.take)!.piece = undefined;
 					// prettier-ignore
 					if(g.boardFilter(state.board, t => t.piece ? t.piece.color !== st.turn : false).length === 0) {
-						state.status = {s: "winner", winner: state.players[st.turn], reason: ""};
-						updateOverlay(state);
-						return state;
+					    state.status = {s: "winner", winner: state.players[st.turn], reason: ""};
+					    updateOverlay(state);
+					    return state;
 					}
 				}
 
@@ -373,7 +373,7 @@ function getMoves(state: Checkers): g.MoveSet<Checkers> {
 				};
 				// : Check if the current player should continue or if next turn.
 				if (
-					// ==: If this move did not jump, next turn
+				// ==: If this move did not jump, next turn
 					!move.take ||
 					// ==: If this move created a king, next turn
 					makeKing ||
@@ -472,15 +472,15 @@ export const checkers = g.newGame<Checkers>({
 		const status1 =
 			mode.s === "selectpiece"
 				? `<@${state.players[mode.turn].id}>'s turn (${
-						tileset.tiles[mode.turn].blank
+				    tileset.tiles[mode.turn].blank
 				  })`
 				: mode.s === "moveany"
 				? `<@${state.players[mode.turn].id}>'s turn (${
-						tileset.tiles[mode.turn].blank
+				    tileset.tiles[mode.turn].blank
 				  })`
 				: mode.s === "jump"
 				? `<@${state.players[mode.turn].id}>'s turn (${
-						tileset.tiles[mode.turn].blank
+				    tileset.tiles[mode.turn].blank
 				  })`
 				: mode.s === "winner"
 				? `<@${mode.winner.id}> won! (${mode.reason})`

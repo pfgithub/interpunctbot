@@ -55,7 +55,7 @@ export function parseDG(
 		action: string;
 		args: { raw: string; safe: string }[];
 	}[] = [
-		{ type: "callaction", action: "__HOME", args: [{ raw: "", safe: "" }] },
+	    { type: "callaction", action: "__HOME", args: [{ raw: "", safe: "" }] },
 	];
 
 	while (tokens.length) {
