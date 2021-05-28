@@ -483,7 +483,13 @@ const slash_command_router: {[key: string]: SlashCommandRoute} = {
 	slashbot: {
 		description: "is slashbot",
 		route: "ping",
-	}
+	},
+	button: {
+		description: "create buttons",
+		subcommands: {
+			role: {route: "grantrolebtn", args: {name: opt.string("Button text"), role: opt.role("Role to give")}},
+		},
+	},
 };
 
 const global_slash_commands: {[key: string]: SlashCommandNameless} = {};
