@@ -1098,8 +1098,8 @@ const Calculator: Game<CalcState> = {
         let renderedCalculator = (state.previous ? state.previous.number + " " + state.previous.operation + " " : "")
             + currentText
         ;
-        if(state.previous && state.previous.operation === "^") {
-            renderedCalculator = state.previous.number + [...currentText].map(c => [..."⁰¹²³⁴⁵⁶⁷⁸⁹"][+c]).join("");
+        if(state.previous && state.previous.operation === "^" && state.current.match(/^[0-9.]+$/)) {
+            renderedCalculator = state.previous.number + [...currentText].map(c => c === "." ? "·" : [..."⁰¹²³⁴⁵⁶⁷⁸⁹"][+c]).join("");
         }
         if(state.before_eq) {
             renderedCalculator = "= " + renderedCalculator;
