@@ -151,7 +151,7 @@ export function initBoard(): Board {
 
 // console.log(displayBoard(initBoard(), [5, 7], "341076015663153153"));
 
-const buttonReactions: {[key in Direction]: string} = {
+export const buttonReactions: {[key in Direction]: string} = {
 	"aa": "↖️",
 	"ba": "⬆️",
 	"ca": "↗️",
@@ -167,7 +167,7 @@ type GameState = {
 	players: Player[];
 	turn: number;
 	ball: [number, number];
-	winner?: Player;
+	over?: {reason: string};
 };
 
 export function availableConnections(state: {board: Board}, x: number, y: number): "none" | "some" | "all" {
@@ -217,11 +217,11 @@ export const papersoccer = newGame<GameState>({
 					if(state.ball[1] === 1) {
 						// p0 wins
 						state.turn = 0;
-						state.winner = state.players[state.turn];
+						state.over = {reason: "Got in goal"};
 					} else if(state.ball[1] === 13) {
 						// p1 wins
 						state.turn = 1;
-						state.winner = state.players[state.turn];
+						state.over = {reason: "Got in goal"};
 					} else if(conxnCnt === "all") {
 						// next turn
 						state.turn += 1;
@@ -230,7 +230,7 @@ export const papersoccer = newGame<GameState>({
 						// other player wins
 						state.turn += 1;
 						state.turn %= state.players.length;
-						state.winner = state.players[state.turn];
+						state.over = {reason: "Other player got trapped"};
 					}else{
 						// current player goes again
 					}
@@ -242,7 +242,7 @@ export const papersoccer = newGame<GameState>({
 		return resMoves;
 	},
 	checkGameOver(state) {
-		return !!state.winner;
+		return !!state.over;
 	},
 	render(state) {
 		return [
@@ -252,7 +252,7 @@ export const papersoccer = newGame<GameState>({
 			"You cannot move across a line that has already been drawn.\n"+
 			"If the location you move to already has a line, you get another turn.\n"+
 			"If you get the ball stuck, your opponent wins.",
-			displayBoard(state.board, state.ball, !!state.winner, (state.winner || state.players[state.turn]).id, state.turn === 1),
+			displayBoard(state.board, state.ball, !!state.over, (state.players[state.turn]).id, state.turn === 1),
 		];
 	},
 });
