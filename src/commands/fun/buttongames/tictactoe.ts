@@ -100,17 +100,26 @@ nr.globalCommand(
 				componentRow([
 					button("boo_btn", "Boo!", "primary", {}),
 				]),
-				componentRow([
-					{type: 3, style: 1, label: "Down", custom_id: "dropdown", options: [
-						{value: "one", label: "One"},
-						{value: "two", label: "Two"},
-					]},
-				]),
 			],
 			allowed_mentions: {parse: []},
 		}});
 	},
 );
+
+nr.ginteractionhandler["boo_btn"] = {
+	async handle(info, custom_id) {
+		if(info.raw_interaction) {
+			await info.raw_interaction.replyHiddenHideCommand("👻", [
+				componentRow([
+					{type: 3, style: 1, label: "Down", custom_id: "dropdown", options: [
+						{value: "one", label: "One"},
+						{value: "two", label: "Two"},
+					]},
+				])
+			]);
+		}
+	}
+};
 
 nr.globalCommand(
 	"/help/test/help2",
@@ -160,14 +169,6 @@ nr.globalCommand(
 		}});
 	},
 );
-
-nr.ginteractionhandler["boo_btn"] = {
-	async handle(info, custom_id) {
-		if(info.raw_interaction) {
-			await info.raw_interaction.replyHiddenHideCommand("👻");
-		}
-	}
-};
 
 type GameData = {
     kind: GameKind,
