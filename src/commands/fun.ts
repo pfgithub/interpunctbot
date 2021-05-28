@@ -25,15 +25,12 @@ nr.addDocsWebPage(
 Note that most games work best when {Interpunct} has permission to Manage Reactions
 
 {CmdSummary|connect4}
-{CmdSummary|minesweeper}
 {CmdSummary|papersoccer}
 {CmdSummary|ultimate tictactoe}
 {CmdSummary|checkers}
 {CmdSummary|circlegame}
 {CmdSummary|tictactoe}
-{CmdSummary|randomword}
 {CmdSummary|trivia}
-{CmdSummary|needle}
 
 {Heading|Configuration}
 Games are enabled by default.
@@ -58,12 +55,15 @@ Fun commands are enabled by default.
 {CmdSummary|stats}
 {CmdSummary|timer}
 {CmdSummary|timer}
+{CmdSummary|needle}
 {CmdSummary|sendmsg}
 {CmdSummary|editmsg}
 {CmdSummary|viewmsgsource}
 {CmdSummary|remindme}
+{CmdSummary|randomword}
 {CmdSummary|inspirobot}
 {CmdSummary|bubblewrap}
+{CmdSummary|minesweeper}
 `,
 );
 

@@ -112,6 +112,55 @@ nr.globalCommand(
 	},
 );
 
+nr.globalCommand(
+	"/help/test/help2",
+	"help2",
+	{
+		usage: "help2",
+		description: "help2",
+		examples: [],
+		perms: {fun: true},
+	},
+	nr.list(),
+	async ([], info) => {
+		const api = info.message.client as any as ApiHolder;
+		await api.api.channels(info.message.channel.id).messages.post<{data: SampleMessage}, unknown>({data: {
+			content: "help2",
+			components: [
+				componentRow([
+					button("NONE", "Configuration", "secondary", {}),
+					button("NONE", "Games", "secondary", {}),
+					button("NONE", "Tickets", "secondary", {}),
+					button("NONE", "Emoji", "secondary", {}),
+					button("NONE", "Messages", "secondary", {}),
+				]),
+				componentRow([
+					button("NONE", "Channels", "secondary", {}),
+					button("NONE", "Administration", "secondary", {}),
+					button("NONE", "Custom Commands", "secondary", {}),
+					button("NONE", "Log", "secondary", {}),
+					button("NONE", "Fun", "secondary", {}),
+				]),
+				componentRow([
+					button("NONE", "speedrun.com", "secondary", {}),
+					button("NONE", "Quickrank", "secondary", {}),
+					button("NONE", "Autodelete", "secondary", {}),
+				]),
+				componentRow([
+					{
+						type: 2,
+						style: 5,
+						label: "Full Help",
+						url: "https://interpunct.info/help",
+						disabled: false,
+					},
+				]),
+			],
+			allowed_mentions: {parse: []},
+		}});
+	},
+);
+
 nr.ginteractionhandler["boo_btn"] = {
 	async handle(info, custom_id) {
 		if(info.raw_interaction) {
