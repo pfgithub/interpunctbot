@@ -8,11 +8,12 @@ import Info from "../Info";
 import * as nr from "../NewRouter";
 import { a, AP } from "./argumentparser";
 
-export const stripMentions = (msg: string) => {
+export const stripMentions = (msg: string): string => {
 	return msg
 		.replace(/@(everyone|here)/g, "")
 		.replace(/<@.+?>/g, "")
-		.replace(/<#.+?>/g, "");
+		.replace(/<#.+?>/g, "")
+	;
 };
 
 nr.addDocsWebPage(
@@ -156,16 +157,17 @@ nr.globalCommand(
 export function findChannelsRequireSpacing(
 	guild: Guild,
 	characterToReplace: string,
-) {
+): Discord.Channel[] {
 	return guild.channels.cache
 		.array()
-		.filter(chan => doesChannelRequireSpacing(chan, characterToReplace));
+		.filter(chan => doesChannelRequireSpacing(chan, characterToReplace))
+	;
 }
 
 export function doesChannelRequireSpacing(
 	chan: GuildChannel,
 	characterToReplace: string,
-) {
+): boolean {
 	return (
 		chan.name.includes(characterToReplace) &&
 		chan.type !== "voice" &&
@@ -445,15 +447,15 @@ nr.globalCommand(
 				messages.failure.command_cannot_be_used_in_pms(info),
 			);
 		}
-		const ap = await AP(
+		const root_ap = await AP(
 			{ info, cmd, partial: true, help: "/help/autodelete/add" },
 			a.duration(),
 			a.enum("prefix", "user", "channel", "role", "counting"),
 		);
-		if (!ap) return;
-		const [duration, mode] = ap.result;
+		if (!root_ap) return;
+		const [duration, mode] = root_ap.result;
 
-		cmd = ap.remaining;
+		cmd = root_ap.remaining;
 		let autodeleteInfo: AutodeleteRuleNoID;
 		if (mode === "prefix") {
 			const prefix = cmd;
@@ -812,7 +814,7 @@ nr.globalCommand(
 );
 
 const lastUpdatedTimesCache: { [key: string]: number | undefined } = {};
-export async function sendPinBottom(info: Info, chid: string) {
+export async function sendPinBottom(info: Info, chid: string): Promise<void> {
 	if (!info.db) return;
 	const db = info.db;
 	const client = info.message.client;

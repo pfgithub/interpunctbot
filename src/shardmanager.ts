@@ -3,7 +3,7 @@ import { globalConfig } from "./config";
 import { promises as fs } from "fs";
 import * as path from "path";
 
-if (!globalConfig.token)
+if (globalConfig.token == null)
 	throw new Error(
 		"Token not provided, bot cannot start. Configure in config/config.json",
 	);
@@ -22,7 +22,7 @@ async function cleanLogs() {
 	const logsDir = path.join(process.cwd(), "logs");
 	const allLogs = await fs.readdir(logsDir);
 	const rgx = /^\[(.+?)\]/;
-	const rgx2 = /^\!\! \[ (.+?) /;
+	const rgx2 = /^!! \[ (.+?) /;
 	const mustBePast = new Date().getTime() - 60 * 24 * 60 * 60 * 1000;
 	for (const logFile of allLogs) {
 		const fpath = path.join(process.cwd(), "logs", logFile);
@@ -51,14 +51,14 @@ async function cleanLogs() {
 		}
 		allLines.splice(0, resIdx);
 		const tdelcount = prevDeleteCount + resIdx;
-		if (tdelcount != 0)
+		if (tdelcount !== 0)
 			allLines.unshift(
 				"!! [ " +
 					tdelcount +
 					" messages were more than 60 days old and were trimmed from this log. https://interpunct.info/help/log ]",
 			);
 		const restext = allLines.join("\n");
-		if (initialtext != restext) await fs.writeFile(fpath, restext, "utf-8");
+		if (initialtext !== restext) await fs.writeFile(fpath, restext, "utf-8");
 		console.log("Trimmed log", logFile);
 	}
 }

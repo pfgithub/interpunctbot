@@ -3,7 +3,6 @@ import {globalKnex} from "../../../db";
 import client from "../../../../bot";
 import Info, {permTheyCanManageRole, permWeCanManageRole} from "../../../Info";
 import { InteractionHandled } from "../../../SlashCommandManager";
-import { globalConfig } from "../../../config";
 
 const BasicKeys = {
 	joining: {join: "join", end: "end", join_anyway: "join_anyway"},
@@ -318,15 +317,15 @@ const TTTGame: Game<TicTacToeState> = {
 		}else if(state.mode === "playing" || state.mode === "won") {
 			return {
 				content: state.mode === "playing"
-                    ? "It's your turn <@"+state.players[state.player]+">, You are "+state.player
-                    : state.mode === "won"
-                    ? state.win
-                    ? (state.win.player === "Tie"
-                    ? "There was a tie. "
-                    : "<@"+state.players[state.win.player]+"> won!")
-                    + " ("+state.win.reason+"). Players: X <@"+state.players.X+">, O: <@"+state.players.O+">"
-                    : "Someone won but I'm not sure who."
-                    : "never",
+					? "It's your turn <@"+state.players[state.player]+">, You are "+state.player
+					: state.mode === "won"
+					? state.win
+					? (state.win.player === "Tie"
+					? "There was a tie. "
+					: "<@"+state.players[state.win.player]+"> won!")
+					+ " ("+state.win.reason+"). Players: X <@"+state.players.X+">, O: <@"+state.players.O+">"
+					: "Someone won but I'm not sure who."
+					: "never",
 				components: [
 					...state.board.grid.map((yr, y) => componentRow(
 						yr.map((tile, x) =>
@@ -334,9 +333,9 @@ const TTTGame: Game<TicTacToeState> = {
 						)
 					)),
 					...state.mode === "playing" ?
-                    [componentRow([
-                    	button(key(BasicKeys.playing.give_up), "Give Up", "deny", {}),
-                    ])] : [],
+					[componentRow([
+						button(key(BasicKeys.playing.give_up), "Give Up", "deny", {}),
+					])] : [],
 				],
 				allowed_mentions: {parse: []},
 			};
@@ -359,7 +358,7 @@ const TTTGame: Game<TicTacToeState> = {
 		const game_state = await getGameData(ikey.game_id);
 		const key = (name: string) => getInteractionKey(ikey.game_id, ikey.kind, ikey.stage, name);
 
-		if(game_state.stage != ikey.stage) {
+		if(game_state.stage !== ikey.stage) {
 			return await errorGame(info, "This button is no longer active.");
 		}
 		const state = game_state.state as TicTacToeState;
@@ -384,11 +383,11 @@ const TTTGame: Game<TicTacToeState> = {
 						mode: "playing",
 						// initiator: state.first_player,
 						board: {grid:
-                            [
-                            	[" ", " ", " "],
-                            	[" ", " ", " "],
-                            	[" ", " ", " "],
-                            ]
+							[
+								[" ", " ", " "],
+								[" ", " ", " "],
+								[" ", " ", " "],
+							]
 						},
 						player: "X",
 						players: {
@@ -649,7 +648,7 @@ const CGGame: Game<CirclegameState> = {
 									{disabled: tile === " " ? false : true},
 								),
 							),
-							...y == 0 && !state.over ?
+							...y === 0 && !state.over ?
                             [
                             	button(key(BasicKeys.playing.give_up), "Give Up", "deny", {}),
                             ] : [],
@@ -677,7 +676,7 @@ const CGGame: Game<CirclegameState> = {
 		const game_state = await getGameData(ikey.game_id);
 		const key = (name: string) => getInteractionKey(ikey.game_id, ikey.kind, ikey.stage, name);
 
-		if(game_state.stage != ikey.stage) {
+		if(game_state.stage !== ikey.stage) {
 			return await errorGame(info, "This button is no longer active.");
 		}
 		const state = game_state.state as CirclegameState;
@@ -742,7 +741,7 @@ const CGGame: Game<CirclegameState> = {
 					line[i] = state.player;
 				}
 
-				if(state.lines.every(line => line.lastIndexOf(" ") === -1)) {
+				if(state.lines.every(sline => sline.lastIndexOf(" ") === -1)) {
 					return await updateGameState<CirclegameState>(info, ikey, {
 						...state,
 						over: {
@@ -834,8 +833,6 @@ Alternative spellings are accepted, including {Command|paper football}`,
 	},
 	nr.list(),
 	async ([], info) => {
-		const api = info.message.client as any as ApiHolder;
-
 		const game_id = await createGame<PSState>("PS", {mode: "joining", initiator: info.message.author.id});
 		await renderGame(info, game_id);
 	},
@@ -924,7 +921,7 @@ const PSGame: Game<PSState> = {
 		const game_state = await getGameData(ikey.game_id);
 		const key = (name: string) => getInteractionKey(ikey.game_id, ikey.kind, ikey.stage, name);
 
-		if(game_state.stage != ikey.stage) {
+		if(game_state.stage !== ikey.stage) {
 			return await errorGame(info, "This button is no longer active.");
 		}
 		const state = game_state.state as PSState;
@@ -1076,8 +1073,6 @@ nr.globalCommand(
 	},
 	nr.list(),
 	async ([], info) => {
-		const api = info.message.client as any as ApiHolder;
-
 		const game_id = await createGame<CalcState>("CALC", {
 			current: "",
 		});
@@ -1143,9 +1138,8 @@ const Calculator: Game<CalcState> = {
 	async handleInteraction(info, custom_id): Promise<InteractionHandled<CalcState>> {
 		const ikey = parseInteractionKey(custom_id);
 		const game_state = await getGameData(ikey.game_id);
-		const key = (name: string) => getInteractionKey(ikey.game_id, ikey.kind, ikey.stage, name);
 
-		if(game_state.stage != ikey.stage) {
+		if(game_state.stage !== ikey.stage) {
 			return await errorGame(info, "This button is no longer active.");
 		}
 		const state = game_state.state as CalcState;
@@ -1271,8 +1265,6 @@ For better instructions, read {Link|https://mathwithbaddrawings.com/2013/06/16/u
 	},
 	nr.list(),
 	async ([], info) => {
-		const api = info.message.client as any as ApiHolder;
-
 		const game_id = await createGame<UTTTState>("UTTT", {
 			mode: "joining",
 			initiator: info.message.author.id,
@@ -1359,7 +1351,7 @@ const UTTTGame: Game<UTTTState> = {
 				];
 			}
 			return {
-				content: uttt.render(state.state)[0],
+				content: uttt.ultimatetictactoe.render(state.state)[0],
 				components,
 				allowed_mentions: {parse: []},
 			};
@@ -1382,7 +1374,7 @@ const UTTTGame: Game<UTTTState> = {
 		const game_state = await getGameData(ikey.game_id);
 		const key = (name: string) => getInteractionKey(ikey.game_id, ikey.kind, ikey.stage, name);
 
-		if(game_state.stage != ikey.stage) {
+		if(game_state.stage !== ikey.stage) {
 			return await errorGame(info, "This button is no longer active.");
 		}
 		const state = game_state.state as UTTTState;
@@ -1462,7 +1454,7 @@ const UTTTGame: Game<UTTTState> = {
 			if(ikey.name.startsWith("E,")) {
 				const kbtn = ikey.name.replace("E,", "");
 				const moves = uttt.ultimatetictactoe.getMoves(state.state);
-				const move = moves.find(move => move.button === kbtn);
+				const move = moves.find(mv => mv.button === kbtn);
 				if(!move) return await errorGame(info, "You can't do that.");
 				if(move.player.id !== info.message.author.id) return await errorGame(info, "You can't do that.");
 				return await updateGameState(info, ikey, {mode: "playing", state: move.apply(state.state)});
@@ -1578,7 +1570,7 @@ const Conn4Game: Game<Conn4State> = {
 		const game_state = await getGameData(ikey.game_id);
 		const key = (name: string) => getInteractionKey(ikey.game_id, ikey.kind, ikey.stage, name);
 
-		if(game_state.stage != ikey.stage) {
+		if(game_state.stage !== ikey.stage) {
 			return await errorGame(info, "This button is no longer active.");
 		}
 		const state = game_state.state as Conn4State;
@@ -1655,7 +1647,7 @@ const Conn4Game: Game<Conn4State> = {
 			if(ikey.name.startsWith("E,")) {
 				const kbtn = ikey.name.replace("E,", "");
 				const moves = conn4.connect4.getMoves(state.state);
-				const move = moves.find(move => move.button === kbtn);
+				const move = moves.find(mv => mv.button === kbtn);
 				if(!move) return await errorGame(info, "You can't do that.");
 				if(move.player.id !== info.message.author.id) return await errorGame(info, "You can't do that.");
 				return await updateGameState<Conn4State>(info, ikey, {mode: "playing", state: move.apply(state.state)});
@@ -1792,7 +1784,7 @@ const CheckersGame: Game<CheckersState> = {
 		const game_state = await getGameData(ikey.game_id);
 		const key = (name: string) => getInteractionKey(ikey.game_id, ikey.kind, ikey.stage, name);
 
-		if(game_state.stage != ikey.stage) {
+		if(game_state.stage !== ikey.stage) {
 			return await errorGame(info, "This button is no longer active.");
 		}
 		const state = game_state.state as CheckersState;
@@ -1873,7 +1865,7 @@ const CheckersGame: Game<CheckersState> = {
 			if(ikey.name.startsWith("E,")) {
 				const kbtn = ikey.name.replace("E,", "");
 				const moves = chec.checkers.getMoves(state.state);
-				const move = moves.find(move => move.button === kbtn);
+				const move = moves.find(mv => mv.button === kbtn);
 				if(!move) return await errorGame(info, "You can't do that.");
 				if(move.player.id !== info.message.author.id) return await errorGame(info, "You can't do that.");
 				return await updateGameState<CheckersState>(info, ikey, {mode: "playing", state: move.apply(state.state)});

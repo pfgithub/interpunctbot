@@ -225,7 +225,7 @@ nr.globalCommand(
 	},
 );
 
-const ms = (ms: number) => new Promise(r => setTimeout(r, ms));
+const ms = (mss: number) => new Promise(r => setTimeout(r, mss));
 
 nr.globalCommand(
 	"/help/fun/load",
@@ -407,19 +407,19 @@ nr.globalCommand(
 	},
 	nr.passthroughArgs,
 	async ([cmd], info) => {
-		const callcmd = (cmd: string) => {
-			if (cmd === "help") {
+		const callcmd = (ctxt: string) => {
+			if (ctxt === "help") {
 				return safe`Uh oh! VDB debugging mode is not enabled. Help is not enabled.`;
 			}
-			if (cmd === "apropos word") {
+			if (ctxt === "apropos word") {
 				return safe`if -- Execute nested commands once IF the conditional expression is non zero.
 while -- Execute nested commands WHILE the conditional expression is non zero.
 x -- Examine memory: x/FMT ADDRESS.`;
 			}
-			if (cmd === "quit") {
+			if (ctxt === "quit") {
 				return "";
 			}
-			return safe`Undefined command: "${cmd}". Try "help".`;
+			return safe`Undefined command: "${ctxt}". Try "help".`;
 		};
 
 		await info.message.channel.send(`\`\`\`
@@ -587,7 +587,7 @@ nr.globalCommand(
 
 			const results: string[] = [];
 			for (const role of roles) {
-				if (info.guild.members.cache.size != info.guild.memberCount) {
+				if (info.guild.members.cache.size !== info.guild.memberCount) {
 					info.message.channel.startTyping().catch(() => {});
 					await info.guild.members.fetch();
 					info.message.channel.stopTyping();
@@ -1131,17 +1131,17 @@ nr.globalCommand(
 			clxtrnded().catch(() => {});
 		});
 		const clxtrclxted = async (msg_: discord.Message) => {
-			const msg = msg_;
-			msg.channel.stopTyping();
+			const finalmsg = msg_;
+			finalmsg.channel.stopTyping();
 			guessed = true;
 			collectr.stop();
 			const time = new Date().getTime() - start;
-			localtrophycount[msg.author.id] =
-				(localtrophycount[msg.author.id] || 0) + 1;
-			const tc = localtrophycount[msg.author.id];
-			await msg.channel.send(
+			localtrophycount[finalmsg.author.id] =
+				(localtrophycount[finalmsg.author.id] || 0) + 1;
+			const tc = localtrophycount[finalmsg.author.id];
+			await finalmsg.channel.send(
 				"Congrats " +
-					msg.author.toString() +
+					finalmsg.author.toString() +
 					", you typed it first in " +
 					time +
 					"ms." +
@@ -1149,7 +1149,7 @@ nr.globalCommand(
 						? "\nYour trophies this session: " + trophyprint(tc)
 						: " Here is your prize: 🏆"),
 			);
-			await msg.react("🏆");
+			await finalmsg.react("🏆");
 		};
 		collectr.on("collect", msg_ => {
 			clxtrclxted(msg_).catch(() => {});

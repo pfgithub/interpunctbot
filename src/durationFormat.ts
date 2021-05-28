@@ -1,6 +1,6 @@
 import moment from "moment";
 
-export function durationFormat(time: number) {
+export function durationFormat(time: number): string {
 	const duration = moment.duration(time, "ms");
 	// return duration.humanize();
 	return duration
@@ -17,5 +17,6 @@ export function durationFormat(time: number) {
 		)
 		.filter(q => q)
 		.filter((q, i) => i <= 2)
-		.join(", ");
+		.join(", ")
+	;
 }

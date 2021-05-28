@@ -60,20 +60,20 @@ async function getEmojiAndRole(
 	if (!emojiID || !rolename) {
 		if (allowJustEmoji) {
 			//eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
-			const [, emojiID] = cmd
+			const [, emID] = cmd
 				.trim()
 				.match(/^[\S\s]*?([0-9]{16,})[^ ]*$/) || ["", ""];
-			if (!emojiID) {
+			if (!emID) {
 				await info.error(
-					messages.emoji.could_not_find_emoji(info, emojiID),
+					messages.emoji.could_not_find_emoji(info, emID),
 				);
 				return;
 			}
 
-			const emoji = info.guild.emojis.resolve(emojiID);
+			const emoji = info.guild.emojis.resolve(emID);
 			if (!emoji) {
 				await info.error(
-					messages.emoji.could_not_find_emoji(info, emojiID),
+					messages.emoji.could_not_find_emoji(info, emID),
 				);
 				return;
 			}
@@ -106,7 +106,7 @@ async function getEmojiAndRole(
 	} else {
 		const matchingRoles = info.guild.roles.cache
 			.array()
-			.filter(role => roleNameMatch(role.name, rolename));
+			.filter(rol => roleNameMatch(rol.name, rolename));
 		if (matchingRoles.length > 1) {
 			await info.error(
 				messages.emoji.multiple_roles_found(

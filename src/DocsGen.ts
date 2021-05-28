@@ -146,7 +146,7 @@ const fDocs = mkpath(fRoot("docs"));
 const fDocgen = mkpath(fRoot("docgen"));
 const fDoc = mkpath(fDocgen("doc"));
 
-export async function DocsGen() {
+export async function DocsGen(): Promise<void> {
 	try {
 		await fs.rmdir(fDocs(), { recursive: true });
 	} catch (e) {

@@ -1,5 +1,4 @@
 import * as Discord from "discord.js";
-import { MessageBuilder } from "./MessageBuilder";
 import Database from "./Database";
 import { ilt, perr } from "..";
 import { safe, messages, templateGenerator } from "../messages";
@@ -7,7 +6,7 @@ import { TimedEvents } from "./TimedEvents";
 import { globalConfig } from "./config";
 import { globalDocs } from "./NewRouter";
 import { dgToDiscord } from "./parseDiscordDG";
-import { DiscordInteraction, InteractionHandled, InteractionHelper } from "./SlashCommandManager";
+import { InteractionHelper } from "./SlashCommandManager";
 
 const result = {
 	error: "<:failure:508841130503438356> Error: ",
@@ -19,7 +18,7 @@ const result = {
 export function memberCanManageRole(
 	member: Discord.GuildMember,
 	role: Discord.Role,
-) {
+): boolean {
 	if (!member) return false;
 	return (
 		member.hasPermission("MANAGE_ROLES") &&
@@ -28,7 +27,7 @@ export function memberCanManageRole(
 	);
 }
 
-export async function permTheyCanManageRole(role: Discord.Role, info: Info) {
+export async function permTheyCanManageRole(role: Discord.Role, info: Info): Promise<boolean> {
 	if (!info.message.member!.hasPermission("MANAGE_ROLES")) {
 		await info.docs("/errors/perm/manage-roles", "error");
 		return false;
@@ -43,7 +42,7 @@ export async function permTheyCanManageRole(role: Discord.Role, info: Info) {
 	return true;
 }
 
-export async function permWeCanManageRole(role: Discord.Role, info: Info) {
+export async function permWeCanManageRole(role: Discord.Role, info: Info): Promise<boolean> {
 	if (!info.myChannelPerms!.has("MANAGE_ROLES")) {
 		await info.docs("/errors/ourperms/manage-roles", "error");
 		return false;
@@ -59,7 +58,7 @@ export async function permWeCanManageRole(role: Discord.Role, info: Info) {
 }
 
 export const theirPerm = {
-	manageBot: async (info: Info) => {
+	manageBot: async (info: Info): Promise<boolean> => {
 		if (!theirPerm.pm(false)(info)) {
 			return false;
 		}
@@ -81,7 +80,7 @@ export const theirPerm = {
 		);
 		return false;
 	},
-	manageChannels: (info: Info) => {
+	manageChannels: (info: Info): boolean => {
 		if (!theirPerm.pm(false)(info)) {
 			return false;
 		}
@@ -96,7 +95,7 @@ export const theirPerm = {
 		);
 		return false;
 	},
-	manageEmoji: (info: Info) => {
+	manageEmoji: (info: Info): boolean => {
 		if (!theirPerm.pm(false)(info)) {
 			return false;
 		}
@@ -111,7 +110,7 @@ export const theirPerm = {
 		);
 		return false;
 	},
-	manageMessages: (info: Info) => {
+	manageMessages: (info: Info): boolean => {
 		if (!theirPerm.pm(false)(info)) {
 			return false;
 		}
@@ -126,7 +125,7 @@ export const theirPerm = {
 		);
 		return false;
 	},
-	banMembers: (info: Info) => {
+	banMembers: (info: Info): boolean => {
 		if (!theirPerm.pm(false)(info)) {
 			return false;
 		}
@@ -141,7 +140,7 @@ export const theirPerm = {
 		);
 		return false;
 	},
-	pm: (expected: boolean) => (info: Info) => {
+	pm: (expected: boolean) => (info: Info): boolean => {
 		if (info.pm === expected) {
 			return true;
 		}
@@ -151,7 +150,7 @@ export const theirPerm = {
 		);
 		return false;
 	}, // I want an r.load() that calls startloading and awaits for it
-	owner: (info: Info) => {
+	owner: (info: Info): boolean => {
 		if (globalConfig.owners.includes(info.message.author.id)) {
 			return true;
 		}
@@ -167,7 +166,7 @@ export const theirPerm = {
 
 // todo remove these they are terrible and a waste of code
 export const ourPerm = {
-	manageChannels: (info: Info) => {
+	manageChannels: (info: Info): boolean => {
 		if (!theirPerm.pm(false)(info)) {
 			return false;
 		}
@@ -182,7 +181,7 @@ export const ourPerm = {
 		);
 		return false;
 	},
-	manageEmoji: (info: Info) => {
+	manageEmoji: (info: Info): boolean => {
 		if (!theirPerm.pm(false)(info)) {
 			return false;
 		}
@@ -197,7 +196,7 @@ export const ourPerm = {
 		);
 		return false;
 	},
-	manageMessages: (info: Info) => {
+	manageMessages: (info: Info): boolean => {
 		if (!theirPerm.pm(false)(info)) {
 			return false;
 		}
@@ -212,7 +211,7 @@ export const ourPerm = {
 		);
 		return false;
 	},
-	banMembers: (info: Info) => {
+	banMembers: (info: Info): boolean => {
 		if (!theirPerm.pm(false)(info)) {
 			return false;
 		}
@@ -303,37 +302,37 @@ export default class Info {
 	    allowedMentions: { parse: [], roles: [], users: [] },
 	    split: false,
 	} as {allowedMentions: {parse: []; roles: []; users: []}; split: false}; // Discord.MessageOptions
-	static get result() {
+	static get result(): typeof result {
 	    return result;
 	}
-	static get theirPerm() {
+	static get theirPerm(): typeof theirPerm {
 	    return theirPerm;
 	}
-	static get ourPerm() {
+	static get ourPerm(): typeof ourPerm {
 	    return ourPerm;
 	}
-	get atme() {
+	get atme(): string {
 	    return this.message.client.user!.toString();
 	}
-	get authorChannelPerms() {
+	get authorChannelPerms(): Readonly<Discord.Permissions> | undefined | null {
 	    if (!(this.channel instanceof Discord.DMChannel)) {
 	        return this.channel.permissionsFor(this.member!);
 	    }
 	    return undefined;
 	}
-	get authorGuildPerms() {
+	get authorGuildPerms(): Readonly<Discord.Permissions> | undefined | null {
 	    if (this.member) {
 	        return this.member.permissions;
 	    }
 	    return undefined;
 	}
-	get myChannelPerms() {
+	get myChannelPerms(): Readonly<Discord.Permissions> | undefined | null {
 	    if (!(this.channel instanceof Discord.DMChannel)) {
 	        return this.channel.permissionsFor(this.guild!.me!);
 	    }
 	    return undefined;
 	}
-	get authorPerms() {
+	get authorPerms(): {manageBot: boolean, manageChannel: boolean, manageEmoji: boolean, manageMessages: boolean, banMembers: boolean} {
 	    return {
 	        manageBot: this.authorGuildPerms
 				? this.authorGuildPerms.has("MANAGE_GUILD")
@@ -352,7 +351,7 @@ export default class Info {
 				: true,
 	    };
 	}
-	get myPerms() {
+	get myPerms(): {manageBot: boolean, manageChannel: boolean, manageEmoji: boolean, manageMessages: boolean, banMembers: boolean} {
 	    return {
 	        manageBot: this.myChannelPerms
 				? this.myChannelPerms.has("MANAGE_GUILD")
@@ -371,13 +370,13 @@ export default class Info {
 				: true,
 	    };
 	}
-	get pm() {
+	get pm(): boolean {
 	    return !this.guild;
 	}
-	async startLoading() {
-	    perr(this.channel.startTyping(), "started typing"); // never finishes?
+	startLoading(): void {
+	    perr(this.channel.startTyping(), "started typing"); // never finishes? | finishes when stopTyping is called
 	}
-	async stopLoading() {
+	stopLoading(): void {
 	    this.channel.stopTyping();
 	}
 	shouldAlert(): boolean {
@@ -433,9 +432,9 @@ export default class Info {
 	    ...value:
 			| [string, MessageOptionsParameter | undefined]
 			| [string]
-	) {
+	): Promise<Discord.Message[] | undefined> {
 	    // Stop any loading if it is happening, we're replying now we're done loading
-	    await this.stopLoading(); // not awaited for because it doesn't matter
+	    this.stopLoading();
 
 	    const message: MessageParametersType = [value[0], value[1]];
 
@@ -452,7 +451,7 @@ export default class Info {
 	    // Reply to the message (or author)
 	    return await this._tryReply(...message);
 	}
-	async error(msg: string) {
+	async error(msg: string): Promise<void> {
 	    if(this.raw_interaction) return await this.errorAlways(msg);
 		
 	    const unknownCommandMessages = this.db
@@ -463,7 +462,7 @@ export default class Info {
 			(unknownCommandMessages === "admins" && this.authorPerms.manageBot)
 	    ) {
 	    } else {
-	        return [];
+	        return;
 	    }
 	    return this.errorAlways(msg);
 	}
@@ -480,22 +479,21 @@ export default class Info {
 	    if (reactOrNot && this.raw_message) {
 	        await ilt(this.raw_message.react("❌"), false);
 	    }
-	    let res;
 	    if (
 	        !this.myChannelPerms ||
 			this.myChannelPerms.has("USE_EXTERNAL_EMOJIS")
 	    ) {
-	        res = await this.reply("<:error:508841130503438356>", msg);
+	        await this.reply("<:error:508841130503438356>", msg);
 	    } else {
-	        res = await this.reply("❌", msg);
+	        await this.reply("❌", msg);
 	    }
-	    // res && res.forEach(r => r.delete({ timeout: 20 * 1000 }));
 	    return;
 	}
-	async warn(msg: string) {
+	async warn(msg: string): Promise<Discord.Message[] | undefined> {
 	    if(this.raw_interaction && !this.raw_interaction.has_ackd) {
 	        try{
-	            return await this.raw_interaction.reply("<:warning:508842207089000468> "+msg);
+	            await this.raw_interaction.reply("<:warning:508842207089000468> "+msg);
+				return;
 	        }catch(e) {console.log(e)}
 	    }
 
@@ -515,10 +513,11 @@ export default class Info {
 	    // res && res.forEach(r => r.delete({ timeout: 20 * 1000 }));
 	    return res;
 	}
-	async success(msg: string) {
+	async success(msg: string): Promise<Discord.Message[] | undefined> {
 	    if(this.raw_interaction && !this.raw_interaction.has_ackd) {
 	        try{
-	            return await this.raw_interaction.reply("<:success:508840840416854026> "+msg);
+	            await this.raw_interaction.reply("<:success:508840840416854026> "+msg);
+				return;
 	        }catch(e) {console.log(e)}
 	    }
 
@@ -538,7 +537,7 @@ export default class Info {
 	    // res && res.forEach(r => r.delete({ timeout: 20 * 1000 }));
 	    return res;
 	}
-	async docs(path: string, mode: "usage" | "error" | "full") {
+	async docs(path: string, mode: "usage" | "error" | "full"): Promise<void> {
 	    const docsPage = globalDocs[path];
 	    if (!docsPage) {
 	        return await this.error(
@@ -565,32 +564,33 @@ export default class Info {
 	        );
 	    }
 	    if (mode === "full") {
-	        return await this.result(
+	        await this.result(
 	            dgToDiscord(docsPage.body, this) +
 					"\n\n> Full Page: <https://interpunct.info" +
 					path +
 					">",
 	        );
+			return;
 	    }
 	    throw new Error("bad help :{ !! }:");
 	}
-	tag(str: TemplateStringsArray, ...values: (string | {__raw: string})[]) {
+	tag(str: TemplateStringsArray, ...values: (string | {__raw: string})[]): string {
 	    const s = templateGenerator((q: string) =>
 	        q.replace(/[\\{|}]/g, "\\$1"),
 	    );
 	    return dgToDiscord(s(str, ...values), this);
 	    // return await info.error(info.tag`{Command|test} is {Reaction|${user input}}`)
 	}
-	async result(...msg: MessageParametersType) {
+	async result(...msg: MessageParametersType): Promise<Discord.Message[] | undefined> {
 	    return await this.reply(result.result, ...msg);
 	}
-	async redirect(newcmd: string) {
+	async redirect(newcmd: string): Promise<never> {
 	    throw new Error("NOT IMPLEMENTED YET " + newcmd); // TODO for example .wr is just .speedrun leaderboard 1, so it could res.redirect("speedrun leaderboard 1 "+arguments)
 	}
 	// async confirm(who: string): boolean{
 	//
 	// }
-	get handleReactions() {
+	get handleReactions(): typeof handleReactions {
 	    return handleReactions;
 	}
 }
@@ -605,7 +605,7 @@ export function handleReactions(
 		reaction: Discord.MessageReaction,
 		user: Discord.User,
 	) => Promise<void>,
-) {
+): {end: () => void, done: Promise<void>} {
 	const reactionCollector = new Discord.ReactionCollector(
 		msg,
 		() => true, // the filter doesn't actually eg prevent reactions from going to the standard onReactionAdd handler so it's pointless

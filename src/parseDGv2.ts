@@ -48,7 +48,7 @@ export function parseDG(
 		fnName: string,
 		args: { raw: string; safe: string }[],
 	) => string,
-) {
+): {raw: string, safe: string} {
 	const tokens = tokenizeDG(dgIn);
 	const state: {
 		type: "callaction";

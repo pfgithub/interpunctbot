@@ -2,16 +2,18 @@ import Info from "./src/Info";
 import * as Discord from "discord.js";
 import { CustomCommandsField } from "./src/Database";
 
-export function raw(string: TemplateStringsArray | string) {
+export function raw(string: TemplateStringsArray | string): {__raw: string} {
 	return { __raw: `${string.toString()}` };
 }
 
-export function templateGenerator<InType>(helper: (str: InType) => string) {
+export function templateGenerator<InType>(helper: (str: InType) => string):
+	(strings: TemplateStringsArray | InType, ...values: (InType | string | { __raw: string })[]) =>
+string {
 	type ValueArrayType = (InType | string | { __raw: string })[];
 	return (
 		strings: TemplateStringsArray | InType,
 		...values: ValueArrayType
-	) => {
+	): string => {
 		if (!(strings as TemplateStringsArray).raw && !Array.isArray(strings)) {
 			return helper(strings as InType);
 		}
@@ -37,19 +39,19 @@ export function humanizelist(
 	joiner: string,
 	empty = "*Empty list oops*",
 ): string {
-	if (items.length == 0) return empty;
-	if (items.length == 1) return items[0];
-	if (items.length == 2) return items.join(" " + joiner + " ");
+	if (items.length === 0) return empty;
+	if (items.length === 1) return items[0];
+	if (items.length === 2) return items.join(" " + joiner + " ");
 	return items
-		.map((a, i) => (i == items.length - 1 ? "or " : "") + a)
+		.map((a, i): string => (i === items.length - 1 ? "or " : "") + a)
 		.join(", ");
 }
 
-export const orlist = (items: readonly string[], empty?: string) =>
+export const orlist = (items: readonly string[], empty?: string): string =>
 	humanizelist(items, "or", empty);
-export const andlist = (items: readonly string[], empty?: string) =>
+export const andlist = (items: readonly string[], empty?: string): string =>
 	humanizelist(items, "and", empty);
-export const plural = (text: any[] | number) =>
+export const plural = (text: any[] | number): string =>
 	(typeof text === "number" ? text : text.length) === 1 ? "" : "s";
 
 export const safe = templateGenerator((str: string) =>
@@ -62,7 +64,7 @@ export const safe = templateGenerator((str: string) =>
 const shownon: { [key: string]: true | undefined } = {};
 
 export const messages = {
-	role: (role: Discord.Role) => {
+	role: (role: Discord.Role): string => {
 		if (
 			role.mentionable ||
 			role.guild.me!.hasPermission("MENTION_EVERYONE")
@@ -70,7 +72,7 @@ export const messages = {
 			return safe`${`@${role.name}`}`;
 		return role.toString();
 	},
-	nd: (number: number) =>
+	nd: (number: number): string =>
 		number +
 		(number > 10 && number < 20 // 12th, 13th, 14th
 			? "th"
@@ -88,7 +90,7 @@ export const messages = {
 			index: number,
 			commandhelp: string,
 			purpose: string,
-		) => `The ${messages.nd(
+		): string => `The ${messages.nd(
 			index,
 		)} argument to this command must be a channel${purpose}. Mention a channel by typing # and selecting a channel, or use the channel ID.
 > **Using Channels in Commands**: <https://interpunct.info/channel-arg>${
@@ -100,7 +102,7 @@ export const messages = {
 			index: number,
 			commandhelp: string,
 			purpose: string,
-		) => `The ${messages.nd(
+		): string => `The ${messages.nd(
 			index + 1,
 		)} argument to this command must be an emoji${purpose}. Use an emoji by selecting it from the emoji menu, or use the emoji's id.
 > **Using Emojis in Commands**: <https://interpunct.info/emoji-arg>${
@@ -112,7 +114,7 @@ export const messages = {
 			index: number,
 			commandhelp: string,
 			purpose: string,
-		) => `The ${messages.nd(
+		): string => `The ${messages.nd(
 			index + 1,
 		)} argument to this command must be a word.${purpose}
 > **Using Words in Commands**: <https://interpunct.info/word-arg>${
@@ -124,7 +126,7 @@ export const messages = {
 			index: number,
 			commandhelp: string,
 			purpose: string,
-		) => `The last argument to this command must be the message${purpose}
+		): string => `The last argument to this command must be the message${purpose}
 > **Using in Commands**: <https://interpunct.info/words-arg>${
 			commandhelp ? `\n${commandhelp}` : ""
 }`,
@@ -134,7 +136,7 @@ export const messages = {
 			index: number,
 			commandhelp: string,
 			purpose: string,
-		) => `The last argument to this command must be the role name, @mention, or id${purpose}
+		): string => `The last argument to this command must be the role name, @mention, or id${purpose}
 > **Using Roles in Commands**: <https://interpunct.info/role-arg>${
 			commandhelp ? `\n${commandhelp}` : ""
 }`,
@@ -143,7 +145,7 @@ export const messages = {
 			channelID: string,
 			index: number,
 			commandhelp: string,
-		) => `The channel with the ID ${channelID} could not be found. Make sure the ${messages.nd(
+		): string => `The channel with the ID ${channelID} could not be found. Make sure the ${messages.nd(
 			index + 1,
 		)} argument to this command has a real channel on this server.
 > **Using Channels in Commands**: <https://interpunct.info/channel-arg>${
@@ -155,7 +157,7 @@ export const messages = {
 			index: number,
 			commandhelp: string,
 			purpose: string,
-		) => `The emoji with the ID ${channelID} could not be found. Make sure the ${messages.nd(
+		): string => `The emoji with the ID ${channelID} could not be found. Make sure the ${messages.nd(
 			index + 1,
 		)} argument to this command has a real emoji on this server.
 > **Using Emojis in Commands**: <https://interpunct.info/emoji-arg>${
@@ -166,14 +168,14 @@ export const messages = {
 			roleID: string,
 			index: number,
 			commandhelp: string,
-		) => `The role in the last argument could not be found.
+		): string => `The role in the last argument could not be found.
 > **Using Roles in Commands**: <https://interpunct.info/role-arg>${
 			commandhelp ? `\n${commandhelp}` : ""
 }`,
 		multiple_roles_found: (
 			rolename: string,
 			matchingRoles: Discord.Role[],
-		) =>
+		): string =>
 			`There are ${
 				matchingRoles.length
 			} roles named ${safe`${rolename}`}. Either rename the others or use a Role ID.
@@ -187,7 +189,7 @@ export const messages = {
 		multiple_roles_found_fuzzy: (
 			rolename: string,
 			matchingRoles: Discord.Role[],
-		) => `There are ${
+		): string => `There are ${
 			matchingRoles.length
 		} roles with names similar to ${safe`${rolename}`}. Either be more specific or use a Role ID.
 > ${matchingRoles
@@ -202,11 +204,11 @@ export const messages = {
 			rolename: string,
 			index: number,
 			commandhelp: string,
-		) => `I could not find any roles named ${safe`${rolename}`}. Check your spelling or directly copy and paste the name. If that doesn't work, use a Role ID.
+		): string => `I could not find any roles named ${safe`${rolename}`}. Check your spelling or directly copy and paste the name. If that doesn't work, use a Role ID.
 > **Using Roles in Commands**: <https://interpunct.info/role-arg>${
 			commandhelp ? `\n${commandhelp}` : ""
 }`,
-		role_this_should_never_happen: () => ``,
+		role_this_should_never_happen: (): string => ``,
 
 		num_arg_not_provided: (
 			info: Info,
@@ -214,7 +216,7 @@ export const messages = {
 			index: number,
 			commandhelp: string,
 			purpose: string,
-		) => `The ${messages.nd(
+		): string => `The ${messages.nd(
 			index + 1,
 		)} argument to this command must be a number.${purpose}
 > **Using Numbers in Commands**: <https://interpunct.info/number-arg>${
@@ -227,7 +229,7 @@ export const messages = {
 			index: number,
 			commandhelp: string,
 			purpose: string,
-		) => `I could not find a number in the ${messages.nd(
+		): string => `I could not find a number in the ${messages.nd(
 			index + 1,
 		)} argument to this command.${purpose}
 > **Using Numbers in Commands**: <https://interpunct.info/number-arg>${
@@ -237,25 +239,25 @@ export const messages = {
 	emoji: {
 		failure: "<:failure_2:508841130503438356>",
 		success: "<:success_2:508840840416854026>",
-		restrict_usage: (info: Info) =>
+		restrict_usage: (info: Info): string =>
 			`Usage: \`${info.prefix}emoji restrict\`<:emoji:685668888842993833>\` Role\`
 > Role can be a role name, id, or mention.
 > **More Info**: <https://interpunct.info/emoji>`,
 		could_not_find_emoji: (
 			info: Info,
 			emojiID: string,
-		) => safe`Could not find emoji with the ID ${emojiID}.
+		): string => safe`Could not find emoji with the ID ${emojiID}.
 > **More Info**: <https://interpunct.info/emoji>`,
 		role_does_not_exist: (
 			info: Info,
 			roleID: string,
-		) => safe`Could not find role with the ID ${roleID}.
+		): string => safe`Could not find role with the ID ${roleID}.
 > **More Info**: <https://interpunct.info/emoji>`,
 		multiple_roles_found: (
 			info: Info,
 			roleName: string,
 			roles: Discord.Role[],
-		) => safe`There are multiple roles named ${
+		): string => safe`There are multiple roles named ${
 			roleName.startsWith("@") ? roleName : `@${roleName}`
 		}. Use the ID of the role you meant instead. <https://interpunct.info/role>
 Found Roles:
@@ -267,7 +269,7 @@ ${roles
 				}\n`,
 		)
 		.join("")}> **More Info**: <https://interpunct.info/emoji>`,
-		no_roles_found: (info: Info, roleName: string) =>
+		no_roles_found: (info: Info, roleName: string): string =>
 			`No role could be found with the name ${
 				roleName.startsWith("@") ? roleName : `@${roleName}`
 			}. Try using the role ID instead: <https://interpunct.info/role>
@@ -277,7 +279,7 @@ ${roles
 			emoji: Discord.GuildEmoji,
 			addedRole: Discord.Role,
 			fullList: Discord.Role[],
-		) =>
+		): string =>
 			`Role ${messages.role(
 				addedRole,
 			)} added to restrictions for ${emoji.toString()}. This emoji can now only be used by members with any of these roles:
@@ -290,18 +292,18 @@ ${fullList.map(role => `- ${role.toString()}\n`).join("")}
 			emoji: Discord.GuildEmoji,
 			removedRole: Discord.Role,
 			fullList: Discord.Role[],
-		) =>
+		): string =>
 			`Role ${removedRole.toString()} removed from restrictions for ${emoji.toString()}. This emoji can now only be used by members with any of these roles:
 ${fullList.map(role => `- ${role.toString()}\n`).join("")}
 > If this was a mistake, reset the restrictions for this emoji with \`${
 	info.prefix
 }emoji unrestrict ${emoji.id}\``,
-		removed_all_restrictions: (info: Info, emoji: Discord.GuildEmoji) =>
+		removed_all_restrictions: (info: Info, emoji: Discord.GuildEmoji): string =>
 			`Removed all restrictions for ${emoji.toString()}. Anyone can now use this emoji.`,
 		inspect: (
 			info: Info,
 			emoji: Discord.GuildEmoji,
-		) => `**Emoji ${emoji.toString()}**:
+		): string => `**Emoji ${emoji.toString()}**:
 ${
 	emoji.roles.cache.array().length > 0
 		? `This emoji can only be used by members with at least one of these roles:
@@ -313,25 +315,25 @@ ${emoji.roles.cache
 }**Image**: ${emoji.url}`,
 	},
 	failure: {
-		command_cannot_be_used_in_pms: (info: Info) =>
+		command_cannot_be_used_in_pms: (info: Info): string =>
 			`This command cannot be used in PMs!
 > **Support Server**: <https://interpunct.info/support>
 > **About this Error**: <https://interpunct.info/command-cannot-be-used-in-pms>`,
-		command_must_use_pms: (info: Info) =>
+		command_must_use_pms: (info: Info): string =>
 			`PM me to use this command.
 > **Support Server**: <https://interpunct.info/support>
 > **About this Error**: <https://interpunct.info/command-must-use-pms>`,
-		generic_internal_error: (info: Info, errorCode: string) =>
+		generic_internal_error: (info: Info, errorCode: string): string =>
 			`An internal error occured while running this command.
 For help, ask on the support server with your error code \`${errorCode}\`
 > **Support Server**: <https://interpunct.info/support>
 > **Error Code**: \`${errorCode}\``,
-		missing_permissions_internal_error: (info: Info, errorCode: string) =>
+		missing_permissions_internal_error: (info: Info, errorCode: string): string =>
 			`${info.atme} does not have some of the permissions it needs to run this command.
 For help, ask on the support server with your error code \`${errorCode}\`
 > **Support Server**: <https://interpunct.info/support>
 > **Error Code**: \`${errorCode}\``,
-		command_not_found: (info: Info, command: string) =>
+		command_not_found: (info: Info, command: string): string =>
 			safe`Command \`${info.prefix}${command}\` not found. Type \`${raw(
 				info.prefix,
 			)}help\` for a list of commands.` +
@@ -349,7 +351,7 @@ For help, ask on the support server with your error code \`${errorCode}\`
 			old: string,
 			version: string,
 			description?: string,
-		) =>
+		): string =>
 			safe`The command \`${
 				info.prefix
 			}${old}\` has been removed as part  of inter·punct bot version ${version}.${raw(
@@ -358,18 +360,18 @@ For help, ask on the support server with your error code \`${errorCode}\`
 > Join the support server to complain if this removal affects you: <https://interpunct.info/support>`,
 	},
 	settings: {
-		autospace_enabled: (info: Info) =>
+		autospace_enabled: (info: Info): string =>
 			`When you make a new channel or edit an existing channel, all dashes will be replaced with spaces. To disable this, use
 \`\`\`
 ${info.prefix}space channels disable
 \`\`\``,
-		autospace_disabled: (info: Info) =>
+		autospace_disabled: (info: Info): string =>
 			`Channels will no longer have spaces added to their names.`,
 		show_errors_set: (
 			info: Info,
 			showErrors: "always" | "admins" | "never",
 			unknownCommandMessages: "always" | "admins" | "never",
-		) =>
+		): string =>
 			showErrors === "always"
 				? `Errors will be shown to all users.${
 						unknownCommandMessages === "never"
@@ -391,14 +393,14 @@ ${info.prefix}space channels disable
 							: ""
 				  }`
 				: `this should never happen`,
-		no_prefix_provided: (info: Info) =>
+		no_prefix_provided: (info: Info): string =>
 			safe`The current prefix for this server is ${info.prefix}. To change it, use \`${info.prefix}set prefix new_prefix\``,
-		prefix_updated: (info: Info, newPrefix: string) =>
+		prefix_updated: (info: Info, newPrefix: string): string =>
 			safe`Prefix changed to ${newPrefix}.\n> Try it out with \`${newPrefix}test\`.`,
 		show_errors_usage: (
 			info: Info,
 			showErrors: "always" | "admins" | "never",
-		) =>
+		): string =>
 			`Error messages are currently ${
 				showErrors === "always"
 					? "shown to all users"
@@ -414,7 +416,7 @@ ${info.prefix}space channels disable
 			info: Info,
 			unknownCommandMessages: "always" | "admins" | "never",
 			showErrors: "always" | "admins" | "never",
-		) =>
+		): string =>
 			unknownCommandMessages === "always"
 				? `Unknown command messages will be shown to all users.`
 				: unknownCommandMessages === "admins"
@@ -425,7 +427,7 @@ ${info.prefix}space channels disable
 		unknown_commands_usage: (
 			info: Info,
 			unknownCommandMessages: "always" | "admins" | "never",
-		) =>
+		): string =>
 			`Unknown command messages are currently ${
 				unknownCommandMessages === "always"
 					? "shown to all users"
@@ -439,63 +441,63 @@ ${info.prefix}space channels disable
 			}set show unknown command always|admins|never\``,
 	},
 	logging: {
-		attach_files: (info: Info) =>
+		attach_files: (info: Info): string =>
 			`${info.atme} needs permission to \`Attach Files\` to upload your log file here.
 > More Info: <https://interpunct.info/logging>`,
-		upload_probably_failed: (info: Info, errorCode: string) =>
+		upload_probably_failed: (info: Info, errorCode: string): string =>
 			`(Probably) Failed to upload the log file. For help, join the support server and ask with your error code \`${errorCode}\`.
 > More Info: <https://interpunct.info/logging>
 > Support Server: <https://discord.gg/HVWCeXc>`,
-		log_sent: (info: Info) =>
+		log_sent: (info: Info): string =>
 			`
 > Use \`${info.prefix}log reset\` to clear the log and start a new one.`,
 	},
 	speedrun: {
-		requires_setup: (info: Info) =>
+		requires_setup: (info: Info): string =>
 			`Speedrun commands have not been set up on this server. Set them up with \`${info.prefix}speedrun set https://speedrun.com/game Category Name\`.
 > More Info: <https://interpunct.info/speedrun>`,
 		invalid_category_name: (
 			info: Info,
 			categoryName: string,
 			categoryNames: string[],
-		) =>
+		): string =>
 			safe`The category ${categoryName} is not on the selected game. Valid categories are: ${categoryNames.join(
 				", ",
 			)}.
 > More Info: <https://interpunct.info/speedrun>`,
-		no_wr_found: (info: Info) => `No world record found.
+		no_wr_found: (info: Info): string => `No world record found.
 > More Info: <https://interpunct.info/speedrun>`,
 		no_run_for_position: (
 			info: Info,
 			position: number,
-		) => `No run found in ${messages.nd(position)} place.
+		): string => `No run found in ${messages.nd(position)} place.
 > More Info: <https://interpunct.info/speedrun>`,
-		position_required: (info: Info) =>
+		position_required: (info: Info): string =>
 			`A position is required, such as \`${info.prefix}speedrun leaderboard 26\`
 > More Info: <https://interpunct.info/speedrun>`,
 	},
 	fun: {
-		fun_disabled: (info: Info) => `Fun is not allowed on this server.`,
-		ping: (info: Info) => `<a:pingpong:482012177725653003>
+		fun_disabled: (info: Info): string => `Fun is not allowed on this server.`,
+		ping: (info: Info): string => `<a:pingpong:482012177725653003>
 > Took ${new Date().getTime() - info.other!.startTime}ms, handling ${
 			info.other!.infoPerSecond
 } db requests per second`,
-		command_not_found: (info: Info) =>
+		command_not_found: (info: Info): string =>
 			`Usage: \`${info.prefix} fun enable|disable\`.
 > More Info: <https://interpunct.info/fun>`,
-		fun_has_been_enabled: (info: Info) => `Fun enabled.
+		fun_has_been_enabled: (info: Info): string => `Fun enabled.
 > Try it out with \`ip!${
 	["minesweeper", "connect4", "checkers", "trivia"][
 		Math.floor(Math.random() * 4)
 	]
 }\``,
-		fun_has_been_disabled: (info: Info) =>
+		fun_has_been_disabled: (info: Info): string =>
 			`Fun is no longer allowed on this server.`,
 		minesweeper_usage: (
 			info: Info,
 			difficulties: string[],
 			modes: string[],
-		) => `Usage: \`${info.prefix}minesweeper [optional ${difficulties.join(
+		): string => `Usage: \`${info.prefix}minesweeper [optional ${difficulties.join(
 			"|",
 		)} = medium] [optional ${modes.join(
 			"|",
@@ -503,15 +505,15 @@ ${info.prefix}space channels disable
 > More Info: <https://interpunct.info/minesweeper>`,
 	},
 	lists: {
-		list_exists_but_not_really: (info: Info, listName: string) =>
+		list_exists_but_not_really: (info: Info, listName: string): string =>
 			`The list ${listName} does not exist.
 > More Info: <https://interpunct.info/lists>`,
-		failed_to_get_list: (info: Info) =>
+		failed_to_get_list: (info: Info): string =>
 			`Failed to download list from pastebin.
 > More Info: <https://interpunct.info/lists>`,
-		nothing_found_for_search: (info: Info, searchString: string[]) =>
+		nothing_found_for_search: (info: Info, searchString: string[]): string =>
 			`No results for ${searchString.join(" ")}.`,
-		list_lists: (info: Info, lists: CustomCommandsField) =>
+		list_lists: (info: Info, lists: CustomCommandsField): string =>
 			`**Lists**:
 ${Object.entries(lists)
 		.map(([key, value]) =>
@@ -523,40 +525,40 @@ ${Object.entries(lists)
 		.join(`\n`) || "> *No lists yet. Create some with {Command|lists add}*"}`,
 		no_list_name_provided: (
 			info: Info,
-		) => `A list name and pastebin URL is required. For example: \`${info.prefix}lists add listname pastebin.com/NFuKYjUN\`
+		): string => `A list name and pastebin URL is required. For example: \`${info.prefix}lists add listname pastebin.com/NFuKYjUN\`
 > More Info: <https://interpunct.info/lists>`,
 		list_already_exists: (
 			info: Info,
 			listName: string,
 			pastebinUrl: string,
-		) =>
+		): string =>
 			`Command ${listName} already exists, edit it with \`${info.prefix}lists edit ${listName} ${pastebinUrl}\` or delete it with \`${info.prefix}lists delete ${listName}\`
 > More Info: <https://interpunct.info/lists>`,
 		list_does_not_exist: (
 			info: Info,
 			listName: string,
 			pastebinUrl: string,
-		) =>
+		): string =>
 			`List ${listName} does not exist, add it with \`lists add ${listName} ${pastebinUrl}\`
 > More Info: <https://interpunct.info/lists>`,
-		invalid_pastebin_url: (info: Info, listName: string) =>
+		invalid_pastebin_url: (info: Info, listName: string): string =>
 			`A valid pastebin URL is required as the second argument to this command. For example: \`${info.prefix}lists add ${listName} https://pastebin.com/NFuKYjUN\`.
 > More Info: <https://interpunct.info/lists>`,
-		add_successful: (info: Info, listName: string, pastebinID: string) =>
+		add_successful: (info: Info, listName: string, pastebinID: string): string =>
 			`Added list ${listName} with pastebin URL <https://pastebin.com/${pastebinID}>
 Try it out with \`${info.prefix}${listName}\``,
-		edit_succesful: (info: Info, listName: string, pastebinID: string) =>
+		edit_succesful: (info: Info, listName: string, pastebinID: string): string =>
 			`Updated list ${listName} with new pastebin URL <https://pastebin.com/${pastebinID}>
 Try it out with \`${info.prefix}${listName}\``,
-		remove_list_that_does_not_exist: (info: Info, listName: string) =>
+		remove_list_that_does_not_exist: (info: Info, listName: string): string =>
 			`There is no list named ${listName}. See a list of lists using \`${info.prefix}lists list\`.
 > More Info: <https://interpunct.info/lists>`,
-		remove_list_succesful: (info: Info, listName: string) =>
+		remove_list_succesful: (info: Info, listName: string): string =>
 			`List ${listName} removed.`,
 	},
 	channels: {
 		purge: {
-			message_limit: (info: Info, messageLimit: number) =>
+			message_limit: (info: Info, messageLimit: number): string =>
 				!messageLimit
 					? `A message limit must be given, such as \`${info.prefix}purge 25\``
 					: messageLimit < 1
@@ -564,32 +566,32 @@ Try it out with \`${info.prefix}${listName}\``,
 					: messageLimit > 100
 					? `Message limit must be between 1 and 100`
 					: `Message limit must be an integer.`,
-			in_progress: (info: Info, messagesToDelete: number) =>
+			in_progress: (info: Info, messagesToDelete: number): string =>
 				`Deleting ${messagesToDelete} messages...`,
-			success: (info: Info, messagesToDelete: number) =>
+			success: (info: Info, messagesToDelete: number): string =>
 				`Succesfully deleted ${messagesToDelete} messages.`,
 		},
 		spacing: {
-			no_channels_to_space: (info: Info) =>
+			no_channels_to_space: (info: Info): string =>
 				`**There are no channels to put spaces in!**
 To add spaces to a channel, put dashes (\`-\`) where you want the spaces to go or replace a custom character using
 \`\`\`
 ${info.prefix}space channels \`_\`
 \`\`\`
 > More Info: <https://interpunct.info/spacing-channels>`,
-			succeeded_spacing: (info: Info, channels: Discord.Channel[]) =>
+			succeeded_spacing: (info: Info, channels: Discord.Channel[]): string =>
 				`The channel${plural(channels)} ${andlist(
 					channels.map(c => c.toString()),
 				)} now have spaces.`,
-			autospace_info_off: (info: Info) =>
+			autospace_info_off: (info: Info): string =>
 				`> If you want channels to automatically have spaces in the future, use \`${info.prefix}space channels automatically\``,
-			autospace_info_on: (info: Info) =>
+			autospace_info_on: (info: Info): string =>
 				`Channels should be given spaces automatically because you have \`ip!space channels enable\`d.`,
 			partially_succeeded_spacing: (
 				info: Info,
 				channels: Discord.Channel[],
 				failedChannels: Discord.Channel[],
-			) =>
+			): string =>
 				`The channel${plural(channels)} ${andlist(
 					channels.map(c => c.toString()),
 				)} now have spaces.
@@ -604,7 +606,7 @@ If you wanted spaces in these channels, check the channel settings to see if ${
 
 > Discord Support: <https://support.discordapp.com/hc/en-us/articles/206029707-How-do-I-set-up-Permissions->
 > Command Help: <https://interpunct.info/spacing-channels>`,
-			failed_spacing: (info: Info, failedChannels: Discord.Channel[]) =>
+			failed_spacing: (info: Info, failedChannels: Discord.Channel[]): string =>
 				`The channel${plural(failedChannels)} ${andlist(
 					failedChannels.map(c => c.toString()),
 				)} could not be given spaces. Maybe ${
@@ -617,14 +619,14 @@ If you wanted spaces in these channels, check the channel settings to see if ${
 > Command Help: <https://interpunct.info/spacing-channels>`,
 		},
 		send_many: {
-			no_channels_tagged: (info: Info) =>
+			no_channels_tagged: (info: Info): string =>
 				`**No channels were tagged!**
 To send a message to multiple channels, tag every channel you want to send the message to, like this:
 \`\`\`
 ${info.prefix}send This is my great message! #rules #general
 \`\`\`
 > More Info: <https://interpunct.info/sending-messages-to-multiple-channels>`,
-			succeeded_sending: (info: Info, channels: Discord.Channel[]) =>
+			succeeded_sending: (info: Info, channels: Discord.Channel[]): string =>
 				`Your message was sent to ${andlist(
 					channels.map(c => c.toString()),
 				)}.`,
@@ -632,7 +634,7 @@ ${info.prefix}send This is my great message! #rules #general
 				info: Info,
 				channels: Discord.Channel[],
 				failedChannels: Discord.Channel[],
-			) =>
+			): string =>
 				`Your message was sent to ${andlist(
 					channels.map(c => c.toString()),
 				)}.
@@ -646,7 +648,7 @@ Check the channel settings to see if ${
 } has permission to read and send messages.
 > Discord Support: <https://support.discordapp.com/hc/en-us/articles/206029707-How-do-I-set-up-Permissions->
 > Command Help: <https://interpunct.info/sending-messages-to-multiple-channels>`,
-			failed_sending: (info: Info, failedChannels: Discord.Channel[]) =>
+			failed_sending: (info: Info, failedChannels: Discord.Channel[]): string =>
 				`Your message could not be sent to ${orlist(
 					failedChannels.map(c => c.toString()),
 				)}. Maybe ${

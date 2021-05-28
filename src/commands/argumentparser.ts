@@ -100,46 +100,46 @@ type ArgumentType<T> = (
 ) => ArgumentParserResult<T>;
 
 export const a = {
-	emoji() {
+	emoji(): ArgumentType<Discord.GuildEmoji> {
 		return EmojiArgumentType();
 	},
-	channel() {
+	channel(): ArgumentType<Discord.GuildChannel> {
 		return ChannelArgumentType();
 	},
-	user() {
+	user(): ArgumentType<Discord.User> {
 		return UserArgumentType();
 	},
-	word() {
+	word(): ArgumentType<string> {
 		return WordArgumentType();
 	},
-	number() {
+	number(): ArgumentType<number> {
 		return NumberArgumentType();
 	},
-	duration() {
+	duration(): ArgumentType<number> {
 		return DurationArgumentType();
 	},
-	enum<T extends string>(...words: T[]) {
+	enum<T extends string>(...words: T[]): ArgumentType<T> {
 		return EnumArgumentType(words);
 	},
-	enumNoSpace<T extends string>(...words: T[]) {
+	enumNoSpace<T extends string>(...words: T[]): ArgumentType<T> {
 		return EnumNoSpaceArgumentType(words);
 	},
-	words() {
-		return [WordsArgumentType()] as const;
+	words(): [ArgumentType<string>] {
+		return [WordsArgumentType()];
 	},
-	role() {
-		return [RoleArgumentType(false) as ArgumentType<Discord.Role>] as const;
+	role(): [ArgumentType<Discord.Role>] {
+		return [RoleArgumentType(false) as ArgumentType<Discord.Role>];
 	},
-	backtick() {
+	backtick(): ArgumentType<string> {
 		return BacktickArgumentType();
 	},
-	manyRoles() {
+	manyRoles(): [ArgumentType<Discord.Role[]>] {
 		return [
 			RoleArgumentType(true) as ArgumentType<Discord.Role[]>,
-		] as const;
+		];
 	},
 	// this is the dumbest code I have ever seen what
-	message() {
+	message(): ArgumentType<Discord.Message> {
 		return MessageArgumentType();
 	},
 };
@@ -402,7 +402,7 @@ function DurationArgumentType(): ArgumentType<number> {
 		while (true) {
 			if (remainder.startsWith(","))
 				remainder = remainder.substr(1).trim();
-			const inum = /^[0-9.\-]+/.exec(remainder);
+			const inum = /^[0-9.-]+/.exec(remainder);
 			// todo(/*check if makes sense as a number, eg remindme 1 day .hi! should not be a number. */);
 			if (!inum) break;
 
@@ -470,7 +470,7 @@ function BacktickArgumentType(): ArgumentType<string> {
 		if (modev === "full") {
 			return {result: "continue", value: cmd, cmd: ""};
 		}
-		const rgxMatch = /^\`(.+?)\`(.+)$/.exec(cmd);
+		const rgxMatch = /^`(.+?)`(.+)$/.exec(cmd);
 		if (!rgxMatch) {
 			const word = /^([\S]+)\s*([\S\s]*)/m.exec(cmd);
 			if (!word) {
@@ -569,7 +569,7 @@ function RoleArgumentType(
 		} else {
 			const exactMatches = info.guild.roles.cache
 				.array()
-				.filter(role => roleNameMatch(role.name, rolename));
+				.filter(rol => roleNameMatch(rol.name, rolename));
 			if (exactMatches.length > 1) {
 				if (allowMultiple) {
 					return {
@@ -588,7 +588,7 @@ function RoleArgumentType(
 			if (exactMatches.length === 0) {
 				const roleNameList = info.guild.roles.cache
 					.array()
-					.sort((a, b) => b.comparePositionTo(a));
+					.sort((lhs, rhs) => rhs.comparePositionTo(lhs));
 				const fuse = new Fuse(roleNameList, {
 					shouldSort: false,
 					threshold: 0.2,
@@ -662,7 +662,6 @@ export async function ArgumentParser<
 	| undefined
 > {
 	const resarr: ArgTypeToReturnType<any>[] = [];
-	let index = 0;
 	const errfn = async (
 		docs: string,
 		other?: { safeDetails?: string | undefined },
@@ -722,7 +721,6 @@ export async function ArgumentParser<
 				return undefined;
 			}
 			resarr.push(parseResult.value);
-			index++;
 		}
 		if(dupe.length && !partial) {
 			// extra arguments
@@ -740,7 +738,6 @@ export async function ArgumentParser<
 			}
 			resarr.push(parseResult.value);
 			cmd = parseResult.cmd;
-			index++;
 		}
 
 		if (cmd.trim() && !partial) {

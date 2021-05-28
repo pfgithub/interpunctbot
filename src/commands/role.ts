@@ -2,10 +2,8 @@ import * as nr from "../NewRouter";
 import Info, { permTheyCanManageRole, permWeCanManageRole } from "../Info";
 import * as Discord from "discord.js";
 import { andlist, messages, orlist, raw, safe } from "../../messages";
-import { durationFormat } from "../durationFormat";
 import { AP } from "./argumentparser";
 import { QuickrankField } from "../Database";
-import { INSPECT_MAX_BYTES } from "buffer";
 
 /*
 
@@ -254,7 +252,7 @@ nr.globalCommand(
 				role.toString() +
 				"! Members with the " +
 				role.toString() +
-				(managableRoles.length == 0
+				(managableRoles.length === 0
 					? " role can give any user roles with quickrank. Quickrank is not yet configued."
 					: " role can give any user these roles with quickrank: " +
 					  andlist(managableRoles)),
@@ -607,7 +605,7 @@ nr.globalCommand(
 			}
 		}
 
-		// await info.startLoading();
+		// info.startLoading();
 		const reason =
 			"Given by " +
 			info.message.member!.toString() +
@@ -645,7 +643,7 @@ export function getRankSuccessMessage(
 	};
 	if (rolesToGive.length === 0) {
 		const explicit = explicitRolesToGive.map(
-			id => preExistingRoles.find(q => q.id == id)!,
+			id => preExistingRoles.find(q => q.id === id)!,
 		);
 		return [
 			giver.toString() +
@@ -666,7 +664,7 @@ export function getRankSuccessMessage(
 	return [
 		reciever.toString() +
 		", You were given the role" +
-		(rolesToGive.length == 1 ? "" : "s") +
+		(rolesToGive.length === 1 ? "" : "s") +
 		" " +
 		andlist(
 		    rolesToGive
@@ -678,7 +676,7 @@ export function getRankSuccessMessage(
 		"" +
 		(explicitRolesNotGiven.length > 0
 			? "\n> The role" +
-			  (explicitRolesNotGiven.length == 1 ? "" : "s") +
+			  (explicitRolesNotGiven.length === 1 ? "" : "s") +
 			  " " +
 			  andlist(
 			      explicitRolesNotGiven

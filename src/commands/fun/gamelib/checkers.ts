@@ -266,7 +266,7 @@ function getAvailableMoves(
 }
 
 // this could be called by render or something. it won't be, but it could.
-export function updateOverlay(state: Checkers) {
+export function updateOverlay(state: Checkers): void {
 	g.boardForEach(state.board, tile => {
 		tile.overlay = undefined;
 	});

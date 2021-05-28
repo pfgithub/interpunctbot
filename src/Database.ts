@@ -179,7 +179,7 @@ const lock: { [key: string]: (() => void)[] } = {};
 class Database {
 	guild: string;
 	_data?: Fields;
-	static get cache() {
+	static get cache(): typeof cache {
 	    return cache;
 	}
 	constructor(guildId: string) {
@@ -250,7 +250,7 @@ class Database {
 	    }
 	    return data[name];
 	}
-	async _set<Name extends keyof Fields>(name: Name, value: Fields[Name]) {
+	async _set<Name extends keyof Fields>(name: Name, value: Fields[Name]): Promise<void> {
 	    // value is a string // we need an updateMany function
 	    await globalKnex!("guilds")
 	        .where({ id: this.guild })
@@ -272,7 +272,7 @@ class Database {
 	async _setJson<Name extends keyof JSONFields>(
 	    name: Name,
 	    newValue: JSONFields[Name],
-	) {
+	): Promise<void> {
 	    await this._set(name, JSON.stringify(newValue));
 	}
 	async _getBool<Name extends keyof BooleanFields>(
@@ -288,20 +288,20 @@ class Database {
 	async _setBool<Name extends keyof BooleanFields>(
 	    name: Name,
 	    newValue: BooleanFields[Name],
-	) {
+	): Promise<void> {
 	    await this._set(name, newValue.toString());
 	}
 
 	async getPrefix(): Promise<string> {
 	    return (await this._get(`prefix`)) || "ip!";
 	}
-	async setPrefix(newPrefix: string) {
+	async setPrefix(newPrefix: string): Promise<void> {
 	    await this._set("prefix", newPrefix);
 	}
 	async getEmojiRankChannel(): Promise<string | undefined> {
 	    return (await this._get(`rankmojiChannel`)) || "";
 	}
-	async setEmojiRankChannel(newChannel: string) {
+	async setEmojiRankChannel(newChannel: string): Promise<void> {
 	    await this._set("rankmojiChannel", newChannel);
 	}
 	async getCustomCommands(): Promise<CustomCommandsField> {
@@ -320,14 +320,14 @@ class Database {
 	    }
 	    return finalres;
 	}
-	async setCustomCommands(newLists: CustomCommandsField) {
+	async setCustomCommands(newLists: CustomCommandsField): Promise<void> {
 	    await this._setJson("searchablePastebins", newLists); // otherlists.quote overrides quote therefore we don't need to parse out and set quote
 	}
 	async getAutoban(): Promise<NameScreeningField> {
 	    const existingNameScreening = await this._getJson("nameScreening", []);
 	    return await this._getJson("nameScreening2", existingNameScreening);
 	}
-	async setAutoban(newAutoban: NameScreeningField) {
+	async setAutoban(newAutoban: NameScreeningField): Promise<void> {
 	    return await this._setJson("nameScreening2", newAutoban);
 	}
 	async getManageBotRole(): Promise<{ role: string }> {
@@ -339,26 +339,26 @@ class Database {
 	async getAutodeleteLimit(): Promise<number> {
 	    return (await this._get("autodelete_limit")) || 10;
 	}
-	async setAutodeleteLimit(newLimit: number) {
+	async setAutodeleteLimit(newLimit: number): Promise<void> {
 	    return await this._set("autodelete_limit", newLimit);
 	}
-	async getChannelOptions() {
+	async getChannelOptions(): Promise<{[key: string]: ChannelOptions}> {
 	    return await this._getJson("channeloptions", {});
 	}
-	async setChannelOptions(newOpts: { [key: string]: ChannelOptions }) {
+	async setChannelOptions(newOpts: { [key: string]: ChannelOptions }): Promise<void> {
 	    return await this._setJson("channeloptions", newOpts);
 	}
-	async getAutodelete() {
+	async getAutodelete(): Promise<AutodeleteField> {
 	    return await this._getJson("autodelete", { rules: [], nextID: 1 });
 	}
-	async addAutodelete(rule: AutodeleteRuleNoID | AutodeleteRule) {
+	async addAutodelete(rule: AutodeleteRuleNoID | AutodeleteRule): Promise<number> {
 	    const autodelete = await this.getAutodelete();
 	    if (!rule.id) rule.id = autodelete.nextID++;
 	    autodelete.rules.push(rule as AutodeleteRule);
 	    await this._setJson("autodelete", autodelete);
 	    return rule.id;
 	}
-	async removeAutodelete(id: number) {
+	async removeAutodelete(id: number): Promise<void> {
 	    const autodelete = await this.getAutodelete();
 	    autodelete.rules = autodelete.rules.filter(rule => rule.id !== id);
 	    return await this._setJson("autodelete", autodelete);
@@ -381,7 +381,7 @@ class Database {
 	    // cached
 	    return await this._getBool("logging", /*default:*/ false);
 	}
-	async setLogEnabled(bool: boolean) {
+	async setLogEnabled(bool: boolean) : Promise<void>{
 	    return await this._set("logging", bool.toString());
 	}
 	async getTicket(): Promise<TicketConfig> {
@@ -407,7 +407,7 @@ class Database {
 	    }
 	    return "always"; // default
 	}
-	async setUnknownCommandMessages(bool: "always" | "admins" | "never") {
+	async setUnknownCommandMessages(bool: "always" | "admins" | "never"): Promise<void> {
 	    if (bool === "always") {
 	        return await this._set("unknownCommandMessages", "true");
 	    }
@@ -431,7 +431,7 @@ class Database {
 	    }
 	    return "always"; // default
 	}
-	async setCommandErrors(bool: "always" | "admins" | "never") {
+	async setCommandErrors(bool: "always" | "admins" | "never"): Promise<void> {
 	    if (bool === "always") {
 	        return await this._set("failedPrecheckMessages", "true");
 	    }
@@ -466,13 +466,13 @@ class Database {
 	// 		return await this._set("pmonfailure", "noone");
 	// 	}
 	// }
-	async getAutospaceChannels() {
+	async getAutospaceChannels(): Promise<boolean> {
 	    return await this._getBool("channel_spacing", false);
 	}
-	async setAutospaceChannels(bool: boolean) {
+	async setAutospaceChannels(bool: boolean): Promise<void> {
 	    return await this._set("channel_spacing", bool.toString());
 	}
-	async getEvents() {
+	async getEvents(): Promise<Events> {
 	    const events = await this._getJson("events", {
 	        userJoin: undefined,
 	        userLeave: undefined,
@@ -513,19 +513,19 @@ class Database {
 	    }
 	    return events;
 	}
-	async setEvents(newEvents: Events) {
+	async setEvents(newEvents: Events): Promise<void> {
 	    return await this._setJson("events", newEvents);
 	}
-	async getFunEnabled() {
+	async getFunEnabled(): Promise<boolean> {
 	    return await this._getBool("funEnabled", true);
 	}
-	async setFunEnabled(value: boolean) {
+	async setFunEnabled(value: boolean): Promise<void> {
 	    return await this._setBool("funEnabled", value);
 	}
 	// async getSpeedrun() {
 	// 	return await this._getJson("speedrunv2");
 	// }
-	async getSpeedrunDefault() {
+	async getSpeedrunDefault(): Promise<{gameID: string, categoryID: string} | undefined> {
 	    const [gameID, categoryID] = (
 	        (await this._get("speedrun")) || ""
 	    ).split(`, `);
@@ -534,13 +534,13 @@ class Database {
 	    } // category id will be undefined because [1] of .split will be undefined.
 	    return { gameID: gameID, categoryID: categoryID };
 	}
-	async setSpeedrunDefault(gameID: string, categoryID: string) {
+	async setSpeedrunDefault(gameID: string, categoryID: string): Promise<void> {
 	    return await this._set("speedrun", `${gameID}, ${categoryID}`);
 	}
-	async disableSpeedrun() {
+	async disableSpeedrun(): Promise<void> {
 	    return await this._set("speedrun", undefined);
 	}
-	async addError(error: string, settingCause: string) {
+	async addError(error: string, settingCause: string): Promise<void> {
 	    // log for the ip!error log
 	    void error;
 	    void settingCause;

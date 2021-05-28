@@ -2,8 +2,6 @@ import fs from "fs";
 import yaml from "js-yaml";
 import path from "path";
 import * as nr from "../../NewRouter";
-import { getTwoPlayers } from "./helpers";
-import * as Discord from "discord.js";
 import { perr } from "../../..";
 
 // https://github.com/pfgithub/advent-of-code-2019/blob/master/solutions/_defaults/_defaults.0.ts

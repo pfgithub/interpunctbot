@@ -2,10 +2,8 @@ import fs from "fs";
 import yaml from "js-yaml";
 import path from "path";
 import { ilt, perr } from "../../..";
-import { messages } from "../../../messages";
 import * as nr from "../../NewRouter";
 import { createTimer, setEditInterval } from "./helpers";
-import Info from "../../Info";
 
 type GoDirectionSpec = (
 	| string
@@ -19,15 +17,15 @@ type LevelSpec = {
 	right: GoDirectionSpec;
 };
 
-let gamedata: any;
-
 let ge: { [key: string]: string | undefined };
 
 let goilevels: { [key: string]: LevelSpec };
 
+let game_start_level: string;
+
 function reloadGoi(): undefined | Error {
 	try {
-		gamedata = yaml.safeLoad(
+		const gamedata = yaml.safeLoad(
 			fs.readFileSync(
 				path.join(process.cwd(), "src/commands/fun/goi.yaml"),
 				"utf-8",
@@ -35,6 +33,7 @@ function reloadGoi(): undefined | Error {
 		);
 		ge = gamedata.emojis;
 		goilevels = gamedata.levels;
+		game_start_level = gamedata.start;
 	} catch (e) {
 		return e;
 	}
@@ -55,10 +54,10 @@ nr.globalCommand(
 	nr.list(),
 	async ([], info) => {
 		const start = Date.now();
-		const goload = reloadGoi();
-		if (goload) {
+		const goloadres = reloadGoi();
+		if (goloadres) {
 			return await info.error(
-				info.tag`Uh oh! An error: ${goload.toString()}`,
+				info.tag`Uh oh! An error: ${goloadres.toString()}`,
 			);
 		}
 		const end = Date.now();
@@ -100,7 +99,7 @@ nr.globalCommand(
 
 		const gamemsg = await info.message.channel.send("Setting up game...");
 
-		let level = gamedata.start;
+		let level = game_start_level;
 		await gamemsg.react(ge.left!);
 		await gamemsg.react(ge.up!);
 		await gamemsg.react(ge.right!);

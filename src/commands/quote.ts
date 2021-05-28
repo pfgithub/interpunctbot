@@ -19,16 +19,17 @@ export async function handleList(
 	listPastebin: string,
 	cmd: string,
 	info: Info,
-) {
+): Promise<void> {
 	// get the list pastebin id;
 	const pastebinId = listPastebin;
 	if (!pastebinId) {
-		return await info.error(
+		await info.error(
 			messages.lists.list_exists_but_not_really(info, listName),
 		);
+		return;
 	}
 
-	await info.startLoading();
+	info.startLoading();
 
 	// split the arguments at spaces to parse them
 	let searchString = cmd.split(` `);

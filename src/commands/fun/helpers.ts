@@ -21,7 +21,7 @@ export function createTimer(
 				setTimeout(() => {
 					timersCompleted++;
 					perr(cb(), "timer");
-					if (timersCompleted == timerSpecs.length) {
+					if (timersCompleted === timerSpecs.length) {
 						overCB && overCB();
 					}
 				}, time),
@@ -53,7 +53,7 @@ export async function getTwoPlayers(
 	initial: string[],
 	gameName: string,
 	/*requireApprobalBeforeStart*/ info: Info,
-) {
+): Promise<[string, string] | undefined> {
 	const playersInGame: string[] = initial;
 	{
 		const startTime = new Date().getTime();
@@ -112,5 +112,5 @@ export async function getTwoPlayers(
 			return;
 		}
 	}
-	return playersInGame;
+	return playersInGame as [string, string];
 }

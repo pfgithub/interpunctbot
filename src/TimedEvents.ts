@@ -49,13 +49,13 @@ export class TimedEvents {
 	setHandler<EventType extends keyof EventTypes>(
 	    eventType: EventType,
 	    handler: EventHandlers[EventType],
-	) {
+	): void {
 	    this.eventHandlers[eventType] = handler;
 	}
-	async initialize() {
+	async initialize(): Promise<void> {
 	    await this.startNext();
 	}
-	async queue(event: EventData | EventData[], time: number) {
+	async queue(event: EventData | EventData[], time: number): Promise<void> {
 	    if (time > Number.MAX_SAFE_INTEGER) return; // no need to waste time on these.
 	    // add to db
 	    const eventfixed = Array.isArray(event) ? event : [event];
@@ -78,13 +78,13 @@ export class TimedEvents {
 	        id,
 	    });
 	}
-	_queueNoAdd(ev: { event: EventData[]; time: number; id: number }) {
+	_queueNoAdd(ev: { event: EventData[]; time: number; id: number }): void {
 	    if (ev.time <= this.currentTime) {
 	        this.startEventTimeout(ev.event, ev.time, ev.id);
 	    }
 	    perr(this.startNext(), "Waiting for next event");
 	}
-	startEventTimeout(events: EventData[], time: number, id: number) {
+	startEventTimeout(events: EventData[], time: number, id: number): void {
 	    if (this.currentEvents.has(id)) return;
 	    this.currentEvents.set(id, true);
 	    if (time <= this.currentTime) this.currentTime = time;
@@ -130,7 +130,7 @@ export class TimedEvents {
 	    if (deltaTime < 2147483647)
 	        setTimeout(() => perr(handle(), "Handling event"), deltaTime);
 	}
-	async startNext() {
+	async startNext(): Promise<void> {
 	    if (!globalKnex) {
 	        console.log(
 	            "Cannot begin timedEvents because there is no knex instance.",

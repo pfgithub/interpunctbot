@@ -44,7 +44,7 @@ export function directionToDiff(direction: Direction): [number, number] {
 function diffToDirection(diff: [number, number]): Direction {
 	return diff.map(v => v === -1 ? "a" : v === 0 ? "b" : v === 1 ? "c" : (() => {throw new Error("bad v: "+v)})()).join("") as Direction;
 }
-export const xyToPtIndex = (x: number, y: number) => y * 11 + x;
+export const xyToPtIndex = (x: number, y: number): number => y * 11 + x;
 const inBoard = (x: number, y: number) => {
 	if(x >= 1 && x <= 9 && y >= 2 && y <= 12) return true;
 	if(x >= 4 && x <= 6 && (y === 1 || y === 13)) return true;
@@ -66,15 +66,15 @@ type DisplayTile = {
 	diagonur: boolean;
 	ball: BallPosition;
 } | undefined;
-export function displayBoard(board: Board, ball: [number, number], winner: boolean, player: string, bottom: boolean) {
+export function displayBoard(board: Board, ball: [number, number], winner: boolean, player: string, bottom: boolean): string {
 	const glboard = newBoard<DisplayTile>(8, 12, (rvx, rvy) => {
 		const [x, y] = [rvx + 1, rvy + 1];
 		if(!inBoard(x, y) || !inBoard(x+1, y) || !inBoard(x, y+1) || !inBoard(x+1, y+1)) return undefined;
 		const ul = board.points[xyToPtIndex(x, y)];
 		const bl = board.points[xyToPtIndex(x, y+1)];
 		const br = board.points[xyToPtIndex(x+1, y+1)];
-		const bp1 = ball[0] == x ? "l" : ball[0] == x + 1 ? "r" : "";
-		const bp2 = ball[1] == y ? "u" : ball[1] == y + 1 ? "b" : "";
+		const bp1 = ball[0] === x ? "l" : ball[0] === x + 1 ? "r" : "";
+		const bp2 = ball[1] === y ? "u" : ball[1] === y + 1 ? "b" : "";
 		const res: DisplayTile = {
 			up: ul.connections.cb ? board.connections[ul.connections.cb.active] : false,
 			left: ul.connections.bc ? board.connections[ul.connections.bc.active] : false,

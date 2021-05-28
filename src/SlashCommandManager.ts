@@ -5,6 +5,7 @@ import { globalConfig } from "./config";
 import Info, {MessageLike} from "./Info";
 import { ginteractionhandler, globalCommandNS, globalDocs } from "./NewRouter";
 import deepEqual from "deep-equal";
+import * as util from "util";
 
 const api = client as any as ApiHolder;
 
@@ -106,38 +107,38 @@ export class InteractionHelper {
     	this.has_ackd = false;
     	this.options = undefined as any;
     }
-    async sendRaw(value: object) {
+    async sendRaw(value: unknown): Promise<void> {
     	if(this.has_ackd) throw new Error("cannot double interact");
     	this.has_ackd = true;
     	await api.api.interactions(this.raw_interaction.id, this.raw_interaction.token).callback.post({data: value});
     }
-    async edit(value: object) {
+    async edit(value: unknown): Promise<void> {
     	await api.api.webhooks(this.raw_interaction.application_id, this.raw_interaction.id, this.raw_interaction.token).messages("@original").patch({data: value});
     }
-    async delete() {
+    async delete(): Promise<void> {
     	await api.api.webhooks(this.raw_interaction.application_id, this.raw_interaction.id, this.raw_interaction.token).messages("@original").delete();
     }
-    async acceptLater() {
+    async acceptLater(): Promise<InteractionHandled<any>> {
     	await this.sendRaw({
     		type: 5,
     	});
     	return interaction_handled;
     }
-    async accept() {
+    async accept(): Promise<InteractionHandled<any>> {
     	await this.sendRaw({
     		type: 4,
     		data: {content: "✓", flags: 1 << 6, allowed_mentions: {parse: []}},
     	});
     	return interaction_handled;
     }
-    async reply(message: string) {
+    async reply(message: string): Promise<InteractionHandled<any>> {
     	await this.sendRaw({
     		type: 4,
     		data: {content: message, allowed_mentions: {parse: []}},
     	});
     	return interaction_handled;
     }
-    async replyHiddenHideCommand(message: string, components: unknown = undefined) {
+    async replyHiddenHideCommand(message: string, components: unknown = undefined): Promise<InteractionHandled<any>> {
     	await this.sendRaw({
     		type: 4,
     		data: {content: message, flags: 1 << 6, allowed_mentions: {parse: []}, components},
@@ -249,7 +250,7 @@ async function do_handle_interaction(interaction: DiscordInteraction) {
     
 	const data = interaction.data;
 
-	console.log("Got interaction: ", require("util").inspect(interaction.data, false, null, true));
+	console.log("Got interaction: ", util.inspect(interaction.data, false, null, true));
 	// construct an info object
 	const guild = client.guilds.cache.get(interaction.guild_id)!;
 	const channel = client.channels.cache.get(interaction.channel_id)! as discord.Message["channel"];
@@ -546,7 +547,7 @@ function firstShard() {
 	const first = values.next();
 	if(first.done) return false;
 	console.log("This shard is:",first.value.shardID);
-	__is_First_Shard = first.value.shardID == 0;
+	__is_First_Shard = first.value.shardID === 0;
 	return __is_First_Shard;
 }
 
@@ -587,7 +588,7 @@ function normalizeSCO(inv: SlashCommandOption[]): SlashCommandOption[] {
 	return JSON.parse(JSON.stringify(inv), (key, value) => {
 		if(typeof value === "object") {
 			for(const [k, v] of Object.entries(value)) {
-				if(Array.isArray(v) && v.length == 0) delete value[k];
+				if(Array.isArray(v) && v.length === 0) delete value[k];
 				if(k === "required" && v === false) delete value[k];
 			}
 		}
@@ -606,7 +607,7 @@ function compareCommands(remote: SlashCommand, local: SlashCommandUser): "same" 
 	return "same";
 }
 
-export async function start() {
+export async function start(): Promise<void> {
 	// get list of global slash commands
 	// update to match
 
@@ -632,7 +633,7 @@ export async function start() {
 			continue;
 		}
 		const local = {...local_user, name: remote.name};
-		if(compareCommands(remote, local) == "different") {
+		if(compareCommands(remote, local) === "different") {
 			console.log("Updating command: "+remote.name+" (id "+remote.id+")");
 			const res = await addCommand(local);
 			console.log("√ Edited", res);
@@ -641,7 +642,7 @@ export async function start() {
 	}
 	for(const [cmd_name, new_command] of Object.entries(global_slash_commands)) {
 		const cmd_full: SlashCommandUser = {...new_command, name: cmd_name};
-		if(!current_slash_commands.find(csc => csc.name == cmd_name)) {
+		if(!current_slash_commands.find(csc => csc.name === cmd_name)) {
 			console.log("Adding new command: "+cmd_name);
 			const res = await addCommand(cmd_full);
 			console.log("√ Added", res);

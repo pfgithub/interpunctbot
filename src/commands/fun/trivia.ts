@@ -1,6 +1,6 @@
 import * as Discord from "discord.js";
 import he from "he";
-import { andlist, messages, raw, safe } from "../../../messages";
+import { andlist, raw, safe } from "../../../messages";
 import { setEditInterval } from "../../editInterval";
 import * as nr from "../../NewRouter";
 import { getURL } from "../speedrun";
@@ -146,7 +146,7 @@ nr.globalCommand(
 		// fetch trivia question
 		let triviaQuestion: OpenTDB.Question;
 		{
-			await info.startLoading();
+			info.startLoading();
 			const triviaResponse: OpenTDB.Response = await getURL`https://opentdb.com/api.php?amount=1`; // TODO other things
 			if (triviaResponse.response_code !== 0) {
 				throw new Error(
@@ -157,7 +157,7 @@ nr.globalCommand(
 			}
 			triviaQuestion = triviaResponse.results[0];
 			// await fetchProgressMessage.delete();
-			await info.stopLoading();
+			info.stopLoading();
 		}
 		{
 			let triviaChoices: {
@@ -223,7 +223,7 @@ nr.globalCommand(
 						return;
 					}
 					const choice = triviaChoices.find(
-						choice => choice.emoji === reaction.emoji.name,
+						c => c.emoji === reaction.emoji.name,
 					);
 					if (!choice) {
 						await reaction.users.remove(user.id);

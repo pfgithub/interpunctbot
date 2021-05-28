@@ -1,3 +1,6 @@
+/* eslint-disable */
+// obsolete. do not use.
+
 import { MessageEmbed } from "discord.js";
 import { MessageParametersType } from "./Info";
 

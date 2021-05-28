@@ -29,7 +29,7 @@ type DiscordMarkdownOptions = {
 		here?: () => string;
 	};
 	/// Object, maps CSS class names to CSS module class names
-	cssModuleNames?: object;
+	cssModuleNames?: unknown;
 };
 const discordMarkdown = discordMarkdownAny as {
 	toHTML: (dsmd: string, options?: DiscordMarkdownOptions) => string;
@@ -682,7 +682,7 @@ nr.globalCommand(
 	},
 );
 
-function ticketOwnerID(channel: discord.TextChannel): string {
+function getTicketOwnerID(channel: discord.TextChannel): string {
 	const creatorid = (/<@!?([0-9]+?)>/.exec(channel.topic || "") || [
 		"",
 		"ERNOID",
@@ -997,7 +997,7 @@ async function closeTicketMayError(
 		);
 		if (chanLogSendTo && chanLogSendTo instanceof discord.TextChannel) {
 			chanLogUrl = await sendChannelLog(
-				ticketOwnerID(channel),
+				getTicketOwnerID(channel),
 				channel,
 				chanLogSendTo,
 			);
@@ -1005,7 +1005,7 @@ async function closeTicketMayError(
 	}
 
 	await ticketLog(
-		ticketOwnerID(channel),
+		getTicketOwnerID(channel),
 		"Closed by " +
 			closer.toString() +
 			forinactive +
@@ -1016,7 +1016,7 @@ async function closeTicketMayError(
 
 	if(ctx.ticket.main.dm_on_close ?? false) {
 		try {
-			const owner_id = ticketOwnerID(channel);
+			const owner_id = getTicketOwnerID(channel);
 			// are you allowed to dm a partial user? this shouldn't be necessary if so
 			const owner_user = await ctx.guild.client.users.fetch(owner_id);
 
@@ -1179,7 +1179,7 @@ export async function onMessage(
 			) {
 				await transcriptsChan.send(
 					"<@" +
-						ticketOwnerID(msg.channel as discord.TextChannel) +
+						getTicketOwnerID(msg.channel as discord.TextChannel) +
 						">'s ticket: [" +
 						msg.author.toString() +
 						"]: " +
@@ -1261,7 +1261,7 @@ export async function onMessageReactionAdd(
 		await Promise.race([
 			(async () => {
 				await rxn.users.fetch({ limit: 4 });
-				if (rxn.users.cache.size == 1) {
+				if (rxn.users.cache.size === 1) {
 					await rxn.message.react(rxn.emoji);
 					await rxn.users.remove(usr.id);
 					return true;

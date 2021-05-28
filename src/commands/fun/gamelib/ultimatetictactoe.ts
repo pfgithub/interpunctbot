@@ -177,7 +177,7 @@ function getMoves(state: UltimateTicTacToe): MoveSet<UltimateTicTacToe> {
 	}
 	return resmoves;
 }
-export function render(state: UltimateTicTacToe) {
+function render(state: UltimateTicTacToe) {
 	// when picking a 3x3 grid to play on
 	// show all empty tiles as numbers.
 	// each grid numbered 1-9

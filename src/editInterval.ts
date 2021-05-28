@@ -1,10 +1,8 @@
-import { perr } from "..";
-
 export function setEditInterval(
 	cb: () => Promise<void>,
 	ms = 3000,
 	manual = false,
-) {
+): {end: () => void, trigger: () => void} {
 	let running = false;
 	let shouldQueue = false;
 	const makeTimeout = () => () => (

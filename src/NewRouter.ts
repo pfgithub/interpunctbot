@@ -104,7 +104,7 @@ setTimeout(() => {
 
 const developmentMode = process.env.NODE_ENV !== "production";
 
-export function addDocsPage(docsPath: string, page: PageData) {
+export function addDocsPage(docsPath: string, page: PageData): void {
 	if (!canModifyGlobalValues)
 		throw new Error("Time to add global commands is over!");
 
@@ -132,7 +132,7 @@ export function addDocsPage(docsPath: string, page: PageData) {
 export function addHelpDocsPage(
 	docsPath: string,
 	help: HelpData & { title: string },
-) {
+): void {
 	if (!docsPath.startsWith("/help/"))
 		throw new Error("Docs path must start with /help/");
 	const permlist: string[] = [];
@@ -168,7 +168,7 @@ export function addHelpDocsPage(
 	});
 }
 
-export function addErrorDocsPage(docsPath: string, error: ErrorData) {
+export function addErrorDocsPage(docsPath: string, error: ErrorData): void {
 	addDocsPage(docsPath, {
 		body:
 			`{Title|Error}\n${error.overview}\n\n${error.detail}` +
@@ -192,7 +192,7 @@ export function addDocsWebPage(
 	title: string,
 	summary: string,
 	body: string,
-) {
+): void {
 	addDocsPage(docsPath, {
 		body: body,
 		summaries: {
@@ -209,7 +209,7 @@ export function addDocsWebPage(
 // 	},
 // });
 
-export function globalAlias(original: string, aliasname: string) {
+export function globalAlias(original: string, aliasname: string): void {
 	if (original.toLowerCase() !== original)
 		throw new Error("original name must be lowercase");
 	aliasname = aliasname.toLowerCase();
@@ -223,7 +223,7 @@ export function globalAlias(original: string, aliasname: string) {
 	globalCommandNS[aliasname] = origcmd;
 }
 
-export function reportError(error: Error, info: Info) {
+export function reportError(error: Error, info: Info): void {
 	// TODO if discord api error no permission, say "interpunct does not have permission"
 	if ( info.raw_message ? !info.raw_message.deleted : true ) {
 		if (error instanceof Discord.DiscordAPIError) {
@@ -265,7 +265,7 @@ export function globalCommand<APList extends APListAny>(
 	help: HelpData,
 	aplist: List<APList>,
 	cb: CmdCb<APList>,
-) {
+): void {
 	if (uniqueGlobalName.toLowerCase() !== uniqueGlobalName)
 		throw new Error("uniqueGlobalName must be lowercase");
 	if (globalCommandNS[uniqueGlobalName])

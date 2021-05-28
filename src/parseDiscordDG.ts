@@ -4,7 +4,7 @@ import Info from "./Info";
 import { parseDG } from "./parseDGv2";
 import { bot_permissions, globalCommandNS, globalDocs, runner_permissions } from "./NewRouter";
 
-export function escapeHTML(html: string) {
+export function escapeHTML(html: string): string {
 	return html
 		.split("&")
 		.join("&amp;")
@@ -15,7 +15,8 @@ export function escapeHTML(html: string) {
 		.split(">")
 		.join("&gt;")
 		.split("\n")
-		.join("<br />");
+		.join("<br />")
+	;
 }
 
 export const rawhtml = templateGenerator((v: string) => v);
@@ -40,10 +41,10 @@ let globalSummaryDepth = 0;
 const inlineOrBlockQuote = (text: string) =>
 	text.includes("\n")
 		? "\n" +
-		  text
-		      .split("\n")
-		      .map(q => "> " + q)
-		      .join("\n")
+			text
+				.split("\n")
+				.map(q => "> " + q)
+				.join("\n")
 		: text;
 
 type Args = { raw: string; safe: string }[];
@@ -436,21 +437,21 @@ const commands: {
 				": " +
 				// renderdiscord`{Command|${docs.path.split("/").join(" ")}}` would be nice
 				commands.Command.discord!(
-				    [
-				        {
-				            safe:
+					[
+						{
+							safe:
 								docs.path.split("/")[1] === "help"
-									? safe(
-									    docs.path
-									        .slice(1)
-									        .split("/")
-									        .join(" "),
-									  )
-									: "help " + safe(docs.path),
-				            raw: "never",
-				        },
-				    ],
-				    info,
+								? safe(
+									docs.path
+										.slice(1)
+										.split("/")
+										.join(" "),
+								)
+								: "help " + safe(docs.path),
+							raw: "never",
+						},
+					],
+					info,
 				) +
 				" — " +
 				dgToDiscord(docs.summaries.description, info)
@@ -500,21 +501,21 @@ const commands: {
 			return (
 				// renderdiscord`{Command|${docs.path.split("/").join(" ")}}` would be nice
 				commands.Command.discord!(
-				    [
-				        {
-				            safe:
+					[
+						{
+							safe:
 								docs.path.split("/")[1] === "help"
-									? safe(
-									    docs.path
-									        .slice(1)
-									        .split("/")
-									        .join(" "),
-									  )
-									: "help " + safe(docs.path),
-				            raw: "never",
-				        },
-				    ],
-				    info,
+								? safe(
+									docs.path
+										.slice(1)
+										.split("/")
+										.join(" "),
+								)
+								: "help " + safe(docs.path),
+							raw: "never",
+						},
+					],
+					info,
 				)
 			);
 		},
@@ -564,7 +565,7 @@ const commands: {
 	},
 };
 
-export function confirmDocs(text: string) {
+export function confirmDocs(text: string): void {
 	parseDG(text, (fn, args) => {
 		if (!fn) return "[[ConfirmClean]]";
 		if (!commands[fn]) {
@@ -575,7 +576,7 @@ export function confirmDocs(text: string) {
 	});
 }
 
-export function dgToDiscord(text: string, info: Info) {
+export function dgToDiscord(text: string, info: Info): string {
 	const res = parseDG(text, (fn, args) => {
 		if (!fn) return safe(args[0].raw);
 		const cmd = commands[fn];
@@ -588,7 +589,7 @@ export function dgToDiscord(text: string, info: Info) {
 	return res.safe.replace(/\n\n+/g, "\n\n");
 }
 
-export function dgToMD(text: string) {
+export function dgToMD(text: string): string {
 	const res = parseDG(text, (fn, args) => {
 		if (!fn) return safe(args[0].raw);
 		const cmd = commands[fn];
@@ -600,7 +601,7 @@ export function dgToMD(text: string) {
 	return res.safe.replace(/\n\n+/g, "\n\n");
 }
 
-export function dgToHTML(text: string, pageURL: string) {
+export function dgToHTML(text: string, pageURL: string): string {
 	const res = parseDG(
 		text.replace(/(\n\s*\n)|(\n)/g, (_, a, b) =>
 			a ? "\n" : b ? "\n" : "uh oh",

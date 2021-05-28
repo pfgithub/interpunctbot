@@ -50,7 +50,7 @@ nr.addDocsWebPage(
 export async function getURL(
 	strings: TemplateStringsArray | string | string[],
 	...values: string[]
-) {
+): Promise<any> {
 	if (typeof strings === "string") {
 		strings = [strings];
 	}
@@ -163,8 +163,8 @@ async function getGameAndCategory(
 		await info.error(messages.speedrun.requires_setup(info));
 		return { error: true };
 	}
-	let { gameID, categoryID } = defaultGameCategory;
-	gameID = gameID;
+	const gameID = defaultGameCategory.gameID;
+	let categoryID = defaultGameCategory.categoryID;
 
 	let category: Category;
 
@@ -224,7 +224,7 @@ type Run = {
 		};
 		system: { platform: string; emulated: boolean; region?: unknown };
 		splits?: unknown;
-		values: {};
+		values: unknown;
 	};
 };
 
@@ -236,7 +236,7 @@ type GameData = {
 	emulators?: unknown;
 	"video-only": boolean;
 	timing: string;
-	values: {};
+	values: unknown;
 	runs: Run[];
 	links: { rel: string; uri: string }[];
 };
@@ -365,7 +365,7 @@ nr.globalCommand(
 	},
 	nr.passthroughArgs,
 	async ([cmd], info) => {
-		await info.startLoading();
+		info.startLoading();
 		await displayLeaderboard(1, cmd, info);
 	},
 );
@@ -386,7 +386,7 @@ nr.globalCommand(
 	},
 	nr.list(nr.a.number(), ...nr.a.words()),
 	async ([position, cmd], info) => {
-		await info.startLoading();
+		info.startLoading();
 		if (!position || !isNormalInteger("" + position)) {
 			// todo display top 5
 			return await info.error(messages.speedrun.position_required(info));
@@ -406,7 +406,7 @@ nr.globalCommand(
 	},
 	nr.list(nr.a.word(), ...nr.a.words()),
 	async ([username, cmd], info) => {
-		await info.startLoading();
+		info.startLoading();
 		await displayLeaderboard(username, cmd, info);
 	},
 );
@@ -423,13 +423,13 @@ nr.globalCommand(
 	nr.passthroughArgs,
 	async ([cmd], info) => {
 		const startTime = ctime();
-		await info.startLoading();
+		info.startLoading();
 		const categoryNameArray = cmd.split(` `);
 		const categoryName = categoryNameArray.join(` `);
 
 		const gac = await getGameAndCategory(categoryName, info);
 		if (gac.error) return;
-		const { gameID, categoryID, category } = gac;
+		const { category } = gac;
 
 		const mb = MB();
 		mb.url.putRaw(category.weblink);
@@ -509,7 +509,7 @@ nr.globalCommand(
 				`Usage: \`speedrun set https://speedrun.com/mygame My Category\``,
 			);
 		}
-		await info.startLoading();
+		info.startLoading();
 		const game = await getGameAtPage(abbreviation);
 		if (typeof game === "string") {
 			return await info.error(game);
@@ -518,8 +518,8 @@ nr.globalCommand(
 		// get the provided category
 		const gameID = game.id;
 		const categories = game.categories.data;
-		const category = categories.find(category =>
-			compareCatName(category.name, categoryName),
+		const category = categories.find(cat =>
+			compareCatName(cat.name, categoryName),
 		);
 		if (!category) {
 			return await info.error(

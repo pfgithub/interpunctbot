@@ -79,7 +79,7 @@ nr.globalCommand(
 	},
 	nr.list(),
 	async ([], info) => {
-		await info.startLoading();
+		info.startLoading();
 		await new Promise(r => setTimeout(r, 5000));
 		await info.warn(`warning`);
 	},
@@ -161,7 +161,7 @@ nr.globalCommand(
 	},
 	nr.passthroughArgs,
 	async ([cmd], info) => {
-		cmd = cmd.replace(/(^\`|\`$)/g, "").trim();
+		cmd = cmd.replace(/(^`|`$)/g, "").trim();
 		if (cmd === "1 + 1") return await info.result("2");
 		if (cmd === "client.guilds.cache.size")
 			return await info.result(

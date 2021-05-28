@@ -82,21 +82,18 @@ export async function ilt<T>(
 	} catch (error) {
 		const ewid = wrapErrorAddID(error);
 		if (typeof reason === "string") {
-			ignorePromise(reportILTFailure(ewid, new Error(reason)));
+			void reportILTFailure(ewid, new Error(reason));
 		}
 		return { error: ewid, result: undefined };
 	}
 	return { result, error: undefined };
 }
 
-//eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
-export function ignorePromise(_p: Promise<unknown>) {}
-
 export function perr(
 	v: Promise<unknown> /*, reason: string (added to error message)*/,
 	reason: string | false,
 ): void {
-	ignorePromise(ilt(v, reason));
+	void ilt(v, reason);
 }
 
 nr.globalCommand(
@@ -384,7 +381,7 @@ async function updateActivity() {
 	// request.post(options, (er, res) => {});
 }
 
-export function shouldIgnore(user: Discord.User) {
+export function shouldIgnore(user: Discord.User): boolean {
 	return user.bot && !globalConfig.testing?.users?.includes(user.id);
 }
 
@@ -583,7 +580,7 @@ async function guildLog(id: string, log: string) {
 	);
 }
 
-export function logCommand(guild_id: string | undefined, channel_id: string, author_bot: boolean, author_id: string, message: string) {
+export function logCommand(guild_id: string | undefined, channel_id: string, author_bot: boolean, author_id: string, message: string): void {
 	try {
 		guildLog(
 			"__commands", // db ? guild! : guild?
@@ -946,18 +943,18 @@ async function rankingMessageReactionAdd(
 	]);
 
 	const huser = user;
-	const rxnh = handleReactions(msg, async (reaction, user) => {
-		if (huser.id !== user.id) return;
-		const msg = reaction.message;
-		if (!msg.guild) {
+	const rxnh = handleReactions(msg, async (gotrx, gotuser) => {
+		if (huser.id !== gotuser.id) return;
+		const gotmsg = gotrx.message;
+		if (!gotmsg.guild) {
 			return;
 		}
-		const reactor = msg.guild.members.resolve(user);
-		if (!reactor) {
+		const gotusr = gotmsg.guild.members.resolve(gotuser);
+		if (!gotusr) {
 			return;
 		}
-		if (reaction.emoji instanceof Discord.ReactionEmoji) {
-			if (reaction.emoji.name === "✅") {
+		if (gotrx.emoji instanceof Discord.ReactionEmoji) {
+			if (gotrx.emoji.name === "✅") {
 				rank = true;
 				timer.end();
 				return;
@@ -965,12 +962,12 @@ async function rankingMessageReactionAdd(
 			return;
 		}
 
-		const hndlr = qr.emojiAlias[reaction.emoji.id];
-		if (!hndlr) {
+		const gothndlr = qr.emojiAlias[gotrx.emoji.id];
+		if (!gothndlr) {
 			return;
 		}
 
-		roleIDs.push(hndlr.role);
+		roleIDs.push(gothndlr.role);
 	});
 
 	const myreaxn = await msg.react("✅");
@@ -1259,7 +1256,7 @@ client.on("guildDelete", guild => {
 		.catch(e => global.console.log("Could not delete guild data,", e));
 });
 
-export async function reportILTFailure(message: ErrorWithID, reason: Error) {
+export async function reportILTFailure(message: ErrorWithID, reason: Error): Promise<void> {
 	await fs.mkdir("logs/__errors", {recursive: true});
 	await fs.writeFile("logs/__errors/"+message.errorCode, `
 Error code ${message.errorCode}
@@ -1284,37 +1281,35 @@ export function logError(
 	message: Error,
 	atEveryone = true,
 	additionalDetails?: Error,
-) {
-	ignorePromise(
-		(async () => {
-			const finalMsg = `ERROR CODE: \`${
-				(message as ErrorWithID).errorCode
-			}\`!!. ${
-				additionalDetails
-					? `Details: ${additionalDetails.toString()}
+): void {
+	void (async () => {
+		const finalMsg = `ERROR CODE: \`${
+			(message as ErrorWithID).errorCode
+		}\`!!. ${
+			additionalDetails
+				? `Details: ${additionalDetails.toString()}
 
 **Stacktrace**:
 \`\`\`
 ${additionalDetails.stack || "errno"}
 \`\`\``
-					: ""
-			}
+				: ""
+		}
 
 Hey ${atEveryone ? "@everyone" : "the void of discord"}, there was an error
 
 **Recent Commands:**
 ${mostRecentCommands
-				.map(c => `\`${c.content}\` / ${moment(c.date).fromNow()}`)
-				.join(`\n`)}
+			.map(c => `\`${c.content}\` / ${moment(c.date).fromNow()}`)
+			.join(`\n`)}
 
 **Stacktrace**:
 \`\`\`
 ${message.stack || "errno"}
 \`\`\`
 `;
-			await sendMessageToErrorReportingChannel(finalMsg);
-		})(),
-	);
+		await sendMessageToErrorReportingChannel(finalMsg);
+	})();
 }
 
 process.on("unhandledRejection", (reason: any, p) => {
@@ -1326,7 +1321,7 @@ process.on("unhandledRejection", (reason: any, p) => {
 	// ignorePromise(logError(reason)); // no error code
 });
 
-export async function sendMessageToErrorReportingChannel(message: string) {
+export async function sendMessageToErrorReportingChannel(message: string): Promise<void> {
 	// !!!! SHARDING: this does not work with sharding
 	console.log(message);
 

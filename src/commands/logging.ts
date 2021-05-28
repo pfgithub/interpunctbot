@@ -50,7 +50,7 @@ nr.globalCommand(
 		if (!info.myChannelPerms!.has("ATTACH_FILES")) {
 			return await info.error(messages.logging.attach_files(info));
 		}
-		await info.startLoading();
+		info.startLoading();
 		const logDownloadMessageResult = await ilt(
 			info.raw_message!.reply(
 			    "Log files:",
@@ -73,7 +73,7 @@ nr.globalCommand(
 	},
 );
 
-export async function deleteLogs(guildID: string) {
+export async function deleteLogs(guildID: string): Promise<void> {
 	await fs.unlink(path.join(process.cwd(), `/logs/${guildID}.log`));
 }
 
