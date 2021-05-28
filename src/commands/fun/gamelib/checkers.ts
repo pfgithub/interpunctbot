@@ -411,7 +411,8 @@ function getMoves(state: Checkers): g.MoveSet<Checkers> {
 		});
 
 		const movablePieces = getMovablePieces(state);
-		resMoves.push(...movablePieces.map(pc => ({
+		const curpiece = state.status.piece;
+		resMoves.push(...movablePieces.filter(mp => mp.number !== curpiece).map((pc): g.Move<Checkers> => ({
 			button: tileset.tiles.interaction.pieces[pc.number],
 			player: state.players[st.turn],
 			apply: state => {
