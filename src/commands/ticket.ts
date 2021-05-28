@@ -926,19 +926,35 @@ async function sendChannelLog(
 	channel: discord.TextChannel,
 	sendTo: discord.TextChannel,
 ) {
-	try {
-		return await sendChannelLogMayError(ticketOwnerID, channel, sendTo);
-	} catch (e_) {
-		const e = e_ as Error;
+	const iltres = await ilt(sendChannelLogMayError(ticketOwnerID, channel, sendTo), "send channel log");
+	if(iltres.error) {
 		sendTo.stopTyping();
-		await sendTo.send(
-			":x: Uh oh error\n```\n" + e.toString() + "\n" + e.stack + "\n```",
-		);
-		return undefined;
+		const stres = await ilt(sendTo.send(":x: There was an error uploading the channel log. Error code: `"+iltres.error.errorCode+"`"), "send log error");
+		if(stres.error) {
+			await ilt(channel.send(":x: There was an error uploading the channel log to <#"+sendTo.id+">. Error code: `"+iltres.error.errorCode+"`"), "send error 2")
+		}
+		throw new Error("log upload error");
 	}
+	return iltres.result;
+	// try {
+	// 	return await sendChannelLogMayError(ticketOwnerID, channel, sendTo);
+	// } catch (e_) {
+	// 	const e = e_ as Error;
+	// 	sendTo.stopTyping();
+	// 	try {
+	// 		await sendTo.send(
+	// 			":x: Uh oh error\n```\n" + e.toString() + "\n" + e.stack + "\n```",
+	// 		);
+	// 	}catch(e) {
+	// 		await sendTo.send(
+	// 			":x: Uh oh error\n```\n" + e.toString() + "\n" + e.stack + "\n```",
+	// 		);
+	// 	}
+	// 	return undefined;
+	// }
 }
 
-async function closeTicket(
+async function closeTicketMayError(
 	channel: discord.TextChannel,
 	closer: discord.User | discord.PartialUser,
 	ctx: TicketCtx,
@@ -1014,9 +1030,21 @@ async function closeTicket(
 	await new Promise(r => setTimeout(r, deletetime));
 	const iltr = await ilt(channel.delete("closed by " + closer.toString()), "deleting channel for ticket");
 	if(iltr.error) {
-		await channel.send("There was an error deleting this channel. Maybe I don't have permissions? Error code: `"+iltr.error.errorCode+"`");
+		await channel.send(":x: There was an error deleting this channel. Maybe I don't have permissions? Error code: `"+iltr.error.errorCode+"`");
 	}
 	(channel as any).__IS_CLOSING = false;
+}
+
+async function closeTicket(
+	channel: discord.TextChannel,
+	closer: discord.User | discord.PartialUser,
+	ctx: TicketCtx,
+	inactivity = false,
+) {
+	const ires = await ilt(closeTicketMayError(channel, closer, ctx, inactivity), "close ticket")
+	if(ires.error) {
+		await ilt(channel.send(":x: There was an error closing the ticket. Error code: `"+ires.error.errorCode+"`"), "close ticket error")
+	}
 }
 
 const colors = { green: 3066993, red: 15158332 };
