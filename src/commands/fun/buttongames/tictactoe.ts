@@ -325,7 +325,7 @@ const TTTGame: Game<TicTacToeState> = {
                     : state.mode === "won"
                     ? state.win
                     ? (state.win.player === "Tie"
-                    ? "There was a tie. ("+state.win.reason+"). "
+                    ? "There was a tie. "
                     : "<@"+state.players[state.win.player]+"> won!")
                     + " ("+state.win.reason+"). Players: X <@"+state.players.X+">, O: <@"+state.players.O+">"
                     : "Someone won but I'm not sure who."
@@ -618,7 +618,7 @@ const CGGame: Game<CirclegameState> = {
         }else if(state.mode === "playing") {
             return {
                 content: !state.over
-                    ? "It's your turn <@"+state.players[state.player]+">, You are "+state.player+"\n"
+                    ? "It's your turn <@"+state.players[state.player]+">\n"
                     + "Try to be the last player to take a circle."
                     : (state.over.winner === "Tie"
                     ? "There was a tie. ("+state.over.reason+"). "

@@ -10,6 +10,7 @@ import Info from "../Info";
 import * as nr from "../NewRouter";
 import { safehtml } from "../parseDiscordDG";
 import { durationFormat } from "../durationFormat";
+import { ilt } from "../../";
 
 type DiscordMarkdownOptions = {
 	/// Boolean (default: false), if it should parse embed contents (rules are slightly different)
@@ -1011,7 +1012,10 @@ async function closeTicket(
 	}
 
 	await new Promise(r => setTimeout(r, deletetime));
-	await channel.delete("closed by " + closer.toString());
+	const iltr = await ilt(channel.delete("closed by " + closer.toString()), "deleting channel for ticket");
+	if(iltr.error) {
+		await channel.send("There was an error deleting this channel. Maybe I don't have permissions? Error code: `"+iltr.error.errorCode+"`");
+	}
 	(channel as any).__IS_CLOSING = false;
 }
 
