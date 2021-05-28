@@ -91,7 +91,7 @@ function joinBetween<T>(
 	return res;
 }
 
-export function getMoves(state: UltimateTicTacToe): MoveSet<UltimateTicTacToe> {
+function getMoves(state: UltimateTicTacToe): MoveSet<UltimateTicTacToe> {
 	if (state.status.s !== "playing")
 		throw new Error("Get moves called while game over");
 
@@ -291,7 +291,7 @@ https://interpunct.info/help/fun/ultimatetictactoe
 	];
 }
 
-export function setup(players: string[]): UltimateTicTacToe {
+function setup(players: string[]): UltimateTicTacToe {
 	return {
 		board: newBoard<MegaTile>(3, 3, () =>
 			newBoard(3, 3, () => null),
@@ -304,7 +304,7 @@ export function setup(players: string[]): UltimateTicTacToe {
 	};
 }
 
-export function checkGameOver(state: UltimateTicTacToe): boolean {
+function checkGameOver(state: UltimateTicTacToe): boolean {
 	return state.status.s === "winner" || state.status.s === "tie";
 }
 

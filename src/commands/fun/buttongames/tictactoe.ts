@@ -1321,14 +1321,14 @@ const UTTTGame: Game<UTTTState> = {
             };
         }else if(state.mode === "playing") {
             let components: ActionRow[];
-            if(uttt.checkGameOver(state.state)) {
+            if(uttt.ultimatetictactoe.checkGameOver(state.state)) {
                 components = [
                     componentRow([
                         button(key(PSKeys.playing.rules), "Rules", "secondary", {emoji: {name: "rules", id: "476514294075490306", animated: false}}),
                     ]),
                 ];
             }else{
-                const moves = uttt.getMoves(state.state);
+                const moves = uttt.ultimatetictactoe.getMoves(state.state);
 
                 const ts = uttt.tileset.tiles;
                 const mm: {[key: string]: boolean} = {};
@@ -1426,7 +1426,7 @@ const UTTTGame: Game<UTTTState> = {
                     return await updateGameState<UTTTState>(info, ikey, {
                         mode: "playing",
 
-                        state: uttt.setup([state.initiator, info.message.author.id]),
+                        state: uttt.ultimatetictactoe.setup([{id: state.initiator}, {id: info.message.author.id}]),
                     });
                 }
             }else if(ikey.name === BasicKeys.joining.end) {
@@ -1441,7 +1441,7 @@ const UTTTGame: Game<UTTTState> = {
                 return await errorGame(info, "Error! Unsupported "+ikey.name);
             }
         }else if(state.mode === "playing") {
-            if(uttt.checkGameOver(state.state)) {
+            if(uttt.ultimatetictactoe.checkGameOver(state.state)) {
                 return await errorGame(info, "The game is over");
             }
 
@@ -1461,7 +1461,7 @@ const UTTTGame: Game<UTTTState> = {
 
             if(ikey.name.startsWith("E,")) {
                 const kbtn = ikey.name.replace("E,", "");
-                const moves = uttt.getMoves(state.state);
+                const moves = uttt.ultimatetictactoe.getMoves(state.state);
                 const move = moves.find(move => move.button === kbtn);
                 if(!move) return await errorGame(info, "You can't do that.");
                 if(move.player.id !== info.message.author.id) return await errorGame(info, "You can't do that.");
