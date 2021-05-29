@@ -196,7 +196,8 @@ function gameIDToNum(game_id: GameID): number {
 	return parseInt(game_id, 36);
 }
 
-type InteractionKey = `GAME|${GameID}|${GameKind}|${number}|${string}`; // ID|KIND|STAGE|NAME
+// type InteractionKey = `GAME|${GameID}|${GameKind}|${number}|${string}`; // ID|KIND|STAGE|NAME
+type InteractionKey = string; // some things don't like the above type
 function getInteractionKey(id: GameID, kind: GameKind, stage: number, name: string): InteractionKey {
 	//eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 	const res: InteractionKey = `GAME|${id}|${kind}|${stage}|${name}`;
