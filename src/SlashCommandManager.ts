@@ -490,6 +490,12 @@ const slash_command_router: {[key: string]: SlashCommandRoute} = {
 			role: {route: "grantrolebtn", args: {name: opt.string("Button text"), role: opt.role("Role to give")}},
 		},
 	},
+	give: {
+		description: "only use these when prompted",
+		subcommands: {
+			text: {route: "givetext", args: {text: opt.string("Text")}},
+		},
+	},
 };
 
 const global_slash_commands: {[key: string]: SlashCommandNameless} = {};

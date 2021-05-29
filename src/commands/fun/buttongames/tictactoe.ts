@@ -71,7 +71,7 @@ export function button(id: string, label: string | undefined, style: ButtonStyle
 	};
 }
 
-type ActionRow = {type: 1, components: ButtonComponent[]};
+export type ActionRow = {type: 1, components: ButtonComponent[]};
 export function componentRow(children: ButtonComponent[]): ActionRow {
 	if(children.length > 5) throw new Error("too many buttons");
 	return {type: 1, components: children};
@@ -81,7 +81,7 @@ export type SampleMessage = {
 	content: string,
 	components: ActionRow[],
     allowed_mentions: {parse: []},
-	embeds?: {
+	embeds: {
 		title: string,
 		description: string,
 		url?: string,
@@ -109,6 +109,7 @@ nr.globalCommand(
 		const api = info.message.client as any as ApiHolder;
 		await api.api.channels(info.message.channel.id).messages.post<{data: SampleMessage}, unknown>({data: {
 			content: "spooky",
+			embeds: [],
 			components: [
 				componentRow([
 					button("boo_btn", "Boo!", "primary", {}),
@@ -148,6 +149,7 @@ nr.globalCommand(
 		const api = info.message.client as any as ApiHolder;
 		await api.api.channels(info.message.channel.id).messages.post<{data: SampleMessage}, unknown>({data: {
 			content: "help2",
+			embeds: [],
 			components: [
 				componentRow([
 					button("NONE", "Configuration", "secondary", {}),
@@ -396,6 +398,7 @@ const TTTGame: Game<TicTacToeState> = {
 		if(state.mode === "joining") {
 			return {
 				content: "<@"+state.first_player+"> is starting a game of Tic Tac Toe",
+				embeds: [],
 				components: [
 					componentRow([
 						button(key(BasicKeys.joining.join), "Join Game", "accept", {}),
@@ -416,6 +419,7 @@ const TTTGame: Game<TicTacToeState> = {
 					+ " ("+state.win.reason+"). Players: X <@"+state.players.X+">, O: <@"+state.players.O+">"
 					: "Someone won but I'm not sure who."
 					: "never",
+				embeds: [],
 				components: [
 					...state.board.grid.map((yr, y) => componentRow(
 						yr.map((tile, x) =>
@@ -432,12 +436,14 @@ const TTTGame: Game<TicTacToeState> = {
 		}else if(state.mode === "canceled"){
 			return {
 				content: "Canceled game.",
+				embeds: [],
 				components: [],
 				allowed_mentions: {parse: []},
 			};
 		}else{
 			return {
 				content: "Unsupported "+state.mode,
+				embeds: [],
 				components: [],
 				allowed_mentions: {parse: []},
 			};
@@ -643,6 +649,7 @@ nr.globalCommand(
 		const api = info.message.client as any as ApiHolder;
 		await api.api.channels(info.message.channel.id).messages.post<{data: SampleMessage}, unknown>({data: {
 			content: "​",
+			embeds: [],
 			components: [
 				componentRow([
 					button("GRANTROLE|"+role.id, word, "primary", {}),
@@ -667,6 +674,7 @@ nr.globalCommand(
 		const api = info.message.client as any as ApiHolder;
 		await api.api.channels(info.message.channel.id).messages.post<{data: SampleMessage}, unknown>({data: {
 			content: "​",
+			embeds: [],
 			components: [
 				componentRow([
 					button("CREATETICKET", word, "primary", {}),
@@ -707,6 +715,7 @@ const CGGame: Game<CirclegameState> = {
 		if(state.mode === "joining") {
 			return {
 				content: "<@"+state.initiator+"> is starting a circle game",
+				embeds: [],
 				components: [
 					componentRow([
 						button(key(BasicKeys.joining.join), "Join Game", "accept", {}),
@@ -724,6 +733,7 @@ const CGGame: Game<CirclegameState> = {
                     ? "There was a tie. ("+state.over.reason+"). "
                     : "<@"+state.players[state.over.winner]+"> won!")
                     + " ("+state.over.reason+"). Players: <@"+state.players.X+">, <@"+state.players.O+">",
+				embeds: [],
 				components: [
 					...state.lines.map((yr, y) => {
 						const vc = yr.filter(itm => itm === " ").length;
@@ -746,12 +756,14 @@ const CGGame: Game<CirclegameState> = {
 		}else if(state.mode === "canceled") {
 			return {
 				content: "Canceled game.",
+				embeds: [],
 				components: [],
 				allowed_mentions: {parse: []},
 			};
 		}else{
 			return {
 				content: "Unsupported "+state.mode,
+				embeds: [],
 				components: [],
 				allowed_mentions: {parse: []},
 			};
@@ -926,6 +938,7 @@ const PSGame = gamelibGameHandler("PS2", PS.papersoccer, "Paper Soccer", state =
 
 	return {
 		content: render[1],
+		embeds: [],
 		components: !mm ? [componentRow([rulesbtn])] : [
 			componentRow([
 				button(key("E,"+ts.aa), "↖", "secondary", {disabled: !mm[ts.aa]}),
@@ -1014,6 +1027,7 @@ const Calculator: Game<CalcState> = {
 		const eq_enabled = calculate(JSON.parse(JSON.stringify(state)));
 		return {
 			content: "```\n"+renderedCalculator+"\n```",
+			embeds: [],
 			components: [
 				componentRow([
 					button(key("O,^"), "xʸ", "secondary", {disabled: !operations_enabled}),
@@ -1240,6 +1254,7 @@ const UTTTGame = gamelibGameHandler("UTTT", utttg.ultimatetictactoe, "Ultimate T
 	}
 	return {
 		content: render[0],
+		embeds: [],
 		components,
 		allowed_mentions: {parse: []},
 	};
@@ -1292,6 +1307,7 @@ const Conn4Game = gamelibGameHandler("C4", connect4.connect4, "Connect 4", () =>
 	}
 	return {
 		content: render[0],
+		embeds: [],
 		components,
 		allowed_mentions: {parse: []},
 	};
@@ -1394,6 +1410,7 @@ const CheckersGame = gamelibGameHandler("CHK", checkers.checkers, "Checkers", ()
 	}
 	return {
 		content: render[0],
+		embeds: [],
 		components,
 		allowed_mentions: {parse: []},
 	};
@@ -1479,6 +1496,7 @@ function gamelibGameHandler<State>(
 			if(state.mode === "joining") {
 				return {
 					content: "<@"+state.initiator+"> is starting a game of "+title,
+					embeds: [],
 					components: [
 						componentRow([
 							button(key(BasicKeys.joining.join), "Join Game", "accept", {}),
@@ -1501,12 +1519,14 @@ function gamelibGameHandler<State>(
 			}else if(state.mode === "canceled") {
 				return {
 					content: "Canceled game.",
+					embeds: [],
 					components: [],
 					allowed_mentions: {parse: []},
 				};
 			}else{
 				return {
 					content: "Unsupported "+state.mode,
+					embeds: [],
 					components: [],
 					allowed_mentions: {parse: []},
 				};
@@ -1615,24 +1635,17 @@ nr.globalCommand(
 
 let paneleditor = require("./paneleditor") as typeof import("./paneleditor");
 
-nr.globalCommand(
-	"/help/test/reload",
-	"reload",
-	{
-		usage: "reload",
-		description: "reload",
-		examples: [],
-		perms: {runner: ["bot_owner"]},
-	},
-	nr.list(),
-	async ([], info) => {
+import * as fs from "fs";
+if(process.env.NODE_ENV !== "production") {
+	fs.watchFile(require.resolve("./paneleditor"), (curr, prev) => {
+		const start_time = Date.now();
 		delete require.cache[require.resolve("./paneleditor")];
 		paneleditor = require("./paneleditor");
 		games["PANL"] = paneleditor.PanelEditor;
+		console.log("Panel editor updated in "+(Date.now() - start_time)+" ms.");
+	});
+}
 
-		await info.success("Reloaded in ");
-	},
-);
 
 type GameKind =
     | "TTT" // tic tac toe

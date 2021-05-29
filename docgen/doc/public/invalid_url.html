@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+    <meta charset="utf-8">
+    <title>Invalid URL</title>
+</head>
+
+<body>
+    Invalid URL. <span id="reason"></span>
+    <script>
+        const params = new URLSearchParams(location.search);
+        document.getElementByID("reason").appendChild(document.createTextNode(params.get("reason")));
+    </script>
+</body>
+
+</html>
