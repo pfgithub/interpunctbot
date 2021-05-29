@@ -26,7 +26,12 @@ async function cleanLogs() {
 	const mustBePast = new Date().getTime() - 60 * 24 * 60 * 60 * 1000;
 	for (const logFile of allLogs) {
 		const fpath = path.join(process.cwd(), "logs", logFile);
-		const initialtext = await fs.readFile(fpath, "utf-8");
+		let initialtext;
+		try {
+			initialtext = await fs.readFile(fpath, "utf-8");
+		}catch(e) {
+			continue;
+		}
 		const allLines = initialtext.split("\n");
 		let resIdx = allLines.length;
 		let prevDeleteCount = 0;
