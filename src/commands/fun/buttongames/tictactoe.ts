@@ -1602,6 +1602,62 @@ nr.globalCommand(
 	},
 );
 
+nr.globalCommand(
+	"/help/test/newpanel",
+	"newpanel",
+	{
+		usage: "newpanel `Panel Name`",
+		description: "make a new button panel",
+		examples: [],
+		perms: {fun: true},
+	},
+	nr.list(),
+	async ([], info) => {
+		const game_id = await createGame(PanelEditor, {
+			initiator: info.message.author.id,
+			rows: [],
+		});
+		await renderGame(info, game_id);
+	},
+);
+type Button = {
+	color: ButtonStyle,
+	label: string,
+};
+type ButtonCol = Button[];
+type ButtonRow = ButtonCol[];
+type PanelState = {
+	initiator: string,
+	rows: ButtonRow[],
+};
+const PanelEditor: Game<PanelState> = {
+	kind: "PANL",
+	render(state, game_id, game_kind, game_stage, info): SampleMessage {
+		const key = (name: string) => getInteractionKey(game_id, game_kind, game_stage, name);
+
+		return {
+			content: "Editing Panel…",
+			components: [
+				componentRow([
+					button(key("ADD"), "+", "accept", {disabled: false}),
+				]),
+			],
+			allowed_mentions: {parse: []},
+		};
+	},
+	async handleInteraction(info, custom_id): Promise<InteractionHandled<PanelState>> {
+		const ikey = parseInteractionKey(custom_id);
+		const game_state = await getGameData(ikey.game_id);
+
+		if(game_state.stage !== ikey.stage) {
+			return await errorGame(info, "This button is no longer active.");
+		}
+		const state = game_state.state as PanelState;
+		
+		return await errorGame(info, "TODO support "+ikey.name);
+	}
+};
+
 type GameKind =
     | "TTT" // tic tac toe
     | "CG" // circlegame
@@ -1610,6 +1666,7 @@ type GameKind =
     | "UTTT" // ultimate tic tac toe
     | "C4" // connect 4
     | "CHK" // checkers
+	| "PANL" // panel
 ;
 
 const games: {[key in GameKind]: Game<any>} = {
@@ -1620,4 +1677,5 @@ const games: {[key in GameKind]: Game<any>} = {
 	"UTTT": UTTTGame,
 	"C4": Conn4Game,
 	"CHK": CheckersGame,
+	"PANL": PanelEditor,
 };
