@@ -80,6 +80,18 @@ type SampleMessage = {
 	content: string,
 	components: ActionRow[],
     allowed_mentions: {parse: []},
+	embeds?: {
+		title: string,
+		description: string,
+		url?: string,
+		color: 0x2F3136,
+		timestamp?: string,
+		footer?: {icon_url: string, text: string},
+		thumbnail?: {url: string},
+		image?: {url: string},
+		author?: {name: string, url: string, icon_url: string},
+		fields?: {name: string, value: string, inline?: boolean}[],
+	}[],
 };
 
 nr.globalCommand(
@@ -1269,7 +1281,7 @@ import * as connect4 from "../gamelib/connect4";
 
 const Conn4Game = gamelibGameHandler("C4", connect4.connect4, "Connect 4", () => ["" +
 	"Try to get 4 in a row in any direction, including diagonal.", []],
-(key, mm, render) => {
+(key, mm, render): SampleMessage => {
 	let components: ActionRow[];
 	if(!mm) {
 		components = [
