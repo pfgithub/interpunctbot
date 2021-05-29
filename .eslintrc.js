@@ -21,6 +21,7 @@ module.exports = {
 		"@typescript-eslint/no-empty-function": "off",
 		"no-empty-pattern": "off", // required in nr.globalCommand
 		"no-empty": "off",
+		"@typescript-eslint/no-var-requires": 0,
 
 		// stricter linting rules:
 		"@typescript-eslint/no-shadow": ["warn", {allow: ["state", "_"]}],

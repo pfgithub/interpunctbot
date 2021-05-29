@@ -3,6 +3,7 @@ import {globalKnex} from "../../../db";
 import client from "../../../../bot";
 import Info, {permTheyCanManageRole, permWeCanManageRole} from "../../../Info";
 import { InteractionHandled } from "../../../SlashCommandManager";
+import { assertNever } from "../../../..";
 
 // FILE TODO:
 // "play against yourself" - this should make an ephemeral copy of the game
@@ -25,7 +26,7 @@ type ApiHandler = {
 
 type ApiHolder = {api: ApiHandler};
 
-type ButtonComponent = {
+export type ButtonComponent = {
 	type: 2,
 	style: 1 | 2 | 3 | 4, // primary, primary (green), secondary, destructive (red)
 	label?: string,
@@ -46,20 +47,20 @@ type ButtonComponent = {
     options: {value: string, label: string}[],
 };
 
-const buttonStyles = {
+export const buttonStyles = {
 	primary: 1,
 	secondary: 2,
 	accept: 3,
 	deny: 4,
 } as const;
-type ButtonStyle = keyof typeof buttonStyles;
+export type ButtonStyle = keyof typeof buttonStyles;
 
 type ExtraButtonOpts = {
 	disabled?: boolean,
 	emoji?: {name: string, id: string, animated: boolean},
 };
 
-function button(id: string, label: string | undefined, style: ButtonStyle, opts: ExtraButtonOpts): ButtonComponent {
+export function button(id: string, label: string | undefined, style: ButtonStyle, opts: ExtraButtonOpts): ButtonComponent {
 	if(id.length > 100) throw new Error("bad id");
 	return {
 		type: 2,
@@ -71,12 +72,12 @@ function button(id: string, label: string | undefined, style: ButtonStyle, opts:
 }
 
 type ActionRow = {type: 1, components: ButtonComponent[]};
-function componentRow(children: ButtonComponent[]): ActionRow {
+export function componentRow(children: ButtonComponent[]): ActionRow {
 	if(children.length > 5) throw new Error("too many buttons");
 	return {type: 1, components: children};
 }
 
-type SampleMessage = {
+export type SampleMessage = {
 	content: string,
 	components: ActionRow[],
     allowed_mentions: {parse: []},
@@ -238,15 +239,28 @@ async function renderGame(info: Info, game_id: GameID) {
 	const game_data = await getGameData(game_id);
 
 	const api = client as any as ApiHolder;
+	const key = (name: string) => getInteractionKey(game_id, game_data.kind, game_data.stage, name);
 	await api.api.channels(info.message.channel.id).messages.post<{data: SampleMessage}, unknown>({data:
-        games[game_data.kind].render(game_data.state, game_id, game_data.kind, game_data.stage, info),
+        games[game_data.kind].render(game_data.state, key, info),
 	});
 }
 
-interface Game<T> {
+export type HandleInteractionResponse<T> = {
+	// InteractionHandled<T>
+	kind: "update_state",
+	state: T,
+} | {
+	kind: "error",
+	msg: string,
+} | {
+	kind: "other",
+	handler: (info: Info) => Promise<void>,
+};
+
+export interface Game<T> {
 	kind: GameKind;
-    render: (state: T, game_id: GameID, game_kind: GameKind, game_stage: number, info: Info) => SampleMessage;
-    handleInteraction: (info: Info, custom_id: string) => Promise<InteractionHandled<T>>;
+    render: (state: T, key: (a: string) => string, info: Info) => SampleMessage;
+    handleInteraction: (opts: {state: T, key_name: string, author_id: string}) => HandleInteractionResponse<T>;
 }
 
 // TODO rather than incrementing stage, generate a random id
@@ -260,7 +274,8 @@ async function updateGameState<T>(info: Info, ikey: {game_id: GameID, kind: Game
 	const upd_game_data: GameData = {kind: ikey.kind, stage: ikey.stage + 1, state: state};
 	// 1: send updated message    
     
-	const msgv = games[upd_game_data.kind].render(upd_game_data.state, ikey.game_id, upd_game_data.kind, upd_game_data.stage, info);
+	const key = (name: string) => getInteractionKey(ikey.game_id, upd_game_data.kind, upd_game_data.stage, name);
+	const msgv = games[upd_game_data.kind].render(upd_game_data.state, key, info);
 	if(info.raw_interaction) {
 		await info.raw_interaction.sendRaw({
 			type: 7,
@@ -372,9 +387,7 @@ function tttDetectTie(grid: Grid<" " | "O" | "X">): boolean {
 
 const TTTGame: Game<TicTacToeState> = {
 	kind: "TTT",
-	render(state, game_id, game_kind, game_stage, info): SampleMessage {
-		const key = (name: string) => getInteractionKey(game_id, game_kind, game_stage, name);
-
+	render(state, key, info): SampleMessage {
 		if(state.mode === "joining") {
 			return {
 				content: "<@"+state.first_player+"> is starting a game of Tic Tac Toe",
@@ -425,23 +438,13 @@ const TTTGame: Game<TicTacToeState> = {
 			};
 		}
 	},
-	async handleInteraction(info, custom_id): Promise<InteractionHandled<TicTacToeState>> {
-		const ikey = parseInteractionKey(custom_id);
-		const game_state = await getGameData(ikey.game_id);
-
-		if(game_state.stage !== ikey.stage) {
-			return await errorGame(info, "This button is no longer active.");
-		}
-		const state = game_state.state as TicTacToeState;
-
-		console.log(game_state);
-
+	handleInteraction({state, key_name, author_id}): HandleInteractionResponse<TicTacToeState> {
 		if(state.mode === "joining") {
-			if(ikey.name === BasicKeys.joining.join || ikey.name === BasicKeys.joining.join_anyway) {
-				if(ikey.name !== BasicKeys.joining.join_anyway && info.message.author.id === state.first_player) {
-					return await showPlayAgainstYourselfMenu(info, TTTGame, state);
+			if(key_name === BasicKeys.joining.join || key_name === BasicKeys.joining.join_anyway) {
+				if(key_name !== BasicKeys.joining.join_anyway && author_id === state.first_player) {
+					return showPlayAgainstYourselfMenu(TTTGame, state);
 				}else{
-					return await updateGameState<TicTacToeState>(info, ikey, {
+					return {kind: "update_state", state: {
 						mode: "playing",
 						// initiator: state.first_player,
 						board: {grid:
@@ -454,75 +457,75 @@ const TTTGame: Game<TicTacToeState> = {
 						player: "X",
 						players: {
 							"X": state.first_player,
-							"O": info.message.author.id,
+							"O": author_id,
 						},
-					});
+					}};
 				}
-			}else if(ikey.name === BasicKeys.joining.end) {
-				if(info.message.author.id === state.first_player) {
-					return await updateGameState<TicTacToeState>(info, ikey, {
+			}else if(key_name === BasicKeys.joining.end) {
+				if(author_id === state.first_player) {
+					return {kind: "update_state", state: {
 						mode: "canceled",
 						initiator: state.first_player,
-					});
+					}};
 				}else{
-					return await errorGame(info, "Only <@"+state.first_player+"> can cancel.");
+					return {kind: "error", msg: "Only <@"+state.first_player+"> can cancel."};
 				}
 			}else{
-				return await errorGame(info, "Error! Unsupported "+ikey.name);
+				return {kind: "error", msg: "Error! Unsupported "+key_name};
 			}
 		}else if(state.mode === "playing") {
-			if(info.message.author.id !== state.players[state.player]) {
-				if(!JSON.stringify(state.player).includes(info.message.author.id)) { // hack
-					return await errorGame(info, "You're not in this game");
+			if(author_id !== state.players[state.player]) {
+				if(!JSON.stringify(state.player).includes(author_id)) { // hack
+					return {kind: "error", msg: "You're not in this game"};
 				}
-				return await errorGame(info, "It's not your turn");
+				return {kind: "error", msg: "It's not your turn"};
 			}
-			if(ikey.name.startsWith("T,")) {
-				const [, tx, ty] = ikey.name.split(",") as [string, string, string];
-				if(state.board.grid[+ty]![+tx] !== " ") return await errorGame(info, "You must click an empty tile");
+			if(key_name.startsWith("T,")) {
+				const [, tx, ty] = key_name.split(",") as [string, string, string];
+				if(state.board.grid[+ty]![+tx] !== " ") return {kind: "error", msg: "You must click an empty tile"};
                 state.board.grid[+ty]![+tx] = state.player;
                 if(tttDetectWin(state.board.grid, +tx, +ty)) {
-                	return await updateGameState<TicTacToeState>(info, ikey, {
+                	return {kind: "update_state", state: {
                 		...state,
                 		mode: "won",
                 		win: {
                 			player: state.player,
                 			reason: "Three in a row",
                 		},
-                	});
+                	}};
                 }else if(tttDetectTie(state.board.grid)) {
-                	return await updateGameState<TicTacToeState>(info, ikey, {
+                	return {kind: "update_state", state: {
                 		...state,
                 		mode: "won",
                 		win: {
                 			player: "Tie",
                 			reason: "All spaces filled",
                 		},
-                	});
+                	}};
                 }
-                return await updateGameState<TicTacToeState>(info, ikey, {
+                return {kind: "update_state", state: {
                 	...state,
                 	mode: "playing",
                 	player: advanceTTTPlayer(state.player),
-                });
-			}else if(ikey.name === BasicKeys.playing.give_up) {
-				return await updateGameState<TicTacToeState>(info, ikey, {
+                }};
+			}else if(key_name === BasicKeys.playing.give_up) {
+				return {kind: "update_state", state: {
 					...state,
 					mode: "won",
 					win: {
 						player: advanceTTTPlayer(state.player),
 						reason: "Other player gave up.",
 					},
-				});
+				}};
 			}else{
-				return await errorGame(info, "Error! Unsupported "+ikey.name);
+				return {kind: "error", msg: "Error! Unsupported "+key_name};
 			}
 		}else if(state.mode === "won") {
-			return await errorGame(info, "This game is over.");
+			return {kind: "error", msg: "This game is over."};
 		}else if(state.mode === "canceled") {
-			return await errorGame(info, "This game was not started.");
+			return {kind: "error", msg: "This game was not started."};
 		}else{
-			return await errorGame(info, "TODO support "+state.mode);
+			return {kind: "error", msg: "TODO support "+state.mode};
 		}
 
 		// if(info.raw_interaction) {
@@ -541,7 +544,21 @@ function advanceTTTPlayer(player: "X" | "O"): "O" | "X" {
 nr.ginteractionhandler["GAME"] = {
 	async handle(info, custom_id) {
 		const ikey = parseInteractionKey(custom_id);
-		await games[ikey.kind].handleInteraction(info, custom_id);
+		const game_state = await getGameData(ikey.game_id);
+
+		if(game_state.stage !== ikey.stage) {
+			await errorGame(info, "This button is no longer active.");
+			return;
+		}
+
+		const res = games[ikey.kind].handleInteraction({state: game_state.state, key_name: ikey.name, author_id: info.message.author.id});
+		if(res.kind === "update_state") {
+			await updateGameState(info, ikey, res.state);
+		}else if(res.kind === "error") {
+			await errorGame(info, res.msg);
+		}else if(res.kind === "other") {
+			await res.handler(info);
+		}else assertNever(res);
 	}
 };
 
@@ -678,9 +695,7 @@ type CirclegameState = {
 } | {mode: "__never__"};
 const CGGame: Game<CirclegameState> = {
 	kind: "CG",
-	render(state, game_id, game_kind, game_stage, info): SampleMessage {
-		const key = (name: string) => getInteractionKey(game_id, game_kind, game_stage, name);
-
+	render(state, key, info): SampleMessage {
 		if(state.mode === "joining") {
 			return {
 				content: "<@"+state.initiator+"> is starting a circle game",
@@ -734,24 +749,13 @@ const CGGame: Game<CirclegameState> = {
 			};
 		}
 	},
-	async handleInteraction(info, custom_id): Promise<InteractionHandled<CirclegameState>> {
-		const ikey = parseInteractionKey(custom_id);
-		const game_state = await getGameData(ikey.game_id);
-		const key = (name: string) => getInteractionKey(ikey.game_id, ikey.kind, ikey.stage, name);
-
-		if(game_state.stage !== ikey.stage) {
-			return await errorGame(info, "This button is no longer active.");
-		}
-		const state = game_state.state as CirclegameState;
-
-		console.log(game_state);
-
+	handleInteraction({state, author_id, key_name}): HandleInteractionResponse<CirclegameState> {
 		if(state.mode === "joining") {
-			if(ikey.name === BasicKeys.joining.join || ikey.name === BasicKeys.joining.join_anyway) {
-				if(ikey.name !== BasicKeys.joining.join_anyway && info.message.author.id === state.initiator) {
-					return await showPlayAgainstYourselfMenu(info, CGGame, state);
+			if(key_name === BasicKeys.joining.join || key_name === BasicKeys.joining.join_anyway) {
+				if(key_name !== BasicKeys.joining.join_anyway && author_id === state.initiator) {
+					return showPlayAgainstYourselfMenu(CGGame, state);
 				}else{
-					return await updateGameState<CirclegameState>(info, ikey, {
+					return {kind: "update_state", state: {
 						mode: "playing",
 						lines: [
 							[" "],
@@ -763,31 +767,31 @@ const CGGame: Game<CirclegameState> = {
 						player: "X",
 						players: {
 							"X": state.initiator,
-							"O": info.message.author.id,
+							"O": author_id,
 						},
-					});
+					}};
 				}
-			}else if(ikey.name === BasicKeys.joining.end) {
-				if(info.message.author.id === state.initiator) {
-					return await updateGameState<CirclegameState>(info, ikey, {
+			}else if(key_name === BasicKeys.joining.end) {
+				if(author_id === state.initiator) {
+					return {kind: "update_state", state: {
 						mode: "canceled",
-					});
+					}};
 				}else{
-					return await errorGame(info, "Only <@"+state.initiator+"> can cancel.");
+					return {kind: "error", msg: "Only <@"+state.initiator+"> can cancel."};
 				}
 			}else{
-				return await errorGame(info, "Error! Unsupported "+ikey.name);
+				return {kind: "error", msg: "Error! Unsupported "+key_name};
 			}
 		}else if(state.mode === "playing") {
-			if(state.over) return await errorGame(info, "This game is over.");
-			if(info.message.author.id !== state.players[state.player]) {
-				if(!JSON.stringify(state.player).includes(info.message.author.id)) { // hack
-					return await errorGame(info, "You're not in this game");
+			if(state.over) return {kind: "error", msg: "This game is over."};
+			if(author_id !== state.players[state.player]) {
+				if(!JSON.stringify(state.player).includes(author_id)) { // hack
+					return {kind: "error", msg: "You're not in this game"};
 				}
-				return await errorGame(info, "It's not your turn");
+				return {kind: "error", msg: "It's not your turn"};
 			}
-			if(ikey.name.startsWith("C,")) {
-				const [, tc, ty] = ikey.name.split(",") as [string, string, string];
+			if(key_name.startsWith("C,")) {
+				const [, tc, ty] = key_name.split(",") as [string, string, string];
 
 				const line = state.lines[+ty];
 				const index = line.lastIndexOf(" ") + 1;
@@ -796,36 +800,36 @@ const CGGame: Game<CirclegameState> = {
 				}
 
 				if(state.lines.every(sline => sline.lastIndexOf(" ") === -1)) {
-					return await updateGameState<CirclegameState>(info, ikey, {
+					return {kind: "update_state", state: {
 						...state,
 						over: {
 							winner: state.player,
 							reason: "Took the last circle",
 						},
-					});
+					}};
 				}
 
-				return await updateGameState<CirclegameState>(info, ikey, {
+				return {kind: "update_state", state: {
 					...state,
 					player: advanceCGPlayer(state.player),
-				});
-				return await errorGame(info, "TODO: "+tc+", "+ty);
-			}else if(ikey.name === BasicKeys.playing.give_up) {
-				return await updateGameState<CirclegameState>(info, ikey, {
+				}};
+				return {kind: "error", msg: "TODO: "+tc+", "+ty};
+			}else if(key_name === BasicKeys.playing.give_up) {
+				return {kind: "update_state", state: {
 					...state,
 					mode: "playing",
 					over: {
 						winner: advanceCGPlayer(state.player),
 						reason: "Other player gave up.",
 					},
-				});
+				}};
 			}else{
-				return await errorGame(info, "Error! Unsupported "+ikey.name);
+				return {kind: "error", msg: "Error! Unsupported "+key_name};
 			}
 		}else if(state.mode === "canceled") {
-			return await errorGame(info, "This game was not started.");
+			return {kind: "error", msg: "This game was not started."};
 		}else{
-			return await errorGame(info, "TODO support "+state.mode);
+			return {kind: "error", msg: "TODO support "+state.mode};
 		}
 
 		// if(info.raw_interaction) {
@@ -938,14 +942,15 @@ const PSGame = gamelibGameHandler("PS2", PS.papersoccer, "Paper Soccer", state =
 		allowed_mentions: {parse: []},
 	};
 },
-async (info, ikey, state) => {
+(author_id, state) => {
+	if(state.state.players[state.state.turn].id !== author_id) return {kind: "error", msg: "It's not your turn"};
 	// other player wins
 	state.state.turn += 1;
 	state.state.turn %= state.state.players.length;
 	state.state.over = {
 		reason: "Other player gave up",
 	};
-	return await updateGameState(info, ikey, state);
+	return {kind: "update_state", state: state};
 },
 );
 
@@ -982,9 +987,7 @@ nr.globalCommand(
 );
 const Calculator: Game<CalcState> = {
 	kind: "CALC",
-	render(state, game_id, game_kind, game_stage, info): SampleMessage {
-		const key = (name: string) => getInteractionKey(game_id, game_kind, game_stage, name);
-
+	render(state, key, info): SampleMessage {
 		const currentText = (state.current || "0");
 		let renderedCalculator = (state.previous ? state.previous.number + " " + state.previous.operation + " " : "")
             + currentText
@@ -1037,38 +1040,28 @@ const Calculator: Game<CalcState> = {
 			allowed_mentions: {parse: []},
 		};
 	},
-	async handleInteraction(info, custom_id): Promise<InteractionHandled<CalcState>> {
-		const ikey = parseInteractionKey(custom_id);
-		const game_state = await getGameData(ikey.game_id);
-
-		if(game_state.stage !== ikey.stage) {
-			return await errorGame(info, "This button is no longer active.");
-		}
-		const state = game_state.state as CalcState;
-
-		console.log(game_state);
-
-		if(ikey.name.startsWith("I,")) {
-			const insert = ikey.name.replace("I,", "");
+	handleInteraction({state, author_id, key_name}): HandleInteractionResponse<CalcState> {
+		if(key_name.startsWith("I,")) {
+			const insert = key_name.replace("I,", "");
 			state.current += insert;
-			return await updateGameState<CalcState>(info, ikey, state);
-		}else if(ikey.name.startsWith("O,")) {
-			const op = ikey.name.replace("O,", "");
+			return {kind: "update_state", state: state};
+		}else if(key_name.startsWith("O,")) {
+			const op = key_name.replace("O,", "");
 			if(state.previous) {
-				if(!calculate(state)) return await errorGame(info, "Never.");
+				if(!calculate(state)) return {kind: "error", msg: "Never."};
 			}
 			state.previous = {
 				operation: op as any,
 				number: state.current,
 			};
 			state.current = "";
-			return await updateGameState<CalcState>(info, ikey, state);
-		}else if(ikey.name === "ac") {
+			return {kind: "update_state", state: state};
+		}else if(key_name === "ac") {
 			state.before_eq = undefined;
 			state.previous = undefined;
 			state.current = "";
-			return await updateGameState<CalcState>(info, ikey, state);
-		}else if(ikey.name === "bksp") {
+			return {kind: "update_state", state: state};
+		}else if(key_name === "bksp") {
 			if(!state.current) {
 				if(state.previous) {
 					state.current = state.previous.number;
@@ -1083,9 +1076,9 @@ const Calculator: Game<CalcState> = {
 			}else{
 				state.current = state.current.substr(0, state.current.length - 1);
 			}
-			return await updateGameState<CalcState>(info, ikey, state);
-		}else if(ikey.name === "eq") {
-			if(!calculate(state)) return await errorGame(info, "Cannot = nothing");
+			return {kind: "update_state", state: state};
+		}else if(key_name === "eq") {
+			if(!calculate(state)) return {kind: "error", msg: "Cannot = nothing"};
 
 			// state.before_eq = {
 			//     operation: prev.operation,
@@ -1093,15 +1086,15 @@ const Calculator: Game<CalcState> = {
 			//     number: prev.number,
 			// };
 
-			return await updateGameState<CalcState>(info, ikey, state);
-		}else if(ikey.name === "negative") {
+			return {kind: "update_state", state: state};
+		}else if(key_name === "negative") {
 			if(state.current.includes("-")) {
 				state.current = state.current.replace("-", "");
 			}else{
 				state.current = "-" + state.current;
 			}
-			return await updateGameState<CalcState>(info, ikey, state);
-		} else return await errorGame(info, "TODO support "+ikey.name);
+			return {kind: "update_state", state: state};
+		} else return {kind: "error", msg: "TODO support "+key_name};
 	}
 };
 
@@ -1245,16 +1238,16 @@ const UTTTGame = gamelibGameHandler("UTTT", utttg.ultimatetictactoe, "Ultimate T
 		allowed_mentions: {parse: []},
 	};
 },
-async (info, ikey, state) => {
-	if(state.state.status.s === "playing" && state.state.players[state.state.status.turn].id === info.message.author.id) {
+(author_id, state) => {
+	if(state.state.status.s === "playing" && state.state.players[state.state.status.turn].id === author_id) {
 		state.state.status = {
 			s: "winner",
 			winner: state.state.players[state.state.status.turn === "x" ? "o" : "x"],
 			reason: "Other player gave up",
 		};
-		return await updateGameState(info, ikey, state);
+		return {kind: "update_state", state};
 	}else{
-		return await errorGame(info, "You can't do that.");
+		return {kind: "error", msg: "You can't do that."};
 	}
 },
 );
@@ -1297,17 +1290,17 @@ const Conn4Game = gamelibGameHandler("C4", connect4.connect4, "Connect 4", () =>
 		allowed_mentions: {parse: []},
 	};
 },
-async (info, ikey, state) => {
-	if(state.state.status.s === "playing" && state.state.players[state.state.turn].id === info.message.author.id) {
+(author_id, state) => {
+	if(state.state.status.s === "playing" && state.state.players[state.state.turn].id === author_id) {
 		state.state.status = {
 			s: "winner",
 			winner:
 				state.state.players[state.state.turn === "r" ? "y" : "r"],
 			reason: "Other player gave up",
 		};
-		return await updateGameState(info, ikey, state);
+		return {kind: "update_state", state: state};
 	}else{
-		return await errorGame(info, "You can't do that.");
+		return {kind: "error", msg: "It's not your turn."};
 	}
 },
 );
@@ -1398,12 +1391,12 @@ const CheckersGame = gamelibGameHandler("CHK", checkers.checkers, "Checkers", ()
 		components,
 		allowed_mentions: {parse: []},
 	};
-}, async (info, ikey, state) => {
+}, (author_id, state) => {
 	if (state.state.status.s === "winner" || state.state.status.s === "tie") {
-		return await errorGame(info, "The game is over.");
+		return {kind: "error", msg: "The game is over."};
 	}
-	if(state.state.players[state.state.status.turn].id !== info.message.author.id) {
-		return await errorGame(info, "You can't do that.");
+	if(state.state.players[state.state.status.turn].id !== author_id) {
+		return {kind: "error", msg: "You can't do that."};
 	}
 	const nextplayer = state.state.players[state.state.status.turn === "red" ? "black" : "red"];
 	state.state.status = {
@@ -1413,7 +1406,7 @@ const CheckersGame = gamelibGameHandler("CHK", checkers.checkers, "Checkers", ()
 	};
 	checkers.updateOverlay(state.state);
 
-	return await updateGameState(info, ikey, state);
+	return {kind: "update_state", state};
 });
 
 async function duplicateGame<T>(game: Game<T>, game_state: T) {
@@ -1430,18 +1423,22 @@ async function duplicateGame<T>(game: Game<T>, game_state: T) {
 	return numToGameID(id);
 }
 
-async function showPlayAgainstYourselfMenu<T>(info: Info, res: Game<T>, state: T): Promise<InteractionHandled<T>> {
-	if(info.raw_interaction) {
-		const dupe_key = await duplicateGame(res, state);
-		await info.raw_interaction.replyHiddenHideCommand("You are already in the game.", [
-			componentRow([
-				button(getInteractionKey(dupe_key, res.kind, 0, BasicKeys.joining.join_anyway), "Play against yourself", "secondary", {}),
-			]),
-		]);
-	}else{
-		await info.accept();
-	}
-	return {__interaction_handled: true as any as T};
+function showPlayAgainstYourselfMenu<T>(res: Game<T>, state: T): HandleInteractionResponse<T> {
+	return {
+		kind: "other",
+		handler: async (info) => {
+			if(info.raw_interaction) {
+				const dupe_key = await duplicateGame(res, state);
+				await info.raw_interaction.replyHiddenHideCommand("You are already in the game.", [
+					componentRow([
+						button(getInteractionKey(dupe_key, res.kind, 0, BasicKeys.joining.join_anyway), "Play against yourself", "secondary", {}),
+					]),
+				]);
+			}else{
+				await info.accept();
+			}
+		}
+	};
 }
 
 import { GameConfig } from "../gamelib/gamelib";
@@ -1461,17 +1458,15 @@ function gamelibGameHandler<State>(
 	rules: (state: State | undefined) => [string, ActionRow[]],
 	// (key, actions: GameOver | ActionsList)
 	renderPlaying: (key: (a: string) => string, mm: {[key: string]: boolean} | undefined, render: string[], state: {mode: "playing", state: State}) => SampleMessage,
-	handleGiveUp: (info: Info, ikey: {game_id: GameID, kind: GameKind, stage: number}, state: {mode: "playing", state: State}) =>
-		Promise<InteractionHandled<GamelibState<State>>>
+	handleGiveUp: (author_id: string, state: {mode: "playing", state: State}) =>
+		HandleInteractionResponse<GamelibState<State>>
 	,
 ): Game<GamelibState<State>> {
 	type CheckersState = GamelibState<State>;
 
 	const res: Game<CheckersState> = {
 		kind,
-		render(state, game_id, game_kind, game_stage, info): SampleMessage {
-			const key = (name: string) => getInteractionKey(game_id, game_kind, game_stage, name);
-
+		render(state, key, info): SampleMessage {
 			if(state.mode === "joining") {
 				return {
 					content: "<@"+state.initiator+"> is starting a game of "+title,
@@ -1508,70 +1503,61 @@ function gamelibGameHandler<State>(
 				};
 			}
 		},
-		async handleInteraction(info, custom_id): Promise<InteractionHandled<CheckersState>> {
-			const ikey = parseInteractionKey(custom_id);
-			const game_state = await getGameData(ikey.game_id);
-
-			if(game_state.stage !== ikey.stage) {
-				return await errorGame(info, "This button is no longer active.");
-			}
-			const state = game_state.state as CheckersState;
-
-			console.log(game_state);
-
-			if(ikey.name === BasicKeys.rules) {
-				if(info.raw_interaction) {
-					const rulesres = rules(state.mode === "playing" ? state.state : undefined);
-					await info.raw_interaction.replyHiddenHideCommand(rulesres[0], rulesres[1]);
-				}else{
-					await info.accept();
-				}
-				return {__interaction_handled: true as any};
-			}else if(state.mode === "joining") {
-				if(ikey.name === BasicKeys.joining.join || ikey.name === BasicKeys.joining.join_anyway) {
-					if(ikey.name !== BasicKeys.joining.join_anyway && info.message.author.id === state.initiator) {
-						return await showPlayAgainstYourselfMenu(info, res, state);
+		handleInteraction({state, author_id, key_name}): HandleInteractionResponse<CheckersState> {
+			if(key_name === BasicKeys.rules) {
+				return {kind: "other", handler: async (info) => {
+					if(info.raw_interaction) {
+						const rulesres = rules(state.mode === "playing" ? state.state : undefined);
+						await info.raw_interaction.replyHiddenHideCommand(rulesres[0], rulesres[1]);
 					}else{
-						return await updateGameState<CheckersState>(info, ikey, {
+						await info.accept();
+					}
+				}};
+			}else if(state.mode === "joining") {
+				if(key_name === BasicKeys.joining.join || key_name === BasicKeys.joining.join_anyway) {
+					if(key_name !== BasicKeys.joining.join_anyway && author_id === state.initiator) {
+						return showPlayAgainstYourselfMenu(res, state);
+					}else{
+						return {kind: "update_state", state: {
 							mode: "playing",
 
-							state: gamelibGame.setup([{id: state.initiator}, {id: info.message.author.id}]),
-						});
+							state: gamelibGame.setup([{id: state.initiator}, {id: author_id}]),
+						}};
 					}
-				}else if(ikey.name === BasicKeys.joining.end) {
-					if(info.message.author.id === state.initiator) {
-						return await updateGameState<CheckersState>(info, ikey, {
+				}else if(key_name === BasicKeys.joining.end) {
+					if(author_id === state.initiator) {
+						return {kind: "update_state", state: {
 							mode: "canceled",
-						});
+						}};
 					}else{
-						return await errorGame(info, "Only <@"+state.initiator+"> can cancel.");
+						return {kind: "error", msg: "Only <@"+state.initiator+"> can cancel."};
 					}
 				}else{
-					return await errorGame(info, "Error! Unsupported "+ikey.name);
+					return {kind: "error", msg: "Error! Unsupported "+key_name};
 				}
 			}else if(state.mode === "playing") {
 				if(gamelibGame.checkGameOver(state.state)) {
-					return await errorGame(info, "The game is over");
+					return {kind: "error", msg: "The game is over"};
 				}
 
-				if(ikey.name === BasicKeys.playing.give_up) {
-					return handleGiveUp(info, ikey, state);
+				if(key_name === BasicKeys.playing.give_up) {
+					return handleGiveUp(author_id, state);
 				}
 
-				if(ikey.name.startsWith("E,")) {
-					const kbtn = ikey.name.replace("E,", "");
+				if(key_name.startsWith("E,")) {
+					const kbtn = key_name.replace("E,", "");
 					const moves = gamelibGame.getMoves(state.state);
 					const move = moves.find(mv => mv.button === kbtn);
-					if(!move) return await errorGame(info, "You can't do that.");
-					if(move.player.id !== info.message.author.id) return await errorGame(info, "You can't do that.");
-					return await updateGameState<CheckersState>(info, ikey, {mode: "playing", state: move.apply(state.state)});
+					if(!move) return {kind: "error", msg: "You can't do that."};
+					if(move.player.id !== author_id) return {kind: "error", msg: "You can't do that."};
+					return {kind: "update_state", state: {mode: "playing", state: move.apply(state.state)}};
 				}
 				
-				return await errorGame(info, "TODO support "+ikey.name);
+				return {kind: "error", msg: "TODO support "+key_name};
 			}else if(state.mode === "canceled") {
-				return await errorGame(info, "This game was not started.");
+				return {kind: "error", msg: "This game was not started."};
 			}else{
-				return await errorGame(info, "TODO support "+state.mode);
+				return {kind: "error", msg: "TODO support "+state.mode};
 			}
 		}
 	};
@@ -1613,50 +1599,34 @@ nr.globalCommand(
 	},
 	nr.list(),
 	async ([], info) => {
-		const game_id = await createGame(PanelEditor, {
+		const game_id = await createGame(paneleditor.PanelEditor, {
 			initiator: info.message.author.id,
 			rows: [],
 		});
 		await renderGame(info, game_id);
 	},
 );
-type Button = {
-	color: ButtonStyle,
-	label: string,
-};
-type ButtonCol = Button[];
-type ButtonRow = ButtonCol[];
-type PanelState = {
-	initiator: string,
-	rows: ButtonRow[],
-};
-const PanelEditor: Game<PanelState> = {
-	kind: "PANL",
-	render(state, game_id, game_kind, game_stage, info): SampleMessage {
-		const key = (name: string) => getInteractionKey(game_id, game_kind, game_stage, name);
 
-		return {
-			content: "Editing Panel…",
-			components: [
-				componentRow([
-					button(key("ADD"), "+", "accept", {disabled: false}),
-				]),
-			],
-			allowed_mentions: {parse: []},
-		};
+let paneleditor = require("./paneleditor") as typeof import("./paneleditor");
+
+nr.globalCommand(
+	"/help/test/reload",
+	"reload",
+	{
+		usage: "reload",
+		description: "reload",
+		examples: [],
+		perms: {runner: ["bot_owner"]},
 	},
-	async handleInteraction(info, custom_id): Promise<InteractionHandled<PanelState>> {
-		const ikey = parseInteractionKey(custom_id);
-		const game_state = await getGameData(ikey.game_id);
+	nr.list(),
+	async ([], info) => {
+		delete require.cache[require.resolve("./paneleditor")];
+		paneleditor = require("./paneleditor");
+		games["PANL"] = paneleditor.PanelEditor;
 
-		if(game_state.stage !== ikey.stage) {
-			return await errorGame(info, "This button is no longer active.");
-		}
-		const state = game_state.state as PanelState;
-		
-		return await errorGame(info, "TODO support "+ikey.name);
-	}
-};
+		await info.success("Reloaded in ");
+	},
+);
 
 type GameKind =
     | "TTT" // tic tac toe
@@ -1677,5 +1647,5 @@ const games: {[key in GameKind]: Game<any>} = {
 	"UTTT": UTTTGame,
 	"C4": Conn4Game,
 	"CHK": CheckersGame,
-	"PANL": PanelEditor,
+	"PANL": paneleditor.PanelEditor,
 };
