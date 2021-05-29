@@ -13,6 +13,12 @@ type PanelState = {
 
 export const PanelEditor: Game<PanelState> = {
 	kind: "PANL",
+	init({author_id}): PanelState {
+		return {
+			initiator: author_id,
+			rows: [],
+		};
+	},
 	render(state, key, info): SampleMessage {
 		return {
 			content: "Editing Panel…",
@@ -25,9 +31,10 @@ export const PanelEditor: Game<PanelState> = {
 		};
 	},
 	handleInteraction({state, author_id, key_name}): HandleInteractionResponse<PanelState> {
+		if(author_id !== state.initiator) return {kind: "error", msg: "This is not your panel."};
 		return {
 			kind: "error",
 			msg: "TODO support "+key_name,
 		};
-	}
+	},
 };

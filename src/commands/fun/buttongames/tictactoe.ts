@@ -215,10 +215,10 @@ function parseInteractionKey(key: InteractionKey): {game_id: GameID, kind: GameK
 	};
 }
 
-async function createGame<T>(game: Game<T>, game_state: T) {
+async function createGame<T>(game: Game<T>, create_opts: CreateOpts) {
 	const gd: GameData = {
 		kind: game.kind,
-		state: game_state,
+		state: game.init(create_opts),
 		stage: 0,
 	};
 	const [id] = await globalKnex!("games").insert({
@@ -257,8 +257,10 @@ export type HandleInteractionResponse<T> = {
 	handler: (info: Info) => Promise<void>,
 };
 
+type CreateOpts = {author_id: string};
 export interface Game<T> {
 	kind: GameKind;
+	init: (opts: CreateOpts) => T;
     render: (state: T, key: (a: string) => string, info: Info) => SampleMessage;
     handleInteraction: (opts: {state: T, key_name: string, author_id: string}) => HandleInteractionResponse<T>;
 }
@@ -387,6 +389,9 @@ function tttDetectTie(grid: Grid<" " | "O" | "X">): boolean {
 
 const TTTGame: Game<TicTacToeState> = {
 	kind: "TTT",
+	init({author_id}): TicTacToeState {
+		return {mode: "joining", first_player: author_id};
+	},
 	render(state, key, info): SampleMessage {
 		if(state.mode === "joining") {
 			return {
@@ -580,7 +585,7 @@ nr.globalCommand(
 	},
 	nr.list(),
 	async ([], info) => {
-		const game_id = await createGame(TTTGame, {mode: "joining", first_player: info.message.author.id});
+		const game_id = await createGame(TTTGame, {author_id: info.message.author.id});
 		await renderGame(info, game_id);
 	},
 );
@@ -695,6 +700,9 @@ type CirclegameState = {
 } | {mode: "__never__"};
 const CGGame: Game<CirclegameState> = {
 	kind: "CG",
+	init({author_id}): CirclegameState {
+		return {mode: "joining", initiator: author_id};
+	},
 	render(state, key, info): SampleMessage {
 		if(state.mode === "joining") {
 			return {
@@ -862,7 +870,7 @@ nr.globalCommand(
 	},
 	nr.list(),
 	async ([], info) => {
-		const game_id = await createGame(CGGame, {mode: "joining", initiator: info.message.author.id});
+		const game_id = await createGame(CGGame, {author_id: info.message.author.id});
 		await renderGame(info, game_id);
 	},
 );
@@ -891,7 +899,7 @@ Alternative spellings are accepted, including {Command|paper football}`,
 	},
 	nr.list(),
 	async ([], info) => {
-		const game_id = await createGame(PSGame, {mode: "joining", initiator: info.message.author.id});
+		const game_id = await createGame(PSGame, {author_id: info.message.author.id});
 		await renderGame(info, game_id);
 	},
 );
@@ -979,14 +987,15 @@ nr.globalCommand(
 	},
 	nr.list(),
 	async ([], info) => {
-		const game_id = await createGame(Calculator, {
-			current: "",
-		});
+		const game_id = await createGame(Calculator, {author_id: info.message.author.id});
 		await renderGame(info, game_id);
 	},
 );
 const Calculator: Game<CalcState> = {
 	kind: "CALC",
+	init({author_id}) {
+		return {current: ""};
+	},
 	render(state, key, info): SampleMessage {
 		const currentText = (state.current || "0");
 		let renderedCalculator = (state.previous ? state.previous.number + " " + state.previous.operation + " " : "")
@@ -1160,10 +1169,7 @@ For better instructions, read {Link|https://mathwithbaddrawings.com/2013/06/16/u
 	},
 	nr.list(),
 	async ([], info) => {
-		const game_id = await createGame(UTTTGame, {
-			mode: "joining",
-			initiator: info.message.author.id,
-		});
+		const game_id = await createGame(UTTTGame, {author_id: info.message.author.id});
 		await renderGame(info, game_id);
 	},
 );
@@ -1327,7 +1333,7 @@ nr.globalCommand(
 	},
 	nr.passthroughArgs,
 	async ([], info) => {
-		const game_id = await createGame(Conn4Game, {mode: "joining", initiator: info.message.author.id});
+		const game_id = await createGame(Conn4Game, {author_id: info.message.author.id});
 		await renderGame(info, game_id);
 	},
 );
@@ -1466,6 +1472,9 @@ function gamelibGameHandler<State>(
 
 	const res: Game<CheckersState> = {
 		kind,
+		init({author_id}): CheckersState {
+			return {mode: "joining", initiator: author_id};
+		},
 		render(state, key, info): SampleMessage {
 			if(state.mode === "joining") {
 				return {
@@ -1583,7 +1592,7 @@ nr.globalCommand(
 	},
 	nr.passthroughArgs,
 	async ([], info) => {
-		const game_id = await createGame(CheckersGame, {mode: "joining", initiator: info.message.author.id});
+		const game_id = await createGame(CheckersGame, {author_id: info.message.author.id});
 		await renderGame(info, game_id);
 	},
 );
@@ -1599,10 +1608,7 @@ nr.globalCommand(
 	},
 	nr.list(),
 	async ([], info) => {
-		const game_id = await createGame(paneleditor.PanelEditor, {
-			initiator: info.message.author.id,
-			rows: [],
-		});
+		const game_id = await createGame(paneleditor.PanelEditor, {author_id: info.message.author.id});
 		await renderGame(info, game_id);
 	},
 );
