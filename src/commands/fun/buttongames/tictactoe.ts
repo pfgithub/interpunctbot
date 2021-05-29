@@ -427,7 +427,6 @@ const TTTGame: Game<TicTacToeState> = {
 	async handleInteraction(info, custom_id): Promise<InteractionHandled<TicTacToeState>> {
 		const ikey = parseInteractionKey(custom_id);
 		const game_state = await getGameData(ikey.game_id);
-		const key = (name: string) => getInteractionKey(ikey.game_id, ikey.kind, ikey.stage, name);
 
 		if(game_state.stage !== ikey.stage) {
 			return await errorGame(info, "This button is no longer active.");
@@ -439,16 +438,7 @@ const TTTGame: Game<TicTacToeState> = {
 		if(state.mode === "joining") {
 			if(ikey.name === BasicKeys.joining.join || ikey.name === BasicKeys.joining.join_anyway) {
 				if(ikey.name !== BasicKeys.joining.join_anyway && info.message.author.id === state.first_player) {
-					if(info.raw_interaction) {
-						await info.raw_interaction.replyHiddenHideCommand("You are already in the game.", [
-							componentRow([
-								button(key(BasicKeys.joining.join_anyway), "Play against yourself", "secondary", {}),
-							]),
-						]);
-					}else{
-						await info.accept();
-					}
-					return {__interaction_handled: true as unknown as TicTacToeState};
+					return await showPlayAgainstYourselfMenu(info, TTTGame, state);
 				}else{
 					return await updateGameState<TicTacToeState>(info, ikey, {
 						mode: "playing",
@@ -758,16 +748,7 @@ const CGGame: Game<CirclegameState> = {
 		if(state.mode === "joining") {
 			if(ikey.name === BasicKeys.joining.join || ikey.name === BasicKeys.joining.join_anyway) {
 				if(ikey.name !== BasicKeys.joining.join_anyway && info.message.author.id === state.initiator) {
-					if(info.raw_interaction) {
-						await info.raw_interaction.replyHiddenHideCommand("You are already in the game.", [
-							componentRow([
-								button(key(BasicKeys.joining.join_anyway), "Play against yourself", "secondary", {}),
-							]),
-						]);
-					}else{
-						await info.accept();
-					}
-					return {__interaction_handled: true as any};
+					return await showPlayAgainstYourselfMenu(info, CGGame, state);
 				}else{
 					return await updateGameState<CirclegameState>(info, ikey, {
 						mode: "playing",
@@ -1434,6 +1415,34 @@ const CheckersGame = gamelibGameHandler("CHK", checkers.checkers, "Checkers", ()
 	return await updateGameState(info, ikey, state);
 });
 
+async function duplicateGame<T>(game: Game<T>, game_state: T) {
+	const gd: GameData = {
+		kind: game.kind,
+		state: game_state,
+		stage: 0,
+	};
+	const [id] = await globalKnex!("games").insert({
+		id: undefined,
+		data: JSON.stringify(gd),
+	}).returning("id") as [number];
+
+	return numToGameID(id);
+}
+
+async function showPlayAgainstYourselfMenu<T>(info: Info, res: Game<T>, state: T): Promise<InteractionHandled<T>> {
+	if(info.raw_interaction) {
+		const dupe_key = await duplicateGame(res, state);
+		await info.raw_interaction.replyHiddenHideCommand("You are already in the game.", [
+			componentRow([
+				button(getInteractionKey(dupe_key, res.kind, 0, BasicKeys.joining.join_anyway), "Play against yourself", "secondary", {}),
+			]),
+		]);
+	}else{
+		await info.accept();
+	}
+	return {__interaction_handled: true as any as T};
+}
+
 import { GameConfig } from "../gamelib/gamelib";
 
 type GamelibState<T> = {
@@ -1457,7 +1466,7 @@ function gamelibGameHandler<State>(
 ): Game<GamelibState<State>> {
 	type CheckersState = GamelibState<State>;
 
-	return {
+	const res: Game<CheckersState> = {
 		kind,
 		render(state, game_id, game_kind, game_stage, info): SampleMessage {
 			const key = (name: string) => getInteractionKey(game_id, game_kind, game_stage, name);
@@ -1501,7 +1510,6 @@ function gamelibGameHandler<State>(
 		async handleInteraction(info, custom_id): Promise<InteractionHandled<CheckersState>> {
 			const ikey = parseInteractionKey(custom_id);
 			const game_state = await getGameData(ikey.game_id);
-			const key = (name: string) => getInteractionKey(ikey.game_id, ikey.kind, ikey.stage, name);
 
 			if(game_state.stage !== ikey.stage) {
 				return await errorGame(info, "This button is no longer active.");
@@ -1521,16 +1529,7 @@ function gamelibGameHandler<State>(
 			}else if(state.mode === "joining") {
 				if(ikey.name === BasicKeys.joining.join || ikey.name === BasicKeys.joining.join_anyway) {
 					if(ikey.name !== BasicKeys.joining.join_anyway && info.message.author.id === state.initiator) {
-						if(info.raw_interaction) {
-							await info.raw_interaction.replyHiddenHideCommand("You are already in the game.", [
-								componentRow([
-									button(key(BasicKeys.joining.join_anyway), "Play against yourself", "secondary", {}),
-								]),
-							]);
-						}else{
-							await info.accept();
-						}
-						return {__interaction_handled: true as any};
+						return await showPlayAgainstYourselfMenu(info, res, state);
 					}else{
 						return await updateGameState<CheckersState>(info, ikey, {
 							mode: "playing",
@@ -1575,6 +1574,7 @@ function gamelibGameHandler<State>(
 			}
 		}
 	};
+	return res;
 }
 
 nr.globalCommand(
