@@ -60,6 +60,7 @@ Fun commands are enabled by default.
 {CmdSummary|editmsg}
 {CmdSummary|viewmsgsource}
 {CmdSummary|remindme}
+{CmdSummary|calculator}
 {CmdSummary|randomword}
 {CmdSummary|inspirobot}
 {CmdSummary|bubblewrap}
