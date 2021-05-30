@@ -344,6 +344,9 @@ export type HandleInteractionResponse<T> = {
 } | {
 	kind: "other",
 	handler: (info: Info) => Promise<void>,
+} | {
+	kind: "async",
+	handler: (info: Info) => Promise<HandleInteractionResponse<T>>,
 };
 
 type CreateOpts = {author_id: string};
@@ -650,7 +653,10 @@ nr.ginteractionhandler["GAME"] = {
 			return;
 		}
 
-		const res = games[ikey.kind].handleInteraction({state: game_state.state, key_name: ikey.name, author_id: info.message.author.id, info});
+		let res = games[ikey.kind].handleInteraction({state: game_state.state, key_name: ikey.name, author_id: info.message.author.id, info});
+		while(res.kind === "async") {
+			res = await res.handler(info);
+		}
 		if(res.kind === "update_state") {
 			await updateGameState(info, ikey, res.state);
 		}else if(res.kind === "error") {
