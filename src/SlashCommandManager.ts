@@ -109,8 +109,8 @@ export class InteractionHelper {
     }
     async sendRaw(value: unknown): Promise<void> {
     	if(this.has_ackd) throw new Error("cannot double interact");
-    	this.has_ackd = true;
     	await api.api.interactions(this.raw_interaction.id, this.raw_interaction.token).callback.post({data: value});
+    	this.has_ackd = true;
     }
     async editOriginal(value: unknown): Promise<void> {
     	await api.api.webhooks(this.raw_interaction.application_id, this.raw_interaction.token).messages("@original").patch({data: value});

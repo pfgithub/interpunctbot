@@ -27,19 +27,28 @@ type ApiHandler = {
 
 type ApiHolder = {api: ApiHandler};
 
+// type ActionButtonComponent = {
+// 	type: 2,
+// 	style: 1 | 2 | 3 | 4, // primary, primary (green), secondary, destructive (red)
+// 	label?: string,
+// 	custom_id: string, // max 100 chars
+// 	disabled?: boolean,
+// 	emoji?: {name: string, id: string, animated: boolean},
+// };
+// type LinkButtonComponent = {
+// 	type: 2,
+// 	style: 5, // URL
+// 	label: string,
+// 	url: string,
+// 	disabled: boolean,
+// };
 export type ButtonComponent = {
 	type: 2,
-	style: 1 | 2 | 3 | 4, // primary, primary (green), secondary, destructive (red)
+	style: 1 | 2 | 3 | 4 | 5, // primary, primary (green), secondary, destructive (red), URL
 	label?: string,
-	custom_id: string, // max 100 chars
+	custom_id?: string,
+	url?: string,
 	disabled?: boolean,
-	emoji?: {name: string, id: string, animated: boolean},
-} | {
-	type: 2,
-	style: 5, // URL
-	label: string,
-	url: string,
-	disabled: boolean,
 } | {
     type: 3,
     label: string,
@@ -1787,11 +1796,15 @@ let paneleditor = require("./paneleditor") as typeof import("./paneleditor");
 import * as fs from "fs";
 if(process.env.NODE_ENV !== "production") {
 	fs.watchFile(require.resolve("./paneleditor"), (curr, prev) => {
-		const start_time = Date.now();
-		delete require.cache[require.resolve("./paneleditor")];
-		paneleditor = require("./paneleditor");
-		games["PANL"] = paneleditor.PanelEditor;
-		console.log("Panel editor updated in "+(Date.now() - start_time)+" ms.");
+		try {
+			const start_time = Date.now();
+			delete require.cache[require.resolve("./paneleditor")];
+			paneleditor = require("./paneleditor");
+			games["PANL"] = paneleditor.PanelEditor;
+			console.log("Panel editor updated in "+(Date.now() - start_time)+" ms.");
+		}catch(e){
+			console.log("Panel editor update failed", e);
+		}
 	});
 }
 

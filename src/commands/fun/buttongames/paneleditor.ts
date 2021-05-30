@@ -1,7 +1,7 @@
 import {
 	ButtonStyle, Game, HandleInteractionResponse, RenderResult, RenderActionRow, renderResultToResult, RenderActionButton, RenderActionButtonAction,
 	renderResultToHandledInteraction, RenderActionButtonActionCallbackOpt, RenderActionButtonActionCallback, updateGameState, IKey, SampleMessage,
-	button, componentRow, getInteractionKey, CreateOpts
+	button, componentRow, getInteractionKey, CreateOpts, buttonStyles
 } from "./tictactoe";
 import {URL} from "url";
 import * as request from "../../../RequestManager";
@@ -29,6 +29,7 @@ type Button = {
 	label: string,
 	emoji?: string,
 	action: ButtonAction,
+	disabled?: true,
 };
 type ButtonRow = Button[];
 type SavedState = {
@@ -207,6 +208,62 @@ function requestInput(info: Info, ikey: IKey,
 	};
 }
 
+function displayPanel(saved: SavedState, info: Info): {result: "success", message: SampleMessage} | {result: "error", error: string} {
+	for(const row of saved.rows) {
+		for(const line of row) {
+			if(line.action.kind === "role") {
+				const role = info.guild!.roles.resolve(line.action.role_id ?? "0");
+				const role_mention = "<@&"+line.action.role_id+"> (@"+line.action.role_name+")";
+				if(!role) return {result: "error", error: "Role "+role_mention+" does not exist on this server."};
+				if(!memberCanManageRole(info.message.member!, role)) {
+					return {result: "error", error: "You do not have permission to give people "+role_mention+". You "+
+					"must have permission to Manage Roles and your highest role must be higher than the role you are "+
+					"trying to give."};
+				}
+				if(!memberCanManageRole(info.guild!.me!, role)) {
+					return {result: "error", error: "I do not have permission to give people "+role_mention+". I "+
+					"must have permission to Manage Roles and my highest role must be higher than the role I am "+
+					"trying to give."};
+				}
+			}
+		}
+	}
+	return {result: "success", message: {
+		content: "\u200B",
+		components: [
+			...saved.rows.map(row => {
+				return componentRow(row.map(btn => {
+					const is_link = btn.action.kind === "link";
+					const links_to_err = isValidURL(btn.action.kind === "link" ? btn.action.url ?? "" : "");
+					const links_to = links_to_err ?
+						"https://interpunct.info/invalid-url?reason="+encodeURIComponent(links_to_err) : btn.action.kind === "link"
+						? btn.action.url : "https://interpunct.info/invalid-url?reason="+encodeURIComponent("No link")
+					;
+					const custom_id = btn.action.kind === "link"
+						? "*no*"
+						: btn.action.kind === "role"
+						? "GRANTROLE|"+btn.action.role_id
+						: btn.action.kind === "nothing"
+						? "NONE"
+						: "UNSUPPORTED"
+					;
+					return {
+						type: 2,
+						style: is_link ? 5 : buttonStyles[btn.color],
+						url: is_link ? links_to : undefined,
+						disabled: !!btn.disabled,
+						custom_id: is_link ? undefined : custom_id,
+						label: btn.label || "\u200b",
+						emoji: btn.emoji ? {id: btn.emoji} : undefined,
+					};	
+				}));
+			}),
+		],
+		allowed_mentions: {parse: []},
+		embeds: [],
+	}};
+}
+
 async function savePanelScreenState(info: Info, mode: "save" | "load" | "send"): Promise<EditMode> {
 	const [guild_panels, user_panels] = await Promise.all([
 		globalKnex!("panels").select(["name", "last_updated", "created_by"]).where({
@@ -292,10 +349,15 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 						mkbtn<PanelState>("🖫 Save Panel", "accept", {}, callback("SAVE", req_author, (author_id) => {
 							return savePanelScreen(author_id);
 						})),
-						mkbtn<PanelState>("👁 Preview", "primary", {}, callback("PREVIEW", req_author, () => {
+						mkbtn<PanelState>("👁 Preview", "primary", {}, callback("PREVIEW", req_author, (a, out_info) => {
+							const res = displayPanel(encodePanel(state), out_info);
+							if(res.result === "error") return {kind: "error", msg: res.result};
 							return {kind: "other", handler: async (info) => {
 								if(info.raw_interaction) {
-									await info.raw_interaction.replyHiddenHideCommand("TODO preview");
+									await info.raw_interaction.sendRaw({
+										type: 4,
+										data: {...res.message, flags: 1 << 6},
+									});
 								}else{
 									await info.accept();
 								}
