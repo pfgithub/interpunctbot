@@ -29,6 +29,10 @@ type PanelState = {
 	edit_mode: {
 		kind: "home",
 	} | {
+		kind: "save_panel",
+		guild_panels: string[],
+		user_panels: string[],
+	} | {
 		kind: "root",
 		show_last?: true,
 	} | {
@@ -105,9 +109,7 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 			if(author_id !== state.initiator) return {kind: "error", msg: "This is not your panel."};
 			return undefined;
 		};
-		request.requestInput("EDIT_BUTTON", state.initiator);
 		if(state.edit_mode.kind === "home") {
-			const omode = state.edit_mode;
 			const btncount = state.rows.reduce((t, a) => t + a.length, 0);
 			return {
 				content: "",
@@ -136,7 +138,8 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 					],
 					[
 						mkbtn<PanelState>("🖫 Save Panel", "accept", {}, callback("SAVE", req_author, () => {
-							return {kind: "error", msg: "TODO"};
+							state.edit_mode = {kind: "save_panel", guild_panels: [], user_panels: []};
+							return {kind: "update_state", state};
 						})),
 						mkbtn<PanelState>("👁 Preview", "primary", {}, callback("PREVIEW", req_author, () => {
 							return {kind: "other", handler: async (info) => {
@@ -146,6 +149,39 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 									await info.accept();
 								}
 							}};
+						})),
+					],
+				],
+				allowed_mentions: {parse: []},
+			};
+		}else if(state.edit_mode.kind === "save_panel") {
+			// display a list of panels on this server and a "save new" button to save with a custom name
+			return {
+				content: "",
+				embeds: [],
+				components: [
+					[mkbtn<PanelState>("< Back", "primary", {}, callback("BACK", req_author, (author_id) => {
+						state.edit_mode = {kind: "home"};
+						return {kind: "update_state", state};
+					}))],
+					[
+						mkbtn<PanelState>("Server Panels:", "secondary", {disabled: true}, {kind: "none"}),
+						mkbtn<PanelState>("🖫 Save to Server", "accept", {}, callback("SAVE_SERVER", req_author, (author_id) => {
+							const edit_id = request.requestInput("SAVE_PANEL", author_id);
+							const result = request.getTextInput(edit_id, author_id);
+							if(result.kind === "error") {
+								return {kind: "error", msg: result.message};
+							}else{
+								return {kind: "error", msg: "TODO save panel "+result.value};
+							}
+						})),
+					],
+					[
+						mkbtn<PanelState>("Your Panels:", "secondary", {disabled: true}, {kind: "none"}),
+						mkbtn<PanelState>("🖫 Save for Yourself", "accept", {}, callback("SAVE_YOU", req_author, () => {
+							return {kind: "error", msg: "TODO"};
+							// 2: save
+							// 3: delete the message
 						})),
 					],
 				],
@@ -191,6 +227,7 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 				allowed_mentions: {parse: []},
 			};
 		} else if(state.edit_mode.kind === "edit_button") {
+			const edit_id = request.requestInput("EDIT_BUTTON", state.initiator);
 			const ostate = state.edit_mode;
 			const btn = state.rows[state.edit_mode.btn_row]![state.edit_mode.btn_col]!;
 			return {
@@ -213,7 +250,7 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 					[
 						mkbtn<PanelState>("Label:", "secondary", {disabled: true}, {kind: "none"}),
 						mkbtn<PanelState>("Set Text", "secondary", {}, callback("SET_TEXT", req_author, (author_id) => {
-							const result = request.getTextInput("EDIT_BUTTON", author_id);
+							const result = request.getTextInput(edit_id, author_id);
 							if(result.kind === "error") {
 								return {kind: "error", msg: result.message};
 							}else{
@@ -266,6 +303,7 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 				allowed_mentions: {parse: []},
 			};
 		} else if(state.edit_mode.kind === "edit_action") {
+			const edit_id = request.requestInput("EDIT_BUTTON", state.initiator);
 			const ostate = state.edit_mode;
 			const btn = state.rows[state.edit_mode.btn_row]![state.edit_mode.btn_col]!;
 			let action_cfg: RenderActionRow<PanelState>[];
@@ -284,7 +322,7 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 							mkbtn<PanelState>(action.url, "secondary", {}, {kind: "link", url: action.url}),
 						] : [],
 						mkbtn<PanelState>("🖉 Edit", action.url ? "secondary" : "primary", {}, callback("SET_URL", req_author, (author_id) => {
-							const result = request.getTextInput("EDIT_BUTTON", author_id);
+							const result = request.getTextInput(edit_id, author_id);
 							if(result.kind === "error") {
 								return {kind: "error", msg: result.message};
 							}else{
@@ -313,7 +351,7 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 							})),
 						] : [],
 						mkbtn<PanelState>("🖉 Edit", action.role_id ? "secondary" : "primary", {}, callback("SET_ROLE", req_author, (author_id, info) => {
-							const result = request.getRoleInput("EDIT_BUTTON", author_id);
+							const result = request.getRoleInput(edit_id, author_id);
 							if(result.kind === "error") {
 								return {kind: "error", msg: result.message};
 							}else{

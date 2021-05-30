@@ -16,10 +16,11 @@ type InputRequest = {
 
 const requests = new Map<string, InputRequest>();
 
-export function requestInput(id: string, author_id: string): void {
+export function requestInput(id: string, author_id: string): string {
 	const pval = requests.get(author_id);
-	if(pval?.id === id) return;
+	if(pval?.id === id) return id;
 	requests.set(author_id, {id});
+	return id;
 }
 export function getTextInput(id: string, author_id: string): {kind: "error", message: string} | {kind: "value", value: string} {
 	const val = requests.get(author_id);

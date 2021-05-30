@@ -1710,7 +1710,7 @@ nr.globalCommand(
 	"/help/test/newpanel",
 	"newpanel",
 	{
-		usage: "newpanel `Panel Name`",
+		usage: "newpanel",
 		description: "make a new button panel",
 		examples: [],
 		perms: {fun: true},
@@ -1719,6 +1719,23 @@ nr.globalCommand(
 	async ([], info) => {
 		const game_id = await createGame(paneleditor.PanelEditor, {author_id: info.message.author.id});
 		await renderGame(info, game_id);
+	},
+);
+
+nr.globalCommand(
+	"/help/test/sendpanel",
+	"sendpanel",
+	{
+		usage: "sendpanel Panel Name",
+		description: "send a button panel",
+		examples: [],
+		perms: {fun: true},
+	},
+	nr.list(...nr.a.words()),
+	async ([panel_name], info) => {
+		return await info.error("TODO sendpanel");
+		// const game_id = await createGame(paneleditor.PanelEditor, {author_id: info.message.author.id});
+		// await renderGame(info, game_id);
 	},
 );
 

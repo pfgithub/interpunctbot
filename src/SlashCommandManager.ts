@@ -494,6 +494,7 @@ const slash_command_router: {[key: string]: SlashCommandRoute} = {
 		description: "create button panels",
 		subcommands: {
 			new: {route: "newpanel"},
+			send: {route: "sendpanel", args: {name: opt.optional(opt.string("Panel name"))}}
 		},
 	},
 	give: {
