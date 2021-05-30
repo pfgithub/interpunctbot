@@ -23,6 +23,9 @@ type ButtonAction = {
 } | {
 	kind: "link",
 	url?: string,
+} | {
+	kind: "show_error",
+	message: string,
 } | {kind: "unsupported"};
 
 type Button = {
@@ -241,7 +244,9 @@ function requestInput(info: Info, ikey: IKey,
 	};
 }
 
-function displayPanel(saved: SavedState, info: Info): {result: "success", message: SampleMessage} | {result: "error", error: string} {
+function displayPanel(saved_in: SavedState, info: Info, mode: "error" | "preview_error"): {result: "success", message: SampleMessage} | {result: "error", error: string} {
+	const saved: SavedState = JSON.parse(JSON.stringify(saved_in));
+
 	for(const row of saved.rows) {
 		for(const line of row) {
 			if(line.action.kind === "role") {
@@ -249,14 +254,18 @@ function displayPanel(saved: SavedState, info: Info): {result: "success", messag
 				const role_mention = "<@&"+line.action.role_id+"> (@"+line.action.role_name+")";
 				if(!role) return {result: "error", error: "Role "+role_mention+" does not exist on this server."};
 				if(!memberCanManageRole(info.message.member!, role)) {
-					return {result: "error", error: "You do not have permission to give people "+role_mention+". You "+
+					const error_msg = "You do not have permission to give people "+role_mention+". You "+
 					"must have permission to Manage Roles and your highest role must be higher than the role you are "+
-					"trying to give."};
+					"trying to give.";
+					if(mode === "error") return {result: "error", error: error_msg};
+					line.action = {kind: "show_error", message: error_msg};
 				}
 				if(!memberCanManageRole(info.guild!.me!, role)) {
-					return {result: "error", error: "I do not have permission to give people "+role_mention+". I "+
+					const error_msg = "I do not have permission to give people "+role_mention+". I "+
 					"must have permission to Manage Roles and my highest role must be higher than the role I am "+
-					"trying to give."};
+					"trying to give.";
+					if(mode === "error") return {result: "error", error: error_msg};
+					line.action = {kind: "show_error", message: error_msg};
 				}
 			}
 		}
@@ -278,6 +287,8 @@ function displayPanel(saved: SavedState, info: Info): {result: "success", messag
 						? "GRANTROLE|"+btn.action.role_id
 						: btn.action.kind === "nothing"
 						? "NONE"
+						: btn.action.kind === "show_error"
+						? "ERROR_PERMS"
 						: "UNSUPPORTED"
 					;
 					return {
@@ -397,7 +408,7 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 							return savePanelScreen(author_id);
 						})),
 						mkbtn<PanelState>("👁 Preview", "primary", {}, callback("PREVIEW", req_author, (a, out_info) => {
-							const res = displayPanel(encodePanel(state), out_info);
+							const res = displayPanel(encodePanel(state), out_info, "preview_error");
 							if(res.result === "error") return {kind: "error", msg: res.result};
 							return {kind: "reply_hidden", response: res.message};
 						})),
@@ -480,7 +491,7 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 							edit_mode: {kind: "home"},
 						};
 						if(mode === "send") {
-							const msgv = displayPanel(encodePanel(new_state), info);
+							const msgv = displayPanel(encodePanel(new_state), info, "error");
 							if(msgv.result === "error") return {kind: "error", msg: msgv.error};
 							return {
 								kind: "replace_content",
@@ -632,7 +643,7 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 					]] : [],
 					[
 						mkbtn<PanelState>("Send", "primary", {}, callback("SEND", req_author, (author_id, info) => {
-							const msgv = displayPanel(encodePanel(state), info);
+							const msgv = displayPanel(encodePanel(state), info, "error");
 							if(msgv.result === "error") return {kind: "error", msg: msgv.error};
 							return {
 								kind: "replace_content",
