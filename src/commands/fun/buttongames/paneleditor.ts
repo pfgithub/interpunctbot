@@ -20,6 +20,7 @@ type ButtonAction = {
 type Button = {
 	color: ButtonStyle,
 	label: string,
+	emoji?: string,
 	action: ButtonAction,
 };
 type ButtonRow = Button[];
@@ -94,6 +95,7 @@ function previewButton(btn: Button, action: RenderActionButtonAction<PanelState>
 		color: btn.action.kind === "link" ? "secondary" : btn.color,
 		action: action,
 		disabled: false,
+		emoji: btn.emoji ? {id: btn.emoji, name: "a", animated: false} : undefined,
 	};
 }
 
@@ -458,13 +460,18 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 							}else{
 								const is_valid = isValidLabel(result.value);
 								if(is_valid != null) return {kind: "error", msg: is_valid};
-								state.edit_mode = {...ostate, kind: "edit_button"};
 								btn.label = result.value;
 								return {kind: "update_state", state};
 							}
 						})),
-						mkbtn<PanelState>("Set Emoji", "secondary", {}, callback("SET_EMOJI", req_author, () => {
-							return {kind: "error", msg: "TODO"};
+						mkbtn<PanelState>("Set Emoji", "secondary", {}, callback("SET_EMOJI", req_author, (author_id) => {
+							const result = request.getEmojiInput(edit_id, author_id);
+							if(result.kind === "error") {
+								return {kind: "error", msg: result.message};
+							}else{
+								btn.emoji = result.value.id;
+								return {kind: "update_state", state};
+							}
 						})),
 					],
 					...btn.action.kind === "link" ? [] : [[

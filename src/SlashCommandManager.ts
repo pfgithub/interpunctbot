@@ -501,7 +501,8 @@ const slash_command_router: {[key: string]: SlashCommandRoute} = {
 		description: "only use these when prompted",
 		subcommands: {
 			text: {route: "givetext", args: {text: opt.string("Text")}},
-			role: {route: "giverole", args: {text: opt.role("Role")}},
+			role: {route: "giverole", args: {role: opt.role("Role")}},
+			emoji: {route: "giveemoji", args: {emoji: opt.string("Emoji")}},
 		},
 	},
 };
