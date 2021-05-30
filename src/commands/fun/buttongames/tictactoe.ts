@@ -1804,7 +1804,7 @@ nr.globalCommand(
 	nr.list(...nr.a.words()),
 	async ([panel_name], info) => {
 		const game_id = await createGame(paneleditor.PanelEditor, await paneleditor.PanelEditor.init(
-			{author_id: info.message.author.id}, {mode: "edit", search: panel_name || undefined}, info,
+			{author_id: info.message.author.id}, {mode: "send", search: panel_name || undefined}, info,
 		));
 		await renderGame(info, game_id);
 	},

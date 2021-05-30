@@ -421,6 +421,7 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 			const performLoad = (
 				owner_id: string,
 				save_name: string,
+				mode: "load" | "send",
 			): HandleInteractionResponse<PanelState> => {
 				return {
 					kind: "async",
@@ -441,6 +442,14 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 							rows: (typeof first.data === "string" ? JSON.parse(first.data) : first.data).rows,
 							edit_mode: {kind: "home"},
 						};
+						if(mode === "send") {
+							const msgv = displayPanel(encodePanel(new_state), info);
+							if(msgv.result === "error") return {kind: "error", msg: msgv.error};
+							return {
+								kind: "replace_content",
+								content: msgv.message,
+							};
+						}
 						return {kind: "update_state", state: new_state};
 					},
 				};
@@ -448,10 +457,8 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 
 			const guild_panels = (ostate.guild_panels ?? []).map((panel, i) => {
 				return mkbtn<PanelState>(panel.name, "secondary", {}, callback("SAVEg,"+i, req_author, (author_id, info) => {
-					if(ostate.mode === "load") {
-						return performLoad(info.message.guild!.id, panel.name);
-					}else if(ostate.mode === "send") {
-						return {kind: "error", msg: "TODO"};
+					if(ostate.mode === "load" || ostate.mode === "send") {
+						return performLoad(info.message.guild!.id, panel.name, ostate.mode);
 					}
 					state.edit_mode = {
 						kind: "confirm_overwrite",
@@ -465,10 +472,8 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 			});
 			const user_panels = ostate.user_panels.map((panel, i) => {
 				return mkbtn<PanelState>(panel.name, "secondary", {}, callback("SAVEu,"+i, req_author, (author_id) => {
-					if(ostate.mode === "load") {
-						return performLoad(author_id, panel.name);
-					}else if(ostate.mode === "send") {
-						return {kind: "error", msg: "TODO"};
+					if(ostate.mode === "load" || ostate.mode === "send") {
+						return performLoad(author_id, panel.name, ostate.mode);
 					}
 					state.edit_mode = {
 						kind: "confirm_overwrite",
@@ -589,16 +594,21 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 						mkbtn<PanelState>(state.last_saved_as.name, "secondary", {disabled: true}, {kind: "none"}),
 					]] : [],
 					[
-						mkbtn<PanelState>("Keep Editing", "secondary", {}, callback("CONTINUE", req_author, (author_id) => {
-							state.edit_mode = {kind: "home"};
-							return {kind: "update_state", state};
+						mkbtn<PanelState>("Send", "primary", {}, callback("SEND", req_author, (author_id, info) => {
+							const msgv = displayPanel(encodePanel(state), info);
+							if(msgv.result === "error") return {kind: "error", msg: msgv.error};
+							return {
+								kind: "replace_content",
+								content: msgv.message,
+							};
 						})),
 						mkbtn<PanelState>("× Close", "deny", {}, callback("CLOSE", req_author, (author_id) => {
 							state.edit_mode = {kind: "close"};
 							return {kind: "update_state", state};
 						})),
-						mkbtn<PanelState>("Send", "primary", {}, callback("SEND", req_author, (author_id) => {
-							return {kind: "error", msg: "TODO send"};
+						mkbtn<PanelState>("Keep Editing", "secondary", {}, callback("CONTINUE", req_author, (author_id) => {
+							state.edit_mode = {kind: "home"};
+							return {kind: "update_state", state};
 						})),
 					],
 				],
