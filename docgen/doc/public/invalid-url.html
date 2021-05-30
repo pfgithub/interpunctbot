@@ -10,7 +10,7 @@
     Invalid URL. <span id="reason"></span>
     <script>
         const params = new URLSearchParams(location.search);
-        document.getElementByID("reason").appendChild(document.createTextNode(params.get("reason")));
+        document.getElementById("reason").appendChild(document.createTextNode(params.get("reason")));
     </script>
 </body>
 
