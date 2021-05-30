@@ -362,6 +362,12 @@ export type HandleInteractionResponse<T> = {
 } | {
 	kind: "async",
 	handler: (info: Info) => Promise<HandleInteractionResponse<T>>,
+} | {
+	kind: "reply_hidden",
+	response: SampleMessage,
+} | {
+	kind: "replace_content",
+	content: SampleMessage,
 };
 
 export type CreateOpts = {author_id: string};
@@ -688,6 +694,16 @@ nr.ginteractionhandler["GAME"] = {
 			await errorGame(info, res.msg);
 		}else if(res.kind === "other") {
 			await res.handler(info);
+		}else if(res.kind === "replace_content") {
+			await info.raw_interaction!.sendRaw({
+				type: 7,
+				data: {...res.content, allowed_mentions: {parse: []}},
+			});
+		}else if(res.kind === "reply_hidden") {
+			return await info.raw_interaction!.sendRaw({
+				type: 4,
+				data: {...res.response, flags: 1 << 6},
+			});
 		}else assertNever(res);
 	}
 };
@@ -1568,18 +1584,19 @@ async function duplicateGame<T>(game: Game<T>, game_state: T) {
 
 function showPlayAgainstYourselfMenu<T>(res: Game<T>, state: T): HandleInteractionResponse<T> {
 	return {
-		kind: "other",
+		kind: "async",
 		handler: async (info) => {
-			if(info.raw_interaction) {
-				const dupe_key = await duplicateGame(res, state);
-				await info.raw_interaction.replyHiddenHideCommand("You are already in the game.", [
+			const dupe_key = await duplicateGame(res, state);
+			return {kind: "reply_hidden", response: {
+				content: "You are already in the game.",
+				embeds: [],
+				components: [
 					componentRow([
 						button(getInteractionKey(dupe_key, res.kind, 0, BasicKeys.joining.join_anyway), "Play against yourself", "secondary", {}),
 					]),
-				]);
-			}else{
-				await info.accept();
-			}
+				],
+				allowed_mentions: {parse: []},
+			}};
 		}
 	};
 }
@@ -1654,14 +1671,16 @@ function gamelibGameHandler<State>(
 		},
 		handleInteraction({state, author_id, key_name}): HandleInteractionResponse<CheckersState> {
 			if(key_name === BasicKeys.rules) {
-				return {kind: "other", handler: async (info) => {
-					if(info.raw_interaction) {
-						const rulesres = rules(state.mode === "playing" ? state.state : undefined);
-						await info.raw_interaction.replyHiddenHideCommand(rulesres[0], rulesres[1]);
-					}else{
-						await info.accept();
-					}
-				}};
+				const rulesres = rules(state.mode === "playing" ? state.state : undefined);
+
+				return {kind: "reply_hidden",
+					response: {
+						content: rulesres[0],
+						embeds: [],
+						components: rulesres[1] ?? [],
+						allowed_mentions: {parse: []},
+					},
+				};
 			}else if(state.mode === "joining") {
 				if(key_name === BasicKeys.joining.join || key_name === BasicKeys.joining.join_anyway) {
 					if(key_name !== BasicKeys.joining.join_anyway && author_id === state.initiator) {

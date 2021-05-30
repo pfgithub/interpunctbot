@@ -180,6 +180,19 @@ function requestInput(info: Info, ikey: IKey,
 				}
 			}else if(resp.kind === "other"){
 				return await resp.handler(input_info);
+			}else if(resp.kind === "reply_hidden"){
+				if(info.raw_interaction) {
+					return await input_info.raw_interaction!.sendRaw({
+						type: 4,
+						data: {...resp.response, flags: 1 << 6},
+					});
+				}else{
+					return await info.accept();
+				}
+			}else if(resp.kind === "replace_content"){
+				await info.raw_interaction!.editOriginal({
+					...resp.content, allowed_mentions: {parse: []},
+				});
 			}else assertNever(resp);
 		})().catch(async (e) => {
 			console.log(e);
@@ -198,13 +211,10 @@ function requestInput(info: Info, ikey: IKey,
 		embeds: [],
 	};
 	return {
-		kind: "other",
-		handler: async (handle_info) => {
-			await handle_info.raw_interaction!.sendRaw({
-				type: 7,
-				data: {...msgv, allowed_mentions: {parse: []}},
-			});
-		}
+		kind: "replace_content",
+		content: {
+			...msgv, allowed_mentions: {parse: []},
+		},
 	};
 }
 
@@ -352,16 +362,7 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 						mkbtn<PanelState>("👁 Preview", "primary", {}, callback("PREVIEW", req_author, (a, out_info) => {
 							const res = displayPanel(encodePanel(state), out_info);
 							if(res.result === "error") return {kind: "error", msg: res.result};
-							return {kind: "other", handler: async (info) => {
-								if(info.raw_interaction) {
-									await info.raw_interaction.sendRaw({
-										type: 4,
-										data: {...res.message, flags: 1 << 6},
-									});
-								}else{
-									await info.accept();
-								}
-							}};
+							return {kind: "reply_hidden", response: res.message};
 						})),
 					],
 				],
@@ -649,13 +650,11 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 					[
 						mkbtn<PanelState>("Preview:", "secondary", {disabled: true}, {kind: "none"}),
 						previewButton(btn, callback("PREVIEW_CLICK", req_author, () => {
-							return {kind: "other", handler: async (info) => {
-								if(info.raw_interaction) {
-									const action = btn.action;
-									await info.raw_interaction.replyHiddenHideCommand("When you click this button, "+action.kind);
-								}else{
-									await info.accept();
-								}
+							return {kind: "reply_hidden", response: {
+								content: "When you click this button, "+btn.action.kind,
+								embeds: [],
+								components: [],
+								allowed_mentions: {parse: []},
 							}};
 						})),
 					],
@@ -756,12 +755,11 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 						mkbtn<PanelState>("Role:", "secondary", {disabled: true}, {kind: "none"}),
 						...action.role_id ? [
 							mkbtn<PanelState>("@"+action.role_name, "secondary", {}, callback("SHOW_ROLE", () => {
-								return {kind: "other", handler: async (info) => {
-									if(info.raw_interaction) {
-										await info.raw_interaction.replyHiddenHideCommand("<@&"+action.role_id+">");
-									}else{
-										await info.accept();
-									}
+								return {kind: "reply_hidden", response: {
+									content: "<@&"+action.role_id+">",
+									embeds: [],
+									components: [],
+									allowed_mentions: {parse: []},
 								}};
 							})),
 						] : [],
