@@ -360,10 +360,10 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 						mkbtn<PanelState>("Cancel", "primary", {}, callback("CLOSE", req_author, (author_id) => {
 							return savePanelScreen(author_id);
 						})),
-						mkbtn<PanelState>("👁 Preview This", "primary", {}, callback("PREVIEW_THIS", req_author, () => {
+						mkbtn<PanelState>("👁 Preview This", "secondary", {}, callback("PREVIEW_THIS", req_author, () => {
 							return {kind: "error", msg: "TODO"};
 						})),
-						mkbtn<PanelState>("👁 Preview Saved", "primary", {}, callback("PREVIEW_OTHER", req_author, () => {
+						mkbtn<PanelState>("👁 Preview Saved", "secondary", {}, callback("PREVIEW_OTHER", req_author, () => {
 							return {kind: "error", msg: "TODO"};
 						})),
 					],
@@ -464,15 +464,22 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 								return {kind: "update_state", state};
 							}
 						})),
+						...btn.label ? [mkbtn<PanelState>("Clear Text", "secondary", {}, callback("CLR_TEXT", req_author, (author_id) => {
+							btn.label = "";
+							return {kind: "update_state", state};
+						}))] : [],
 						mkbtn<PanelState>("Set Emoji", "secondary", {}, callback("SET_EMOJI", req_author, (author_id) => {
 							const result = request.getEmojiInput(edit_id, author_id);
 							if(result.kind === "error") {
 								return {kind: "error", msg: result.message};
-							}else{
-								btn.emoji = result.value.id;
-								return {kind: "update_state", state};
 							}
+							btn.emoji = result.value.id;
+							return {kind: "update_state", state};
 						})),
+						...btn.emoji ? [mkbtn<PanelState>("Clear Emoji", "secondary", {}, callback("CLR_EMOJI", req_author, (author_id) => {
+							btn.emoji = undefined;
+							return {kind: "update_state", state};
+						}))] : [],
 					],
 					...btn.action.kind === "link" ? [] : [[
 						mkbtn<PanelState>("Color:", "secondary", {disabled: true}, {kind: "none"}),

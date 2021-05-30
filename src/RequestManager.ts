@@ -72,6 +72,7 @@ nr.globalCommand(
 	},
 	nr.list(...nr.a.words()),
 	async ([value], info) => {
+		if(!value) return await info.error("Usage: givetext {text}");
 		const pr = postResponse(info.message.author.id, {kind: "text", value});
 		if(pr) {
 			return await info.error(pr.message);
