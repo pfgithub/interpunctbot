@@ -50,9 +50,29 @@ nr.addDocsWebPage(
 	"bot updates",
 	`{Heading|Bot Updates}
 
+{LinkSummary|/updates/2021-05-30}
 {LinkSummary|/updates/2020-07-30}
 {LinkSummary|/updates/2020-03-12}
 {LinkSummary|/updates/ipv3}`,
+);
+
+nr.addDocsWebPage(
+	"/updates/2021-05-30",
+	"update 2021-05-30",
+	"update 2021-05-30",
+	`{Title|The Button Update 2021-05-30}
+
+{Screenshot|https://i.imgur.com/2uXFcqX.png}
+
+Create buttons and button panels!
+{LinkSummary|/help/buttons}
+
+All games have been updated to use new buttons
+{LinkSummary|/help/games}
+
+New fun command
+{CmdSummary|calculator}
+	`,
 );
 
 nr.addDocsWebPage(
