@@ -9,6 +9,7 @@ nr.addDocsWebPage(
 
 {LinkSummary|/help/configuration}
 {LinkSummary|/help/games}
+{LinkSummary|/help/buttons}
 {LinkSummary|/help/ticket}
 {LinkSummary|/help/emoji}
 {LinkSummary|/help/messages}
