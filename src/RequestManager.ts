@@ -14,54 +14,19 @@ export type ResponseType = {
 };
 
 type InputRequest = {
-	id: string,
 	response?: ResponseType,
-	cb?: (res: ResponseType, info: Info) => void,
+	cb: (res: ResponseType, info: Info) => void,
 };
 
 const requests = new Map<string, InputRequest>();
 
-export function requestInput(id: string, author_id: string): string {
-	const pval = requests.get(author_id);
-	if(pval?.id === id) return id;
-	requests.set(author_id, {id});
-	return id;
-}
 export function clearRequest(author_id: string): void {
 	requests.delete(author_id);
 }
 export function requestInput2(author_id: string, cb: (res: ResponseType, info: Info) => void): void {
 	requests.set(author_id, {
-		id: "*unused*",
 		cb,
 	});
-}
-export function getTextInput(id: string, author_id: string): {kind: "error", message: string} | {kind: "value", value: string} {
-	const val = requests.get(author_id);
-	if(!val || val.id !== id || !val.response || val.response.kind !== "text") return {
-		kind: "error",
-		message: "Please type <:slash:848339665093656607>`/give text` and then click the button again",
-	};
-	requests.delete(author_id);
-	return {kind: "value", value: val.response.value};
-}
-export function getRoleInput(id: string, author_id: string): {kind: "error", message: string} | {kind: "value", value: discord.Role} {
-	const val = requests.get(author_id);
-	if(!val || val.id !== id || !val.response || val.response.kind !== "role") return {
-		kind: "error",
-		message: "Please type <:slash:848339665093656607>`/give role` and then click the button again",
-	};
-	requests.delete(author_id);
-	return {kind: "value", value: val.response.value};
-}
-export function getEmojiInput(id: string, author_id: string): {kind: "error", message: string} | {kind: "value", value: {id: string}} {
-	const val = requests.get(author_id);
-	if(!val || val.id !== id || !val.response || val.response.kind !== "emoji") return {
-		kind: "error",
-		message: "Please type <:slash:848339665093656607>`/give emoji` and then click the button again",
-	};
-	requests.delete(author_id);
-	return {kind: "value", value: val.response.value};
 }
 async function postResponse(author_id: string, response: ResponseType, info: Info) {
 	// if(pr) {
@@ -75,15 +40,9 @@ async function postResponse(author_id: string, response: ResponseType, info: Inf
 	if(!val) return await info.error(
 		"A response is not needed right now. Use this command only if you are prompted.",
 	);
-	if(val.cb) {
-		val.cb(response, info);
-		requests.delete(author_id);
-		return;
-	}
-	val.response = response;
-	if(info.raw_interaction) {
-		return await info.raw_interaction.replyHiddenHideCommand("✓. Please click the button again.");
-	}else return await info.success("✓. Please click the button again.");
+	val.cb(response, info);
+	requests.delete(author_id);
+	return;
 }
 
 nr.globalCommand(

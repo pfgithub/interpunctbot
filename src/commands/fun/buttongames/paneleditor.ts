@@ -5,6 +5,7 @@ import Info, { memberCanManageRole } from "../../../Info";
 import {globalKnex} from "../../../db";
 import { assertNever, perr } from "../../../..";
 import { ResponseType } from "../../../RequestManager";
+import * as discord from "discord.js";
 
 // NOTE this will retain all fields, even those
 // that are not of the active tag.
@@ -126,13 +127,35 @@ function encodePanel(state: PanelState): SavedState {
 	return {rows: state.rows};
 }
 
-/// TODO:
-/// - make this work for all input types
-/// - display the right message when eg asking for a role.
-function requestInput(edit_id: string, author_id: string, info: Info, ikey: IKey,
-	cb: (a: ResponseType) => HandleInteractionResponse<PanelState>,
+function requestTextInput(info: Info, ikey: IKey,
+	cb: (a: string) => HandleInteractionResponse<PanelState>,
 ): HandleInteractionResponse<PanelState> {
-	request.requestInput2(author_id, (response, input_info) => {
+	return requestInput(info, ikey, (res): HandleInteractionResponse<PanelState> => {
+		if(res.kind !== "text") return {kind: "error", msg: "Expected text."};
+		return cb(res.value);
+	}, {slash: "give text", base: "givetext {Text}"});
+}
+function requestRoleInput(info: Info, ikey: IKey,
+	cb: (a: discord.Role) => HandleInteractionResponse<PanelState>,
+): HandleInteractionResponse<PanelState> {
+	return requestInput(info, ikey, (res): HandleInteractionResponse<PanelState> => {
+		if(res.kind !== "role") return {kind: "error", msg: "Expected role."};
+		return cb(res.value);
+	}, {slash: "give role", base: "giverole {Role name or id}"});
+}
+function requestEmojiInput(info: Info, ikey: IKey,
+	cb: (a: {id: string}) => HandleInteractionResponse<PanelState>,
+): HandleInteractionResponse<PanelState> {
+	return requestInput(info, ikey, (res): HandleInteractionResponse<PanelState> => {
+		if(res.kind !== "emoji") return {kind: "error", msg: "Expected emoji."};
+		return cb(res.value);
+	}, {slash: "give emoji", base: "giveemoji {Emoji or emoji id}"});
+}
+function requestInput(info: Info, ikey: IKey,
+	cb: (a: ResponseType) => HandleInteractionResponse<PanelState>,
+	messages: {slash: string, base: string},
+): HandleInteractionResponse<PanelState> {
+	request.requestInput2(info.message.author.id, (response, input_info) => {
 		perr((async () => {
 			let resp = cb(response);
 			while(resp.kind === "async") {
@@ -143,9 +166,9 @@ function requestInput(edit_id: string, author_id: string, info: Info, ikey: IKey
 			}else if(resp.kind === "update_state") {
 				await updateGameState<PanelState>(info, ikey, resp.state, {edit_original: info.raw_interaction!});	
 				if(input_info.raw_interaction) {
-					await input_info.raw_interaction.replyHiddenHideCommand("✓ Text Set.");
+					await input_info.raw_interaction.replyHiddenHideCommand("✓ Set.");
 				}else{
-					await input_info.success("Text Set.");
+					await input_info.success("Set.");
 				}
 			}else if(resp.kind === "other"){
 				return await resp.handler(input_info);
@@ -157,7 +180,7 @@ function requestInput(edit_id: string, author_id: string, info: Info, ikey: IKey
 	});
 	const key = (name: string) => getInteractionKey(ikey.game_id, ikey.kind, ikey.stage, name);
 	const msgv: SampleMessage = {
-		content: "Please type <:slash:848339665093656607>`/give text` or `"+info.prefix+"givetext {Text}`",
+		content: "Please type <:slash:848339665093656607>`/"+messages.slash+"` or `"+info.prefix+messages.base+"`",
 		components: [
 			componentRow([
 				button(key("*RELOAD*"), "Cancel", "primary", {}),
@@ -254,13 +277,9 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 		}else if(state.edit_mode.kind === "save_panel") {
 			const ostate = state.edit_mode;
 			// display a list of panels on this server and a "save new" button to save with a custom name
-			const performSave = (author_id: string, owner: "author" | "guild"): HandleInteractionResponse<PanelState> => {
-				const edit_id = request.requestInput("SAVE_PANEL", author_id);
-				const result = request.getTextInput(edit_id, author_id);
-				if(result.kind === "error") {
-					return {kind: "error", msg: result.message};
-				}
-				const save_name = result.value;
+			const performSave = (author_id: string, owner: "author" | "guild", root_info: Info,
+				ikey: IKey,
+			): HandleInteractionResponse<PanelState> => requestTextInput(root_info, ikey, (save_name) => {
 				if(save_name.length > 60) return {kind: "error", msg: "Name must be at most 60 characters"};
 
 				return {
@@ -303,9 +322,7 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 						return {kind: "update_state", state};
 					},
 				};
-				// 2: save
-				// 3: delete the message
-			};
+			});
 
 			const guild_panels = (ostate.guild_panels ?? []).map((panel, i) => {
 				return mkbtn<PanelState>(panel.name, "secondary", {}, callback("SAVEg,"+i, req_author, (author_id, info) => {
@@ -343,8 +360,8 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 					[
 						mkbtn<PanelState>("Server Panels:", "secondary", {disabled: true}, {kind: "none"}),
 						...ostate.guild_panels ? [
-							mkbtn<PanelState>("🖫 Save to Server", "accept", {}, callback("SAVE_SERVER", req_author, (author_id) => {
-								return performSave(author_id, "guild");
+							mkbtn<PanelState>("🖫 Save to Server", "accept", {}, callback("SAVE_SERVER", req_author, (author_id, info, a) => {
+								return performSave(author_id, "guild", info, a);
 							})),
 							...guild_panels.filter((panel, i) => i < 3),
 						] : [
@@ -359,8 +376,8 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 					]] : [],
 					[
 						mkbtn<PanelState>("Your Panels:", "secondary", {disabled: true}, {kind: "none"}),
-						mkbtn<PanelState>("🖫 Save for Yourself", "accept", {}, callback("SAVE_YOU", req_author, (author_id) => {
-							return performSave(author_id, "author");
+						mkbtn<PanelState>("🖫 Save for Yourself", "accept", {}, callback("SAVE_YOU", req_author, (author_id, info, a) => {
+							return performSave(author_id, "author", info, a);
 						})),
 						...user_panels.filter((panel, i) => i < 3),
 					],
@@ -506,11 +523,10 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 					[
 						mkbtn<PanelState>("Label:", "secondary", {disabled: true}, {kind: "none"}),
 						mkbtn<PanelState>("Set Text", "secondary", {}, callback("SET_TEXT", req_author, (author_id, info, ikey) => {
-							return requestInput("SET_TEXT", author_id, info, ikey, (input) => {
-								if(input.kind !== "text") return {kind: "error", msg: "Text required"};
-								const is_valid = isValidLabel(input.value);
+							return requestTextInput(info, ikey, (value) => {
+								const is_valid = isValidLabel(value);
 								if(is_valid != null) return {kind: "error", msg: is_valid};
-								btn.label = input.value;
+								btn.label = value;
 								return {kind: "update_state", state};
 							});
 						})),
@@ -518,14 +534,11 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 							btn.label = "";
 							return {kind: "update_state", state};
 						}))] : [],
-						mkbtn<PanelState>("Set Emoji", "secondary", {}, callback("SET_EMOJI", req_author, (author_id) => {
-							const edit_id = request.requestInput("EDIT_BUTTON", state.initiator);
-							const result = request.getEmojiInput(edit_id, author_id);
-							if(result.kind === "error") {
-								return {kind: "error", msg: result.message};
-							}
-							btn.emoji = result.value.id;
-							return {kind: "update_state", state};
+						mkbtn<PanelState>("Set Emoji", "secondary", {}, callback("SET_EMOJI", req_author, (author_id, info, a) => {
+							return requestEmojiInput(info, a, (emoji) => {
+								btn.emoji = emoji.id;
+								return {kind: "update_state", state};
+							});
 						})),
 						...btn.emoji ? [mkbtn<PanelState>("Clear Emoji", "secondary", {}, callback("CLR_EMOJI", req_author, (author_id) => {
 							btn.emoji = undefined;
@@ -570,7 +583,6 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 				allowed_mentions: {parse: []},
 			};
 		} else if(state.edit_mode.kind === "edit_action") {
-			const edit_id = request.requestInput("EDIT_BUTTON", state.initiator);
 			const ostate = state.edit_mode;
 			const btn = state.rows[state.edit_mode.btn_row]![state.edit_mode.btn_col]!;
 			let action_cfg: RenderActionRow<PanelState>[];
@@ -588,16 +600,13 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 						...action.url ? [
 							mkbtn<PanelState>(action.url, "secondary", {}, {kind: "link", url: action.url}),
 						] : [],
-						mkbtn<PanelState>("🖉 Edit", action.url ? "secondary" : "primary", {}, callback("SET_URL", req_author, (author_id) => {
-							const result = request.getTextInput(edit_id, author_id);
-							if(result.kind === "error") {
-								return {kind: "error", msg: result.message};
-							}else{
-								const is_valid = isValidURL(result.value);
+						mkbtn<PanelState>("🖉 Edit", action.url ? "secondary" : "primary", {}, callback("SET_URL", req_author, (author_id, info, a) => {
+							return requestTextInput(info, a, (text) => {
+								const is_valid = isValidURL(text);
 								if(is_valid != null) return {kind: "error", msg: is_valid};
-								action.url = result.value;
+								action.url = text;
 								return {kind: "update_state", state};
-							}
+							});
 						})),
 					],
 				];
@@ -617,25 +626,22 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 								}};
 							})),
 						] : [],
-						mkbtn<PanelState>("🖉 Edit", action.role_id ? "secondary" : "primary", {}, callback("SET_ROLE", req_author, (author_id, info) => {
-							const result = request.getRoleInput(edit_id, author_id);
-							if(result.kind === "error") {
-								return {kind: "error", msg: result.message};
-							}else{
-								if(!memberCanManageRole(info.message.member!, result.value)) {
-									return {kind: "error", msg: "You do not have permission to give people <@&"+result.value.id+">.\n"
-									+ "You need permission to Manage Roles and your highest role must be above <@&"+result.value.id+">."};
+						mkbtn<PanelState>("🖉 Edit", action.role_id ? "secondary" : "primary", {}, callback("SET_ROLE", req_author, (author_id, info, a) => {
+							return requestRoleInput(info, a, (role) => {
+								if(!memberCanManageRole(info.message.member!, role)) {
+									return {kind: "error", msg: "You do not have permission to give people <@&"+role.id+">.\n"
+									+ "You need permission to Manage Roles and your highest role must be above <@&"+role.id+">."};
 								}
-								if(!memberCanManageRole(result.value.guild.me!, result.value)) {
-									return {kind: "error", msg: "I do not have permission to give people <@&"+result.value.id+">.\n"
-									+ "I need permission to Manage Roles and my highest role must be above <@&"+result.value.id+">."};
+								if(!memberCanManageRole(role.guild.me!, role)) {
+									return {kind: "error", msg: "I do not have permission to give people <@&"+role.id+">.\n"
+									+ "I need permission to Manage Roles and my highest role must be above <@&"+role.id+">."};
 								}
 								// const is_valid = isValidURL(result.value);
 								// if(is_valid != null) return {kind: "error", msg: is_valid};
-								action.role_id = result.value.id;
-								action.role_name = result.value.name;
+								action.role_id = role.id;
+								action.role_name = role.name;
 								return {kind: "update_state", state};
-							}
+							});
 						})),
 					],
 				];
