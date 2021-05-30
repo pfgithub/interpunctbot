@@ -236,7 +236,7 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 				components: [
 					[
 						mkbtn<PanelState>("Preview:", "secondary", {disabled: true}, {kind: "none"}),
-						previewButton(btn, callback("PREVIEW_CLICK", () => {
+						previewButton(btn, callback("PREVIEW_CLICK", req_author, () => {
 							return {kind: "other", handler: async (info) => {
 								if(info.raw_interaction) {
 									const action = btn.action;
