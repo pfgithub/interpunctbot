@@ -112,11 +112,11 @@ export class InteractionHelper {
     	this.has_ackd = true;
     	await api.api.interactions(this.raw_interaction.id, this.raw_interaction.token).callback.post({data: value});
     }
-    async edit(value: unknown): Promise<void> {
-    	await api.api.webhooks(this.raw_interaction.application_id, this.raw_interaction.id, this.raw_interaction.token).messages("@original").patch({data: value});
+    async editOriginal(value: unknown): Promise<void> {
+    	await api.api.webhooks(this.raw_interaction.application_id, this.raw_interaction.token).messages("@original").patch({data: value});
     }
     async delete(): Promise<void> {
-    	await api.api.webhooks(this.raw_interaction.application_id, this.raw_interaction.id, this.raw_interaction.token).messages("@original").delete();
+    	await api.api.webhooks(this.raw_interaction.application_id, this.raw_interaction.token).messages("@original").delete();
     }
     async acceptLater(): Promise<InteractionHandled<any>> {
     	await this.sendRaw({

@@ -1,8 +1,10 @@
-import {ButtonStyle, Game, HandleInteractionResponse, RenderResult, RenderActionRow, renderResultToResult, RenderActionButton, RenderActionButtonAction, renderResultToHandledInteraction, RenderActionButtonActionCallbackOpt, RenderActionButtonActionCallback} from "./tictactoe";
+import {ButtonStyle, Game, HandleInteractionResponse, RenderResult, RenderActionRow, renderResultToResult, RenderActionButton, RenderActionButtonAction, renderResultToHandledInteraction, RenderActionButtonActionCallbackOpt, RenderActionButtonActionCallback, updateGameState, IKey, SampleMessage, button, componentRow, getInteractionKey} from "./tictactoe";
 import {URL} from "url";
 import * as request from "../../../RequestManager";
-import { memberCanManageRole } from "../../../Info";
+import Info, { memberCanManageRole } from "../../../Info";
 import {globalKnex} from "../../../db";
+import { assertNever, perr } from "../../../..";
+import { ResponseType } from "../../../RequestManager";
 
 // NOTE this will retain all fields, even those
 // that are not of the active tag.
@@ -111,9 +113,9 @@ function callback<T>(id: string, ...cb: [
 	...RenderActionButtonActionCallbackOpt<T>[],
 	RenderActionButtonActionCallback<T>,
 ]): RenderActionButtonAction<T> {
-	return {kind: "callback", id, cb: (author_id, info) => {
+	return {kind: "callback", id, cb: (author_id, info, ikey) => {
 		for(const a of cb) {
-			const res = a(author_id, info);
+			const res = a(author_id, info, ikey);
 			if(res) return res;
 		}
 		throw new Error("unreachable");
@@ -122,6 +124,57 @@ function callback<T>(id: string, ...cb: [
 
 function encodePanel(state: PanelState): SavedState {
 	return {rows: state.rows};
+}
+
+/// TODO:
+/// - make this work for all input types
+/// - display the right message when eg asking for a role.
+function requestInput(edit_id: string, author_id: string, info: Info, ikey: IKey,
+	cb: (a: ResponseType) => HandleInteractionResponse<PanelState>,
+): HandleInteractionResponse<PanelState> {
+	request.requestInput2(author_id, (response, input_info) => {
+		perr((async () => {
+			let resp = cb(response);
+			while(resp.kind === "async") {
+				resp = await resp.handler(input_info);
+			}
+			if(resp.kind === "error") {
+				return await input_info.error(resp.msg);
+			}else if(resp.kind === "update_state") {
+				await updateGameState<PanelState>(info, ikey, resp.state, {edit_original: info.raw_interaction!});	
+				if(input_info.raw_interaction) {
+					await input_info.raw_interaction.replyHiddenHideCommand("✓ Text Set.");
+				}else{
+					await input_info.success("Text Set.");
+				}
+			}else if(resp.kind === "other"){
+				return await resp.handler(input_info);
+			}else assertNever(resp);
+		})().catch(async (e) => {
+			console.log(e);
+			return await input_info.error("Internal error.");
+		}), "responding to input");
+	});
+	const key = (name: string) => getInteractionKey(ikey.game_id, ikey.kind, ikey.stage, name);
+	const msgv: SampleMessage = {
+		content: "Please type <:slash:848339665093656607>`/give text` or `"+info.prefix+"givetext {Text}`",
+		components: [
+			componentRow([
+				button(key("*RELOAD*"), "Cancel", "primary", {}),
+			]),
+		],
+		allowed_mentions: {parse: []},
+		embeds: [],
+	};
+	return {
+		kind: "other",
+		handler: async (handle_info) => {
+			await handle_info.raw_interaction!.sendRaw({
+				type: 7,
+				data: {...msgv, allowed_mentions: {parse: []}},
+			});
+		}
+	};
 }
 
 function newRender(state: PanelState): RenderResult<PanelState> {
@@ -431,7 +484,6 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 				allowed_mentions: {parse: []},
 			};
 		} else if(state.edit_mode.kind === "edit_button") {
-			const edit_id = request.requestInput("EDIT_BUTTON", state.initiator);
 			const ostate = state.edit_mode;
 			const btn = state.rows[state.edit_mode.btn_row]![state.edit_mode.btn_col]!;
 			return {
@@ -453,22 +505,21 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 					],
 					[
 						mkbtn<PanelState>("Label:", "secondary", {disabled: true}, {kind: "none"}),
-						mkbtn<PanelState>("Set Text", "secondary", {}, callback("SET_TEXT", req_author, (author_id) => {
-							const result = request.getTextInput(edit_id, author_id);
-							if(result.kind === "error") {
-								return {kind: "error", msg: result.message};
-							}else{
-								const is_valid = isValidLabel(result.value);
+						mkbtn<PanelState>("Set Text", "secondary", {}, callback("SET_TEXT", req_author, (author_id, info, ikey) => {
+							return requestInput("SET_TEXT", author_id, info, ikey, (input) => {
+								if(input.kind !== "text") return {kind: "error", msg: "Text required"};
+								const is_valid = isValidLabel(input.value);
 								if(is_valid != null) return {kind: "error", msg: is_valid};
-								btn.label = result.value;
+								btn.label = input.value;
 								return {kind: "update_state", state};
-							}
+							});
 						})),
 						...btn.label ? [mkbtn<PanelState>("Clear Text", "secondary", {}, callback("CLR_TEXT", req_author, (author_id) => {
 							btn.label = "";
 							return {kind: "update_state", state};
 						}))] : [],
 						mkbtn<PanelState>("Set Emoji", "secondary", {}, callback("SET_EMOJI", req_author, (author_id) => {
+							const edit_id = request.requestInput("EDIT_BUTTON", state.initiator);
 							const result = request.getEmojiInput(edit_id, author_id);
 							if(result.kind === "error") {
 								return {kind: "error", msg: result.message};

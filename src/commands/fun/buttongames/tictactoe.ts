@@ -2,8 +2,9 @@ import * as nr from "../../../NewRouter";
 import {globalKnex} from "../../../db";
 import client from "../../../../bot";
 import Info, {permTheyCanManageRole, permWeCanManageRole} from "../../../Info";
-import { InteractionHandled } from "../../../SlashCommandManager";
+import { InteractionHandled, InteractionHelper } from "../../../SlashCommandManager";
 import { assertNever } from "../../../..";
+import { clearRequest } from "../../../RequestManager";
 
 // FILE TODO:
 // "play against yourself" - this should make an ephemeral copy of the game
@@ -94,8 +95,8 @@ export type SampleMessage = {
 		fields?: {name: string, value: string, inline?: boolean}[],
 	}[],
 };
-export type RenderActionButtonActionCallbackOpt<T> = (author_id: string, info: Info) => HandleInteractionResponse<T> | undefined;
-export type RenderActionButtonActionCallback<T> = (author_id: string, info: Info) => HandleInteractionResponse<T>;
+export type RenderActionButtonActionCallbackOpt<T> = (author_id: string, info: Info, ikey: IKey) => HandleInteractionResponse<T> | undefined;
+export type RenderActionButtonActionCallback<T> = (author_id: string, info: Info, ikey: IKey) => HandleInteractionResponse<T>;
 export type RenderActionButtonAction<T> = {
 	kind: "callback",
 	id: string,
@@ -149,12 +150,17 @@ export function renderResultToHandledInteraction<T>(rr: RenderResult<T>, hia: Ha
 		}
 	}));
 
+	if(hia.key_name === "*RELOAD*") {
+		clearRequest(hia.author_id);
+		return {kind: "update_state", state: hia.state};
+	}
 	const cb_v = callbacks.get(hia.key_name);
 	if(!cb_v) {
+		console.log("Key missing: "+hia.state+", reloading panel.");
 		return {kind: "update_state", state: hia.state};
 	}
 
-	return cb_v(hia.author_id, hia.info);
+	return cb_v(hia.author_id, hia.info, hia.ikey);
 }
 
 export function renderResultToResult(rr: RenderResult<unknown>, key: (a: string) => string): SampleMessage {
@@ -288,7 +294,7 @@ function gameIDToNum(game_id: GameID): number {
 
 // type InteractionKey = `GAME|${GameID}|${GameKind}|${number}|${string}`; // ID|KIND|STAGE|NAME
 type InteractionKey = string; // some things don't like the above type
-function getInteractionKey(id: GameID, kind: GameKind, stage: number, name: string): InteractionKey {
+export function getInteractionKey(id: GameID, kind: GameKind, stage: number, name: string): InteractionKey {
 	//eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 	const res: InteractionKey = `GAME|${id}|${kind}|${stage}|${name}`;
 	if(res.length > 100) throw new Error("interaction key too long");
@@ -350,7 +356,7 @@ export type HandleInteractionResponse<T> = {
 };
 
 type CreateOpts = {author_id: string};
-type HandleInteractionOpts<T> = {state: T, key_name: string, author_id: string, info: Info};
+type HandleInteractionOpts<T> = {state: T, key_name: string, author_id: string, info: Info, ikey: IKey};
 export interface Game<T> {
 	kind: GameKind;
 	init: (opts: CreateOpts) => T;
@@ -364,14 +370,21 @@ export interface Game<T> {
 // actually it shouldn't matter too much, the only invalid state will be in what buttons are
 // visible and that's fine
 
-async function updateGameState<T>(info: Info, ikey: {game_id: GameID, kind: GameKind, stage: number}, state: T): Promise<InteractionHandled<T>> {
+export type IKey = {game_id: GameID, kind: GameKind, stage: number};
+export async function updateGameState<T>(info: Info, ikey: IKey,
+	state: T, opts: {edit_original?: InteractionHelper} = {},
+): Promise<InteractionHandled<T>> {
 	// get new game data
 	const upd_game_data: GameData = {kind: ikey.kind, stage: ikey.stage + 1, state: state};
 	// 1: send updated message    
     
 	const key = (name: string) => getInteractionKey(ikey.game_id, upd_game_data.kind, upd_game_data.stage, name);
 	const msgv = games[upd_game_data.kind].render(upd_game_data.state, key, info);
-	if(info.raw_interaction) {
+	if(opts.edit_original) {
+		await opts.edit_original.editOriginal({
+			...msgv, allowed_mentions: {parse: []},
+		});
+	}else if(info.raw_interaction) {
 		await info.raw_interaction.sendRaw({
 			type: 7,
 			data: {...msgv, allowed_mentions: {parse: []}},
@@ -653,7 +666,7 @@ nr.ginteractionhandler["GAME"] = {
 			return;
 		}
 
-		let res = games[ikey.kind].handleInteraction({state: game_state.state, key_name: ikey.name, author_id: info.message.author.id, info});
+		let res = games[ikey.kind].handleInteraction({state: game_state.state, key_name: ikey.name, author_id: info.message.author.id, info, ikey});
 		while(res.kind === "async") {
 			res = await res.handler(info);
 		}

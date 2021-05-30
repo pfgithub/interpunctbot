@@ -1,5 +1,6 @@
 import * as nr from "./NewRouter";
 import * as discord from "discord.js";
+import Info from "./Info";
 
 export type ResponseType = {
     kind: "text",
@@ -15,6 +16,7 @@ export type ResponseType = {
 type InputRequest = {
 	id: string,
 	response?: ResponseType,
+	cb?: (res: ResponseType, info: Info) => void,
 };
 
 const requests = new Map<string, InputRequest>();
@@ -24,6 +26,15 @@ export function requestInput(id: string, author_id: string): string {
 	if(pval?.id === id) return id;
 	requests.set(author_id, {id});
 	return id;
+}
+export function clearRequest(author_id: string): void {
+	requests.delete(author_id);
+}
+export function requestInput2(author_id: string, cb: (res: ResponseType, info: Info) => void): void {
+	requests.set(author_id, {
+		id: "*unused*",
+		cb,
+	});
 }
 export function getTextInput(id: string, author_id: string): {kind: "error", message: string} | {kind: "value", value: string} {
 	const val = requests.get(author_id);
@@ -52,13 +63,27 @@ export function getEmojiInput(id: string, author_id: string): {kind: "error", me
 	requests.delete(author_id);
 	return {kind: "value", value: val.response.value};
 }
-export function postResponse(author_id: string, response: ResponseType): {kind: "error", message: string} | undefined {
+async function postResponse(author_id: string, response: ResponseType, info: Info) {
+	// if(pr) {
+	// 	return await info.error(pr.message);
+	// }else{
+	// 	if(info.raw_interaction) {
+	// 		return await info.raw_interaction.replyHiddenHideCommand("✓. Please click the button again.");
+	// 	}else return await info.success("✓. Please click the button again.");
+	// }
 	const val = requests.get(author_id);
-	if(!val) return {
-		kind: "error",
-		message: "A response is not needed right now. Use this command only if you are prompted.",
-	};
+	if(!val) return await info.error(
+		"A response is not needed right now. Use this command only if you are prompted.",
+	);
+	if(val.cb) {
+		val.cb(response, info);
+		requests.delete(author_id);
+		return;
+	}
 	val.response = response;
+	if(info.raw_interaction) {
+		return await info.raw_interaction.replyHiddenHideCommand("✓. Please click the button again.");
+	}else return await info.success("✓. Please click the button again.");
 }
 
 nr.globalCommand(
@@ -68,19 +93,12 @@ nr.globalCommand(
 		usage: "givetext",
 		description: "givetext",
 		examples: [],
-		perms: {fun: true},
+		perms: {fun: true, slash_do_not_interact: true},
 	},
 	nr.list(...nr.a.words()),
 	async ([value], info) => {
 		if(!value) return await info.error("Usage: givetext {text}");
-		const pr = postResponse(info.message.author.id, {kind: "text", value});
-		if(pr) {
-			return await info.error(pr.message);
-		}else{
-			if(info.raw_interaction) {
-				return await info.raw_interaction.replyHiddenHideCommand("✓. Please click the button again.");
-			}else return await info.success("✓. Please click the button again.");
-		}
+		await postResponse(info.message.author.id, {kind: "text", value}, info);
 	},
 );
 
@@ -91,18 +109,11 @@ nr.globalCommand(
 		usage: "giverole",
 		description: "giverole",
 		examples: [],
-		perms: {fun: true},
+		perms: {fun: true, slash_do_not_interact: true},
 	},
 	nr.list(...nr.a.role()),
 	async ([value], info) => {
-		const pr = postResponse(info.message.author.id, {kind: "role", value});
-		if(pr) {
-			return await info.error(pr.message);
-		}else{
-			if(info.raw_interaction) {
-				return await info.raw_interaction.replyHiddenHideCommand("✓. Please click the button again.");
-			}else return await info.success("✓. Please click the button again.");
-		}
+		await postResponse(info.message.author.id, {kind: "role", value}, info);
 	},
 );
 
@@ -113,20 +124,13 @@ nr.globalCommand(
 		usage: "giveemoji",
 		description: "giveemoji",
 		examples: [],
-		perms: {fun: true},
+		perms: {fun: true, slash_do_not_interact: true},
 	},
 	nr.list(...nr.a.words()),
 	async ([value], info) => {
 		const id = value.match(/[0-9]{14,32}/g);
 		if(!id || id.length < 0) return await info.error("This command needs an emoji or an emoji id.");
 		if(id.length > 1) return await info.error("This command needs an emoji or an emoji id");
-		const pr = postResponse(info.message.author.id, {kind: "emoji", value: {id: id[0]}});
-		if(pr) {
-			return await info.error(pr.message);
-		}else{
-			if(info.raw_interaction) {
-				return await info.raw_interaction.replyHiddenHideCommand("✓. Please click the button again.");
-			}else return await info.success("✓. Please click the button again.");
-		}
+		await postResponse(info.message.author.id, {kind: "emoji", value: {id: id[0]}}, info);
 	},
 );
