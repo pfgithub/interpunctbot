@@ -94,8 +94,8 @@ export type SampleMessage = {
 		fields?: {name: string, value: string, inline?: boolean}[],
 	}[],
 };
-export type RenderActionButtonActionCallbackOpt<T> = (author_id: string) => HandleInteractionResponse<T> | undefined;
-export type RenderActionButtonActionCallback<T> = (author_id: string) => HandleInteractionResponse<T>;
+export type RenderActionButtonActionCallbackOpt<T> = (author_id: string, info: Info) => HandleInteractionResponse<T> | undefined;
+export type RenderActionButtonActionCallback<T> = (author_id: string, info: Info) => HandleInteractionResponse<T>;
 export type RenderActionButtonAction<T> = {
 	kind: "callback",
 	id: string,
@@ -154,7 +154,7 @@ export function renderResultToHandledInteraction<T>(rr: RenderResult<T>, hia: Ha
 		return {kind: "update_state", state: hia.state};
 	}
 
-	return cb_v(hia.author_id);
+	return cb_v(hia.author_id, hia.info);
 }
 
 export function renderResultToResult(rr: RenderResult<unknown>, key: (a: string) => string): SampleMessage {
@@ -347,7 +347,7 @@ export type HandleInteractionResponse<T> = {
 };
 
 type CreateOpts = {author_id: string};
-type HandleInteractionOpts<T> = {state: T, key_name: string, author_id: string};
+type HandleInteractionOpts<T> = {state: T, key_name: string, author_id: string, info: Info};
 export interface Game<T> {
 	kind: GameKind;
 	init: (opts: CreateOpts) => T;
@@ -650,7 +650,7 @@ nr.ginteractionhandler["GAME"] = {
 			return;
 		}
 
-		const res = games[ikey.kind].handleInteraction({state: game_state.state, key_name: ikey.name, author_id: info.message.author.id});
+		const res = games[ikey.kind].handleInteraction({state: game_state.state, key_name: ikey.name, author_id: info.message.author.id, info});
 		if(res.kind === "update_state") {
 			await updateGameState(info, ikey, res.state);
 		}else if(res.kind === "error") {

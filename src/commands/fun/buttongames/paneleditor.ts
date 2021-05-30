@@ -1,6 +1,7 @@
 import {ButtonStyle, Game, HandleInteractionResponse, RenderResult, RenderActionRow, renderResultToResult, RenderActionButton, RenderActionButtonAction, renderResultToHandledInteraction, RenderActionButtonActionCallbackOpt, RenderActionButtonActionCallback} from "./tictactoe";
 import {URL} from "url";
 import * as request from "../../../RequestManager";
+import { memberCanManageRole } from "../../../Info";
 
 // NOTE this will retain all fields, even those
 // that are not of the active tag.
@@ -9,6 +10,7 @@ type ButtonAction = {
 } | {
 	kind: "role",
 	role_id?: string, // before adding a panel, the panel must check that you have all the req. perms
+	role_name?: string,
 } | {
 	kind: "link",
 	url?: string,
@@ -85,9 +87,9 @@ function callback<T>(id: string, ...cb: [
 	...RenderActionButtonActionCallbackOpt<T>[],
 	RenderActionButtonActionCallback<T>,
 ]): RenderActionButtonAction<T> {
-	return {kind: "callback", id, cb: (author_id) => {
+	return {kind: "callback", id, cb: (author_id, info) => {
 		for(const a of cb) {
-			const res = a(author_id);
+			const res = a(author_id, info);
 			if(res) return res;
 		}
 		throw new Error("unreachable");
@@ -138,7 +140,7 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 				components: [
 					[
 						mkbtn<PanelState>("Preview:", "secondary", {disabled: true}, {kind: "none"}),
-						previewButton(btn, callback("PREVIEW_CLICK", req_author, () => {
+						previewButton(btn, callback("PREVIEW_CLICK", () => {
 							return {kind: "other", handler: async (info) => {
 								if(info.raw_interaction) {
 									const action = btn.action;
@@ -227,6 +229,44 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 								const is_valid = isValidURL(result.value);
 								if(is_valid != null) return {kind: "error", msg: is_valid};
 								action.url = result.value;
+								return {kind: "update_state", state};
+							}
+						})),
+					],
+				];
+			}else if(btn.action.kind === "role") {
+				const action = btn.action;
+				action_cfg = [
+					[
+						mkbtn<PanelState>("Role:", "secondary", {disabled: true}, {kind: "none"}),
+						...action.role_id ? [
+							mkbtn<PanelState>("@"+action.role_name, "secondary", {}, callback("SHOW_ROLE", () => {
+								return {kind: "other", handler: async (info) => {
+									if(info.raw_interaction) {
+										await info.raw_interaction.replyHiddenHideCommand("<@&"+action.role_id+">");
+									}else{
+										await info.accept();
+									}
+								}};
+							})),
+						] : [],
+						mkbtn<PanelState>("🖉 Edit", action.role_id ? "secondary" : "primary", {}, callback("SET_ROLE", req_author, (author_id, info) => {
+							const result = request.getRoleInput("EDIT_BUTTON", author_id);
+							if(result.kind === "error") {
+								return {kind: "error", msg: result.message};
+							}else{
+								if(!memberCanManageRole(info.message.member!, result.value)) {
+									return {kind: "error", msg: "You do not have permission to give people <@&"+result.value.id+">.\n"
+									+ "You need permission to Manage Roles and your highest role must be above <@&"+result.value.id+">."};
+								}
+								if(!memberCanManageRole(result.value.guild.me!, result.value)) {
+									return {kind: "error", msg: "I do not have permission to give people <@&"+result.value.id+">.\n"
+									+ "I need permission to Manage Roles and my highest role must be above <@&"+result.value.id+">."};
+								}
+								// const is_valid = isValidURL(result.value);
+								// if(is_valid != null) return {kind: "error", msg: is_valid};
+								action.role_id = result.value.id;
+								action.role_name = result.value.name;
 								return {kind: "update_state", state};
 							}
 						})),
