@@ -10,6 +10,7 @@ import {globalKnex} from "../../../db";
 import { assertNever, perr } from "../../../..";
 import { ResponseType } from "../../../RequestManager";
 import * as discord from "discord.js";
+import { shortenLink } from "../../fun";
 
 // NOTE this will retain all fields, even those
 // that are not of the active tag.
@@ -34,12 +35,14 @@ type Button = {
 type ButtonRow = Button[];
 type SavedState = {
 	rows: ButtonRow[],
+	content?: string,
 };
 type PanelState = {
 	initiator: string,
 	last_saved: number,
 	last_saved_as?: {to: "user" | "guild", name: string},
 	rows: ButtonRow[],
+	content?: string,
 
 	edit_mode: EditMode,
 };
@@ -132,7 +135,7 @@ function callback<T>(id: string, ...cb: [
 }
 
 function encodePanel(state: PanelState): SavedState {
-	return {rows: state.rows};
+	return {rows: state.rows, content: state.content};
 }
 
 function requestTextInput(info: Info, ikey: IKey,
@@ -142,6 +145,26 @@ function requestTextInput(info: Info, ikey: IKey,
 		if(res.kind !== "text") return {kind: "error", msg: "Expected text."};
 		return cb(res.value);
 	}, {slash: "give text", base: "givetext {Text}"});
+}
+function requestLongTextInput(info: Info, ikey: IKey,
+	current_value: string,
+	cb: (a: string) => HandleInteractionResponse<PanelState>,
+): HandleInteractionResponse<PanelState> {
+	return {
+		kind: "async",
+		handler: async () => {
+			const resurl =
+				"https://pfg.pw/sitepages/messagecreator?content=" +
+				encodeURIComponent(current_value) + "&post=true";
+			const postres = await shortenLink(resurl);
+			if ("error" in postres) return {kind: "error", msg: postres.error};
+
+			return requestInput(info, ikey, (res): HandleInteractionResponse<PanelState> => {
+				if(res.kind !== "longtext") return {kind: "error", msg: "Expected text."};
+				return cb(res.value);
+			}, {entire: "Edit the content here: <"+postres.url+">", slash: "", base: ""});
+		}
+	};
 }
 function requestRoleInput(info: Info, ikey: IKey,
 	cb: (a: discord.Role) => HandleInteractionResponse<PanelState>,
@@ -161,7 +184,7 @@ function requestEmojiInput(info: Info, ikey: IKey,
 }
 function requestInput(info: Info, ikey: IKey,
 	cb: (a: ResponseType) => HandleInteractionResponse<PanelState>,
-	messages: {slash: string, base: string},
+	messages: {slash: string, base: string, entire?: string},
 ): HandleInteractionResponse<PanelState> {
 	request.requestInput2(info.message.author.id, (response, input_info) => {
 		perr((async () => {
@@ -201,7 +224,7 @@ function requestInput(info: Info, ikey: IKey,
 	});
 	const key = (name: string) => getInteractionKey(ikey.game_id, ikey.kind, ikey.stage, name);
 	const msgv: SampleMessage = {
-		content: "Please type <:slash:848339665093656607>`/"+messages.slash+"` or `"+info.prefix+messages.base+"`",
+		content: messages.entire ?? "Please type <:slash:848339665093656607>`/"+messages.slash+"` or `"+info.prefix+messages.base+"`",
 		components: [
 			componentRow([
 				button(key("*RELOAD*"), "Cancel", "primary", {}),
@@ -239,7 +262,7 @@ function displayPanel(saved: SavedState, info: Info): {result: "success", messag
 		}
 	}
 	return {result: "success", message: {
-		content: "\u200B",
+		content: saved.content || "\u200B",
 		components: [
 			...saved.rows.map(row => {
 				return componentRow(row.map(btn => {
@@ -336,10 +359,24 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 				components: [
 					[
 						mkbtn<PanelState>("Content:", "secondary", {disabled: true}, {kind: "none"}),
-						mkbtn<PanelState>("🖉 Edit", "secondary", {}, callback("SET_CONTENT", req_author, () => {
-							// make this use that website. like when you click this button, say do ip!editmsg <msg link>
-							// or don't, idk.
-							return {kind: "error", msg: "TODO"};
+						...state.content ? [
+							mkbtn<PanelState>(
+								state.content.length + "/2000 characters",
+								"secondary", {disabled: false}, callback("show_content", req_author, () => {
+									return {kind: "reply_hidden", response: {
+										content: state.content || "\u200b",
+										embeds: [],
+										components: [],
+										allowed_mentions: {parse: []},
+									}};
+								}),
+							),
+						] : [],
+						mkbtn<PanelState>("🖉 Edit", state.content ? "secondary" : "primary", {}, callback("SET_CONTENT", req_author, (_, info, ikey) => {
+							return requestLongTextInput(info, ikey, state.content ?? "", (restxt) => {
+								state.content = restxt;
+								return {kind: "update_state", state};
+							});
 						})),
 					],
 					[
@@ -436,10 +473,10 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 
 						const first = previous_save[0]!;
 						const new_state: PanelState = {
+							...(typeof first.data === "string" ? JSON.parse(first.data) : first.data),
 							initiator: state.initiator,
 							last_saved: first.last_updated,
 							last_saved_as: {to: owner_id === info.message.author.id ? "user" : "guild", name: save_name},
-							rows: (typeof first.data === "string" ? JSON.parse(first.data) : first.data).rows,
 							edit_mode: {kind: "home"},
 						};
 						if(mode === "send") {

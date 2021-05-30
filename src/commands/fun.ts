@@ -728,7 +728,7 @@ nr.globalCommand(
 	},
 );
 
-async function getMsgFrom(
+export async function getMsgFrom(
 	info: Info,
 	wrds: string,
 	prefix: string,
@@ -854,7 +854,7 @@ nr.globalCommand(
 );
 
 type PTRes = { error: string } | { url: string };
-function shortenLink(longurl: string): Promise<PTRes> {
+export function shortenLink(longurl: string): Promise<PTRes> {
 	return new Promise<PTRes>((resolve, reject) => {
 		fetch(
 			"https://firebasedynamiclinks.googleapis.com/v1/shortLinks?key=AIzaSyAp1bFmhU7jx2tdcDzXz1cJu_9kyQgB5QQ",

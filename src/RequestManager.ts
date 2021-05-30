@@ -1,9 +1,13 @@
 import * as nr from "./NewRouter";
 import * as discord from "discord.js";
 import Info from "./Info";
+import { getMsgFrom } from "./commands/fun";
 
 export type ResponseType = {
     kind: "text",
+    value: string,
+} | {
+    kind: "longtext",
     value: string,
 } | {
 	kind: "role",
@@ -91,5 +95,23 @@ nr.globalCommand(
 		if(!id || id.length < 0) return await info.error("This command needs an emoji or an emoji id.");
 		if(id.length > 1) return await info.error("This command needs an emoji or an emoji id");
 		await postResponse(info.message.author.id, {kind: "emoji", value: {id: id[0]}}, info);
+	},
+);
+
+nr.globalCommand(
+	"/help/test/postmsg",
+	"postmsg",
+	{
+		usage: "postmsg",
+		description: "postmsg",
+		examples: [],
+		perms: {fun: true, slash_do_not_interact: true},
+	},
+	nr.list(...nr.a.words()),
+	async ([value], info) => {
+		if(!value) return await info.error("Use this command only when prompted.");
+		const msgval = await getMsgFrom(info, value, "M", "y", "/help/postmsg");
+		if (!msgval) return;
+		await postResponse(info.message.author.id, {kind: "longtext", value: msgval}, info);
 	},
 );
