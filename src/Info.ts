@@ -289,7 +289,7 @@ export default class Info {
 	        ilt(this.db.getPrefix(), "get db prefix")
 	            .then(res => {
 	                if (!res.error) {
-	                    this.prefix = res.result;
+	                    this.prefix = res.result!; // typescript broke
 	                }
 	            })
 	            .catch(_ => _ as never);
@@ -418,7 +418,7 @@ export default class Info {
 	            console.log(iltres.error);
 	            return;
 	        } // oop
-	        resmsgs.push(iltres.result);
+	        resmsgs.push(iltres.result!); // typescript broke
 	    }
 	    return resmsgs;
 	}
