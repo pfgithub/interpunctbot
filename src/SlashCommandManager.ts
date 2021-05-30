@@ -490,6 +490,12 @@ const slash_command_router: {[key: string]: SlashCommandRoute} = {
 			role: {route: "grantrolebtn", args: {name: opt.string("Button text"), role: opt.role("Role to give")}},
 		},
 	},
+	panel: {
+		description: "create button panels",
+		subcommands: {
+			new: {route: "newpanel"},
+		},
+	},
 	give: {
 		description: "only use these when prompted",
 		subcommands: {
