@@ -27,7 +27,10 @@ type PanelState = {
 	rows: ButtonRow[],
 
 	edit_mode: {
+		kind: "home",
+	} | {
 		kind: "root",
+		show_last?: true,
 	} | {
 		kind: "edit_button",
 		btn_row: number,
@@ -103,35 +106,91 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 			return undefined;
 		};
 		request.requestInput("EDIT_BUTTON", state.initiator);
-		if(state.edit_mode.kind === "root") return {
-			content: "​",
-			embeds: [],
-			components: [
-				...state.rows.map((row, row_idx): RenderActionRow<PanelState> => [
-					...row.map((btn, btn_idx) => previewButton(btn, callback<PanelState>("EDITBTN,"+row_idx+","+btn_idx, req_author, (author_id) => {
-						state.edit_mode = {kind: "edit_button", btn_row: row_idx, btn_col: btn_idx};
-						return {kind: "update_state", state};
-					}))),
-					...row.length < 5 ? [
-						mkbtn<PanelState>("+", "accept", {}, callback("ADDBTN,"+row_idx, req_author, (author_id) => {
-							state.rows[row_idx].push({color: "secondary", label: "Button", action: {kind: "nothing"}});
-							state.edit_mode = {kind: "edit_button", btn_row: row_idx, btn_col: state.rows[row_idx].length - 1};
+		if(state.edit_mode.kind === "home") {
+			const omode = state.edit_mode;
+			const btncount = state.rows.reduce((t, a) => t + a.length, 0);
+			return {
+				content: "",
+				embeds: [],
+				components: [
+					[
+						mkbtn<PanelState>("Content:", "secondary", {disabled: true}, {kind: "none"}),
+						mkbtn<PanelState>("🖉 Edit", "secondary", {}, callback("SET_CONTENT", req_author, () => {
+							// make this use that website. like when you click this button, say do ip!editmsg <msg link>
+							// or don't, idk.
+							return {kind: "error", msg: "TODO"};
+						})),
+					],
+					[
+						mkbtn<PanelState>("Buttons:", "secondary", {disabled: true}, {kind: "none"}),
+						...state.rows.length > 0 ? [
+							mkbtn<PanelState>(
+								state.rows.length + " row"+(state.rows.length !== 1 ? "s" : "")+", "+btncount+" button"+(btncount !== 1 ? "s" : ""),
+								"secondary", {disabled: false}, {kind: "none"}
+							),
+						] : [],
+						mkbtn<PanelState>("🖉 Edit", state.rows.length > 0 ? "secondary" : "primary", {}, callback("EDIT_BUTTONS", req_author, () => {
+							state.edit_mode = {kind: "root"};
 							return {kind: "update_state", state};
 						})),
-					] : [],
-				]),
-				...state.rows.length < 5 ? [
+					],
 					[
-						mkbtn<PanelState>("+ Row", "accept", {}, callback("ADDROW", req_author, (author_id) => {
+						mkbtn<PanelState>("🖫 Save Panel", "accept", {}, callback("SAVE", req_author, () => {
+							return {kind: "error", msg: "TODO"};
+						})),
+						mkbtn<PanelState>("👁 Preview", "primary", {}, callback("PREVIEW", req_author, () => {
+							return {kind: "other", handler: async (info) => {
+								if(info.raw_interaction) {
+									await info.raw_interaction.replyHiddenHideCommand("TODO preview");
+								}else{
+									await info.accept();
+								}
+							}};
+						})),
+					],
+				],
+				allowed_mentions: {parse: []},
+			};
+		}else if(state.edit_mode.kind === "root") {
+			const omode = state.edit_mode;
+			return {
+				content: "​",
+				embeds: [],
+				components: [
+					...state.rows.filter((_, i) => omode.show_last ? true : i < 4).map((row, row_idx): RenderActionRow<PanelState> => [
+						...row.map((btn, btn_idx) => previewButton(btn, callback<PanelState>("EDITBTN,"+row_idx+","+btn_idx, req_author, () => {
+							state.edit_mode = {kind: "edit_button", btn_row: row_idx, btn_col: btn_idx};
+							return {kind: "update_state", state};
+						}))),
+						...row.length < 5 ? [
+							mkbtn<PanelState>("+", "accept", {}, callback("ADDBTN,"+row_idx, req_author, () => {
+								state.rows[row_idx].push({color: "secondary", label: "Button", action: {kind: "nothing"}});
+								state.edit_mode = {kind: "edit_button", btn_row: row_idx, btn_col: state.rows[row_idx].length - 1};
+								return {kind: "update_state", state};
+							})),
+						] : [],
+					]),
+					...omode.show_last ? [] : [[
+						...state.rows.length < 5 ? [mkbtn<PanelState>("+ Row", "accept", {}, callback("ADDROW", req_author, () => {
 							state.rows.push([{color: "secondary", label: "Button", action: {kind: "nothing"}}]);
 							state.edit_mode = {kind: "edit_button", btn_row: state.rows.length - 1, btn_col: 0};
 							return {kind: "update_state", state};
+						}))] : [mkbtn<PanelState>("Show Last Line", "secondary", {}, callback("SHOWLAST", req_author, () => {
+							state.edit_mode = {kind: "root", show_last: true};
+							return {kind: "update_state", state};
+						}))],
+						mkbtn<PanelState>("🖫 Save", "accept", {}, callback("ROOT", req_author, () => {
+							state.edit_mode = {kind: "home"};
+							return {kind: "update_state", state};
 						})),
-					]
-				] : [],
-			],
-			allowed_mentions: {parse: []},
-		}; else if(state.edit_mode.kind === "edit_button") {
+						mkbtn<PanelState>("🗑 Delete", "deny", {}, callback("DELETE", req_author, () => {
+							return {kind: "error", msg: "TODO"};
+						})),
+					]]
+				],
+				allowed_mentions: {parse: []},
+			};
+		} else if(state.edit_mode.kind === "edit_button") {
 			const ostate = state.edit_mode;
 			const btn = state.rows[state.edit_mode.btn_row]![state.edit_mode.btn_col]!;
 			return {
@@ -152,15 +211,6 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 						})),
 					],
 					[
-						mkbtn<PanelState>("🖫 Save", "accept", {}, callback("ROOT", req_author, (author_id) => {
-							state.edit_mode = {kind: "root"};
-							return {kind: "update_state", state};
-						})),
-						mkbtn<PanelState>("🗑 Delete", "deny", {}, callback("DELETE", req_author, (author_id) => {
-							return {kind: "error", msg: "TODO"};
-						})),
-					],
-					[
 						mkbtn<PanelState>("Label:", "secondary", {disabled: true}, {kind: "none"}),
 						mkbtn<PanelState>("Set Text", "secondary", {}, callback("SET_TEXT", req_author, (author_id) => {
 							const result = request.getTextInput("EDIT_BUTTON", author_id);
@@ -174,14 +224,14 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 								return {kind: "update_state", state};
 							}
 						})),
-						mkbtn<PanelState>("Set Emoji", "secondary", {}, callback("SET_EMOJI", req_author, (author_id) => {
+						mkbtn<PanelState>("Set Emoji", "secondary", {}, callback("SET_EMOJI", req_author, () => {
 							return {kind: "error", msg: "TODO"};
 						})),
 					],
 					...btn.action.kind === "link" ? [] : [[
 						mkbtn<PanelState>("Color:", "secondary", {disabled: true}, {kind: "none"}),
 						...([["Blurple", "primary"], ["Gray", "secondary"], ["Green", "accept"], ["Red", "deny"]] as const).map(([name, color]) => {
-							return mkbtn<PanelState>(name, btn.color === color ? "primary" : "secondary", {}, callback("SETCOL,"+color, req_author, (author_id) => {
+							return mkbtn<PanelState>(name, btn.color === color ? "primary" : "secondary", {}, callback("SETCOL,"+color, req_author, () => {
 								btn.color = color;
 								return {kind: "update_state", state};
 							}));
@@ -190,14 +240,26 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 					[
 						mkbtn<PanelState>("Action:", "secondary", {disabled: true}, {kind: "none"}),
 						...([["Nothing", "nothing"], ["Role", "role"], ["Link", "link"]] as const).map(([name, kind]) => {
-							return mkbtn<PanelState>(name, btn.action.kind === kind ? "primary" : "secondary", {}, callback("ACTION,"+kind, req_author, (author_id) => {
+							return mkbtn<PanelState>(name, btn.action.kind === kind ? "primary" : "secondary", {}, callback("ACTION,"+kind, req_author, () => {
 								btn.action.kind = kind;
 								if(kind !== "nothing") state.edit_mode = {...ostate, kind: "edit_action"};
 								return {kind: "update_state", state};
 							}));
 						}),
-						mkbtn<PanelState>("▸ More", "secondary", {}, callback("ACTION_more", req_author, (author_id) => {
+						mkbtn<PanelState>("▸ More", "secondary", {}, callback("ACTION_more", req_author, () => {
 							return {kind: "error", msg: "TODO"};
+						})),
+					],
+					[
+						mkbtn<PanelState>("🖫 Save", "accept", {}, callback("SAVE", req_author, () => {
+							state.edit_mode = {kind: "root"};
+							return {kind: "update_state", state};
+						})),
+						mkbtn<PanelState>("🗑 Delete", "deny", {}, callback("DELETE", req_author, () => {
+							state.rows[ostate.btn_row].splice(ostate.btn_col, 1);
+							if(state.rows[ostate.btn_row].length === 0) state.rows.splice(ostate.btn_row, 1);
+							state.edit_mode = {kind: "root"};
+							return {kind: "update_state", state};
 						})),
 					],
 				],
@@ -285,7 +347,7 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 				embeds: [],
 				components: [
 					[
-						mkbtn<PanelState>("< Back", "secondary", {}, callback("BACK", req_author, (author_id) => {
+						mkbtn<PanelState>("🖫 Save", "accept", {}, callback("BACK", req_author, (author_id) => {
 							state.edit_mode = {...ostate, kind: "edit_button"};
 							return {kind: "update_state", state};
 						})),
@@ -309,7 +371,7 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 			embeds: [],
 			components: [
 				[mkbtn<PanelState>("Continue", "primary", {}, callback("ROOT", req_author, (author_id) => {
-					state.edit_mode = {kind: "root"};
+					state.edit_mode = {kind: "home"};
 					return {kind: "update_state", state};
 				}))],
 			],
@@ -324,7 +386,7 @@ export const PanelEditor: Game<PanelState> = {
 		return {
 			initiator: author_id,
 			rows: [],
-			edit_mode: {kind: "root"},
+			edit_mode: {kind: "home"},
 		};
 	},
 	render(state, key, info) {
