@@ -94,6 +94,92 @@ export type SampleMessage = {
 		fields?: {name: string, value: string, inline?: boolean}[],
 	}[],
 };
+export type RenderActionButtonActionCallbackOpt<T> = (author_id: string) => HandleInteractionResponse<T> | undefined;
+export type RenderActionButtonActionCallback<T> = (author_id: string) => HandleInteractionResponse<T>;
+export type RenderActionButtonAction<T> = {
+	kind: "callback",
+	id: string,
+	cb: RenderActionButtonActionCallback<T>,
+} | {
+	kind: "link",
+	url: string,
+} | {
+	kind: "none",
+};
+export type RenderActionButton<T> = {
+	label: string,
+	color: ButtonStyle,
+	action: RenderActionButtonAction<T>,
+	emoji?: {name: string, id: string, animated: boolean},
+	disabled?: boolean,
+};
+export type RenderActionRow<T> = RenderActionButton<T>[];
+export type RenderResult<T> = {
+	content: string,
+	components: RenderActionRow<T>[],
+    allowed_mentions: {parse: []},
+	embeds: {
+		title: string,
+		description: string,
+		url?: string,
+		color: 0x2F3136,
+		timestamp?: string,
+		footer?: {icon_url: string, text: string},
+		thumbnail?: {url: string},
+		image?: {url: string},
+		author?: {name: string, url: string, icon_url: string},
+		fields?: {name: string, value: string, inline?: boolean}[],
+	}[],
+};
+
+// if we want to, it's possible to allow multipart things
+// like you call the callback multiple times. so for an overlay. like you call the root callback, find the button
+// it's in, call that callback, find that button, … repeat
+
+export function renderResultToHandledInteraction<T>(rr: RenderResult<T>, hia: HandleInteractionOpts<T>): HandleInteractionResponse<T> {
+	const callbacks = new Map<string, RenderActionButtonActionCallback<T>>();
+
+	rr.components.forEach(component => component.forEach(itm => {
+		if(itm.action.kind === "callback") {
+			const pv = callbacks.get(itm.action.id);
+			if(pv && pv !== itm.action.cb) {
+				throw new Error("Duplicate key "+itm.action.id+" with different handler.");
+			}
+			callbacks.set(itm.action.id, itm.action.cb);
+		}
+	}));
+
+	const cb_v = callbacks.get(hia.key_name);
+	if(!cb_v) {
+		return {kind: "update_state", state: hia.state};
+	}
+
+	return cb_v(hia.author_id);
+}
+
+export function renderResultToResult(rr: RenderResult<unknown>, key: (a: string) => string): SampleMessage {
+	const keys = new Map<string, RenderActionButtonActionCallback<unknown>>();
+	return {
+		...rr,
+		components: rr.components.map(component => componentRow(component.map(itm => {
+			if(itm.action.kind === "callback") {
+				const pv = keys.get(itm.action.id);
+				if(pv && pv !== itm.action.cb) {
+					throw new Error("Duplicate key "+itm.action.id+" with different handler.");
+				}
+				keys.set(itm.action.id, itm.action.cb);
+			}
+			return {
+				type: 2,
+				style: itm.action.kind === "link" ? 5 : buttonStyles[itm.color],
+				label: itm.label,
+				custom_id: itm.action.kind === "callback" ? key(itm.action.id) : "NONE",
+				disabled: itm.disabled,
+				emoji: itm.emoji,
+			} as any;
+		}))),
+	};
+}
 
 nr.globalCommand(
 	"/help/test/spooky",
@@ -260,11 +346,12 @@ export type HandleInteractionResponse<T> = {
 };
 
 type CreateOpts = {author_id: string};
+type HandleInteractionOpts<T> = {state: T, key_name: string, author_id: string};
 export interface Game<T> {
 	kind: GameKind;
 	init: (opts: CreateOpts) => T;
     render: (state: T, key: (a: string) => string, info: Info) => SampleMessage;
-    handleInteraction: (opts: {state: T, key_name: string, author_id: string}) => HandleInteractionResponse<T>;
+    handleInteraction: (opts: HandleInteractionOpts<T>) => HandleInteractionResponse<T>;
 }
 
 // TODO rather than incrementing stage, generate a random id
@@ -603,6 +690,7 @@ nr.globalAlias("tictactoe", "tick tac toe");
 nr.globalAlias("tictactoe", "tick tack toâ€™");
 nr.globalAlias("tictactoe", "ttt");
 
+// TODO what instead of removing the role, it returns a hidden where you can toggle the role?
 nr.ginteractionhandler["GRANTROLE"] = {
 	async handle(info, custom_id) {
 		const [, role_id] = custom_id.split("|");

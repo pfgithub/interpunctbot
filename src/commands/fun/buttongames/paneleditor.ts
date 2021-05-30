@@ -1,4 +1,4 @@
-import {ButtonStyle, Game, SampleMessage, componentRow, button, HandleInteractionResponse, ButtonComponent, ActionRow} from "./tictactoe";
+import {ButtonStyle, Game, HandleInteractionResponse, RenderResult, RenderActionRow, renderResultToResult, RenderActionButton, RenderActionButtonAction, renderResultToHandledInteraction, RenderActionButtonActionCallbackOpt, RenderActionButtonActionCallback} from "./tictactoe";
 import {URL} from "url";
 import * as request from "../../../RequestManager";
 
@@ -61,18 +61,230 @@ function isValidLabel(label: string): string | undefined {
 	return "Label must be at most 80 characters long";
 }
 
-function previewButton(btn: Button, key: string): ButtonComponent {
-	if(btn.action.kind === "link") {
-		const is_valid_url = isValidURL(btn.action.url ?? "");
+function previewButton(btn: Button, action: RenderActionButtonAction<PanelState>): RenderActionButton<PanelState> {
+	// btn.action.kind === "link" ? ((): RenderActionButtonAction<PanelState> => {
+	// 	const is_valid_url = isValidURL(btn.action.url ?? "");
+	// 	return {kind: "link", url: is_valid_url ? "https://interpunct.info/invalid-url?reason="+encodeURIComponent(is_valid_url) : btn.action.url!};
+	// })() : {kind: "callback", id: key, cb: (author_id) => {
+	// 	return {kind: "error", msg: "TODO"};
+	// }};
+	// TODO use that when no action is provided
+	return {
+		label: btn.label.substr(0, 80) || "​",
+		color: btn.action.kind === "link" ? "secondary" : btn.color,
+		action: action,
+		disabled: false,
+	};
+}
+
+function mkbtn<T>(label: string, color: ButtonStyle, opts: {disabled?: boolean}, action: RenderActionButtonAction<T>): RenderActionButton<T> {
+	return {
+		label,
+		color,
+		action,
+		...opts,
+	};
+}
+function callback<T>(id: string, ...cb: [
+	...RenderActionButtonActionCallbackOpt<T>[],
+	RenderActionButtonActionCallback<T>,
+]): RenderActionButtonAction<T> {
+	return {kind: "callback", id, cb: (author_id) => {
+		for(const a of cb) {
+			const res = a(author_id);
+			if(res) return res;
+		}
+		throw new Error("unreachable");
+	}};
+}
+
+function newRender(state: PanelState): RenderResult<PanelState> {
+	{
+		const req_author: RenderActionButtonActionCallbackOpt<PanelState> = (author_id) => {
+			if(author_id !== state.initiator) return {kind: "error", msg: "This is not your panel."};
+			return undefined;
+		};
+		if(state.edit_mode.kind === "root") return {
+			content: "​",
+			embeds: [],
+			components: [
+				...state.rows.map((row, row_idx): RenderActionRow<PanelState> => [
+					...row.map((btn, btn_idx) => previewButton(btn, callback<PanelState>("EDITBTN,"+row_idx+","+btn_idx, req_author, (author_id) => {
+						state.edit_mode = {kind: "edit_button", btn_row: row_idx, btn_col: btn_idx};
+						return {kind: "update_state", state};
+					}))),
+					...row.length < 5 ? [
+						mkbtn<PanelState>("+", "accept", {}, callback("ADDBTN,"+row_idx, req_author, (author_id) => {
+							state.rows[row_idx].push({color: "secondary", label: "Button", action: {kind: "nothing"}});
+							state.edit_mode = {kind: "edit_button", btn_row: row_idx, btn_col: state.rows[row_idx].length - 1};
+							return {kind: "update_state", state};
+						})),
+					] : [],
+				]),
+				...state.rows.length < 5 ? [
+					[
+						mkbtn<PanelState>("+ Row", "accept", {}, callback("ADDROW", req_author, (author_id) => {
+							state.rows.push([{color: "secondary", label: "Button", action: {kind: "nothing"}}]);
+							state.edit_mode = {kind: "edit_button", btn_row: state.rows.length - 1, btn_col: 0};
+							return {kind: "update_state", state};
+						})),
+					]
+				] : [],
+			],
+			allowed_mentions: {parse: []},
+		}; else if(state.edit_mode.kind === "edit_button") {
+			const ostate = state.edit_mode;
+			const btn = state.rows[state.edit_mode.btn_row]![state.edit_mode.btn_col]!;
+			return {
+				content: "​",
+				embeds: [],
+				components: [
+					[
+						mkbtn<PanelState>("Preview:", "secondary", {disabled: true}, {kind: "none"}),
+						previewButton(btn, {kind: "none"}),
+					],
+					[
+						mkbtn<PanelState>("🖫 Save", "accept", {}, callback("ROOT", req_author, (author_id) => {
+							state.edit_mode = {kind: "root"};
+							return {kind: "update_state", state};
+						})),
+						mkbtn<PanelState>("🗑 Delete", "deny", {}, callback("DELETE", req_author, (author_id) => {
+							return {kind: "error", msg: "TODO"};
+						})),
+					],
+					[
+						mkbtn<PanelState>("Label:", "secondary", {disabled: true}, {kind: "none"}),
+						mkbtn<PanelState>("Set Text", "secondary", {}, callback("SET_TEXT", req_author, (author_id) => {
+							state.edit_mode = {...ostate, kind: "edit_button_label"};
+							return {kind: "update_state", state};
+						})),
+						mkbtn<PanelState>("Set Emoji", "secondary", {}, callback("SET_EMOJI", req_author, (author_id) => {
+							return {kind: "error", msg: "TODO"};
+						})),
+					],
+					...btn.action.kind === "link" ? [] : [[
+						mkbtn<PanelState>("Color:", "secondary", {disabled: true}, {kind: "none"}),
+						...([["Blurple", "primary"], ["Gray", "secondary"], ["Green", "accept"], ["Red", "deny"]] as const).map(([name, color]) => {
+							return mkbtn<PanelState>(name, btn.color === color ? "primary" : "secondary", {}, callback("SETCOL,"+color, req_author, (author_id) => {
+								btn.color = color;
+								return {kind: "update_state", state};
+							}));
+						}),
+					]],
+					[
+						mkbtn<PanelState>("Action:", "secondary", {disabled: true}, {kind: "none"}),
+						...([["Nothing", "nothing"], ["Role", "role"], ["Link", "link"]] as const).map(([name, kind]) => {
+							return mkbtn<PanelState>(name, btn.action.kind === kind ? "primary" : "secondary", {}, callback("ACTION,"+kind, req_author, (author_id) => {
+								btn.action = {kind: kind};
+								if(kind !== "nothing") state.edit_mode = {...ostate, kind: "edit_action"};
+								return {kind: "update_state", state};
+							}));
+						}),
+						mkbtn<PanelState>("▸ More", btn.action.kind === "link" ? "primary" : "secondary", {}, callback("ACTION_more", req_author, (author_id) => {
+							return {kind: "error", msg: "TODO"};
+						})),
+					],
+				],
+				allowed_mentions: {parse: []},
+			};
+		} else if(state.edit_mode.kind === "edit_button_label") {
+			const ostate = state.edit_mode;
+			const btn = state.rows[state.edit_mode.btn_row]![state.edit_mode.btn_col]!;
+			request.requestInput("EDIT_BUTTON_LABEL", state.initiator);
+			return {
+				content: "​",
+				embeds: [{
+					color: 0x2F3136,
+					title: "Set Label",
+					description: "<:slash:848339665093656607>give text",
+				}],
+				components: [
+					[
+						mkbtn<PanelState>("🖫 Save", "accept", {}, callback("SAVE", req_author, (author_id) => {
+							const result = request.getTextInput("EDIT_BUTTON_LABEL", author_id);
+							if(result.kind === "error") {
+								return {kind: "error", msg: result.message};
+							}else{
+								const is_valid = isValidLabel(result.value);
+								if(is_valid != null) return {kind: "error", msg: is_valid};
+								state.edit_mode = {...ostate, kind: "edit_button"};
+								btn.label = result.value;
+								return {kind: "update_state", state};
+							}
+						})),
+						mkbtn<PanelState>("🗑 Cancel", "deny", {}, callback("CANCEL", req_author, (author_id) => {
+							state.edit_mode = {...ostate, kind: "edit_button"};
+							return {kind: "update_state", state};
+						})),
+					],
+				],
+				allowed_mentions: {parse: []},
+			};
+		} else if(state.edit_mode.kind === "edit_action") {
+			const ostate = state.edit_mode;
+			const btn = state.rows[state.edit_mode.btn_row]![state.edit_mode.btn_col]!;
+			let action_cfg: RenderActionRow<PanelState>[];
+			if(btn.action.kind === "nothing") {
+				action_cfg = [
+					[
+						mkbtn<PanelState>("Nothing to configure.", "secondary", {disabled: true}, {kind: "none"}),
+					],
+				];
+			}else if(btn.action.kind === "link") {
+				action_cfg = [
+					[
+						mkbtn<PanelState>("URL:", "secondary", {disabled: true}, {kind: "none"}),
+						...btn.action.url ? [
+							mkbtn<PanelState>((btn.action.url || "​").substr(0, 80), "secondary", {disabled: true}, {kind: "none"}),
+						] : [],
+						mkbtn<PanelState>("🖉 Edit", btn.action.url ? "primary" : "secondary", {}, callback("SET_URL", req_author, (author_id) => {
+							return {kind: "error", msg: "TODO"};
+						})),
+					],
+				];
+			}else{
+				action_cfg = [
+					[
+						mkbtn<PanelState>("TODO "+btn.action.kind, "secondary", {disabled: true}, {kind: "none"}),
+					],
+				];
+			}
+			return {
+				content: "​",
+				embeds: [],
+				components: [
+					[
+						mkbtn<PanelState>("< Back", "secondary", {}, callback("BACK", req_author, (author_id) => {
+							state.edit_mode = {...ostate, kind: "edit_button"};
+							return {kind: "update_state", state};
+						})),
+						...([["Nothing", "nothing"], ["Role", "role"], ["Link", "link"]] as const).map(([name, kind]) => {
+							return mkbtn<PanelState>(name, btn.action.kind === kind ? "primary" : "secondary", {}, callback("ACTION,"+kind, req_author, (author_id) => {
+								btn.action = {kind: kind};
+								return {kind: "update_state", state};
+							}));
+						}),
+						mkbtn<PanelState>("▸ More", btn.action.kind === "link" ? "primary" : "secondary", {}, callback("ACTION_more", req_author, (author_id) => {
+							return {kind: "error", msg: "TODO"};
+						})),
+					],
+					...action_cfg,
+				],
+				allowed_mentions: {parse: []},
+			};
+		}
 		return {
-			type: 2,
-			style: 5, // URL
-			label: btn.label.substr(0, 80) || "​",
-			url: is_valid_url ? "https://interpunct.info/invalid-url?reason="+encodeURIComponent(is_valid_url) : btn.action.url!,
-			disabled: false,
+			content: "Error! TODO "+state.edit_mode.kind,
+			embeds: [],
+			components: [
+				[mkbtn<PanelState>("Continue", "primary", {}, callback("ROOT", req_author, (author_id) => {
+					state.edit_mode = {kind: "root"};
+					return {kind: "update_state", state};
+				}))],
+			],
+			allowed_mentions: {parse: []},
 		};
 	}
-	return button(key, btn.label.substr(0, 80) || "​", btn.color, {});
 }
 
 export const PanelEditor: Game<PanelState> = {
@@ -84,129 +296,8 @@ export const PanelEditor: Game<PanelState> = {
 			edit_mode: {kind: "root"},
 		};
 	},
-	render(state, key, info): SampleMessage {
-		if(state.edit_mode.kind === "root") return {
-			content: "​",
-			embeds: [],
-			components: [
-				...state.rows.map((row, row_idx) => componentRow([
-					...row.map((btn, btn_idx) => previewButton(btn, key("EDITBTN,"+row_idx+","+btn_idx))),
-					...row.length < 5 ? [
-						button(key("ADDBTN,"+row_idx), "+", "accept", {disabled: false}),
-					] : [],
-				])),
-				...state.rows.length < 5 ? [
-					componentRow([
-						button(key("ADDROW"), "+ Row", "accept", {disabled: false}),
-					])] : []
-				,
-			],
-			allowed_mentions: {parse: []},
-		}; else if(state.edit_mode.kind === "edit_button") {
-			const btn = state.rows[state.edit_mode.btn_row]![state.edit_mode.btn_col]!;
-			return {
-				content: "​",
-				embeds: [],
-				components: [
-					componentRow([
-						button(key("NONE"), "Preview:", "secondary", {disabled: true}),
-						previewButton(btn, key("NONE")),
-					]),
-					componentRow([
-						button(key("ROOT"), "🖫 Save", "accept", {}),
-						button(key("DELETE"), "🗑 Delete", "deny", {}),
-					]),
-					componentRow([
-						button(key("NONE"), "Label:", "secondary", {disabled: true}),
-						button(key("SET_TEXT"), "Set Text", "secondary", {}),
-						button(key("SET_EMOJI"), "Set Emoji", "secondary", {}),
-					]),
-					...btn.action.kind === "link" ? [] : [componentRow([
-						button(key("NONE"), "Color:", "secondary", {disabled: true}),
-						button(key("SETCOL,primary"), "Blurple", btn.color === "primary" ? "primary" : "secondary", {}),
-						button(key("SETCOL,secondary"), "Gray", btn.color === "secondary" ? "primary" : "secondary", {}),
-						button(key("SETCOL,accept"), "Green", btn.color === "accept" ? "primary" : "secondary", {}),
-						button(key("SETCOL,deny"), "Red", btn.color === "deny" ? "primary" : "secondary", {}),
-					])],
-					componentRow([
-						button(key("NONE"), "Action:", "secondary", {disabled: true}),
-						button(key("ACTION,nothing"), "Nothing", btn.action.kind === "nothing" ? "primary" : "secondary", {}),
-						button(key("ACTION,role"), "Role", btn.action.kind === "role" ? "primary" : "secondary", {}),
-						button(key("ACTION,link"), "Link", btn.action.kind === "link" ? "primary" : "secondary", {}),
-						button(key("ACTION_MORE"), "▸ More", "secondary", {}),
-					]),
-				],
-				allowed_mentions: {parse: []},
-			};
-		} else if(state.edit_mode.kind === "edit_button_label") {
-			request.requestInput("EDIT_BUTTON_LABEL", state.initiator);
-			return {
-				content: "​",
-				embeds: [{
-					color: 0x2F3136,
-					title: "Set Label",
-					description: "<:slash:848339665093656607>give text",
-				}],
-				components: [
-					componentRow([
-						button(key("SAVE"), "🖫 Save", "accept", {}),
-						button(key("CANCEL"), "🗑 Cancel", "deny", {}),
-					]),
-				],
-				allowed_mentions: {parse: []},
-			};
-		} else if(state.edit_mode.kind === "edit_action") {
-			const btn = state.rows[state.edit_mode.btn_row]![state.edit_mode.btn_col]!;
-			let action_cfg: ActionRow[];
-			if(btn.action.kind === "nothing") {
-				action_cfg = [
-					componentRow([
-						button(key("NONE"), "Nothing to configure", "secondary", {disabled: true}),
-					]),
-				];
-			}else if(btn.action.kind === "link") {
-				action_cfg = [
-					componentRow([
-						button(key("NONE"), "URL:", "secondary", {disabled: true}),
-						...btn.action.url ? [
-							button(key("NONE"), btn.action.url, "secondary", {disabled: true}),
-						] : [],
-						button(key("SET_URL"), btn.action.url ?? "🖉 Edit", "secondary", {disabled: false}),
-					]),
-				];
-			}else if(btn.action.kind === "role") {
-				action_cfg = [];
-			}else{
-				action_cfg = [
-					componentRow([
-						button(key("NONE"), "TODO "+btn.action.kind, "secondary", {disabled: true}),
-					]),
-				];
-			}
-			return {
-				content: "​",
-				embeds: [],
-				components: [
-					componentRow([
-						button(key("BACK"), "< Back", "secondary", {}),
-						button(key("ACTION,nothing"), "Nothing", btn.action.kind === "nothing" ? "primary" : "secondary", {}),
-						button(key("ACTION,role"), "Role", btn.action.kind === "role" ? "primary" : "secondary", {}),
-						button(key("ACTION,link"), "Link", btn.action.kind === "link" ? "primary" : "secondary", {}),
-						button(key("ACTION_MORE"), "▸ More", "secondary", {}),
-					]),
-					...action_cfg,
-				],
-				allowed_mentions: {parse: []},
-			};
-		}
-		return {
-			content: "Error! TODO "+state.edit_mode.kind,
-			embeds: [],
-			components: [
-				componentRow([button(key("ROOT"), "Back", "secondary", {})]),
-			],
-			allowed_mentions: {parse: []},
-		};
+	render(state, key, info) {
+		return renderResultToResult(newRender(state), key);
 	},
 	// rather than a seperate handleInteraction, what if it called render() again and searched
 	// for the thing with the specified key
@@ -214,83 +305,7 @@ export const PanelEditor: Game<PanelState> = {
 	// or it could say "The bot has updated, press [] to continue." and then it'd just redraw
 	// the panel
 	// ok I think that's a good idea actually
-	handleInteraction({state, author_id, key_name}): HandleInteractionResponse<PanelState> {
-		if(author_id !== state.initiator) return {kind: "error", msg: "This is not your panel."};
-		if(key_name === "ROOT") {
-			state.edit_mode = {kind: "root"};
-			return {kind: "update_state", state};
-		}else if(state.edit_mode.kind === "edit_action") { 
-			const btn = state.rows[state.edit_mode.btn_row][state.edit_mode.btn_col];
-			if(key_name === "BACK") {
-				state.edit_mode = {...state.edit_mode, kind: "edit_button"};
-				return {kind: "update_state", state};
-			}
-			if(key_name.startsWith("ACTION,")) {
-				const [, action_type] = key_name.split(",") as [string, ButtonAction["kind"]];
-				btn.action = {kind: action_type};
-				return {kind: "update_state", state};
-			}
-			return {kind: "error", msg: "TODO support "+key_name};
-		}else if(state.edit_mode.kind === "edit_button_label") {
-			const btn = state.rows[state.edit_mode.btn_row][state.edit_mode.btn_col];
-			if(key_name === "SAVE") {
-				const result = request.getTextInput("EDIT_BUTTON_LABEL", author_id);
-				if(result.kind === "error") {
-					return {kind: "error", msg: result.message};
-				}else{
-					const is_valid = isValidLabel(result.value);
-					if(is_valid != null) return {kind: "error", msg: is_valid};
-					state.edit_mode = {...state.edit_mode, kind: "edit_button"};
-					btn.label = result.value;
-					return {kind: "update_state", state};
-				}
-			}else if(key_name === "CANCEL") {
-				state.edit_mode = {...state.edit_mode, kind: "edit_button"};
-				return {kind: "update_state", state};
-			}
-			return {kind: "error", msg: "TODO support "+key_name};
-		}else if(state.edit_mode.kind === "edit_button") {
-			const btn = state.rows[state.edit_mode.btn_row][state.edit_mode.btn_col];
-			if(key_name === "NONE") {
-				return {kind: "update_state", state};
-			}
-			if(key_name.startsWith("SETCOL,")) {
-				const [, color] = key_name.split(",") as [string, ButtonStyle];
-				btn.color = color;
-				return {kind: "update_state", state};
-			}
-			if(key_name.startsWith("ACTION,")) {
-				const [, action_type] = key_name.split(",") as [string, ButtonAction["kind"]];
-				btn.action = {kind: action_type};
-				if(action_type !== "nothing") state.edit_mode = {...state.edit_mode, kind: "edit_action"};
-				return {kind: "update_state", state};
-			}
-			if(key_name === "SET_TEXT") {
-				state.edit_mode = {...state.edit_mode, kind: "edit_button_label"};
-				return {kind: "update_state", state};
-			}
-			return {kind: "error", msg: "TODO support "+key_name};
-		}else if(state.edit_mode.kind === "root") {
-			if(key_name.startsWith("EDITBTN,")) {
-				const [, btn_row, btn_col] = key_name.split(",") as [string, string, string];
-				state.edit_mode = {kind: "edit_button", btn_row: +btn_row, btn_col: +btn_col};
-				return {kind: "update_state", state};
-			}
-			if(key_name === "ADDROW") {
-				state.rows.push([{color: "secondary", label: "Button", action: {kind: "nothing"}}]);
-				state.edit_mode = {kind: "edit_button", btn_row: state.rows.length - 1, btn_col: 0};
-				return {kind: "update_state", state};
-			}
-			if(key_name.startsWith("ADDBTN,")) {
-				const [, btn_idx] = key_name.split(",") as [string, string];
-				state.rows[+btn_idx].push({color: "secondary", label: "Button", action: {kind: "nothing"}});
-				state.edit_mode = {kind: "edit_button", btn_row: +btn_idx, btn_col: state.rows[+btn_idx].length - 1};
-				return {kind: "update_state", state};
-			}
-			return {kind: "error", msg: "TODO support mode "+state.edit_mode.kind};
-		}else return {
-			kind: "error",
-			msg: "TODO support mode "+state.edit_mode.kind,
-		};
+	handleInteraction(opts): HandleInteractionResponse<PanelState> {
+		return renderResultToHandledInteraction(newRender(opts.state), opts);
 	},
 };
