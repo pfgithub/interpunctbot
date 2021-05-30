@@ -330,7 +330,7 @@ async function savePanelScreenState(info: Info, mode: "save" | "load" | "send"):
 
 	return {kind: "save_panel",
 		mode,
-		guild_panels: info.authorPerms.manageBot ? guild_panels : [],
+		guild_panels: info.authorPerms.manageBot ? guild_panels : undefined,
 		user_panels: user_panels,
 	};
 }
