@@ -280,7 +280,7 @@ type GameData = {
 
 type GameID = string & {__is_game_id?: undefined};
 function numToGameID(num: number): GameID {
-	return num.toString(36) as GameID;
+	return (num.toString(36) as GameID).padStart(7, "0");
 }
 function gameIDToNum(game_id: GameID): number {
 	return parseInt(game_id, 36);
