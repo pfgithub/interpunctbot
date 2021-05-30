@@ -112,7 +112,7 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 		if(state.edit_mode.kind === "home") {
 			const btncount = state.rows.reduce((t, a) => t + a.length, 0);
 			return {
-				content: "",
+				content: "\u200b",
 				embeds: [],
 				components: [
 					[
@@ -157,7 +157,7 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 		}else if(state.edit_mode.kind === "save_panel") {
 			// display a list of panels on this server and a "save new" button to save with a custom name
 			return {
-				content: "",
+				content: "\u200b",
 				embeds: [],
 				components: [
 					[mkbtn<PanelState>("< Back", "primary", {}, callback("BACK", req_author, (author_id) => {
@@ -190,7 +190,7 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 		}else if(state.edit_mode.kind === "root") {
 			const omode = state.edit_mode;
 			return {
-				content: "​",
+				content: "\u200b",
 				embeds: [],
 				components: [
 					...state.rows.filter((_, i) => omode.show_last ? true : i < 4).map((row, row_idx): RenderActionRow<PanelState> => [
@@ -231,7 +231,7 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 			const ostate = state.edit_mode;
 			const btn = state.rows[state.edit_mode.btn_row]![state.edit_mode.btn_col]!;
 			return {
-				content: "​",
+				content: "\u200b",
 				embeds: [],
 				components: [
 					[
@@ -381,7 +381,7 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 				];
 			}
 			return {
-				content: "​",
+				content: "\u200b",
 				embeds: [],
 				components: [
 					[
