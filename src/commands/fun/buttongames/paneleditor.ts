@@ -31,10 +31,6 @@ type PanelState = {
 		btn_row: number,
 		btn_col: number,
 	} | {
-		kind: "edit_button_label",
-		btn_row: number,
-		btn_col: number,
-	} | {
 		kind: "edit_action",
 		btn_row: number,
 		btn_col: number,
@@ -135,6 +131,7 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 		}; else if(state.edit_mode.kind === "edit_button") {
 			const ostate = state.edit_mode;
 			const btn = state.rows[state.edit_mode.btn_row]![state.edit_mode.btn_col]!;
+			request.requestInput("EDIT_BUTTON", state.initiator);
 			return {
 				content: "​",
 				embeds: [],
@@ -155,8 +152,16 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 					[
 						mkbtn<PanelState>("Label:", "secondary", {disabled: true}, {kind: "none"}),
 						mkbtn<PanelState>("Set Text", "secondary", {}, callback("SET_TEXT", req_author, (author_id) => {
-							state.edit_mode = {...ostate, kind: "edit_button_label"};
-							return {kind: "update_state", state};
+							const result = request.getTextInput("EDIT_BUTTON", author_id);
+							if(result.kind === "error") {
+								return {kind: "error", msg: result.message};
+							}else{
+								const is_valid = isValidLabel(result.value);
+								if(is_valid != null) return {kind: "error", msg: is_valid};
+								state.edit_mode = {...ostate, kind: "edit_button"};
+								btn.label = result.value;
+								return {kind: "update_state", state};
+							}
 						})),
 						mkbtn<PanelState>("Set Emoji", "secondary", {}, callback("SET_EMOJI", req_author, (author_id) => {
 							return {kind: "error", msg: "TODO"};
@@ -182,39 +187,6 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 						}),
 						mkbtn<PanelState>("▸ More", btn.action.kind === "link" ? "primary" : "secondary", {}, callback("ACTION_more", req_author, (author_id) => {
 							return {kind: "error", msg: "TODO"};
-						})),
-					],
-				],
-				allowed_mentions: {parse: []},
-			};
-		} else if(state.edit_mode.kind === "edit_button_label") {
-			const ostate = state.edit_mode;
-			const btn = state.rows[state.edit_mode.btn_row]![state.edit_mode.btn_col]!;
-			request.requestInput("EDIT_BUTTON_LABEL", state.initiator);
-			return {
-				content: "​",
-				embeds: [{
-					color: 0x2F3136,
-					title: "Set Label",
-					description: "<:slash:848339665093656607>give text",
-				}],
-				components: [
-					[
-						mkbtn<PanelState>("🖫 Save", "accept", {}, callback("SAVE", req_author, (author_id) => {
-							const result = request.getTextInput("EDIT_BUTTON_LABEL", author_id);
-							if(result.kind === "error") {
-								return {kind: "error", msg: result.message};
-							}else{
-								const is_valid = isValidLabel(result.value);
-								if(is_valid != null) return {kind: "error", msg: is_valid};
-								state.edit_mode = {...ostate, kind: "edit_button"};
-								btn.label = result.value;
-								return {kind: "update_state", state};
-							}
-						})),
-						mkbtn<PanelState>("🗑 Cancel", "deny", {}, callback("CANCEL", req_author, (author_id) => {
-							state.edit_mode = {...ostate, kind: "edit_button"};
-							return {kind: "update_state", state};
 						})),
 					],
 				],

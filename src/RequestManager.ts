@@ -21,7 +21,7 @@ export function getTextInput(id: string, author_id: string): {kind: "error", mes
 	const val = requests.get(author_id);
 	if(!val || val.id !== id || !val.response || val.response.kind !== "text") return {
 		kind: "error",
-		message: "Please type <:slash:848339665093656607>give text",
+		message: "Please type <:slash:848339665093656607>`give text` and then click the button again",
 	};
 	requests.delete(author_id);
 	return {kind: "value", value: val.response.value};
