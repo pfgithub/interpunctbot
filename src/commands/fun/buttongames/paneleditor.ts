@@ -44,10 +44,10 @@ function isValidURL(url_in: string): undefined | string {
 	try {
 		url = new URL(url_in);
 	}catch(e) {
-		return "invalid url";
+		return "Invalid URL. URL must start with `http://` or `https://`. "+e.toString();
 	}
-	if(url.protocol !== "http" && url.protocol !== "https") {
-		throw new Error("URL must start with `http://` or `https://`");
+	if(url.protocol !== "http:" && url.protocol !== "https:") {
+		return "URL must start with `http://` or `https://`";
 	}
 	return undefined;
 }
@@ -100,6 +100,7 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 			if(author_id !== state.initiator) return {kind: "error", msg: "This is not your panel."};
 			return undefined;
 		};
+		request.requestInput("EDIT_BUTTON", state.initiator);
 		if(state.edit_mode.kind === "root") return {
 			content: "​",
 			embeds: [],
@@ -131,14 +132,22 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 		}; else if(state.edit_mode.kind === "edit_button") {
 			const ostate = state.edit_mode;
 			const btn = state.rows[state.edit_mode.btn_row]![state.edit_mode.btn_col]!;
-			request.requestInput("EDIT_BUTTON", state.initiator);
 			return {
 				content: "​",
 				embeds: [],
 				components: [
 					[
 						mkbtn<PanelState>("Preview:", "secondary", {disabled: true}, {kind: "none"}),
-						previewButton(btn, {kind: "none"}),
+						previewButton(btn, callback("PREVIEW_CLICK", req_author, () => {
+							return {kind: "other", handler: async (info) => {
+								if(info.raw_interaction) {
+									const action = btn.action;
+									await info.raw_interaction.replyHiddenHideCommand("When you click this button, "+action.kind);
+								}else{
+									await info.accept();
+								}
+							}};
+						})),
 					],
 					[
 						mkbtn<PanelState>("🖫 Save", "accept", {}, callback("ROOT", req_author, (author_id) => {
@@ -180,12 +189,12 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 						mkbtn<PanelState>("Action:", "secondary", {disabled: true}, {kind: "none"}),
 						...([["Nothing", "nothing"], ["Role", "role"], ["Link", "link"]] as const).map(([name, kind]) => {
 							return mkbtn<PanelState>(name, btn.action.kind === kind ? "primary" : "secondary", {}, callback("ACTION,"+kind, req_author, (author_id) => {
-								btn.action = {kind: kind};
+								btn.action.kind = kind;
 								if(kind !== "nothing") state.edit_mode = {...ostate, kind: "edit_action"};
 								return {kind: "update_state", state};
 							}));
 						}),
-						mkbtn<PanelState>("▸ More", btn.action.kind === "link" ? "primary" : "secondary", {}, callback("ACTION_more", req_author, (author_id) => {
+						mkbtn<PanelState>("▸ More", "secondary", {}, callback("ACTION_more", req_author, (author_id) => {
 							return {kind: "error", msg: "TODO"};
 						})),
 					],
@@ -203,21 +212,31 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 					],
 				];
 			}else if(btn.action.kind === "link") {
+				const action = btn.action;
 				action_cfg = [
 					[
 						mkbtn<PanelState>("URL:", "secondary", {disabled: true}, {kind: "none"}),
-						...btn.action.url ? [
-							mkbtn<PanelState>((btn.action.url || "​").substr(0, 80), "secondary", {disabled: true}, {kind: "none"}),
+						...action.url ? [
+							mkbtn<PanelState>(action.url, "secondary", {}, {kind: "link", url: action.url}),
 						] : [],
-						mkbtn<PanelState>("🖉 Edit", btn.action.url ? "primary" : "secondary", {}, callback("SET_URL", req_author, (author_id) => {
-							return {kind: "error", msg: "TODO"};
+						mkbtn<PanelState>("🖉 Edit", action.url ? "secondary" : "primary", {}, callback("SET_URL", req_author, (author_id) => {
+							const result = request.getTextInput("EDIT_BUTTON", author_id);
+							if(result.kind === "error") {
+								return {kind: "error", msg: result.message};
+							}else{
+								const is_valid = isValidURL(result.value);
+								if(is_valid != null) return {kind: "error", msg: is_valid};
+								action.url = result.value;
+								return {kind: "update_state", state};
+							}
 						})),
 					],
 				];
 			}else{
+				const action = btn.action;
 				action_cfg = [
 					[
-						mkbtn<PanelState>("TODO "+btn.action.kind, "secondary", {disabled: true}, {kind: "none"}),
+						mkbtn<PanelState>("TODO "+action.kind, "secondary", {disabled: true}, {kind: "none"}),
 					],
 				];
 			}
@@ -232,11 +251,11 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 						})),
 						...([["Nothing", "nothing"], ["Role", "role"], ["Link", "link"]] as const).map(([name, kind]) => {
 							return mkbtn<PanelState>(name, btn.action.kind === kind ? "primary" : "secondary", {}, callback("ACTION,"+kind, req_author, (author_id) => {
-								btn.action = {kind: kind};
+								btn.action.kind = kind;
 								return {kind: "update_state", state};
 							}));
 						}),
-						mkbtn<PanelState>("▸ More", btn.action.kind === "link" ? "primary" : "secondary", {}, callback("ACTION_more", req_author, (author_id) => {
+						mkbtn<PanelState>("▸ More", "secondary", {}, callback("ACTION_more", req_author, (author_id) => {
 							return {kind: "error", msg: "TODO"};
 						})),
 					],

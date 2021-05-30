@@ -51,8 +51,8 @@ nr.globalCommand(
 			return await info.error(pr.message);
 		}else{
 			if(info.raw_interaction) {
-				return await info.raw_interaction.replyHiddenHideCommand("✓");
-			}else return await info.success("✓");
+				return await info.raw_interaction.replyHiddenHideCommand("✓. Please click the button again.");
+			}else return await info.success("✓. Please click the button again.");
 		}
 	},
 );

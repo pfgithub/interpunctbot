@@ -172,8 +172,9 @@ export function renderResultToResult(rr: RenderResult<unknown>, key: (a: string)
 			return {
 				type: 2,
 				style: itm.action.kind === "link" ? 5 : buttonStyles[itm.color],
-				label: itm.label,
-				custom_id: itm.action.kind === "callback" ? key(itm.action.id) : "NONE",
+				url: itm.action.kind === "link" ? itm.action.url : undefined,
+				label: itm.label.length > 80 ? itm.label.substr(0, 79) + "…" : itm.label || "\u200B",
+				custom_id: itm.action.kind === "callback" ? key(itm.action.id) : itm.action.kind === "link" ? undefined : "NONE",
 				disabled: itm.disabled,
 				emoji: itm.emoji,
 			} as any;
