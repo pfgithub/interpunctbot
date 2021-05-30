@@ -1,4 +1,8 @@
-import {ButtonStyle, Game, HandleInteractionResponse, RenderResult, RenderActionRow, renderResultToResult, RenderActionButton, RenderActionButtonAction, renderResultToHandledInteraction, RenderActionButtonActionCallbackOpt, RenderActionButtonActionCallback, updateGameState, IKey, SampleMessage, button, componentRow, getInteractionKey} from "./tictactoe";
+import {
+	ButtonStyle, Game, HandleInteractionResponse, RenderResult, RenderActionRow, renderResultToResult, RenderActionButton, RenderActionButtonAction,
+	renderResultToHandledInteraction, RenderActionButtonActionCallbackOpt, RenderActionButtonActionCallback, updateGameState, IKey, SampleMessage,
+	button, componentRow, getInteractionKey, CreateOpts
+} from "./tictactoe";
 import {URL} from "url";
 import * as request from "../../../RequestManager";
 import Info, { memberCanManageRole } from "../../../Info";
@@ -33,37 +37,40 @@ type SavedState = {
 type PanelState = {
 	initiator: string,
 	last_saved: number,
+	last_saved_as?: {to: "user" | "guild", name: string},
 	rows: ButtonRow[],
 
-	edit_mode: {
-		kind: "home",
-	} | {
-		kind: "save_panel",
-		guild_panels: {name: string, last_updated: number, created_by: string}[] | undefined,
-		user_panels: {name: string, last_updated: number, created_by: string}[],
-	} | {
-		kind: "confirm_overwrite",
-		name: string,
-		last_updated: number,
-		created_by: string,
-		save_to: string,
-	} | {
-		kind: "saved",
-	} | {
-		kind: "root",
-		show_last?: true,
-	} | {
-		kind: "edit_button",
-		btn_row: number,
-		btn_col: number,
-	} | {
-		kind: "edit_action",
-		btn_row: number,
-		btn_col: number,
-	} | {
-		kind: "close",
-	} | {kind: "unsupported"},
+	edit_mode: EditMode,
 };
+type EditMode = {
+	kind: "home",
+} | {
+	kind: "save_panel",
+	mode: "save" | "load" | "send",
+	guild_panels: {name: string, last_updated: number, created_by: string}[] | undefined,
+	user_panels: {name: string, last_updated: number, created_by: string}[],
+} | {
+	kind: "confirm_overwrite",
+	name: string,
+	last_updated: number,
+	created_by: string,
+	save_to: string,
+} | {
+	kind: "saved",
+} | {
+	kind: "root",
+	show_last?: true,
+} | {
+	kind: "edit_button",
+	btn_row: number,
+	btn_col: number,
+} | {
+	kind: "edit_action",
+	btn_row: number,
+	btn_col: number,
+} | {
+	kind: "close",
+} | {kind: "unsupported"};
 
 function isValidURL(url_in: string): undefined | string {
 	if(!url_in) return "No URL";
@@ -200,6 +207,26 @@ function requestInput(info: Info, ikey: IKey,
 	};
 }
 
+async function savePanelScreenState(info: Info, mode: "save" | "load" | "send"): Promise<EditMode> {
+	const [guild_panels, user_panels] = await Promise.all([
+		globalKnex!("panels").select(["name", "last_updated", "created_by"]).where({
+			owner_id: info.message.guild!.id,
+		}).orderBy("last_updated", "desc").limit(10),
+		globalKnex!("panels").select(["name", "last_updated", "created_by"]).where({
+			owner_id: info.message.author.id,
+		}).orderBy("last_updated", "desc").limit(10),
+	]) as [{name: string, last_updated: number, created_by: string}[], {name: string, last_updated: number, created_by: string}[]];
+
+	console.log("Guild panels:", guild_panels);
+	console.log("User panels:", user_panels);
+
+	return {kind: "save_panel",
+		mode,
+		guild_panels: info.authorPerms.manageBot ? guild_panels : [],
+		user_panels: user_panels,
+	};
+}
+
 function newRender(state: PanelState): RenderResult<PanelState> {
 	{
 		const req_author: RenderActionButtonActionCallbackOpt<PanelState> = (author_id) => {
@@ -210,26 +237,30 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 			return {
 				kind: "async",
 				handler: async (info) => {
-					const [guild_panels, user_panels] = await Promise.all([
-						globalKnex!("panels").select(["name", "last_updated", "created_by"]).where({
-							owner_id: info.message.guild!.id,
-						}).orderBy("last_updated", "desc").limit(8),
-						globalKnex!("panels").select(["name", "last_updated", "created_by"]).where({
-							owner_id: author_id,
-						}).orderBy("last_updated", "desc").limit(8),
-					]) as [{name: string, last_updated: number, created_by: string}[], {name: string, last_updated: number, created_by: string}[]];
-
-					console.log("Guild panels:", guild_panels);
-					console.log("User panels:", user_panels);
-
-					state.edit_mode = {kind: "save_panel",
-						guild_panels: info.authorPerms.manageBot ? guild_panels : [],
-						user_panels: user_panels,
-					};
+					state.edit_mode = await savePanelScreenState(info, "save");
 					return {kind: "update_state", state};
 				},
 			};
 		};
+		const savePanel = (save_to_id: string, save_name: string, created_by: string, now: number, ss: SavedState): HandleInteractionResponse<PanelState> => ({
+			kind: "async",
+			handler: async (info) => {
+				const last_updated = Date.now();
+				await globalKnex!("panels").where({
+					owner_id: save_to_id,
+					name: save_name,
+				}).update({
+					last_updated: now,
+					created_by,
+					data: JSON.stringify(ss),
+				});
+
+				state.edit_mode = {kind: "saved"};
+				state.last_saved = last_updated;
+				state.last_saved_as = {to: save_to_id === created_by ? "user" : "guild", name: save_name};
+				return {kind: "update_state", state};
+			},
+		});
 		if(state.edit_mode.kind === "home") {
 			const btncount = state.rows.reduce((t, a) => t + a.length, 0);
 			return {
@@ -277,7 +308,7 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 		}else if(state.edit_mode.kind === "save_panel") {
 			const ostate = state.edit_mode;
 			// display a list of panels on this server and a "save new" button to save with a custom name
-			const performSave = (author_id: string, owner: "author" | "guild", root_info: Info,
+			const performSaveAs = (author_id: string, owner: "author" | "guild", root_info: Info,
 				ikey: IKey,
 			): HandleInteractionResponse<PanelState> => requestTextInput(root_info, ikey, (save_name) => {
 				if(save_name.length > 60) return {kind: "error", msg: "Name must be at most 60 characters"};
@@ -319,13 +350,46 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 
 						state.edit_mode = {kind: "saved"};
 						state.last_saved = last_updated;
+						state.last_saved_as = {to: owner === "author" ? "user" : "guild", name: save_name};
 						return {kind: "update_state", state};
 					},
 				};
 			});
+			const performLoad = (
+				owner_id: string,
+				save_name: string,
+			): HandleInteractionResponse<PanelState> => {
+				return {
+					kind: "async",
+					handler: async (info) => {
+						const previous_save = await globalKnex!("panels").select(["last_updated", "data"]).where({
+							owner_id: owner_id,
+							name: save_name,
+						}) as {last_updated: number, data: string | Record<string, unknown>}[];
+						if(previous_save.length === 0) {
+							return {kind: "error", msg: "Panel not found?"};
+						}
+
+						const first = previous_save[0]!;
+						const new_state: PanelState = {
+							initiator: state.initiator,
+							last_saved: first.last_updated,
+							last_saved_as: {to: owner_id === info.message.author.id ? "user" : "guild", name: save_name},
+							rows: (typeof first.data === "string" ? JSON.parse(first.data) : first.data).rows,
+							edit_mode: {kind: "home"},
+						};
+						return {kind: "update_state", state: new_state};
+					},
+				};
+			};
 
 			const guild_panels = (ostate.guild_panels ?? []).map((panel, i) => {
 				return mkbtn<PanelState>(panel.name, "secondary", {}, callback("SAVEg,"+i, req_author, (author_id, info) => {
+					if(ostate.mode === "load") {
+						return performLoad(info.message.guild!.id, panel.name);
+					}else if(ostate.mode === "send") {
+						return {kind: "error", msg: "TODO"};
+					}
 					state.edit_mode = {
 						kind: "confirm_overwrite",
 						name: panel.name,
@@ -338,6 +402,11 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 			});
 			const user_panels = ostate.user_panels.map((panel, i) => {
 				return mkbtn<PanelState>(panel.name, "secondary", {}, callback("SAVEu,"+i, req_author, (author_id) => {
+					if(ostate.mode === "load") {
+						return performLoad(author_id, panel.name);
+					}else if(ostate.mode === "send") {
+						return {kind: "error", msg: "TODO"};
+					}
 					state.edit_mode = {
 						kind: "confirm_overwrite",
 						name: panel.name,
@@ -353,36 +422,59 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 				content: "\u200b",
 				embeds: [],
 				components: [
-					[mkbtn<PanelState>("< Back", "primary", {}, callback("BACK", req_author, (author_id) => {
-						state.edit_mode = {kind: "home"};
-						return {kind: "update_state", state};
-					}))],
+					[
+						...ostate.mode === "load" || ostate.mode === "send" ? [
+							mkbtn<PanelState>("+ New", "accept", {}, callback("NEW", req_author, (author_id) => {
+								state.edit_mode = {kind: "home"};
+								return {kind: "update_state", state};
+							})),
+						] : [
+							mkbtn<PanelState>("< Back", "primary", {}, callback("BACK", req_author, (author_id) => {
+								state.edit_mode = {kind: "home"};
+								return {kind: "update_state", state};
+							})),
+							...state.last_saved_as ? [
+								mkbtn<PanelState>("Last Save:", "secondary", {disabled: true}, {kind: "none"}),
+								mkbtn<PanelState>(state.last_saved_as.to === "user" ? "Yourself" : "Server", "secondary", {disabled: true}, {kind: "none"}),
+								mkbtn<PanelState>(state.last_saved_as.name, "secondary", {disabled: true}, {kind: "none"}),
+								mkbtn<PanelState>("🖫 Save", "accept", {}, callback("SAVE_AUTO", req_author, (author_id, info, a) => {
+									return savePanel(
+										state.last_saved_as!.to === "user" ? author_id : info.guild!.id,
+										state.last_saved_as!.name,
+										author_id,
+										Date.now(),
+										encodePanel(state),
+									);
+								})),
+							] : [],
+						],
+					],
 					[
 						mkbtn<PanelState>("Server Panels:", "secondary", {disabled: true}, {kind: "none"}),
 						...ostate.guild_panels ? [
-							mkbtn<PanelState>("🖫 Save to Server", "accept", {}, callback("SAVE_SERVER", req_author, (author_id, info, a) => {
-								return performSave(author_id, "guild", info, a);
-							})),
-							...guild_panels.filter((panel, i) => i < 3),
+							...ostate.mode === "save" ? [mkbtn<PanelState>("🖫 Save to Server", "accept", {}, callback("SAVE_SERVER", req_author, (author_id, info, a) => {
+								return performSaveAs(author_id, "guild", info, a);
+							}))] : [],
+							...guild_panels.splice(0, ostate.mode === "save" ? 3 : 4),
 						] : [
 							mkbtn<PanelState>("You do not have permission", "deny", {disabled: true}, {kind: "none"}),
 						],
 					],
-					...guild_panels.length > 3 ? [[
-						...guild_panels.filter((panel, i) => i >= 3 && i < 7),
-						...guild_panels.length >= 7 ? [mkbtn<PanelState>("…", "secondary", {}, callback("SAVEg_more", req_author, (author_id) => {
+					...guild_panels.length > 0 ? [[
+						...guild_panels.splice(0, 4),
+						...guild_panels.length >= 0 ? [mkbtn<PanelState>("…", "secondary", {}, callback("SAVEg_more", req_author, (author_id) => {
 							return {kind: "error", msg: "TODO more"};
 						}))] : [],
 					]] : [],
 					[
 						mkbtn<PanelState>("Your Panels:", "secondary", {disabled: true}, {kind: "none"}),
-						mkbtn<PanelState>("🖫 Save for Yourself", "accept", {}, callback("SAVE_YOU", req_author, (author_id, info, a) => {
-							return performSave(author_id, "author", info, a);
-						})),
-						...user_panels.filter((panel, i) => i < 3),
+						...ostate.mode === "save" ? [mkbtn<PanelState>("🖫 Save for Yourself", "accept", {}, callback("SAVE_YOU", req_author, (author_id, info, a) => {
+							return performSaveAs(author_id, "author", info, a);
+						}))] : [],
+						...user_panels.splice(0, ostate.mode === "save" ? 3 : 4),
 					],
-					...user_panels.length > 3 ? [[
-						...user_panels.filter((panel, i) => i >= 3 && i < 7),
+					...user_panels.length > 0 ? [[
+						...user_panels.splice(0, 4),
 						...user_panels.length >= 7 ? [mkbtn<PanelState>("…", "secondary", {}, callback("SAVEu_more", req_author, (author_id) => {
 							return {kind: "error", msg: "TODO more"};
 						}))] : [],
@@ -408,24 +500,7 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 				components: [
 					[
 						mkbtn<PanelState>("Overwrite", state.last_saved === ostate.last_updated ? "accept" : "deny", {}, callback("OVERWRITE", req_author, (author_id) => {
-							return {
-								kind: "async",
-								handler: async (info) => {
-									const last_updated = Date.now();
-									await globalKnex!("panels").where({
-										owner_id: ostate.save_to,
-										name: ostate.name,
-									}).update({
-										last_updated: last_updated,
-										created_by: author_id,
-										data: JSON.stringify(encodePanel(state)),
-									});
-
-									state.edit_mode = {kind: "saved"};
-									state.last_saved = last_updated;
-									return {kind: "update_state", state};
-								},
-							};
+							return savePanel(ostate.save_to, ostate.name, author_id, Date.now(), encodePanel(state));
 						})),
 						mkbtn<PanelState>("Cancel", "primary", {}, callback("CLOSE", req_author, (author_id) => {
 							return savePanelScreen(author_id);
@@ -445,6 +520,11 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 				content: "<:success:508840840416854026> Your panel has been saved.",
 				embeds: [],
 				components: [
+					...state.last_saved_as ? [[
+						mkbtn<PanelState>("Last Save:", "secondary", {disabled: true}, {kind: "none"}),
+						mkbtn<PanelState>(state.last_saved_as.to === "user" ? "Yourself" : "Server", "secondary", {disabled: true}, {kind: "none"}),
+						mkbtn<PanelState>(state.last_saved_as.name, "secondary", {disabled: true}, {kind: "none"}),
+					]] : [],
 					[
 						mkbtn<PanelState>("Keep Editing", "secondary", {}, callback("CONTINUE", req_author, (author_id) => {
 							state.edit_mode = {kind: "home"};
@@ -492,9 +572,6 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 						mkbtn<PanelState>("🖫 Save", "accept", {}, callback("ROOT", req_author, () => {
 							state.edit_mode = {kind: "home"};
 							return {kind: "update_state", state};
-						})),
-						mkbtn<PanelState>("🗑 Delete", "deny", {}, callback("DELETE", req_author, () => {
-							return {kind: "error", msg: "TODO"};
 						})),
 					]]
 				],
@@ -691,13 +768,23 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 	}
 }
 
-export const PanelEditor: Game<PanelState> = {
+export const PanelEditor: Game<PanelState> & {
+	init(o: CreateOpts, m: {mode: "new" | "edit" | "send", search?: string}, info: Info): Promise<PanelState>,
+} = {
 	kind: "PANL",
-	init({author_id}): PanelState {
+	async init({author_id}, {mode, search}, info) {
+		let edit_mode: EditMode;
+		if(mode === "edit") {
+			edit_mode = await savePanelScreenState(info, "load");
+		}else if(mode === "new") {
+			edit_mode = {kind: "home"};
+		}else if(mode === "send") {
+			edit_mode = await savePanelScreenState(info, "send");
+		}else assertNever(mode);
 		return {
 			initiator: author_id,
 			rows: [],
-			edit_mode: {kind: "home"},
+			edit_mode: edit_mode,
 			last_saved: Date.now(),
 		};
 	},

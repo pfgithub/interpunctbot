@@ -310,10 +310,10 @@ function parseInteractionKey(key: InteractionKey): {game_id: GameID, kind: GameK
 	};
 }
 
-async function createGame<T>(game: Game<T>, create_opts: CreateOpts) {
+async function createGame<T>(game: Game<T>, state: T) {
 	const gd: GameData = {
 		kind: game.kind,
-		state: game.init(create_opts),
+		state: state,
 		stage: 0,
 	};
 	const [id] = await globalKnex!("games").insert({
@@ -355,13 +355,16 @@ export type HandleInteractionResponse<T> = {
 	handler: (info: Info) => Promise<HandleInteractionResponse<T>>,
 };
 
-type CreateOpts = {author_id: string};
+export type CreateOpts = {author_id: string};
 type HandleInteractionOpts<T> = {state: T, key_name: string, author_id: string, info: Info, ikey: IKey};
 export interface Game<T> {
 	kind: GameKind;
-	init: (opts: CreateOpts) => T;
+	// init: (opts: CreateOpts) => T;
     render: (state: T, key: (a: string) => string, info: Info) => SampleMessage;
     handleInteraction: (opts: HandleInteractionOpts<T>) => HandleInteractionResponse<T>;
+}
+export interface GameInit<T, O extends unknown[]> {
+	init: (...args: O) => T;
 }
 
 // TODO rather than incrementing stage, generate a random id
@@ -493,7 +496,7 @@ function tttDetectTie(grid: Grid<" " | "O" | "X">): boolean {
 	return grid.every(l => l.every(t => t !== " "));
 }
 
-const TTTGame: Game<TicTacToeState> = {
+const TTTGame: Game<TicTacToeState> & GameInit<TicTacToeState, [CreateOpts]> = {
 	kind: "TTT",
 	init({author_id}): TicTacToeState {
 		return {mode: "joining", first_player: author_id};
@@ -698,7 +701,7 @@ nr.globalCommand(
 	},
 	nr.list(),
 	async ([], info) => {
-		const game_id = await createGame(TTTGame, {author_id: info.message.author.id});
+		const game_id = await createGame(TTTGame, TTTGame.init({author_id: info.message.author.id}));
 		await renderGame(info, game_id);
 	},
 );
@@ -814,7 +817,7 @@ type CirclegameState = {
 } | {
     mode: "canceled",
 } | {mode: "__never__"};
-const CGGame: Game<CirclegameState> = {
+const CGGame: Game<CirclegameState> & GameInit<CirclegameState, [CreateOpts]> = {
 	kind: "CG",
 	init({author_id}): CirclegameState {
 		return {mode: "joining", initiator: author_id};
@@ -990,7 +993,7 @@ nr.globalCommand(
 	},
 	nr.list(),
 	async ([], info) => {
-		const game_id = await createGame(CGGame, {author_id: info.message.author.id});
+		const game_id = await createGame(CGGame, CGGame.init({author_id: info.message.author.id}));
 		await renderGame(info, game_id);
 	},
 );
@@ -1019,7 +1022,7 @@ Alternative spellings are accepted, including {Command|paper football}`,
 	},
 	nr.list(),
 	async ([], info) => {
-		const game_id = await createGame(PSGame, {author_id: info.message.author.id});
+		const game_id = await createGame(PSGame, PSGame.init({author_id: info.message.author.id}));
 		await renderGame(info, game_id);
 	},
 );
@@ -1108,11 +1111,11 @@ nr.globalCommand(
 	},
 	nr.list(),
 	async ([], info) => {
-		const game_id = await createGame(Calculator, {author_id: info.message.author.id});
+		const game_id = await createGame(Calculator, Calculator.init({author_id: info.message.author.id}));
 		await renderGame(info, game_id);
 	},
 );
-const Calculator: Game<CalcState> = {
+const Calculator: Game<CalcState> & GameInit<CalcState, [CreateOpts]> = {
 	kind: "CALC",
 	init({author_id}) {
 		return {current: ""};
@@ -1291,7 +1294,7 @@ For better instructions, read {Link|https://mathwithbaddrawings.com/2013/06/16/u
 	},
 	nr.list(),
 	async ([], info) => {
-		const game_id = await createGame(UTTTGame, {author_id: info.message.author.id});
+		const game_id = await createGame(UTTTGame, UTTTGame.init({author_id: info.message.author.id}));
 		await renderGame(info, game_id);
 	},
 );
@@ -1457,7 +1460,7 @@ nr.globalCommand(
 	},
 	nr.passthroughArgs,
 	async ([], info) => {
-		const game_id = await createGame(Conn4Game, {author_id: info.message.author.id});
+		const game_id = await createGame(Conn4Game, Conn4Game.init({author_id: info.message.author.id}));
 		await renderGame(info, game_id);
 	},
 );
@@ -1592,10 +1595,10 @@ function gamelibGameHandler<State>(
 	handleGiveUp: (author_id: string, state: {mode: "playing", state: State}) =>
 		HandleInteractionResponse<GamelibState<State>>
 	,
-): Game<GamelibState<State>> {
+): Game<GamelibState<State>> & GameInit<GamelibState<State>, [CreateOpts]> {
 	type CheckersState = GamelibState<State>;
 
-	const res: Game<CheckersState> = {
+	const res: Game<CheckersState> & GameInit<CheckersState, [CreateOpts]> = {
 		kind,
 		init({author_id}): CheckersState {
 			return {mode: "joining", initiator: author_id};
@@ -1720,7 +1723,7 @@ nr.globalCommand(
 	},
 	nr.passthroughArgs,
 	async ([], info) => {
-		const game_id = await createGame(CheckersGame, {author_id: info.message.author.id});
+		const game_id = await createGame(CheckersGame, CheckersGame.init({author_id: info.message.author.id}));
 		await renderGame(info, game_id);
 	},
 );
@@ -1736,7 +1739,27 @@ nr.globalCommand(
 	},
 	nr.list(),
 	async ([], info) => {
-		const game_id = await createGame(paneleditor.PanelEditor, {author_id: info.message.author.id});
+		const game_id = await createGame(paneleditor.PanelEditor, await paneleditor.PanelEditor.init(
+			{author_id: info.message.author.id}, {mode: "new"}, info,
+		));
+		await renderGame(info, game_id);
+	},
+);
+
+nr.globalCommand(
+	"/help/test/editpanel",
+	"editpanel",
+	{
+		usage: "editpanel (panel name)",
+		description: "edit a button panel",
+		examples: [],
+		perms: {fun: true},
+	},
+	nr.list(...nr.a.words()),
+	async ([panel_name], info) => {
+		const game_id = await createGame(paneleditor.PanelEditor, await paneleditor.PanelEditor.init(
+			{author_id: info.message.author.id}, {mode: "edit", search: panel_name || undefined}, info,
+		));
 		await renderGame(info, game_id);
 	},
 );
@@ -1752,9 +1775,10 @@ nr.globalCommand(
 	},
 	nr.list(...nr.a.words()),
 	async ([panel_name], info) => {
-		return await info.error("TODO sendpanel");
-		// const game_id = await createGame(paneleditor.PanelEditor, {author_id: info.message.author.id});
-		// await renderGame(info, game_id);
+		const game_id = await createGame(paneleditor.PanelEditor, await paneleditor.PanelEditor.init(
+			{author_id: info.message.author.id}, {mode: "edit", search: panel_name || undefined}, info,
+		));
+		await renderGame(info, game_id);
 	},
 );
 
