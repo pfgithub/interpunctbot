@@ -22,8 +22,6 @@ nr.addDocsWebPage(
 	"games",
 	`{Title|Games}\n\n{Interpunct} has a variety of games.
 
-Note that most games work best when {Interpunct} has permission to Manage Reactions
-
 {CmdSummary|connect4}
 {CmdSummary|papersoccer}
 {CmdSummary|ultimate tictactoe}

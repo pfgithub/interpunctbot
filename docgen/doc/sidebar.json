@@ -5,6 +5,7 @@
 	["category", "/help"],
 	["channel", "/help/configuration"],
 	["channel", "/help/games"],
+	["channel", "/help/buttons"],
 	["channel", "/help/ticket"],
 	["channel", "/help/emoji"],
 	["channel", "/help/messages"],

@@ -6,11 +6,30 @@ import { InteractionHandled, InteractionHelper } from "../../../SlashCommandMana
 import { assertNever } from "../../../..";
 import { clearRequest } from "../../../RequestManager";
 
+nr.addDocsWebPage(
+	"/help/buttons",
+	"Buttons",
+	"buttons",
+	`{Title|Games}\n\n{Interpunct} can help you create buttons to give people roles
+and other things.
+
+{CmdSummary|grantrolebtn}
+{CmdSummary|newpanel}
+{CmdSummary|editpanel}
+{CmdSummary|sendpanel}
+
+`,
+);
+
 // FILE TODO:
-// "play against yourself" - this should make an ephemeral copy of the game
-//                           rather than making the "join game" button silently
-//                           no longer work
 // the id arg for making a button should accept a distinct "button key" type
+// everything should be migrated to the new system
+// maybe: the new system could be changed to allow "overlays"? like
+//   basically react hooks. those are scary though, it's easy to
+//   break states across updates.
+// test. these uis are possible to test because they have identifiers
+//   for every button. just have to move stuff away from using info
+//   directly and towards using proper non-hacky abstractions.
 
 const BasicKeys = {
 	rules: "rules",
@@ -769,12 +788,18 @@ nr.ginteractionhandler["GRANTROLE"] = {
 };
 
 nr.globalCommand(
-	"/help/test/grantrolebtn",
+	"/help/buttons/grantrolebtn",
 	"grantrolebtn",
 	{
-		usage: "grantrolebtn",
-		description: "grantrolebtn `button text` <role>",
-		examples: [],
+		usage: "grantrolebtn {Required|ButtonText} {Required|role}",
+		description: "Create a button that, when clicked, gives people a role.",
+		extendedDescription: "Edit the text with {Command|editmsg}.",
+		examples: [
+			{
+				in: "{ExampleUserMessageNoPfx|/button role name: Become Bad role: @bad}",
+				out: "{Screenshot|https://i.imgur.com/y56NMZH.png}",
+			}
+		],
 		perms: {runner: ["manage_bot"]},
 	},
 	nr.list(nr.a.backtick(), ...nr.a.role()),
@@ -1757,11 +1782,11 @@ nr.globalCommand(
 );
 
 nr.globalCommand(
-	"/help/test/newpanel",
+	"/help/buttons/newpanel",
 	"newpanel",
 	{
 		usage: "newpanel",
-		description: "make a new button panel",
+		description: "Create a new button panel",
 		examples: [],
 		perms: {fun: true},
 	},
@@ -1775,10 +1800,10 @@ nr.globalCommand(
 );
 
 nr.globalCommand(
-	"/help/test/editpanel",
+	"/help/buttons/editpanel",
 	"editpanel",
 	{
-		usage: "editpanel (panel name)",
+		usage: "editpanel {Optional|panel name}",
 		description: "edit a button panel",
 		examples: [],
 		perms: {fun: true},
@@ -1793,11 +1818,11 @@ nr.globalCommand(
 );
 
 nr.globalCommand(
-	"/help/test/sendpanel",
+	"/help/buttons/sendpanel",
 	"sendpanel",
 	{
-		usage: "sendpanel Panel Name",
-		description: "send a button panel",
+		usage: "sendpanel {Optional|panel name}",
+		description: "Send a button panel",
 		examples: [],
 		perms: {fun: true},
 	},

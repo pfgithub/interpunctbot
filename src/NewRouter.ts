@@ -24,7 +24,7 @@ export type HelpData = {
 	usage: string,
 	description: string,
 	extendedDescription?: string,
-	examples: { in: string, out: string }[],
+	examples: ({ custom?: undefined, in: string, out: string } | {custom: string})[],
 	perms: {
 		fun?: boolean,
 		raw_message?: boolean,
@@ -156,7 +156,7 @@ export function addHelpDocsPage(
 			"\n\n" +
 			help.examples
 			    .map(
-			        ex =>
+			        ex => ex.custom ??
 			            `{ExampleUserMessage|${ex.in}}\n{ExampleBotMessage|${ex.out}}`,
 			    )
 			    .join("\n{Nothing}\n"),

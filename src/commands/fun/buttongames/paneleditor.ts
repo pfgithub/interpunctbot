@@ -252,13 +252,19 @@ function displayPanel(saved_in: SavedState, info: Info, mode: "error" | "preview
 			if(line.action.kind === "role") {
 				const role = info.guild!.roles.resolve(line.action.role_id ?? "0");
 				const role_mention = "<@&"+line.action.role_id+"> (@"+line.action.role_name+")";
-				if(!role) return {result: "error", error: "Role "+role_mention+" does not exist on this server."};
+				if(!role) {
+					const error_msg = "Role "+role_mention+" does not exist on this server.";
+					if(mode === "error") return {result: "error", error: error_msg};
+					line.action = {kind: "show_error", message: error_msg};
+					continue;
+				}
 				if(!memberCanManageRole(info.message.member!, role)) {
 					const error_msg = "You do not have permission to give people "+role_mention+". You "+
 					"must have permission to Manage Roles and your highest role must be higher than the role you are "+
 					"trying to give.";
 					if(mode === "error") return {result: "error", error: error_msg};
 					line.action = {kind: "show_error", message: error_msg};
+					continue;
 				}
 				if(!memberCanManageRole(info.guild!.me!, role)) {
 					const error_msg = "I do not have permission to give people "+role_mention+". I "+
@@ -266,6 +272,7 @@ function displayPanel(saved_in: SavedState, info: Info, mode: "error" | "preview
 					"trying to give.";
 					if(mode === "error") return {result: "error", error: error_msg};
 					line.action = {kind: "show_error", message: error_msg};
+					continue;
 				}
 			}
 		}
