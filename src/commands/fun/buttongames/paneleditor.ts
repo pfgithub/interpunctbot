@@ -403,7 +403,7 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 							return {kind: "update_state", state};
 						}))),
 						...row.length < 5 ? [
-							mkbtn<PanelState>("+", "accept", {}, callback("ADDBTN,"+row_idx, req_author, () => {
+							mkbtn<PanelState>("+", "primary", {}, callback("ADDBTN,"+row_idx, req_author, () => {
 								state.rows[row_idx].push({color: "secondary", label: "Button", action: {kind: "nothing"}});
 								state.edit_mode = {kind: "edit_button", btn_row: row_idx, btn_col: state.rows[row_idx].length - 1};
 								return {kind: "update_state", state};
@@ -411,7 +411,7 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 						] : [],
 					]),
 					...omode.show_last ? [] : [[
-						...state.rows.length < 5 ? [mkbtn<PanelState>("+ Row", "accept", {}, callback("ADDROW", req_author, () => {
+						...state.rows.length < 5 ? [mkbtn<PanelState>("+ Row", "primary", {}, callback("ADDROW", req_author, () => {
 							state.rows.push([{color: "secondary", label: "Button", action: {kind: "nothing"}}]);
 							state.edit_mode = {kind: "edit_button", btn_row: state.rows.length - 1, btn_col: 0};
 							return {kind: "update_state", state};
