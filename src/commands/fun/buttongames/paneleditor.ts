@@ -1,16 +1,18 @@
-import {
-	ButtonStyle, Game, HandleInteractionResponse, RenderResult, RenderActionRow, renderResultToResult, RenderActionButton, RenderActionButtonAction,
-	renderResultToHandledInteraction, RenderActionButtonActionCallbackOpt, RenderActionButtonActionCallback, updateGameState, IKey, SampleMessage,
-	button, componentRow, getInteractionKey, CreateOpts, buttonStyles
-} from "./tictactoe";
-import {URL} from "url";
-import * as request from "../../../RequestManager";
+import { URL } from "url";
+import { assertNever } from "../../../..";
+import { globalKnex } from "../../../db";
 import Info, { memberCanManageRole } from "../../../Info";
-import {globalKnex} from "../../../db";
-import { assertNever, perr } from "../../../..";
-import { ResponseType } from "../../../RequestManager";
-import * as discord from "discord.js";
-import { shortenLink } from "../../fun";
+import {
+	ButtonStyle,
+
+	buttonStyles, callback, componentRow, CreateOpts, Game, HandleInteractionResponse,
+	IKey,
+	mkbtn, RenderActionButton, RenderActionButtonAction,
+	RenderActionButtonActionCallbackOpt, RenderActionRow, RenderResult,
+	renderResultToHandledInteraction, renderResultToResult,
+
+	requestEmojiInput, requestLongTextInput, requestRoleInput, requestTextInput, SampleMessage
+} from "./tictactoe";
 
 // NOTE this will retain all fields, even those
 // that are not of the active tag.
@@ -116,132 +118,8 @@ function previewButton(btn: Button, action: RenderActionButtonAction<PanelState>
 	};
 }
 
-function mkbtn<T>(label: string, color: ButtonStyle, opts: {disabled?: boolean}, action: RenderActionButtonAction<T>): RenderActionButton<T> {
-	return {
-		label,
-		color,
-		action,
-		...opts,
-	};
-}
-function callback<T>(id: string, ...cb: [
-	...RenderActionButtonActionCallbackOpt<T>[],
-	RenderActionButtonActionCallback<T>,
-]): RenderActionButtonAction<T> {
-	return {kind: "callback", id, cb: (author_id, info, ikey) => {
-		for(const a of cb) {
-			const res = a(author_id, info, ikey);
-			if(res) return res;
-		}
-		throw new Error("unreachable");
-	}};
-}
-
-function encodePanel(state: PanelState): SavedState {
+export function encodePanel(state: PanelState): SavedState {
 	return {rows: state.rows, content: state.content};
-}
-
-function requestTextInput(info: Info, ikey: IKey,
-	cb: (a: string) => HandleInteractionResponse<PanelState>,
-): HandleInteractionResponse<PanelState> {
-	return requestInput(info, ikey, (res): HandleInteractionResponse<PanelState> => {
-		if(res.kind !== "text") return {kind: "error", msg: "Expected text."};
-		return cb(res.value);
-	}, {slash: "give text", base: "givetext {Text}"});
-}
-function requestLongTextInput(info: Info, ikey: IKey,
-	current_value: string,
-	cb: (a: string) => HandleInteractionResponse<PanelState>,
-): HandleInteractionResponse<PanelState> {
-	return {
-		kind: "async",
-		handler: async () => {
-			const resurl =
-				"https://pfg.pw/sitepages/messagecreator?content=" +
-				encodeURIComponent(current_value) + "&post=true";
-			const postres = await shortenLink(resurl);
-			if ("error" in postres) return {kind: "error", msg: postres.error};
-
-			return requestInput(info, ikey, (res): HandleInteractionResponse<PanelState> => {
-				if(res.kind !== "longtext") return {kind: "error", msg: "Expected text."};
-				return cb(res.value);
-			}, {entire: "Edit the content here: <"+postres.url+">", slash: "", base: ""});
-		}
-	};
-}
-function requestRoleInput(info: Info, ikey: IKey,
-	cb: (a: discord.Role) => HandleInteractionResponse<PanelState>,
-): HandleInteractionResponse<PanelState> {
-	return requestInput(info, ikey, (res): HandleInteractionResponse<PanelState> => {
-		if(res.kind !== "role") return {kind: "error", msg: "Expected role."};
-		return cb(res.value);
-	}, {slash: "give role", base: "giverole {Role name or id}"});
-}
-function requestEmojiInput(info: Info, ikey: IKey,
-	cb: (a: {id: string}) => HandleInteractionResponse<PanelState>,
-): HandleInteractionResponse<PanelState> {
-	return requestInput(info, ikey, (res): HandleInteractionResponse<PanelState> => {
-		if(res.kind !== "emoji") return {kind: "error", msg: "Expected emoji."};
-		return cb(res.value);
-	}, {slash: "give emoji", base: "giveemoji {Emoji or emoji id}"});
-}
-function requestInput(info: Info, ikey: IKey,
-	cb: (a: ResponseType) => HandleInteractionResponse<PanelState>,
-	messages: {slash: string, base: string, entire?: string},
-): HandleInteractionResponse<PanelState> {
-	request.requestInput2(info.message.author.id, (response, input_info) => {
-		perr((async () => {
-			let resp = cb(response);
-			while(resp.kind === "async") {
-				resp = await resp.handler(input_info);
-			}
-			if(resp.kind === "error") {
-				return await input_info.error(resp.msg);
-			}else if(resp.kind === "update_state") {
-				await updateGameState<PanelState>(info, ikey, resp.state, {edit_original: info.raw_interaction!});	
-				if(input_info.raw_interaction) {
-					await input_info.raw_interaction.replyHiddenHideCommand("✓ Set.");
-				}else{
-					await input_info.success("Set.");
-				}
-			}else if(resp.kind === "other"){
-				return await resp.handler(input_info);
-			}else if(resp.kind === "reply_hidden"){
-				if(info.raw_interaction) {
-					return await input_info.raw_interaction!.sendRaw({
-						type: 4,
-						data: {...resp.response, flags: 1 << 6},
-					});
-				}else{
-					return await info.accept();
-				}
-			}else if(resp.kind === "replace_content"){
-				await info.raw_interaction!.editOriginal({
-					...resp.content, allowed_mentions: {parse: []},
-				});
-			}else assertNever(resp);
-		})().catch(async (e) => {
-			console.log(e);
-			return await input_info.error("Internal error.");
-		}), "responding to input");
-	});
-	const key = (name: string) => getInteractionKey(ikey.game_id, ikey.kind, ikey.stage, name);
-	const msgv: SampleMessage = {
-		content: messages.entire ?? "Please type <:slash:848339665093656607>`/"+messages.slash+"` or `"+info.prefix+messages.base+"`",
-		components: [
-			componentRow([
-				button(key("*RELOAD*"), "Cancel", "primary", {}),
-			]),
-		],
-		allowed_mentions: {parse: []},
-		embeds: [],
-	};
-	return {
-		kind: "replace_content",
-		content: {
-			...msgv, allowed_mentions: {parse: []},
-		},
-	};
 }
 
 function displayPanel(saved_in: SavedState, info: Info, mode: "error" | "preview_error"): {result: "success", message: SampleMessage} | {result: "error", error: string} {

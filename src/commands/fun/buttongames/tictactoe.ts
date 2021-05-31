@@ -3,8 +3,10 @@ import {globalKnex} from "../../../db";
 import client from "../../../../bot";
 import Info, {permTheyCanManageRole, permWeCanManageRole} from "../../../Info";
 import { InteractionHandled, InteractionHelper } from "../../../SlashCommandManager";
-import { assertNever } from "../../../..";
-import { clearRequest } from "../../../RequestManager";
+import { assertNever, perr } from "../../../..";
+import { clearRequest, requestInput2, ResponseType } from "../../../RequestManager";
+import { shortenLink } from "../../fun";
+import * as discord from "discord.js";
 
 nr.addDocsWebPage(
 	"/help/buttons",
@@ -139,7 +141,7 @@ export type RenderActionButton<T> = {
 	label: string,
 	color: ButtonStyle,
 	action: RenderActionButtonAction<T>,
-	emoji?: {name: string, id: string, animated: boolean},
+	emoji?: {id: string, name?: string, animated?: boolean},
 	disabled?: boolean,
 };
 export type RenderActionRow<T> = RenderActionButton<T>[];
@@ -184,7 +186,7 @@ export function renderResultToHandledInteraction<T>(rr: RenderResult<T>, hia: Ha
 	}
 	const cb_v = callbacks.get(hia.key_name);
 	if(!cb_v) {
-		console.log("Key missing: "+hia.state+", reloading panel.");
+		if(hia.key_name !== BasicKeys.joining.join_anyway) console.log("Key missing: "+hia.key_name+", reloading panel.");
 		return {kind: "update_state", state: hia.state};
 	}
 
@@ -201,6 +203,7 @@ export function renderResultToResult(rr: RenderResult<unknown>, key: (a: string)
 				if(pv && pv !== itm.action.cb) {
 					throw new Error("Duplicate key "+itm.action.id+" with different handler.");
 				}
+				if(itm.action.id.includes("|")) throw new Error("keys cannot contain `|`");
 				keys.set(itm.action.id, itm.action.cb);
 			}
 			return {
@@ -1607,7 +1610,7 @@ async function duplicateGame<T>(game: Game<T>, game_state: T) {
 	return numToGameID(id);
 }
 
-function showPlayAgainstYourselfMenu<T>(res: Game<T>, state: T): HandleInteractionResponse<T> {
+export function showPlayAgainstYourselfMenu<T>(res: Game<T>, state: T): HandleInteractionResponse<T> {
 	return {
 		kind: "async",
 		handler: async (info) => {
@@ -1782,6 +1785,28 @@ nr.globalCommand(
 );
 
 nr.globalCommand(
+	"/help/fun/infinitetictactoe",
+	"infinitetictactoe",
+	{
+		usage: "infinitetictactoe",
+		description:
+			"Play a game of infinitetictactoe.",
+		extendedDescription:
+			"To play infinitetictactoe, try to win.",
+		examples: [],
+		perms: {fun: true},
+	},
+	nr.passthroughArgs,
+	async ([], info) => {
+		const game_id = await createGame(itttgame.ITTTGame, itttgame.ITTTGame.init({author_id: info.message.author.id}));
+		await renderGame(info, game_id);
+	},
+);
+nr.globalAlias("infinitetictactoe", "ittt");
+nr.globalAlias("infinitetictactoe", "infinite tictactoe");
+nr.globalAlias("infinitetictactoe", "infinite tic tac toe");
+
+nr.globalCommand(
 	"/help/buttons/newpanel",
 	"newpanel",
 	{
@@ -1836,6 +1861,7 @@ nr.globalCommand(
 );
 
 let paneleditor = require("./paneleditor") as typeof import("./paneleditor");
+let itttgame = require("./infinite_tictactoe") as typeof import("./infinite_tictactoe");
 
 import * as fs from "fs";
 if(process.env.NODE_ENV !== "production") {
@@ -1850,6 +1876,142 @@ if(process.env.NODE_ENV !== "production") {
 			console.log("Panel editor update failed", e);
 		}
 	});
+	fs.watchFile(require.resolve("./infinite_tictactoe"), (curr, prev) => {
+		try {
+			const start_time = Date.now();
+			delete require.cache[require.resolve("./infinite_tictactoe")];
+			itttgame = require("./infinite_tictactoe");
+			games["ITTT"] = itttgame.ITTTGame;
+			console.log("ITTTGame updated in "+(Date.now() - start_time)+" ms.");
+		}catch(e){
+			console.log("ITTTGame update failed", e);
+		}
+	});
+}
+
+export function mkbtn<T>(label: string, color: ButtonStyle, opts: {disabled?: boolean, emoji?: string}, action: RenderActionButtonAction<T>): RenderActionButton<T> {
+	return {
+		label,
+		color,
+		action,
+		disabled: opts.disabled,
+		emoji: opts.emoji ? {id: opts.emoji} : undefined,
+	};
+}
+export function callback<T>(id: string, ...cb: [
+	...RenderActionButtonActionCallbackOpt<T>[],
+	RenderActionButtonActionCallback<T>,
+]): RenderActionButtonAction<T> {
+	return {kind: "callback", id, cb: (author_id, info, ikey) => {
+		for(const a of cb) {
+			const res = a(author_id, info, ikey);
+			if(res) return res;
+		}
+		throw new Error("unreachable");
+	}};
+}
+
+export function requestTextInput<T>(info: Info, ikey: IKey,
+	cb: (a: string) => HandleInteractionResponse<T>,
+): HandleInteractionResponse<T> {
+	return requestInput(info, ikey, (res): HandleInteractionResponse<T> => {
+		if(res.kind !== "text") return {kind: "error", msg: "Expected text."};
+		return cb(res.value);
+	}, {slash: "give text", base: "givetext {Text}"});
+}
+export function requestLongTextInput<T>(info: Info, ikey: IKey,
+	current_value: string,
+	cb: (a: string) => HandleInteractionResponse<T>,
+): HandleInteractionResponse<T> {
+	return {
+		kind: "async",
+		handler: async () => {
+			const resurl =
+				"https://pfg.pw/sitepages/messagecreator?content=" +
+				encodeURIComponent(current_value) + "&post=true";
+			const postres = await shortenLink(resurl);
+			if ("error" in postres) return {kind: "error", msg: postres.error};
+
+			return requestInput(info, ikey, (res): HandleInteractionResponse<T> => {
+				if(res.kind !== "longtext") return {kind: "error", msg: "Expected text."};
+				return cb(res.value);
+			}, {entire: "Edit the content here: <"+postres.url+">", slash: "", base: ""});
+		}
+	};
+}
+export function requestRoleInput<T>(info: Info, ikey: IKey,
+	cb: (a: discord.Role) => HandleInteractionResponse<T>,
+): HandleInteractionResponse<T> {
+	return requestInput(info, ikey, (res): HandleInteractionResponse<T> => {
+		if(res.kind !== "role") return {kind: "error", msg: "Expected role."};
+		return cb(res.value);
+	}, {slash: "give role", base: "giverole {Role name or id}"});
+}
+export function requestEmojiInput<T>(info: Info, ikey: IKey,
+	cb: (a: {id: string}) => HandleInteractionResponse<T>,
+): HandleInteractionResponse<T> {
+	return requestInput(info, ikey, (res): HandleInteractionResponse<T> => {
+		if(res.kind !== "emoji") return {kind: "error", msg: "Expected emoji."};
+		return cb(res.value);
+	}, {slash: "give emoji", base: "giveemoji {Emoji or emoji id}"});
+}
+export function requestInput<T>(info: Info, ikey: IKey,
+	cb: (a: ResponseType) => HandleInteractionResponse<T>,
+	messages: {slash: string, base: string, entire?: string},
+): HandleInteractionResponse<T> {
+	requestInput2(info.message.author.id, (response, input_info) => {
+		perr((async () => {
+			let resp = cb(response);
+			while(resp.kind === "async") {
+				resp = await resp.handler(input_info);
+			}
+			if(resp.kind === "error") {
+				return await input_info.error(resp.msg);
+			}else if(resp.kind === "update_state") {
+				await updateGameState<T>(info, ikey, resp.state, {edit_original: info.raw_interaction!});	
+				if(input_info.raw_interaction) {
+					await input_info.raw_interaction.replyHiddenHideCommand("✓ Set.");
+				}else{
+					await input_info.success("Set.");
+				}
+			}else if(resp.kind === "other"){
+				return await resp.handler(input_info);
+			}else if(resp.kind === "reply_hidden"){
+				if(info.raw_interaction) {
+					return await input_info.raw_interaction!.sendRaw({
+						type: 4,
+						data: {...resp.response, flags: 1 << 6},
+					});
+				}else{
+					return await info.accept();
+				}
+			}else if(resp.kind === "replace_content"){
+				await info.raw_interaction!.editOriginal({
+					...resp.content, allowed_mentions: {parse: []},
+				});
+			}else assertNever(resp);
+		})().catch(async (e) => {
+			console.log(e);
+			return await input_info.error("Internal error.");
+		}), "responding to input");
+	});
+	const key = (name: string) => getInteractionKey(ikey.game_id, ikey.kind, ikey.stage, name);
+	const msgv: SampleMessage = {
+		content: messages.entire ?? "Please type <:slash:848339665093656607>`/"+messages.slash+"` or `"+info.prefix+messages.base+"`",
+		components: [
+			componentRow([
+				button(key("*RELOAD*"), "Cancel", "primary", {}),
+			]),
+		],
+		allowed_mentions: {parse: []},
+		embeds: [],
+	};
+	return {
+		kind: "replace_content",
+		content: {
+			...msgv, allowed_mentions: {parse: []},
+		},
+	};
 }
 
 
@@ -1862,6 +2024,7 @@ type GameKind =
     | "C4" // connect 4
     | "CHK" // checkers
 	| "PANL" // panel
+	| "ITTT" // infinite tic tac toe
 ;
 
 const games: {[key in GameKind]: Game<any>} = {
@@ -1873,4 +2036,5 @@ const games: {[key in GameKind]: Game<any>} = {
 	"C4": Conn4Game,
 	"CHK": CheckersGame,
 	"PANL": paneleditor.PanelEditor,
+	"ITTT": itttgame.ITTTGame,
 };

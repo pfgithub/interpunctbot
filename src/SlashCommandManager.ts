@@ -345,12 +345,15 @@ const slash_command_router: {[key: string]: SlashCommandRoute} = {
 	play: {
 		description: "Play a game",
 		subcommands: {
-			connect4: {}, minesweeper: {},
-			papersoccer: {}, ultimatetictactoe: {},
-			checkers: {}, circlegame: {},
 			tictactoe: {},
+			checkers: {},
+			circlegame: {},
+			papersoccer: {},
+			ultimatetictactoe: {},
+			infinitetictactoe: {},
+			connect4: {},
+			trivia: {},
 			randomword: {args: {custom_word: opt.optional(opt.string("A custom word. Costs 5 trophies."))}},
-			trivia: {}, needle: {},
 		},
 	},
 	set: {

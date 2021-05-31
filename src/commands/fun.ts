@@ -22,13 +22,15 @@ nr.addDocsWebPage(
 	"games",
 	`{Title|Games}\n\n{Interpunct} has a variety of games.
 
-{CmdSummary|connect4}
-{CmdSummary|papersoccer}
-{CmdSummary|ultimate tictactoe}
+{CmdSummary|tictactoe}
 {CmdSummary|checkers}
 {CmdSummary|circlegame}
-{CmdSummary|tictactoe}
+{CmdSummary|papersoccer}
+{CmdSummary|ultimate tictactoe}
+{CmdSummary|infinite tictactoe}
+{CmdSummary|connect4}
 {CmdSummary|trivia}
+{CmdSummary|randomword}
 
 {Heading|Configuration}
 Games are enabled by default.
