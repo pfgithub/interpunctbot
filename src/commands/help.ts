@@ -72,6 +72,9 @@ All games have been updated to use new buttons
 
 New fun command
 {CmdSummary|calculator}
+
+New game
+{CmdSummary|infinite tictactoe}
 	`,
 );
 
