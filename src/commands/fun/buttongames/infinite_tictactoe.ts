@@ -126,6 +126,7 @@ function newRender(state: ITTTState): RenderResult<ITTTState> {
 						for(const citems of checks) {
 							const matches = false
 								|| citems.every(([xm, ym]) => getTile(xm, ym, state.center, state.board) === ctile)
+								|| citems.every(([xm, ym]) => getTile(xm, -ym, state.center, state.board) === ctile)
 								|| citems.every(([xm, ]) => getTile(xm, 0, state.center, state.board) === ctile)
 								|| citems.every(([, ym]) => getTile(0, ym, state.center, state.board) === ctile)
 							;
