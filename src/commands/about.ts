@@ -7,11 +7,11 @@ nr.addDocsWebPage(
 	`inter·punct is a discord bot created by pfg#4865 that does a few things. For more information, see help: {LinkDocs|/help}
 
 {Heading|invite to your server}
-{Link|https://interpunct.bot/invite}
+{Link|https://interpunct.info/invite}
 Not all commands require all permissions. Pick and choose only the permissions you need.
 
 {Heading|support server}
-{Link|https://interpunct.bot/support}
+{Link|https://interpunct.info/support}
 
 {Heading|links}
 top.gg (please vote): {Link|https://top.gg/bot/433078185555656705}

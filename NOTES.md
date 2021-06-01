@@ -86,7 +86,7 @@ Suggestion: ip!stats onlinemembers #channelname|id "Online Members: {count}'
 
 -   Puts the server member count in that channel name
 
-Suggestion: https://interpunct.bot/
+Suggestion: https://interpunct.info/
 
 -   Costs \$80/yr so using https://interpunct.info/ instead
 
