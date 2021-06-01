@@ -28,6 +28,15 @@ type ButtonAction = {
 } | {
 	kind: "show_error",
 	message: string,
+} | {
+	kind: "show_panel",
+	panel?: {owner: string, name: string},
+	// making my #rank requests:
+	// dropdown of ranks. when you click one it tells you what proof
+	// you need in an ephemeral panel and gives you a button
+	// to create ticket
+} | {
+	kind: "open_ticket",
 } | {kind: "unsupported"};
 
 type Button = {
