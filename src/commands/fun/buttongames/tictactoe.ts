@@ -1807,6 +1807,26 @@ nr.globalAlias("infinitetictactoe", "infinite tictactoe");
 nr.globalAlias("infinitetictactoe", "infinite tic tac toe");
 
 nr.globalCommand(
+	"/help/fun/battleship",
+	"battleship",
+	{
+		usage: "battleship",
+		description:
+			"Play a game of battleship.",
+		extendedDescription:
+			"To play battleship, try to win.",
+		examples: [],
+		perms: {fun: true},
+	},
+	nr.passthroughArgs,
+	async ([], info) => {
+		const game_id = await createGame(battleshipgame.BattleshipGame, battleshipgame.BattleshipGame.init({author_id: info.message.author.id}));
+		await renderGame(info, game_id);
+	},
+);
+nr.globalAlias("battleship", "bs");
+
+nr.globalCommand(
 	"/help/buttons/newpanel",
 	"newpanel",
 	{
@@ -1862,6 +1882,7 @@ nr.globalCommand(
 
 let paneleditor = require("./paneleditor") as typeof import("./paneleditor");
 let itttgame = require("./infinite_tictactoe") as typeof import("./infinite_tictactoe");
+let battleshipgame = require("./battleship") as typeof import("./battleship");
 
 import * as fs from "fs";
 if(process.env.NODE_ENV !== "production") {
@@ -1885,6 +1906,17 @@ if(process.env.NODE_ENV !== "production") {
 			console.log("ITTTGame updated in "+(Date.now() - start_time)+" ms.");
 		}catch(e){
 			console.log("ITTTGame update failed", e);
+		}
+	});
+	fs.watchFile(require.resolve("./battleship"), (curr, prev) => {
+		try {
+			const start_time = Date.now();
+			delete require.cache[require.resolve("./battleship")];
+			battleshipgame = require("./battleship");
+			games["BTTL"] = battleshipgame.BattleshipGame;
+			console.log("BTTL updated in "+(Date.now() - start_time)+" ms.");
+		}catch(e){
+			console.log("BTTL update failed", e);
 		}
 	});
 }
@@ -2025,6 +2057,7 @@ type GameKind =
     | "CHK" // checkers
 	| "PANL" // panel
 	| "ITTT" // infinite tic tac toe
+	| "BTTL" // battleship
 ;
 
 const games: {[key in GameKind]: Game<any>} = {
@@ -2037,4 +2070,5 @@ const games: {[key in GameKind]: Game<any>} = {
 	"CHK": CheckersGame,
 	"PANL": paneleditor.PanelEditor,
 	"ITTT": itttgame.ITTTGame,
+	"BTTL": battleshipgame.BattleshipGame,
 };
