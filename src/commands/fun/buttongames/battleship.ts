@@ -74,6 +74,11 @@ function irange<T>(start: number, end: number, map: (v: number) => T): T[] {
 // 1: board setup. both ppl set up their board and then say when they're ready
 // 2: turns. goes in turns one person attacks the other
 
+// general outline
+// there'll be a "root game" that holds: interaction tokens for the two ephemeral messages (and can recreate them and update if needed)
+// and then when you do something that the other player needs to know about, it'll send it through the root game or whatever
+// since the root game is a normal message, it can be edited with normal api requests and no expiration issues
+
 function newRender(state: BattleshipState): RenderResult<BattleshipState> {
 	const board = newBoard(11, 11, (x, y) => {
 		if(x === 0 && y === 0) return "corner";
