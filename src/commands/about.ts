@@ -18,8 +18,7 @@ top.gg (please vote): {Link|https://top.gg/bot/433078185555656705}
 discord.bots.gg: {Link|https://discord.bots.gg/bots/433078185555656705}
 
 {Heading|source code}
-{Link|https://github.com/pfgithub/interpunctbot}
-{Interpunct} is open source. Unfortunately, that doesn't mean the code is good.`,
+{Link|https://github.com/pfgithub/interpunctbot}`,
 );
 
 /*
