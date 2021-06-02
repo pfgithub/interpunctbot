@@ -43,6 +43,9 @@ export function boardFill<T>(board: Board<T>, tile: (tile: T, x: number, y: numb
 		boardSet(board, x, y, tile(tilec, x, y));
 	});
 }
+export function boardMap<T>(board: Board<T>, tile: (tile: T, x: number, y: number) => T): Board<T> {
+	return newBoard(board.w, board.h, (x, y) => tile(boardGet(board, x, y)!, x, y));
+}
 export function boardRender<T>(board: Board<T>, draw: (tile: T, x: number, y: number) => string): string {
 	return board.tiles
 		.map((row, y) =>

@@ -1,4 +1,4 @@
-import { Board, boardGet, boardRender, newBoard } from "../gamelib/gamelib";
+import { Board, boardForEach, boardGet, boardMap, boardRender, newBoard } from "../gamelib/gamelib";
 import {
 	callback,
 	CreateOpts, Game, HandleInteractionResponse,
@@ -18,12 +18,22 @@ type BattleshipState = {
 	initiator: string,
 	crosshair: {x?: number, y?: number},
 	who: "your_board" | "their_board",
+	ships: boolean[],
+	placing_ship?: {ship: 0 | number}, // ideally this'd be an overlay thing but I haven't implemented overlays yet
 };
 function irange<T>(start: number, end: number, map: (v: number) => T): T[] {
 	const res: T[] = [];
 	for(let i = start; i <= end; i++) res.push(map(i));
 	return res;
 }
+
+const ship_names: {length: number, color: string, name: string}[] = [{length: 0, color: "NO", name: "NONE"},
+	{length: 5, color: "🟫", name: "Carrier"},
+	{length: 4, color: "🟩", name: "Battleship"},
+	{length: 3, color: "🟧", name: "Cruiser"},
+	{length: 3, color: "🟪", name: "Submarine"},
+	{length: 2, color: "🟥", name: "Destroyer"},
+];
 
 // ok ima do board setup first
 // it'll uuh
@@ -79,13 +89,99 @@ function irange<T>(start: number, end: number, map: (v: number) => T): T[] {
 // and then when you do something that the other player needs to know about, it'll send it through the root game or whatever
 // since the root game is a normal message, it can be edited with normal api requests and no expiration issues
 
+function placeShip(x: number, y: number, board: Board<Tile>, [dx, dy]: [number, number], ship_id: number): boolean {
+	for(let i = 0; i < ship_names[ship_id].length; i++) {
+		const tile = boardGet(board, x, y);
+		if(!tile) return false;
+		if(tile.ship) return false;
+		tile.ship = ship_id;
+
+		x += dx;
+		y += dy;
+	}
+	return true;
+}
+
 function newRender(state: BattleshipState): RenderResult<BattleshipState> {
-	const board = newBoard(11, 11, (x, y) => {
+	const render_board = newBoard(11, 11, (x, y) => {
 		if(x === 0 && y === 0) return "corner";
 		if(y === 0) return "letter";
 		if(x === 0) return "number";
 		return boardGet(state[state.who], x - 1, y - 1) as Tile;
 	});
+	const rendered_board = ".\n"+boardRender(render_board, (tile, x, y) => {
+		if(typeof tile === "string") {
+			if(tile === "corner") return "🟦";
+			if(x - 1 === state.crosshair.x) return "🟦";
+			if(y - 1 === state.crosshair.y) return "🟦";
+			if(tile === "letter") return String.fromCodePoint(0x1f1e6 + x - 1) + "\u200b";
+			if(tile === "number") return (+y % 10)+"\uFE0F\u20e3";
+		}
+		if(state.who === "your_board") {
+			if(tile.attacked) return [..."🔄❎"][+!!tile.ship]; // red or blue
+			if(tile.ship && state.placing_ship?.ship !== tile.ship) return ship_names[tile.ship].color;
+			if(state.placing_ship) {
+				if(x - 1 === state.crosshair.x && y - 1 === state.crosshair.y) return "🔳";
+			}else{
+				if(x - 1 === state.crosshair.x && y - 1 !== state.crosshair.y) return "⬛";
+				if(y - 1 === state.crosshair.y && x - 1 !== state.crosshair.x) return "⬛";
+			}
+			return "🟦";
+		}else{
+			if(tile.attacked) return [..."🟦🟥"][+!!tile.ship]; // red or blue
+			if(x - 1 === state.crosshair.x && y - 1 !== state.crosshair.y) return "🟧";
+			if(y - 1 === state.crosshair.y && x - 1 !== state.crosshair.x) return "🟧";
+			return "⬛";
+		}
+	});
+	if(state.placing_ship) {
+		return {
+			content: rendered_board,
+			embeds: [],
+			components: [
+				[
+					mkbtn<BattleshipState>("< Back", "secondary", {}, callback("START", (author_id) => {
+						if(state.initiator !== author_id) return {kind: "error", msg: "This isn't your game"};
+						
+						state.placing_ship = undefined;
+						return {kind: "update_state", state};
+					})),
+				],
+				irange(1, 5, (ship_id) => {
+					const ship_info = ship_names[ship_id];
+					return mkbtn<BattleshipState>(ship_info.color.repeat(ship_info.length), state.placing_ship?.ship === ship_id
+					? "accept" : state.ships[ship_id]
+					? "primary" : "secondary", {disabled: state.placing_ship?.ship === ship_id}, callback("SHIP,"+ship_id, (author_id) => {
+						if(state.initiator !== author_id) return {kind: "error", msg: "This isn't your game"};
+
+						state.placing_ship = {ship: ship_id};
+						return {kind: "update_state", state};
+					}));
+				}),
+				([[-1, 0, "←"], [0, 1, "↓"], [0, -1, "↑"], [1, 0, "→"]] as const).map(([dx, dy, name]) => {
+					return mkbtn<BattleshipState>(name, state.placing_ship?.ship ? "primary" : "secondary", {
+						disabled: !state.placing_ship?.ship || !placeShip(state.crosshair.x!, state.crosshair.y!, boardMap(state.your_board,
+							(tile) => tile.ship === state.placing_ship?.ship ? {...tile, ship: 0} : {...tile},
+						), [dx, dy], state.placing_ship.ship)
+					}, callback("PUT"+dx+","+dy, (author_id) => {
+						if(state.initiator !== author_id) return {kind: "error", msg: "This isn't your game"};
+						const placing_ship = state.placing_ship!.ship;
+
+						boardForEach(state.your_board, (tile) => {
+							if(tile.ship === placing_ship) tile.ship = 0;
+						});
+						placeShip(state.crosshair.x!, state.crosshair.y!, state.your_board, [dx, dy], placing_ship);
+						state.placing_ship = undefined;
+						state.ships[placing_ship] = false;
+						state.crosshair = {};
+
+						return {kind: "update_state", state};
+					}));
+				})
+			],
+			allowed_mentions: {parse: []},
+		};
+	}
 	const axisbtn = (mode: "x" | "y", num: number) => {
 		return mkbtn<BattleshipState>(
 			"" + (mode === "x" ? String.fromCodePoint(0x41 + num) : ((num + 1) % 10)),
@@ -109,27 +205,7 @@ function newRender(state: BattleshipState): RenderResult<BattleshipState> {
 		);
 	};
 	return {
-		content: ".\n"+boardRender(board, (tile, x, y) => {
-			if(typeof tile === "string") {
-				if(tile === "corner") return "🟦";
-				if(x - 1 === state.crosshair.x) return "🟦";
-				if(y - 1 === state.crosshair.y) return "🟦";
-				if(tile === "letter") return String.fromCodePoint(0x1f1e6 + x - 1) + "\u200b";
-				if(tile === "number") return (+y % 10)+"\uFE0F\u20e3";
-			}
-			if(state.who === "your_board") {
-				if(x - 1 === state.crosshair.x) return "⬛";
-				if(y - 1 === state.crosshair.y) return "⬛";
-				if(tile.attacked) return [..."🔄❎"][+!!tile.ship]; // red or blue
-				if(!tile.ship) return "🟦";
-				return [..."🟫🟩🟧🟪🟥"][tile.ship];
-			}else{
-				if(x - 1 === state.crosshair.x) return "🟧";
-				if(y - 1 === state.crosshair.y) return "🟧";
-				if(tile.attacked) return [..."🟦🟥"][+!!tile.ship]; // red or blue
-				return "⬛";
-			}
-		}),
+		content: rendered_board,
 		embeds: [],
 		components: [
 			[
@@ -140,7 +216,23 @@ function newRender(state: BattleshipState): RenderResult<BattleshipState> {
 					state.crosshair = {};
 					return {kind: "update_state", state};
 				})),
-				...state.who === "your_board" ? [] : [
+				...state.who === "your_board" ? [
+					mkbtn<BattleshipState>("Place Ship", state.ships.every(ship => !ship) ? "secondary" : "primary", {
+						disabled: state.crosshair.x == null || state.crosshair.y == null,
+					}, callback("SHIPS", (author_id) => {
+						if(state.initiator !== author_id) return {kind: "error", msg: "This isn't your game"};
+
+						state.placing_ship = {ship: 0};
+						return {kind: "update_state", state};
+					})),
+					mkbtn<BattleshipState>("Ready", "accept", {
+						disabled: !state.ships.every(ship => !ship),
+					}, callback("START", (author_id) => {
+						if(state.initiator !== author_id) return {kind: "error", msg: "This isn't your game"};
+
+						return {kind: "update_state", state};
+					})),
+				] : [
 					mkbtn<BattleshipState>("Fire!", "deny", {disabled: state.crosshair.x == null || state.crosshair.y == null}, callback("FIRE", (author_id) => {
 						if(state.initiator !== author_id) return {kind: "error", msg: "This isn't your game"};
 
@@ -171,6 +263,8 @@ export const BattleshipGame: Game<BattleshipState> & {
 			initiator: author_id,
 			crosshair: {},
 			who: "your_board",
+			ships: [false, true, true, true, true, true],
+			placing_ship: undefined,
 		};
 	},
 	render(state, key, info) {
