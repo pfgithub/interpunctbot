@@ -858,6 +858,7 @@ nr.globalCommand(
 		usage: "pinbottom {Required|{Channel|channel}} {Required|message...}",
 		description:
 			"{Interpunct} will send a message and make sure it always stays near the bottom of the channel",
+		extendedDescription: "Use {Command|pinbottom {Channel|channel}} to unpin.",
 		examples: [],
 		perms: { runner: ["manage_bot"] },
 	},
