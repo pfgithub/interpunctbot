@@ -814,7 +814,7 @@ nr.globalCommand(
 );
 
 const lastUpdatedTimesCache: { [key: string]: number | undefined } = {};
-export async function sendPinBottom(info: Info, chid: string): Promise<void> {
+export async function sendPinBottom(info: Info, chid: string, from_timeout = false): Promise<void> {
 	if (!info.db) return;
 	const db = info.db;
 	const client = info.message.client;
@@ -825,7 +825,13 @@ export async function sendPinBottom(info: Info, chid: string): Promise<void> {
 	if (!topts.pinBottom) return;
 
 	const lastSentTime = lastUpdatedTimesCache[chid];
-	if (lastSentTime && lastSentTime > new Date().getTime() - 1000 * 5) {
+	if (lastSentTime && lastSentTime > Date.now() - 1000 * 5) {
+		if(!from_timeout) setTimeout(
+			() => {
+				sendPinBottom(info, chid, true).catch(e => console.log("sendpinbottom error", e));
+			},
+			1000 * 5,
+		);
 		return;
 	}
 	lastUpdatedTimesCache[chid] = new Date().getTime();
