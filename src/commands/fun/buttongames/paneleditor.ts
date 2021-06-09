@@ -215,6 +215,15 @@ async function savePanelScreenState(info: Info, mode: "save" | "load" | "send"):
 	console.log("Guild panels:", guild_panels);
 	console.log("User panels:", user_panels);
 
+	// const save_res = exec("savePanel", {
+	// 	mode,
+	// 	guild_panels: info.authorPerms.manageBot ? guild_panels : undefined,
+	// 	user_panels: user_panels,
+	// });
+	// if(!save_res.completed) return save_res.data;
+
+	// set the edit_mode to home and also set anything else the save wanted to tell me
+
 	return {kind: "save_panel",
 		mode,
 		guild_panels: info.authorPerms.manageBot ? guild_panels : undefined,
