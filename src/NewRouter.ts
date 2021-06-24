@@ -304,13 +304,13 @@ export function globalCommand<APList extends APListAny>(
 		}
 		for(const permission of help.perms.bot || []) {
 			if(permission === "manage_channels") {
-				if(!Info.theirPerm.manageChannels(info)) return;
+				if(!Info.ourPerm.manageChannels(info)) return;
 			} else if(permission === "manage_emoji") {
-				if(!await Info.theirPerm.manageBot(info)) return;
+				if(!Info.ourPerm.manageEmoji(info)) return;
 			} else if(permission === "manage_messages") {
-				if(!Info.theirPerm.manageEmoji(info)) return;
+				if(!Info.ourPerm.manageMessages(info)) return;
 			} else if(permission === "ban_members") {
-				if(!Info.theirPerm.manageMessages(info)) return;
+				if(!Info.ourPerm.banMembers(info)) return;
 			} else assertNever(permission);
 		}
 
