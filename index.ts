@@ -101,22 +101,37 @@ nr.globalCommand(
 	"spoiler",
 	{
 		usage: "spoiler {Required|message}",
-		description: "depricated",
+		description: "send a spoiler",
 		examples: [],
-		perms: {},
+		perms: {
+			raw_message: true,
+			bot: ["manage_messages"],
+		},
 	},
 	nr.passthroughArgs,
-	async ([], info) => {
+	async ([msgt], info) => {
+		let msg = msgt;
+		if(msg && !msg.includes("||")) {
+			msg = "||"+msg+"||";
+		}
+		msgt ||= "\u200b";
+		msg = info.message.author.toString()+" sent a spoiler: " + msg;
+		if(msgt.length > 2000) {
+			msgt = msgt.substr(0, 1999) + "…";
+		}
+		const attch = info.raw_message?.attachments.array();
+		if(!attch || attch.length !== 1) return info.error("Attach an image.");
+		await info.channel.send(msg, {
+			files: [{
+				attachment: attch[0].url,
+				name: "SPOILER_" + (attch[0].name ?? "spoiler"),
+				spoiler: true,
+			}],
+	    	allowedMentions: { parse: [], roles: [], users: [] },
+		});
 		perr(info.message.delete(), "Deleting original message for spoiler");
 		// if(er) send message...
-		await info.error(
-			messages.failure.command_removed(
-				info,
-				"spoiler",
-				"3.0",
-				"Discord has added official spoiler support by surrounding your message in `||vertical lines||`.",
-			),
-		);
+		
 	},
 );
 
