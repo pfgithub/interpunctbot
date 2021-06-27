@@ -541,7 +541,7 @@ export default class Info {
 	    const docsPage = globalDocs[path];
 	    if (!docsPage) {
 	        return await this.error(
-	            "Uh oh! This is an invalid message:( https://interpunct.info" +
+	            "Uh oh! This is an invalid message:( " +
 					safe(path) +
 					" ):",
 	        );
