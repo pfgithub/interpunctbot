@@ -416,12 +416,13 @@ nr.globalCommand(
 		for (const [emojiID, rule] of Object.entries(qr.emojiAlias)) {
 			if (!byRole[rule.role]) byRole[rule.role] = {}; // ??=
 			let emojiName = "unknown";
-			const match = info.message.client.emojis.resolve(emojiID);
+			const match = info.message.client.emojis.resolve(emojiID as Discord.Snowflake);
 			if (match) {
-				emojiName = match.name;
+				emojiName = match.name ?? "unknown";
 			}
 			byRole[rule.role].emojiMention =
 				"<:" + emojiName + ":" + emojiID + ">";
+			// wait why dose the name even matter?
 		}
 		for (const [safeName, rule] of Object.entries(qr.nameAlias)) {
 			if (!byRole[rule.role]) byRole[rule.role] = {}; // ??=
@@ -491,9 +492,9 @@ nr.globalCommand(
 );
 
 export function findAllProvidedRoles(
-	roleIDs: string[],
+	roleIDs: Discord.Snowflake[],
 	quickrank: QuickrankField,
-): string[] {
+): Discord.Snowflake[] {
 	const finalIDs = new Set(roleIDs);
 
 	for (const id of finalIDs.values()) {
@@ -547,7 +548,7 @@ nr.globalCommand(
 			qr.managerRole &&
 			info.message.member!.roles.cache.has(qr.managerRole);
 
-		const rolesToGive: string[] = [];
+		const rolesToGive: Discord.Snowflake[] = [];
 
 		for (const word of splitIntoCommas) {
 			// if word is a name
@@ -615,7 +616,7 @@ nr.globalCommand(
 		await reciever.roles.add(discordRolesToGive, reason);
 
 		await info.result(
-			...getRankSuccessMessage(
+			getRankSuccessMessage(
 				info.message.member!,
 				reciever,
 
@@ -637,16 +638,16 @@ export function getRankSuccessMessage(
 	rolesToGive: Discord.Role[],
 	preExistingRoles: Discord.Role[],
 	explicitRolesToGive: string[],
-): [string, {allowedMentions: {roles: string[], users: string[]}}] {
-	const allowedMentions = {
-		allowedMentions: {roles: [], users: [...new Set([giver.id, reciever.id])]},
+): Discord.MessageOptions {
+	const allowedMentions: Discord.MessageMentionOptions = {
+		roles: [], users: [...new Set([giver.id, reciever.id])], repliedUser: false,
 	};
 	if (rolesToGive.length === 0) {
 		const explicit = explicitRolesToGive.map(
 			id => preExistingRoles.find(q => q.id === id)!,
 		);
-		return [
-			giver.toString() +
+		return {
+			content: giver.toString() +
 			", No roles were given. " +
 			safe(reciever.displayName) +
 			" already has " +
@@ -656,13 +657,13 @@ export function getRankSuccessMessage(
 			        .map(r => messages.role(r)),
 			),
 			allowedMentions,
-		];
+		};
 	}
 	const explicitRolesNotGiven = preExistingRoles.filter(r =>
 		explicitRolesToGive.includes(r.id),
 	);
-	return [
-		reciever.toString() +
+	return {
+		content: reciever.toString() +
 		", You were given the role" +
 		(rolesToGive.length === 1 ? "" : "s") +
 		" " +
@@ -686,5 +687,5 @@ export function getRankSuccessMessage(
 			  " were not given because you already have them."
 			: ""),
 		allowedMentions,
-	];
+	};
 }

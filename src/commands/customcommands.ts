@@ -31,7 +31,7 @@ export async function restrictTextToPerms(
 ): Promise<string> {
 	let message = text;
 
-	const theyCanMention = member.hasPermission("MENTION_EVERYONE");
+	const theyCanMention = member.permissions.has("MENTION_EVERYONE");
 
 	if (!theyCanMention) {
 		const nmsg = stripMentions(message);

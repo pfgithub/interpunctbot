@@ -114,7 +114,7 @@ export async function handleList(
 		quoteEmbed.setColor(3092790);
 
 		// Return the result
-		const resm = await info.result("", { embed: quoteEmbed });
+		const resm = await info.result({content: "\u200b", embeds: [quoteEmbed] });
 		await new Promise(r => setTimeout(r, 1000));
 		if (quickread && resm) {
 			for (const m of resm) {

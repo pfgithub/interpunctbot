@@ -348,9 +348,9 @@ async function displayLeaderboard(
 	}
 
 	if (info.myChannelPerms!.has("EMBED_LINKS")) {
-		await info.result(...mb.build(true));
+		await info.result(mb.build(true));
 	} else {
-		await info.result(...mb.build(false));
+		await info.result(mb.build(false));
 	}
 }
 
@@ -438,9 +438,9 @@ nr.globalCommand(
 		mb.footer.tag`Took ${`${ctime() - startTime}`} ms`;
 
 		if (info.myChannelPerms!.has("EMBED_LINKS")) {
-			await info.result(...mb.build(true));
+			await info.result(mb.build(true));
 		} else {
-			await info.result(...mb.build(false));
+			await info.result(mb.build(false));
 		}
 	},
 ); // <<abbreviation> category>

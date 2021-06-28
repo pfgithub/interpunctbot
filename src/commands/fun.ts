@@ -173,7 +173,7 @@ nr.globalCommand(
 		if (!award) return await info.docs("/help/fun/award", "usage");
 
 		const userDisplayName = info.guild
-			? info.guild.member(user)?.displayName || user.username
+			? info.guild.members.resolve(user)?.displayName || user.username
 			: user.username;
 
 		await info.result(
@@ -241,10 +241,10 @@ nr.globalCommand(
 	async ([finalressafe], info) => {
 		const prefix =
 			"<@" + info.message.author.id + ">, <a:loading:682804438783492139>";
-		const msg = await info.channel.send(
-			prefix,
-			Info.msgopts,
-		);
+		const msg = await info.channel.send({
+			content: prefix,
+			...Info.msgopts,
+		});
 		info.message.delete().catch(() => {});
 		await ms(3000);
 		await msg.edit(prefix + " Just one moment...");
@@ -255,14 +255,14 @@ nr.globalCommand(
 		await ms(9000);
 		await msg.edit(prefix + " Please wait, fetching results...");
 		await ms(12000);
-		await msg.edit(
-			info.message.author.toString() +
+		await msg.edit({
+			content: info.message.author.toString() +
 				", " +
 				(messages.emoji.success + " " + finalressafe.trim() ||
 					messages.emoji.failure +
 						" Huh, it seems something went wrong."),
-			Info.msgopts,
-		);
+			...Info.msgopts,
+		});
 	},
 );
 
@@ -458,7 +458,8 @@ nr.globalCommand(
 		const txtres = await (
 			await fetch("https://inspirobot.me/api?generate=true")
 		).text();
-		return await info.result("", {
+		return await info.result({
+			content: "\u200b",
 			files: [
 				{
 					name: "inspiration.png",
@@ -711,7 +712,7 @@ nr.globalCommand(
 		const now = new Date().getTime();
 		let l2o = "";
 		if (info.guild) {
-			const member = info.guild.member(ussr)!;
+			const member = info.guild.members.resolve(ussr)!;
 			const jat = member.joinedAt!.getTime();
 			l2o = safe`\nJoined this server ${durationFormat(
 				now - jat,
@@ -790,7 +791,10 @@ nr.globalCommand(
 			);
 		const msgval = await getMsgFrom(info, wrds, "c", "R", "/help/sendmsg"); // zig: getMsgFrom(wrds) orelse return (or more likely, catch |err| return reportMsgFromErr(err))
 		if (!msgval) return;
-		await info.channel.send(msgval, { ...Info.msgopts, split: true });
+		const msgsplit = discord.Util.splitMessage(msgval);
+		for(const line of msgsplit) {
+			await info.channel.send({ content: line, ...Info.msgopts });
+		}
 	},
 );
 
@@ -989,10 +993,10 @@ nr.globalCommand(
 	},
 	nr.passthroughArgs,
 	async ([message], info) => {
-		const msg = await info.channel.send(
-			"VOTE: " + message,
-			Info.msgopts,
-		);
+		const msg = await info.channel.send({
+			content: "VOTE: " + message,
+			...Info.msgopts,
+		});
 		await Promise.all([msg.react("👍"), msg.react("👎")]);
 
 		let endhandler: () => void = () => {
@@ -1028,7 +1032,7 @@ nr.globalCommand(
 				(over ? ", Voting ended." : "") +
 				")";
 			if (msg.content !== content)
-				await msg.edit(content, Info.msgopts);
+				await msg.edit({content: content, ...Info.msgopts});
 		}
 		const msgEditInterval = setEditInterval(async () => {
 			await editMessage();
@@ -1090,7 +1094,7 @@ nr.globalCommand(
 		if(info.raw_interaction) {
 			if(requested_word) {
 				await info.raw_interaction.replyHiddenHideCommand("Sending your custom word");
-				await info.message.channel.send(info.message.author.toString()+" used /randomword with a custom word", Info.msgopts);
+				await info.message.channel.send({content: info.message.author.toString()+" used /randomword with a custom word", ...Info.msgopts});
 			}else{
 				await info.raw_interaction.accept();
 			}
@@ -1099,7 +1103,8 @@ nr.globalCommand(
 		const msg = info.message;
 
 		const rword = requested_word || allwords[Math.random() * allwords.length >> 0];
-		await msg.channel.send("Quick, type the word!", {
+		await msg.channel.send({
+			content: "Quick, type the word!",
 			files: [
 				{
 					name: "type.png",
@@ -1112,8 +1117,10 @@ nr.globalCommand(
 		const start = new Date().getTime();
 		const collectr = new discord.MessageCollector(
 			msg.channel as discord.TextChannel,
-			m => m.content.toLowerCase() === rword.toLowerCase(),
-			{ time: 10_000 },
+			{
+				filter: m => m.content.toLowerCase() === rword.toLowerCase(),
+				time: 10_000
+			},
 		);
 		msg.channel.startTyping().catch(() => {});
 		let guessed = false;
@@ -1210,7 +1217,7 @@ nr.globalCommand(
 			"y [years] M [months] w [weeks] d [days,] h[h]:mm[m]:s.SSS[s]",
 		)}
 > **Handled in**: ${new Date().getTime() - info.other!.startTime}ms.`;
-		const msgs = await info.result(msg, undefined);
+		const msgs = await info.result(msg);
 		if (msgs && msgs[0] && info.raw_message)
 			await msgs[0].edit(
 				msg +
@@ -1416,7 +1423,7 @@ nr.globalCommand(
 				flag ? "flag " : ""
 			}${group ? "group" : ""}`,
 		);
-		await info.channel.send(splitQuotedBoard.join("\n"), {split: true});
+		await info.channel.send(splitQuotedBoard.join("\n")); // minesweeper is broken atm. also not splitting anymore so even more broken.
 	},
 );
 

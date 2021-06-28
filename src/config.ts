@@ -2,13 +2,14 @@
 
 import fs from "fs";
 import path from "path";
+import type {Snowflake} from "discord.js";
 
 type Config = {
 	token?: string,
 	owners: string[],
 	errorReporting?: {
-		server: string,
-		channel: string,
+		server: Snowflake,
+		channel: Snowflake,
 	},
 	listings: {
 		"discord.bots.gg"?: string,
@@ -25,8 +26,8 @@ type RawConfig = {
 	owner?: string,
 	owners?: string[],
 	errorReporting?: {
-		server: string,
-		channel: string,
+		server: Snowflake,
+		channel: Snowflake,
 	},
 	listings?: {
 		"discord.bots.gg"?: string,

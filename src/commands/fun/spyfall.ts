@@ -3,6 +3,7 @@ import yaml from "js-yaml";
 import path from "path";
 import * as nr from "../../NewRouter";
 import { perr } from "../../..";
+import type { Snowflake } from "discord.js";
 
 // https://github.com/pfgithub/advent-of-code-2019/blob/master/solutions/_defaults/_defaults.0.ts
 function ratelimit(timeout: number) {
@@ -50,7 +51,7 @@ nr.globalCommand(
 			return await info.docs("/help/fun/spyfall", "usage");
 		}
 
-		const playersInGame: Set<string> = new Set([info.message.author.id]);
+		const playersInGame: Set<Snowflake> = new Set([info.message.author.id]);
 		const genInviteMessage = () =>
 			info.message.author.toString() +
 			` is looking to start a game of **Spyfall**. 3-8 players are needed to play.

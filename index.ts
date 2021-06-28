@@ -121,7 +121,8 @@ nr.globalCommand(
 		}
 		const attch = info.raw_message?.attachments.array();
 		if(!attch || attch.length !== 1) return info.error("Attach an image.");
-		await info.channel.send(msg, {
+		await info.channel.send({
+			content: msg,
 			files: [{
 				attachment: attch[0].url,
 				name: "SPOILER_" + (attch[0].name ?? "spoiler"),
@@ -329,15 +330,15 @@ async function updateActivity() {
 	console.log("Posting activity...");
 	if (client.user) {
 		const count = await getGuilds(client);
-		await client.user.setPresence({
-			activity: {
+		client.user.setPresence({
+			activities: [{
 				name:
 					count === -1
 						? "ip!help on a bunch of servers"
 						: `ip!help on ${count} servers`,
 				type: "WATCHING",
 				url: "https://interpunct.info/",
-			},
+			}],
 			status: production ? "online" : "idle",
 		});
 		const dbgToken = globalConfig.listings?.["discord.bots.gg"];
@@ -506,7 +507,7 @@ async function runEvent(
 				);
 			channel = guild.systemChannel.id;
 		}
-		const channelDiscord = guild.channels.resolve(channel);
+		const channelDiscord = guild.channels.resolve(channel as Discord.Snowflake);
 		if (!channelDiscord) {
 			return await db.addError(
 				"/errors/ipscript/channel-id-not-found",
@@ -578,9 +579,9 @@ client.on("guildMemberRemove", member => {
 function logMsg({ msg, prefix }: { msg: Discord.Message, prefix: string }) {
 	if (msg.guild) {
 		devlog(
-			`${prefix}< [${msg.guild.nameAcronym}] <#${
-				(msg.channel as Discord.TextChannel).name
-			}> \`${msg.author.tag}\`: ${msg.content}`,
+			`${prefix}< [${msg.guild.nameAcronym}] ${
+				channelNameForLog(msg.channel)
+			} \`${msg.author.tag}\`: ${msg.content}`,
 		);
 	} else {
 		devlog(`${prefix}< pm: ${msg.author.tag}: ${msg.content}`);
@@ -634,7 +635,10 @@ async function onMessage(msg: Discord.Message | Discord.PartialMessage) {
 		author: msg.author,
 		client: msg.client,
 		content: msg.content,
-		delete: async () => {await msg.delete({timeout: 10})},
+		delete: async () => {
+			await new Promise(r => setTimeout(r, 10));
+			await msg.delete();
+		},
 	};
 
 	const info = new Info(message_like, timedEvents!, {
@@ -773,9 +777,9 @@ async function onMessage(msg: Discord.Message | Discord.PartialMessage) {
 		try {
 			await guildLog(
 				msg.guild!.id, // db ? guild! : guild?
-				`[${moment().format("YYYY-MM-DD HH:mm:ss Z")}] <#${
-					(msg.channel as Discord.TextChannel).name
-				}> ${msg.author.bot ? "[BOT] " : ""}\`${msg.author.tag}\`: ${
+				`[${moment().format("YYYY-MM-DD HH:mm:ss Z")}] ${
+					channelNameForLog(msg.channel)
+				} ${msg.author.bot ? "[BOT] " : ""}\`${msg.author.tag}\`: ${
 					msg.content
 				}`,
 			);
@@ -868,6 +872,22 @@ client.on("message", msg => {
 	);
 });
 
+function channelNameForLog(channel: Discord.TextChannel | Discord.NewsChannel | Discord.ThreadChannel | Discord.DMChannel): string {
+	if(channel instanceof Discord.ThreadChannel) {
+		// the typings are broken
+		const parent = channel.parent as unknown as Discord.TextChannel | Discord.NewsChannel | null;
+
+		if(parent) {
+			return "<#"+parent.name+"→"+(channel.type === "private_thread" ? "[private]" : "")+channel.name+">";
+		}
+		// channel.
+	}
+	if(channel instanceof Discord.DMChannel) {
+		return "<DM?>";
+	}
+	return "<#"+channel.name+">";
+}
+
 async function onMessageUpdate(
 	from: Discord.Message | Discord.PartialMessage,
 	msg: Discord.Message | Discord.PartialMessage,
@@ -887,15 +907,15 @@ async function onMessageUpdate(
 			try {
 				await guildLog(
 					msg.guild.id,
-					`[${moment().format("YYYY-MM-DD HH:mm:ss Z")}] <#${
-						(from.channel as Discord.GuildChannel).name
-					}> \`${from.author.tag}\` Edited Message: ${from.content}`,
+					`[${moment().format("YYYY-MM-DD HH:mm:ss Z")}] ${
+						channelNameForLog(from.channel)
+					} \`${from.author.tag}\` Edited Message: ${from.content}`,
 				);
 				await guildLog(
 					msg.guild.id,
-					`[${moment().format("YYYY-MM-DD HH:mm:ss Z")}] <#${
-						(msg.channel as Discord.GuildChannel).name
-					}> \`${msg.author.tag}\` To: ${msg.content}`,
+					`[${moment().format("YYYY-MM-DD HH:mm:ss Z")}] ${
+						channelNameForLog(from.channel)
+					} \`${msg.author.tag}\` To: ${msg.content}`,
 				);
 			} catch (e) {
 				logError(e);
@@ -915,7 +935,7 @@ async function rankingMessageReactionAdd(
 	user: Discord.User | Discord.PartialUser,
 	db: Database,
 ): Promise<boolean> {
-	const msg = reaction.message;
+	let msg = reaction.message;
 	if (!msg.guild) return false;
 
 	const reactor = msg.guild.members.resolve(user.id);
@@ -936,7 +956,7 @@ async function rankingMessageReactionAdd(
 	const qr = await db.getQuickrank();
 
 	const isManager = qr.managerRole && reactor.roles.cache.has(qr.managerRole);
-	if (!(isManager || reactor.hasPermission("MANAGE_ROLES"))) {
+	if (!(isManager || reactor.permissions.has("MANAGE_ROLES"))) {
 		delete ignoreReactionsOnFrom[irfKey];
 		return false; // bad person
 	}
@@ -956,6 +976,8 @@ async function rankingMessageReactionAdd(
 			// timer over.
 		},
 	]);
+
+	if(msg.partial) msg = await msg.fetch();
 
 	const huser = user;
 	const rxnh = handleReactions(msg, async (gotrx, gotuser) => {
@@ -992,14 +1014,14 @@ async function rankingMessageReactionAdd(
 
 	delete ignoreReactionsOnFrom[irfKey];
 
-	const guild = msg.guild;
+	const guild = msg.guild!;
 
 	if (!rank) {
 		await myreaxn.remove();
 		return true;
 	}
 
-	let member = await msg.guild.members.fetch(msg.author);
+	let member = await msg.guild?.members.fetch(msg.author);
 	if (!member) {
 		await msg.channel.send(
 			reactor.toString() +
@@ -1020,7 +1042,7 @@ async function rankingMessageReactionAdd(
 			if(topic) {
 				const ticket_user = /\d+/.exec(topic);
 				if(ticket_user) {
-					member = await msg.guild.members.fetch(ticket_user[0]);
+					member = await msg.guild?.members.fetch(ticket_user[0] as Discord.Snowflake);
 	
 					if (!member) {
 						await msg.channel.send(
@@ -1049,7 +1071,6 @@ async function rankingMessageReactionAdd(
 			); // TODO simplified info things for sending successes and failures to channels but that can specify a user to reply to
 			return true;
 		}
-		if (msg.partial) await msg.fetch();
 		console.log("Ranking", msg.author.toString());
 		if (member.roles.cache.has(roleID)) {
 			rolesAlreadyGiven.push(role);
@@ -1086,7 +1107,7 @@ async function rankingMessageReactionAdd(
 	await member.roles.add(rolesToGive, reason);
 
 	await msg.channel.send(
-		...getRankSuccessMessage(
+		getRankSuccessMessage(
 			reactor,
 			member,
 			rolesToGive,

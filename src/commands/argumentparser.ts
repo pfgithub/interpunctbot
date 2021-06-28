@@ -179,7 +179,7 @@ function ChannelArgumentType(): ArgumentType<Discord.GuildChannel> {
 			return await error("/arg/channel/not-found");
 		}
 		const [, channelID, remainingCmd] = match;
-		const channel = info.guild.channels.resolve(channelID);
+		const channel = info.guild.channels.resolve(channelID as Discord.Snowflake);
 		if (!channel) {
 			return await error("/arg/channel/not-found");
 		}
@@ -207,7 +207,7 @@ function UserArgumentType(): ArgumentType<Discord.User> {
 			return error("/arg/user/not-found");
 		}
 		const [, userID, remainingCmd] = match;
-		const channel = info.message.client.users.resolve(userID);
+		const channel = info.message.client.users.resolve(userID as Discord.Snowflake);
 		if (!channel) {
 			return error("/arg/user/not-found");
 		}
@@ -237,7 +237,7 @@ function EmojiArgumentType(): ArgumentType<Discord.GuildEmoji> {
 			return error("/arg/emoji/not-found");
 		}
 		const [, emojiID, remainingCmd] = match;
-		const emoji = info.guild.emojis.resolve(emojiID);
+		const emoji = info.guild.emojis.resolve(emojiID as Discord.Snowflake);
 		if (!emoji) {
 			return error("/arg/emoji/not-found");
 		}
@@ -510,7 +510,7 @@ function MessageArgumentType(): ArgumentType<Discord.Message> {
 			return await error("/arg/message/different-server");
 
 		const msgchan = info.guild.channels.resolve(
-			channelID,
+			channelID as Discord.Snowflake,
 		) as Discord.TextChannel;
 		if (!msgchan)
 			return await error(
@@ -521,7 +521,7 @@ function MessageArgumentType(): ArgumentType<Discord.Message> {
 
 		let msgmsg: Discord.Message;
 		try {
-			msgmsg = await msgchan.messages.fetch(messageID);
+			msgmsg = await msgchan.messages.fetch(messageID as Discord.Snowflake);
 		} catch (e) {
 			return await error(
 				"I could not find the message you linked in <#" +

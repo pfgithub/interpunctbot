@@ -7,6 +7,7 @@ import { durationFormat } from "./src/durationFormat";
 import { initHelper } from "./src/ShardHelper";
 const client = new Discord.Client({
 	partials: ["USER", "MESSAGE", "CHANNEL", "GUILD_MEMBER", "REACTION"],
+	intents: [Discord.Intents.NON_PRIVILEGED, "GUILD_MEMBERS"],
 });
 
 //eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
@@ -37,9 +38,9 @@ client.on("ready", () => {
 		).split(":");
 		await fs.unlink(pth);
 		const channel = client.channels.resolve(
-			channelid,
+			channelid as Discord.Snowflake,
 		) as Discord.TextChannel;
-		const message = await channel.messages.fetch(msgid)!;
+		const message = await channel.messages.fetch(msgid as Discord.Snowflake)!;
 		await channel.send(
 			message.content.substr(0, message.content.lastIndexOf(",")) +
 				", <:success:508840840416854026> Bot restarted in " +
@@ -56,7 +57,7 @@ client.on("ready", () => {
 		}
 		const message = event.message;
 		const userID = event.user;
-		const user = await client.users.fetch(userID);
+		const user = await client.users.fetch(userID as Discord.Snowflake);
 		if (!user) {
 			return "handled"; // user could not be found.
 		}
@@ -64,24 +65,24 @@ client.on("ready", () => {
 		return "handled";
 	});
 	timedEvents.setHandler("delete", async event => {
-		const guild = client.guilds.resolve(event.guild);
+		const guild = client.guilds.resolve(event.guild as Discord.Snowflake);
 		if (!guild) {
 			return "notmine"; // !!! OR the guild has kicked the bot. this will create ghost events that everyone has notmine.
 		}
-		const channel = guild.channels.resolve(event.channel);
+		const channel = guild.channels.resolve(event.channel as Discord.Snowflake);
 		if (!channel) return "handled";
 		if (!(channel instanceof Discord.TextChannel)) return "handled";
-		const message = await channel.messages.fetch(event.message);
+		const message = await channel.messages.fetch(event.message as Discord.Snowflake);
 		if (!message) return "handled";
 		await message.delete();
 		return "handled";
 	});
 	timedEvents.setHandler("send", async event => {
-		const guild = client.guilds.resolve(event.guild);
+		const guild = client.guilds.resolve(event.guild as Discord.Snowflake);
 		if (!guild) {
 			return "notmine"; // !!! OR the guild has kicked the bot. this will create ghost events that everyone has notmine.
 		}
-		const channel = guild.channels.resolve(event.channel);
+		const channel = guild.channels.resolve(event.channel as Discord.Snowflake);
 		if (!channel) return "handled";
 		if (!(channel instanceof Discord.TextChannel)) return "handled";
 		await channel.send(event.message);

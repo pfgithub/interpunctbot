@@ -11,10 +11,10 @@ type GuildData = { [key in keyof Fields]?: Fields[key] };
 
 type AutodeleteInfo = {
 	prefix: { prefix: string },
-	user: { user: string },
-	channel: { channel: string },
-	role: { role: string },
-	counting: { channel: string },
+	user: { user: Snowflake },
+	channel: { channel: Snowflake },
+	role: { role: Snowflake },
+	counting: { channel: Snowflake },
 };
 type AutodeleteDuration =
 	| number
@@ -26,8 +26,8 @@ type OneAutodeleteRule<key extends keyof AutodeleteInfo> = {
 	type: key,
 	duration: AutodeleteDuration,
 	apply_roles?: {
-		exclude: string[],
-		include_only: string[],
+		exclude: Snowflake[],
+		include_only: Snowflake[],
 	},
 };
 export type AutodeleteRule = {
@@ -47,12 +47,13 @@ export type AutodeleteField = {
 	rules: AutodeleteRule[],
 	nextID: number,
 };
+type Snowflake = `${bigint}`;
 export type QuickrankField = {
-	nameAlias: { [safeLCName: string]: { name: string, role: string } },
-	timeAlias: { ms: number, ltgt: "<" | ">", role: string }[],
-	emojiAlias: { [key: string]: { role: string } },
-	providesAlias: { [roleID: string]: { role: string }[] },
-	managerRole?: string,
+	nameAlias: { [safeLCName: string]: { name: string, role: Snowflake } },
+	timeAlias: { ms: number, ltgt: "<" | ">", role: Snowflake }[],
+	emojiAlias: { [key: string]: { role: Snowflake } },
+	providesAlias: { [roleID: string]: { role: Snowflake }[] },
+	managerRole?: Snowflake,
 };
 export type Event =
 	| {
@@ -76,12 +77,12 @@ export type TicketMessageType =
 export type TicketConfig = {
 	main: {
 		/// category id
-		category?: string,
+		category?: Snowflake,
 		/// message id (globally unique but channel is included for resolution if necessary)
 		invitation?: { channel: string, message: string },
 		joinmsg?: string,
-		logs?: { uploads: string, pretty: string },
-		transcripts?: string,
+		logs?: { uploads: Snowflake, pretty: Snowflake },
+		transcripts?: Snowflake,
 		/// autodelete ms
 		autoclose?: number,
 		/// time to delete ms
@@ -160,7 +161,7 @@ type JSONFields = {
 	autodelete: AutodeleteField,
 	quickrank: QuickrankField,
 	events: Events,
-	managebotrole: { role: string },
+	managebotrole: { role: Snowflake | "" },
 	channeloptions: { [key: string]: ChannelOptions },
 	ticket: TicketConfig,
 };
@@ -170,7 +171,7 @@ type BooleanFields = {
 	funEnabled: boolean,
 };
 type NameScreeningField = string[];
-type ChannelOptions = { pinBottom?: string, lastestPinBottom?: string };
+type ChannelOptions = { pinBottom?: string, lastestPinBottom?: Snowflake };
 // type SpeedrunField = { gameID: string; categoryID: string };
 
 const lock: { [key: string]: (() => void)[] } = {};
@@ -330,10 +331,10 @@ class Database {
 	async setAutoban(newAutoban: NameScreeningField): Promise<void> {
 	    return await this._setJson("nameScreening2", newAutoban);
 	}
-	async getManageBotRole(): Promise<{ role: string }> {
+	async getManageBotRole(): Promise<{ role: Snowflake | "" }> {
 	    return await this._getJson("managebotrole", { role: "" });
 	}
-	async setManageBotRole(nmbr: string): Promise<void> {
+	async setManageBotRole(nmbr: Snowflake): Promise<void> {
 	    await this._setJson("managebotrole", { role: nmbr });
 	}
 	async getAutodeleteLimit(): Promise<number> {

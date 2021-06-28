@@ -21,14 +21,15 @@ export function memberCanManageRole(
 ): boolean {
 	if (!member) return false;
 	return (
-		member.hasPermission("MANAGE_ROLES") &&
+		member.permissions.has("MANAGE_ROLES") &&
 		(member.roles.highest.comparePositionTo(role) >= 0 ||
-			member.hasPermission("ADMINISTRATOR"))
+			member.permissions.has("ADMINISTRATOR"))
+		// technically admins can't manage roles above them but too bad
 	);
 }
 
 export async function permTheyCanManageRole(role: Discord.Role, info: Info): Promise<boolean> {
-	if (!info.message.member!.hasPermission("MANAGE_ROLES")) {
+	if (!info.message.member!.permissions.has("MANAGE_ROLES")) {
 		await info.docs("/errors/perm/manage-roles", "error");
 		return false;
 	}
@@ -66,7 +67,7 @@ export const theirPerm = {
 			return true;
 		}
 		const mngbotrol = await info.db!.getManageBotRole();
-		if (info.message.member!.roles.cache.has(mngbotrol.role)) {
+		if (info.message.member!.roles.cache.has(mngbotrol.role as Discord.Snowflake)) {
 			return true;
 		}
 		const frol = info.guild!.roles.resolve(mngbotrol.role);
@@ -234,8 +235,9 @@ export type MessageOptionsParameter =
 	| Discord.MessageAttachment;
 
 export type MessageParametersType =
-	| [string, MessageOptionsParameter | undefined]
-	| [string];
+	| Discord.MessageOptions
+	| string
+;
 
 export type MessageLike = {
 	channel: Discord.Message["channel"],
@@ -249,7 +251,7 @@ export type MessageLike = {
 
 export default class Info {
 	loading: boolean;
-	channel: Discord.TextChannel | Discord.DMChannel | Discord.NewsChannel;
+	channel: Discord.TextChannel | Discord.DMChannel | Discord.NewsChannel | Discord.ThreadChannel;
 	guild?: Discord.Guild | null;
 	message: MessageLike;
 	raw_message?: Discord.Message;
@@ -389,28 +391,25 @@ export default class Info {
 	    }
 	}
 	async _tryReply(
-	    ...values: MessageParametersType
+	    values: Discord.MessageOptions
 	): Promise<Discord.Message[] | undefined> {
 	    const atThem = this.message.author.toString();
 	    const shouldAlert = this.shouldAlert();
 	    const allowedMentions: Discord.MessageMentionOptions = shouldAlert
 			? { users: [this.message.author.id], roles: [], parse: [] }
 			: { users: [], roles: [], parse: [] };
-
-	    const content = values[0];
-	    const options = values[1];
-	    // returns the message
-
-	    const msgtxt = atThem + ", " + content;
+		// TODO reply
+		
+	    const msgtxt = atThem + ", " + values.content;
 	    const splitmsg = Discord.Util.splitMessage(msgtxt);
 
 	    const resmsgs: Discord.Message[] = [];
-	    for (const msgpart of splitmsg) {
+	    for (const [i, msgpart] of splitmsg.entries()) {
 	        const iltres = await ilt(
-	            this.message.channel.send(msgpart, {
-	                ...options,
-	                split: false,
+	            this.message.channel.send({
 	                allowedMentions,
+					...(i === 0 ? values : {}),
+					content: msgpart,
 	            }),
 	            false,
 	        );
@@ -429,27 +428,25 @@ export default class Info {
 	}
 	async reply(
 	    resultType: string,
-	    ...value:
-			| [string, MessageOptionsParameter | undefined]
-			| [string]
+	    value: MessageParametersType,
 	): Promise<Discord.Message[] | undefined> {
 	    // Stop any loading if it is happening, we're replying now we're done loading
 	    this.stopLoading();
 
-	    const message: MessageParametersType = [value[0], value[1]];
-
-	    // Format the message with the correct result type
-	    message[0] = resultType + " " + message[0];
-
-	    if(this.raw_interaction && !message[1]) {
+	    if(this.raw_interaction && typeof value === "string") {
 	        try {
-	            await this.raw_interaction.reply(message[0]);
+	            await this.raw_interaction.reply(resultType + " " + value);
 	            return undefined;
 	        } catch(e) {console.log(e)}
 	    }
 
+	    let message: Discord.MessageOptions = typeof value === "string" ? {content: value} : value;
+
+	    // Format the message with the correct result type
+		message = {...message, content: resultType + " " + (message.content ?? "")};
+
 	    // Reply to the message (or author)
-	    return await this._tryReply(...message);
+	    return await this._tryReply(message);
 	}
 	async error(msg: string): Promise<void> {
 	    if(this.raw_interaction) return await this.errorAlways(msg);
@@ -581,8 +578,8 @@ export default class Info {
 	    return dgToDiscord(s(str, ...values), this);
 	    // return await info.error(info.tag`{Command|test} is {Reaction|${user input}}`)
 	}
-	async result(...msg: MessageParametersType): Promise<Discord.Message[] | undefined> {
-	    return await this.reply(result.result, ...msg);
+	async result(msg: MessageParametersType): Promise<Discord.Message[] | undefined> {
+	    return await this.reply(result.result, msg);
 	}
 	async redirect(newcmd: string): Promise<never> {
 	    throw new Error("NOT IMPLEMENTED YET " + newcmd); // TODO for example .wr is just .speedrun leaderboard 1, so it could res.redirect("speedrun leaderboard 1 "+arguments)
@@ -606,11 +603,7 @@ export function handleReactions(
 		user: Discord.User,
 	) => Promise<void>,
 ): {end: () => void, done: Promise<void>} {
-	const reactionCollector = new Discord.ReactionCollector(
-		msg,
-		() => true, // the filter doesn't actually eg prevent reactions from going to the standard onReactionAdd handler so it's pointless
-		{},
-	);
+	const reactionCollector = new Discord.ReactionCollector(msg);
 	let errCb: (error: Error) => void = (error: Error) => {
 		throw error;
 	};

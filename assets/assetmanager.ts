@@ -16,16 +16,16 @@ function exec(cwd: string, cmd: string, args: string[]) {
 }
 
 function advanceMode(mode: number[], choices: string[][]) {
-    for(let i = 0; i <= mode.length; i++) {
-        if(i === mode.length) return false;
-        const selitm = choices[i];
-        // advance mode[i]
-        mode[i] += 1;
-        if(mode[i] >= selitm.length) {
-            mode[i] = 0;
-        } else break;
-    }
-    return true;
+	for(let i = 0; i <= mode.length; i++) {
+		if(i === mode.length) return false;
+		const selitm = choices[i];
+		// advance mode[i]
+		mode[i] += 1;
+		if(mode[i] >= selitm.length) {
+			mode[i] = 0;
+		} else break;
+	}
+	return true;
 }
 
 // makefile escape. not actually good, will break for certain characters in filenames
@@ -37,7 +37,7 @@ const se = (filename: string) => filename.split(" ").join("\\ ");
 class Depender {
 	makefile: string[] = [];
 	depend(inv: string[], out: string[], cmd: string, args: string[]) {
-		if(out.length !== 1) throw new Error("")
+		if(out.length !== 1) throw new Error("");
 		this.makefile.push(out[0] + ": " + inv.map(se).join(" "));
 		this.makefile.push("\t"+se(cmd)+" "+args.map(se).join(" "));
 	}
@@ -48,7 +48,7 @@ class Depender {
 	}
 }
 
-type ProjectResult = {emojiname: string; path: string; data: string};
+type ProjectResult = {emojiname: string, path: string, data: string};
 
 async function createPaperSoccer(_cwd: string): Promise<ProjectResult[]> {
 	const soccer = path.join(_cwd, "assets/paper soccer");
@@ -94,20 +94,20 @@ async function createPaperSoccer(_cwd: string): Promise<ProjectResult[]> {
 	    ["", "linediagonur"],
 	    ["", "balldl", "balldr", "ballul", "ballur"],
 	];
-    const mode = new Array(choices.length).fill(0);
+	const mode = new Array(choices.length).fill(0);
 	
 	// ok now generate all possible combanations
 	do {
 		const pnglayers = mode.map((pce, i) => choices[i][pce]).filter(pce => pce).map(layer => "inter/"+layer+".png");
-        const args: string[] = [];
-        pnglayers.forEach((layer, i) => {
-            args.push(layer); if(i !== 0) args.push("-composite");
-        });
+		const args: string[] = [];
+		pnglayers.forEach((layer, i) => {
+			args.push(layer); if(i !== 0) args.push("-composite");
+		});
 		const resfyl = "res/_" + mode.map(m => "" + m).join("_") + "_.png";
-        args.push(resfyl);
+		args.push(resfyl);
 		depend(pnglayers, [resfyl], "convert", args);
 		finals.push(resfyl);
-    } while(advanceMode(mode, choices));
+	} while(advanceMode(mode, choices));
 	
 	await depender.produce(soccer, finals);
 	
@@ -119,7 +119,7 @@ async function createPaperSoccer(_cwd: string): Promise<ProjectResult[]> {
 		const fyltime = stat.atime.getTime().toString(36);
 		const resname = selections.join("") + "_" + fyltime;
 		return {emojiname: resname, path: path.join(soccer, final), data: "papersoccer-" + JSON.stringify(selections)};
-	}))
+	}));
 	
 	return res;
 }
@@ -135,7 +135,9 @@ async function createPaperSoccer(_cwd: string): Promise<ProjectResult[]> {
 	
 	const token = await fs.readFile(path.join(cwd, "assets/token"), "utf-8");
 	
-	const client = new discord.Client();
+	const client = new discord.Client({
+		intents: [discord.Intents.NON_PRIVILEGED],
+	});
 	await client.login(token);
 	
 	console.log("Connected to discord!");
@@ -148,12 +150,12 @@ async function createPaperSoccer(_cwd: string): Promise<ProjectResult[]> {
 		await guild.fetch();
 		console.log("Checking server ", guild.name);
 		for(const emoji of guild.emojis.cache.array()) {
-			if(progress.has(emoji.name)) {
-				progress.delete(emoji.name);
+			if(progress.has(emoji.name ?? "")) {
+				progress.delete(emoji.name ?? "");
 			}else{
 				emojisToDelete.push(emoji);
 			}
-		};
+		}
 		console.log("Done with server ", guild.name);
 	}
 	
@@ -188,7 +190,7 @@ async function createPaperSoccer(_cwd: string): Promise<ProjectResult[]> {
 	const resfile: {[data: string]: string} = {};
 	for(const guild of client.guilds.cache.array()) {
 		for(const emoji of guild.emojis.cache.array()) {
-			const ted = emojidata.get(emoji.name);
+			const ted = emojidata.get(emoji.name ?? "");
 			if(!ted) throw new Error("unexpected emoji :"+emoji.name+": on server "+guild.name);
 			resfile[ted.data] = "<:v:"+emoji.id+">";
 		}
@@ -196,7 +198,7 @@ async function createPaperSoccer(_cwd: string): Promise<ProjectResult[]> {
 	await fs.writeFile(path.join(cwd, "config/emojis.json"), JSON.stringify(resfile));
 	console.log("Done!");
 	process.exit(0); // I must have a hanging resource or something idk
-})().catch(e => {throw e;});
+})().catch(e => {throw e});
 
 
 // ["bg"],

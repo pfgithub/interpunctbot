@@ -171,7 +171,16 @@ ${field.description.build()}`;
 
 	    // if we handled sending the message we could auto retry with no embed
 
-	    return [useEmbed ? "" : msg, useEmbed ? { embed: embed } : {}];
+		if(useEmbed) {
+			return {
+				content: "\u200b",
+				embeds: [embed],
+			};
+		}else{
+			return {
+				content: msg,
+			};
+		}
 	}
 }
 const MB = () => new MessageBuilder();

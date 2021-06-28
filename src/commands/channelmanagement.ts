@@ -1,5 +1,5 @@
 import * as Discord from "discord.js";
-import { Channel, Guild, GuildChannel, TextChannel } from "discord.js";
+import { Guild, GuildChannel, TextChannel } from "discord.js";
 import { assertNever, ilt, perr } from "../..";
 import { messages, raw, safe } from "../../messages";
 import { AutodeleteRule, AutodeleteRuleNoID } from "../Database";
@@ -274,7 +274,7 @@ function printrule(rule: AutodeleteRule, info: Info) {
 		}> after ${durationFormat(rule.duration)}`;
 	}
 	if (rule.type === "user") {
-		const user = info.guild!.member(rule.user);
+		const user = info.guild!.members.resolve(rule.user);
 		return safe`Remove messages from user ${raw(
 			user ? user.toString() : "@deleted-user",
 		)}> after ${durationFormat(rule.duration)}`;
@@ -574,7 +574,7 @@ nr.globalCommand(
 	},
 	nr.passthroughArgs,
 	async ([cmd], info) => {
-		const channelsToSendTo = info.raw_message!.mentions.channels.array();
+		const channelsToSendTo = info.raw_message!.mentions.channels.array() as Discord.TextChannel[];
 
 		if (channelsToSendTo.length === 0) {
 			return await info.error(
@@ -584,8 +584,8 @@ nr.globalCommand(
 
 		const safeMessage = stripMentions(cmd); // makes a message safe (removes @everyone and @here and all other mentions)
 
-		const failures: Channel[] = [];
-		const successes: Channel[] = []; // maybe do Message[] and link to every message i.p sent?
+		const failures: TextChannel[] = [];
+		const successes: TextChannel[] = []; // maybe do Message[] and link to every message i.p sent?
 		for (const channel of channelsToSendTo) {
 			const sent = await ilt(
 				channel.send(safeMessage),
@@ -656,7 +656,7 @@ nr.globalCommand(
 		if (!info.db) {
 			return await info.docs("/errors/pms", "error");
 		}
-		const theyCanMention = info.message.member!.hasPermission(
+		const theyCanMention = info.message.member!.permissions.has(
 			"MENTION_EVERYONE",
 		);
 
@@ -771,7 +771,7 @@ nr.globalCommand(
 		if (!info.db) {
 			return await info.docs("/errors/pms", "error");
 		}
-		const theyCanMention = info.message.member!.hasPermission(
+		const theyCanMention = info.message.member!.permissions.has(
 			"MENTION_EVERYONE",
 		);
 
@@ -814,7 +814,7 @@ nr.globalCommand(
 );
 
 const lastUpdatedTimesCache: { [key: string]: number | undefined } = {};
-export async function sendPinBottom(info: Info, chid: string, from_timeout = false): Promise<void> {
+export async function sendPinBottom(info: Info, chid: Discord.Snowflake, from_timeout = false): Promise<void> {
 	if (!info.db) return;
 	const db = info.db;
 	const client = info.message.client;
@@ -867,7 +867,7 @@ nr.globalCommand(
 		if (!info.db) {
 			return await info.docs("/errors/pms", "error");
 		}
-		const theyCanMention = info.message.member!.hasPermission(
+		const theyCanMention = info.message.member!.permissions.has(
 			"MENTION_EVERYONE",
 		);
 

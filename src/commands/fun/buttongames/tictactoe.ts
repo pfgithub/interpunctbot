@@ -766,7 +766,7 @@ nr.ginteractionhandler["GRANTROLE"] = {
 		const [, role_id] = custom_id.split("|");
 		let adding_role = true;
 		try {
-			if(info.member!.roles.cache.has(role_id)) {
+			if(info.member!.roles.cache.has(role_id as discord.Snowflake)) {
 				adding_role = false;
 				await info.member!.roles.remove(role_id);
 			}else{
@@ -783,7 +783,7 @@ nr.ginteractionhandler["GRANTROLE"] = {
 		}
 		if(info.raw_interaction) {
 			await info.raw_interaction.replyHiddenHideCommand(
-				(adding_role ? "<:success:508840840416854026> Given" : "<:info:508842207089000468> Removed")+" role <@&"+role_id+">"
+				(adding_role ? "<:success:508840840416854026> Given" : "<:info:508842207089000468> Removed")+" role <@&"+role_id+">. Press the button again to undo."
 			);
 		}
 		return;

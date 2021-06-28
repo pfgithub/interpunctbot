@@ -67,7 +67,7 @@ export const messages = {
 	role: (role: Discord.Role): string => {
 		if (
 			role.mentionable ||
-			role.guild.me!.hasPermission("MENTION_EVERYONE")
+			role.guild.me!.permissions.has("MENTION_EVERYONE")
 		)
 			return safe`${`@${role.name}`}`;
 		return role.toString();

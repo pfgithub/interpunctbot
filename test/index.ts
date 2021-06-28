@@ -1,3 +1,6 @@
+// @ts-nocheck
+/*eslint-disable*/
+
 import * as Discord from "discord.js";
 import { readFileSync, promises as fs } from "fs";
 import childProcess from "child_process";

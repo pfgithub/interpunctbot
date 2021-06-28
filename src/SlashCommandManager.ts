@@ -44,16 +44,16 @@ export type DiscordBaseInteraction = {
 export type DiscordCommandInteraction = DiscordBaseInteraction & {
     type: 2,
     name: string,
-    guild_id: string,
-    channel_id: string,
+    guild_id: discord.Snowflake,
+    channel_id: discord.Snowflake,
     member: {user: {id: string}}, // TODO add this to the discord member cache // in the future this will be done automatically so nah
     data: UsedCommand,
 };
 export type DiscordButtonClickInteraction = DiscordBaseInteraction & {
     type: 3,
     version: 1,
-    guild_id: string,
-    channel_id: string,
+    guild_id: discord.Snowflake,
+    channel_id: discord.Snowflake,
     message: {id: string, channel_id: string},
     member: {user: {id: string}},
     data: ClickedButton,
@@ -189,6 +189,9 @@ async function handle_interaction_routed(info: Info, route_name: string, route: 
 	}
 }
 
+// TODO update to built in discordjs stuff rather than api raw
+// api raw was nice while it lasted because I didn't have to think about caches and stuff
+
 async function do_handle_interaction(interaction: DiscordInteraction) {
 	const startTime = Date.now();
 
@@ -221,7 +224,8 @@ async function do_handle_interaction(interaction: DiscordInteraction) {
 			content: message?.content ?? "*no content*",
 			delete: async () => {
 				if(message) {
-					await message.delete({timeout: 10});
+					await new Promise(r => setTimeout(r, 10));
+					await message.delete();
 				}
 			},
 		};

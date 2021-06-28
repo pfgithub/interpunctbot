@@ -70,7 +70,7 @@ async function getEmojiAndRole(
 				return;
 			}
 
-			const emoji = info.guild.emojis.resolve(emID);
+			const emoji = info.guild.emojis.resolve(emID as Discord.Snowflake);
 			if (!emoji) {
 				await info.error(
 					messages.emoji.could_not_find_emoji(info, emID),
@@ -84,7 +84,7 @@ async function getEmojiAndRole(
 		return;
 	}
 
-	const emoji = info.guild.emojis.resolve(emojiID);
+	const emoji = info.guild.emojis.resolve(emojiID as Discord.Snowflake);
 	if (!emoji) {
 		await info.error(messages.emoji.could_not_find_emoji(info, emojiID));
 		return;

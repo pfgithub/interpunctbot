@@ -20,7 +20,7 @@
 		"async-request": "^1.2.0",
 		"bookshelf": "^1.1.0",
 		"deep-equal": "^2.0.5",
-		"discord.js": "^12.5.1",
+		"discord.js": "^13.0.0-dev.e37ef3af2151e556527ccd8e98ec531bdcc0ed70",
 		"fuse.js": "^5.0.7-beta",
 		"he": "^1.2.0",
 		"html-minifier": "^4.0.0",

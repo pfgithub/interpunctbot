@@ -21,10 +21,10 @@ type DiscordMarkdownOptions = {
 	discordOnly?: boolean,
 	/// Object, callbacks used for discord parsing. Each receive an object with different properties, and are expected to return an HTML escaped string
 	discordCallback?: {
-		user?: (id: { id: string }) => string,
-		channel?: (id: { id: string }) => string,
-		role?: (id: { id: string }) => string,
-		emoji?: (animated: boolean, name: string, id: string) => string,
+		user?: (id: { id: discord.Snowflake }) => string,
+		channel?: (id: { id: discord.Snowflake }) => string,
+		role?: (id: { id: discord.Snowflake }) => string,
+		emoji?: (animated: boolean, name: string, id: discord.Snowflake) => string,
 		everyone?: () => string,
 		here?: () => string,
 	},
@@ -610,7 +610,7 @@ nr.globalCommand(
 				info.tag`The message you linked is on a different server. Please select a message from this server to be the ticket invitation.`,
 			);
 		const msgchan = info.guild.channels.resolve(
-			channelID,
+			channelID as discord.Snowflake,
 		) as discord.TextChannel;
 		if (!msgchan)
 			return await info.error(
@@ -621,7 +621,7 @@ nr.globalCommand(
 		// in zig this could just be const msgmsg = msgchan.messages.fetch(messageID) catch return info.error("...")
 		let msgmsg: discord.Message;
 		try {
-			msgmsg = await msgchan.messages.fetch(messageID);
+			msgmsg = await msgchan.messages.fetch(messageID as discord.Snowflake);
 		} catch (e) {
 			return await info.error(
 				"I could not find the message you linked in <#" +
@@ -682,12 +682,12 @@ nr.globalCommand(
 	},
 );
 
-function getTicketOwnerID(channel: discord.TextChannel): string {
+function getTicketOwnerID(channel: discord.TextChannel): discord.Snowflake {
 	const creatorid = (/<@!?([0-9]+?)>/.exec(channel.topic || "") || [
 		"",
 		"ERNOID",
 	])[1];
-	return creatorid;
+	return creatorid as discord.Snowflake;
 }
 
 type TicketCtx = {
@@ -761,8 +761,8 @@ function genLogOneMessage(msg: discord.Message) {
 	const reactions: string[] = [];
 	for (const rxn of msg.reactions.cache.array()) {
 		const emojitxt = rxn.emoji.id
-			? emojiHTML(rxn.emoji.animated, rxn.emoji.id, rxn.emoji.name)
-			: safehtml`${rxn.emoji.name}`;
+			? emojiHTML(rxn.emoji.animated ?? false, rxn.emoji.id, rxn.emoji.name ?? "unknown")
+			: safehtml`:${rxn.emoji.name ?? "unknown"}:`;
 		reactions.push(safehtml`<div class="reaction"
             ><div class="reactionemoji"
             >${raw(emojitxt)}</div
@@ -896,7 +896,7 @@ async function sendChannelLogMayError(
 ) {
 	sendTo.startTyping().catch(() => {}); // DO NOT await this. it resolves on stopTyping
 	const lastMessages = (
-		await channel.messages.fetch({ limit: 100 }, false)
+		await channel.messages.fetch({ limit: 100 }, {cache: true, force: false})
 	).array();
 	for (const lmsg of lastMessages) {
 		if (lmsg.partial) await lmsg.fetch();
@@ -904,15 +904,16 @@ async function sendChannelLogMayError(
 		if (lmsg.member?.partial) await lmsg.author.fetch();
 	}
 	const logtext = genLog(lastMessages);
-	const logMsg = (await sendTo.send("<@" + ticketOwnerID + ">'s '", {
+	const logMsg = await sendTo.send({
 		...msgopts,
+		content: "<@" + ticketOwnerID + ">'s '",
 		files: [
 			{
 				name: "log.html",
 				attachment: Buffer.from(logtext),
 			},
 		],
-	})) as discord.Message;
+	});
 	sendTo.stopTyping();
 	const atchurl =
 		"https://interpunct.info/viewticket?page=" +
@@ -981,13 +982,15 @@ async function closeTicketMayError(
 	const forinactive = inactivity ? " for inactivity" : "";
 	const deletetime = ctx.ticket.main.deletetime || 60 * 1000;
 	await channel.send(
-		"Ticket closed by " +
+		{	
+			content: "Ticket closed by " +
 			closer.toString() +
 			forinactive +
 			". This channel will be deleted in " +
 			durationFormat(deletetime) +
 			".",
-		msgopts,
+			...msgopts
+		},
 	);
 
 	let chanLogUrl: string | undefined;
@@ -1126,7 +1129,7 @@ async function createTicket(
 }
 
 async function ticketLog(
-	actionerID: string,
+	actionerID: discord.Snowflake,
 	message: string,
 	color: keyof typeof colors,
 	ctx: TicketCtx,
@@ -1151,9 +1154,10 @@ async function ticketLog(
 		};
 	logEmbed.color = colors[color];
 	logEmbed.description = message;
-	await logsChannel.send("<@" + actionerID + ">'s ticket", {
+	await logsChannel.send({
+		content: "<@" + actionerID + ">'s ticket",
 		...msgopts,
-		embed: logEmbed,
+		embeds: [logEmbed],
 	});
 }
 
@@ -1177,26 +1181,29 @@ export async function onMessage(
 				transcriptsChan &&
 				transcriptsChan instanceof discord.TextChannel
 			) {
-				await transcriptsChan.send(
-					"<@" +
+				await transcriptsChan.send({
+					content: "<@" +
 						getTicketOwnerID(msg.channel as discord.TextChannel) +
 						">'s ticket: [" +
 						msg.author.toString() +
 						"]: " +
 						msg.content,
-					msg.embeds[0]
-						? { embed: msg.embeds[0], ...msgopts }
-						: msgopts,
-				);
+					embeds: msg.embeds[0]
+						? [msg.embeds[0]]
+						: [],
+					...msgopts,
+				});
 				for (const atchmnt of msg.attachments) {
-					await transcriptsChan.send(
-						"Attachment: " + atchmnt[1].url,
-						msgopts,
-					);
+					await transcriptsChan.send({
+						content: "Attachment: " + atchmnt[1].url,
+						...msgopts,
+					});
 				}
 			}
 		}
-		if ((msg.channel.topic || "").startsWith("~") && (msg.channel.topic ?? "").includes(msg.author.id)) {
+		const chantopic = (msg.channel as TopicHolder).topic || "";
+		if (chantopic.startsWith("~") && chantopic.includes(msg.author.id)) {
+			if(msg.channel.type !== "text") never();
 			await msg.channel.setTopic(
 				(msg.channel.topic || "").replace("~", "+"),
 				"active",
@@ -1208,6 +1215,10 @@ export async function onMessage(
 	}
 
 	return false;
+}
+type TopicHolder = {topic: string | undefined};
+function never(): never {
+	return 0 as never;
 }
 
 export async function onMessageReactionAdd(

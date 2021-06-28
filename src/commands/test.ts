@@ -4,6 +4,7 @@ import { promises as fs } from "fs";
 import * as path from "path";
 import { stripMentions } from "./channelmanagement";
 import { safe } from "../../messages";
+import { TextChannel } from "discord.js";
 
 nr.globalCommand(
 	"/help/test/test",
@@ -145,6 +146,45 @@ nr.globalCommand(
 // 	},
 // );
 
+
+
+nr.globalCommand(
+	"/help/owner/createthread",
+	"createthread",
+	{
+		usage: "createthread",
+		description: "create a thread",
+		examples: [],
+		perms: {raw_message: true},
+	},
+	nr.list(),
+	async ([], info) => {
+		if(!(info.channel instanceof TextChannel)) return;
+		const thread = await info.channel.threads.create({
+			name: "demo-thread",
+			autoArchiveDuration: 10080,
+		});
+		await thread.send(info.member!.toString());
+		return await info.success("I created the thread: <#"+thread.id+">!");
+	}
+);
+// nr.globalCommand(
+// 	"/help/owner/threadoptin",
+// 	"threadoptin",
+// 	{
+// 		usage: "threadoptin",
+// 		description: "threadoptin",
+// 		examples: [],
+// 		perms: {raw_message: true},
+// 	},
+// 	nr.list(),
+// 	async ([], info) => {
+// 		await (info.message.client as any).api.guilds(info.guild.id!).threads["bot-opt-in"].post();
+// 		return await info.success("I've opted in the guild!");
+// 	}
+// );
+// ~~was checking if I could get around the member limit requirement~~
+
 nr.globalCommand(
 	"/help/owner/eval",
 	"eval",
@@ -175,10 +215,10 @@ nr.globalCommand(
 			const origmsg = await info.result(
 				'<a:loading:682804438783492139> Promise { <state>: "pending" }',
 			);
-			const armsg = await info.raw_message!.reply(
-				stripMentions(cmd.substring(15, cmd.length - 2)),
-				Info.msgopts,
-			);
+			const armsg = await info.raw_message!.reply({
+				content: stripMentions(cmd.substring(15, cmd.length - 2)),
+				...Info.msgopts,
+			});
 			if (origmsg && origmsg[0])
 				await origmsg[0].edit(
 					"Message { author: " +
