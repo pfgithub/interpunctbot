@@ -70,12 +70,21 @@ export type ButtonComponent = {
 	custom_id?: string,
 	url?: string,
 	disabled?: boolean,
+	emoji?: {id: string},
 } | {
     type: 3,
-    label: string,
-    style: 1,
     custom_id: string,
-    options: {value: string, label: string}[],
+	options: SelectOption[], // min 3, max 25
+	placeholder?: string, // max 100
+	min_values: number,
+	max_values: number,
+};
+export type SelectOption = {
+	label: string, // max 25 chars
+	value: string, // max 100 chars
+	description?: string, // max 50 chars
+	emoji?: {id: string},
+	default?: boolean,
 };
 
 export const buttonStyles = {
@@ -138,13 +147,24 @@ export type RenderActionButtonAction<T> = {
 	kind: "none",
 };
 export type RenderActionButton<T> = {
+	kind: "button",
+
 	label: string,
 	color: ButtonStyle,
 	action: RenderActionButtonAction<T>,
 	emoji?: {id: string, name?: string, animated?: boolean},
 	disabled?: boolean,
 };
-export type RenderActionRow<T> = RenderActionButton<T>[];
+export type RenderActionSelect<T> = {
+	kind: "select",
+
+	action: RenderActionButtonAction<T>,
+	options: SelectOption[],
+	placeholder?: string,
+	min_values?: number,
+	max_values?: number,
+};
+export type RenderActionRow<T> = (RenderActionButton<T> | RenderActionSelect<T>)[];
 export type RenderResult<T> = {
 	content: string,
 	components: RenderActionRow<T>[],
@@ -197,7 +217,7 @@ export function renderResultToResult(rr: RenderResult<unknown>, key: (a: string)
 	const keys = new Map<string, RenderActionButtonActionCallback<unknown>>();
 	return {
 		...rr,
-		components: rr.components.map(component => componentRow(component.map(itm => {
+		components: rr.components.map((component): ActionRow => componentRow(component.map((itm): ButtonComponent => {
 			if(itm.action.kind === "callback") {
 				const pv = keys.get(itm.action.id);
 				if(pv && pv !== itm.action.cb) {
@@ -206,15 +226,26 @@ export function renderResultToResult(rr: RenderResult<unknown>, key: (a: string)
 				if(itm.action.id.includes("|")) throw new Error("keys cannot contain `|`");
 				keys.set(itm.action.id, itm.action.cb);
 			}
-			return {
-				type: 2,
-				style: itm.action.kind === "link" ? 5 : buttonStyles[itm.color],
-				url: itm.action.kind === "link" ? itm.action.url : undefined,
-				label: itm.label.length > 80 ? itm.label.substr(0, 79) + "…" : itm.label || "\u200B",
-				custom_id: itm.action.kind === "callback" ? key(itm.action.id) : itm.action.kind === "link" ? undefined : "NONE",
-				disabled: itm.disabled,
-				emoji: itm.emoji,
-			} as any;
+			const custom_id = itm.action.kind === "callback" ? key(itm.action.id) : itm.action.kind === "link" ? undefined : "NONE";
+			if(itm.kind === "button") {
+				return {
+					type: 2,
+					style: itm.action.kind === "link" ? 5 : buttonStyles[itm.color],
+					url: itm.action.kind === "link" ? itm.action.url : undefined,
+					label: itm.label.length > 80 ? itm.label.substr(0, 79) + "…" : itm.label || "\u200B",
+					custom_id,
+					disabled: itm.disabled,
+					emoji: itm.emoji,
+				};
+			}else if(itm.kind === "select") {
+				return {
+					type: 3,
+					custom_id: custom_id ?? "NONE",
+					options: itm.options,
+					min_values: itm.min_values ?? 1,
+					max_values: itm.max_values ?? 1,
+				};
+			}else assertNever(itm);
 		}))),
 	};
 }
@@ -249,10 +280,18 @@ nr.ginteractionhandler["boo_btn"] = {
 		if(info.raw_interaction) {
 			await info.raw_interaction.replyHiddenHideCommand("👻", [
 				componentRow([
-					{type: 3, style: 1, label: "Down", custom_id: "dropdown", options: [
-						{value: "one", label: "One"},
-						{value: "two", label: "Two"},
-					]},
+					{
+						type: 3,
+						custom_id: "dropdown",
+						options: [
+							{label: "Hi!", value: "one"},
+							{label: "Bye", description: "desc", value: "two"},
+							{label: "Hmm", description: "woah", value: "three"},
+						],
+						placeholder: "default",
+						min_values: 1,
+						max_values: 3,
+					},
 				])
 			]);
 		}
@@ -1923,6 +1962,8 @@ if(process.env.NODE_ENV !== "production") {
 
 export function mkbtn<T>(label: string, color: ButtonStyle, opts: {disabled?: boolean, emoji?: string}, action: RenderActionButtonAction<T>): RenderActionButton<T> {
 	return {
+		kind: "button",
+
 		label,
 		color,
 		action,

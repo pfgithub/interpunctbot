@@ -119,6 +119,8 @@ function previewButton(btn: Button, action: RenderActionButtonAction<PanelState>
 	// }};
 	// TODO use that when no action is provided
 	return {
+		kind: "button",
+
 		label: btn.label.substr(0, 80) || "​",
 		color: btn.action.kind === "link" ? "secondary" : btn.color,
 		action: action,
