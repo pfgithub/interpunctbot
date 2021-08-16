@@ -259,6 +259,13 @@ nr.addErrorDocsPage("/arg/channel/not-found", {
 	mainPath: "/arg/channel",
 });
 
+nr.addErrorDocsPage("/arg/channel/thread-not-allowed", {
+	overview:
+		"A thread channel is not allowed here.",
+	detail: "In order to use this command, you need to provide a channel. A thread channel is not allowed.",
+	mainPath: "/arg/channel",
+});
+
 nr.addDocsWebPage(
 	"/arg/emoji",
 	"Emoji Arg",

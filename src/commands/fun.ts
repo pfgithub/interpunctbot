@@ -590,9 +590,8 @@ nr.globalCommand(
 			const results: string[] = [];
 			for (const role of roles) {
 				if (info.guild.members.cache.size !== info.guild.memberCount) {
-					info.message.channel.startTyping().catch(() => {});
+					await info.message.channel.sendTyping();
 					await info.guild.members.fetch();
-					info.message.channel.stopTyping();
 				}
 				const rolemembers = role.members.size;
 				results.push(
@@ -1122,12 +1121,11 @@ nr.globalCommand(
 				time: 10_000
 			},
 		);
-		msg.channel.startTyping().catch(() => {});
+		await msg.channel.sendTyping();
 		let guessed = false;
 
 		const clxtrnded = async () => {
 			if (guessed) return;
-			msg.channel.stopTyping();
 			const mytrphies = (localtrophycount["MEMEME"] || 0) + 1;
 			localtrophycount["MEMEME"] = mytrphies;
 			await msg.channel.send(rword);
@@ -1140,7 +1138,6 @@ nr.globalCommand(
 		});
 		const clxtrclxted = async (msg_: discord.Message) => {
 			const finalmsg = msg_;
-			finalmsg.channel.stopTyping();
 			guessed = true;
 			collectr.stop();
 			const time = new Date().getTime() - start;
@@ -1206,7 +1203,7 @@ nr.globalCommand(
 		const totalServers = await getGuilds(info.message.client);
 		const totalMembers = await getMembers(info.message.client);
 		const now = new Date().getTime();
-		const shardv = info.guild ? ` (id ${info.guild.shardID})` : "";
+		const shardv = info.guild ? ` (id ${info.guild.shardId})` : "";
 		const msg = `**Statistics**:
 > **Servers**: ${totalServers.toLocaleString()} total, ${
 	info.message.client.guilds.cache.size

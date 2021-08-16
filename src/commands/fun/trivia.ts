@@ -146,7 +146,7 @@ nr.globalCommand(
 		// fetch trivia question
 		let triviaQuestion: OpenTDB.Question;
 		{
-			info.startLoading();
+			await info.typing();
 			const triviaResponse: OpenTDB.Response = await getURL`https://opentdb.com/api.php?amount=1`; // TODO other things
 			if (triviaResponse.response_code !== 0) {
 				throw new Error(
@@ -157,7 +157,6 @@ nr.globalCommand(
 			}
 			triviaQuestion = triviaResponse.results[0];
 			// await fetchProgressMessage.delete();
-			info.stopLoading();
 		}
 		{
 			let triviaChoices: {

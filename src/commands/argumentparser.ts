@@ -164,7 +164,7 @@ export type ArgumentParserResult<T> = Promise<
 >;
 
 function ChannelArgumentType(): ArgumentType<Discord.GuildChannel> {
-	return async (info, arg, cmd, error) => {
+	return async (info, arg, cmd, error): ArgumentParserResult<Discord.GuildChannel> => {
 		if (!cmd.trim()) {
 			return await error("/arg/channel/not-found");
 		}
@@ -182,6 +182,9 @@ function ChannelArgumentType(): ArgumentType<Discord.GuildChannel> {
 		const channel = info.guild.channels.resolve(channelID as Discord.Snowflake);
 		if (!channel) {
 			return await error("/arg/channel/not-found");
+		}
+		if (channel.isThread()) {
+			return await error("/arg/channel/thread-not-allowed");
 		}
 		return {
 			result: "continue",
@@ -541,7 +544,7 @@ function MessageArgumentType(): ArgumentType<Discord.Message> {
 function RoleArgumentType(
 	allowMultiple: boolean,
 ): ArgumentType<Discord.Role | Discord.Role[]> {
-	return async (info, arg, cmd, error) => {
+	return async (info, arg, cmd, error): ArgumentParserResult<Discord.Role | Discord.Role[]> => {
 		if (!cmd.trim()) {
 			return await error("/arg/role/not-found");
 		}
@@ -567,8 +570,8 @@ function RoleArgumentType(
 			}
 			role = foundRole;
 		} else {
-			const exactMatches = info.guild.roles.cache
-				.array()
+			const exactMatches = [...info.guild.roles.cache
+				.values()]
 				.filter(rol => roleNameMatch(rol.name, rolename));
 			if (exactMatches.length > 1) {
 				if (allowMultiple) {
@@ -586,8 +589,8 @@ function RoleArgumentType(
 				});
 			}
 			if (exactMatches.length === 0) {
-				const roleNameList = info.guild.roles.cache
-					.array()
+				const roleNameList = [...info.guild.roles.cache
+					.values()]
 					.sort((lhs, rhs) => rhs.comparePositionTo(lhs));
 				const fuse = new Fuse(roleNameList, {
 					shouldSort: false,

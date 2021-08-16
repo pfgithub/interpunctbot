@@ -208,7 +208,7 @@ async function do_handle_interaction(interaction: DiscordInteraction) {
 
 		const guild = client.guilds.cache.get(interaction.guild_id)!;
 		const channel = client.channels.cache.get(interaction.channel_id)! as discord.Message["channel"];
-		const member = guild.members.add(interaction.member);
+		const member = guild.members.add(interaction.member, {});
 		let message: discord.Message | undefined;
 
 		if('type' in interaction.message) {

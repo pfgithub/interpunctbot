@@ -50,7 +50,7 @@ nr.globalCommand(
 		if (!info.myChannelPerms!.has("ATTACH_FILES")) {
 			return await info.error(messages.logging.attach_files(info));
 		}
-		info.startLoading();
+		await info.typing();
 		const logDownloadMessageResult = await ilt(
 			info.raw_message!.reply({
 			    content: "Log files:",

@@ -47,7 +47,7 @@ export type AutodeleteField = {
 	rules: AutodeleteRule[],
 	nextID: number,
 };
-type Snowflake = `${bigint}`;
+type Snowflake = string;
 export type QuickrankField = {
 	nameAlias: { [safeLCName: string]: { name: string, role: Snowflake } },
 	timeAlias: { ms: number, ltgt: "<" | ">", role: Snowflake }[],

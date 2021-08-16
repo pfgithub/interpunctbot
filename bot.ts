@@ -7,7 +7,23 @@ import { durationFormat } from "./src/durationFormat";
 import { initHelper } from "./src/ShardHelper";
 const client = new Discord.Client({
 	partials: ["USER", "MESSAGE", "CHANNEL", "GUILD_MEMBER", "REACTION"],
-	intents: [Discord.Intents.NON_PRIVILEGED, "GUILD_MEMBERS"],
+	intents: [
+		"GUILDS",
+		"GUILD_MEMBERS", // privileged
+		"GUILD_BANS",
+		"GUILD_EMOJIS_AND_STICKERS",
+		// "GUILD_INTEGRATIONS" // unneeded
+		// "GUILD_WEBHOOKS" // unneeded
+		// "GUILD_INVITES" // unneeded currently
+		// "GUILD_VOICE_STATES" // unneeded
+		// "GUILD_PRESENCES" // unneeded
+		"GUILD_MESSAGES",
+		"GUILD_MESSAGE_REACTIONS", // hopefully going to get rid of this
+		// "GUILD_MESSAGE_TYPING", // unneeded
+		"DIRECT_MESSAGES",
+		"DIRECT_MESSAGE_REACTIONS",
+		// "DIRECT_MESSAGE_TYPING"
+	],
 });
 
 //eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
@@ -71,7 +87,7 @@ client.on("ready", () => {
 		}
 		const channel = guild.channels.resolve(event.channel as Discord.Snowflake);
 		if (!channel) return "handled";
-		if (!(channel instanceof Discord.TextChannel)) return "handled";
+		if (!channel.isText()) return "handled";
 		const message = await channel.messages.fetch(event.message as Discord.Snowflake);
 		if (!message) return "handled";
 		await message.delete();
@@ -84,7 +100,7 @@ client.on("ready", () => {
 		}
 		const channel = guild.channels.resolve(event.channel as Discord.Snowflake);
 		if (!channel) return "handled";
-		if (!(channel instanceof Discord.TextChannel)) return "handled";
+		if (!channel.isText()) return "handled";
 		await channel.send(event.message);
 		return "handled";
 	});

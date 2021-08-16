@@ -80,7 +80,7 @@ nr.globalCommand(
 	},
 	nr.list(),
 	async ([], info) => {
-		info.startLoading();
+		await info.typing();
 		await new Promise(r => setTimeout(r, 5000));
 		await info.warn(`warning`);
 	},

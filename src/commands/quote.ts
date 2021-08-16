@@ -29,7 +29,7 @@ export async function handleList(
 		return;
 	}
 
-	info.startLoading();
+	await info.typing();
 
 	// split the arguments at spaces to parse them
 	let searchString = cmd.split(` `);

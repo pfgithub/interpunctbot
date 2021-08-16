@@ -154,27 +154,6 @@ nr.globalCommand(
 	},
 );
 
-export function findChannelsRequireSpacing(
-	guild: Guild,
-	characterToReplace: string,
-): Discord.Channel[] {
-	return guild.channels.cache
-		.array()
-		.filter(chan => doesChannelRequireSpacing(chan, characterToReplace))
-	;
-}
-
-export function doesChannelRequireSpacing(
-	chan: GuildChannel,
-	characterToReplace: string,
-): boolean {
-	return (
-		chan.name.includes(characterToReplace) &&
-		chan.type !== "voice" &&
-		chan.type !== "category"
-	);
-}
-
 /*
 @CommandDocumentation /help/channels/slowmode
 
@@ -216,7 +195,7 @@ nr.globalCommand(
 			);
 		}
 
-		if (!(channel instanceof TextChannel)) {
+		if (!channel.isText() || channel.type === "GUILD_NEWS") {
 			return await info.error(
 				"Slowmode can only be set on text channels.",
 			);
@@ -574,7 +553,7 @@ nr.globalCommand(
 	},
 	nr.passthroughArgs,
 	async ([cmd], info) => {
-		const channelsToSendTo = info.raw_message!.mentions.channels.array() as Discord.TextChannel[];
+		const channelsToSendTo = [...info.raw_message!.mentions.channels.values()];
 
 		if (channelsToSendTo.length === 0) {
 			return await info.error(
@@ -584,9 +563,13 @@ nr.globalCommand(
 
 		const safeMessage = stripMentions(cmd); // makes a message safe (removes @everyone and @here and all other mentions)
 
-		const failures: TextChannel[] = [];
-		const successes: TextChannel[] = []; // maybe do Message[] and link to every message i.p sent?
+		const failures: Discord.Channel[] = [];
+		const successes: Discord.Channel[] = []; // maybe do Message[] and link to every message i.p sent?
 		for (const channel of channelsToSendTo) {
+			if(!channel.isText()) {
+				failures.push(channel);
+				continue;
+			}
 			const sent = await ilt(
 				channel.send(safeMessage),
 				"sending message for sendmany",
@@ -622,7 +605,7 @@ nr.globalCommand(
 );
 
 async function cannotSendIn(channel: Discord.GuildChannel, info: Info): Promise<boolean> {
-	if(channel.type !== "text" && channel.type !== "news") {
+	if(!channel.isText()) {
 		await info.error("Cannot send messages in a "+channel.type+" channel. Please select a text channel.");
 		return true;
 	}

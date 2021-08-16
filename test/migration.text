@@ -1,7 +1,0 @@
-reset
-channel text #settings
-defaultPermissions
-
-startBot
-
-myDefaultPerms

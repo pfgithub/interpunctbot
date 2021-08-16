@@ -365,7 +365,7 @@ nr.globalCommand(
 	},
 	nr.passthroughArgs,
 	async ([cmd], info) => {
-		info.startLoading();
+		await info.typing();
 		await displayLeaderboard(1, cmd, info);
 	},
 );
@@ -386,7 +386,7 @@ nr.globalCommand(
 	},
 	nr.list(nr.a.number(), ...nr.a.words()),
 	async ([position, cmd], info) => {
-		info.startLoading();
+		await info.typing();
 		if (!position || !isNormalInteger("" + position)) {
 			// todo display top 5
 			return await info.error(messages.speedrun.position_required(info));
@@ -406,7 +406,7 @@ nr.globalCommand(
 	},
 	nr.list(nr.a.word(), ...nr.a.words()),
 	async ([username, cmd], info) => {
-		info.startLoading();
+		await info.typing();
 		await displayLeaderboard(username, cmd, info);
 	},
 );
@@ -423,7 +423,7 @@ nr.globalCommand(
 	nr.passthroughArgs,
 	async ([cmd], info) => {
 		const startTime = ctime();
-		info.startLoading();
+		await info.typing();
 		const categoryNameArray = cmd.split(` `);
 		const categoryName = categoryNameArray.join(` `);
 
@@ -509,7 +509,7 @@ nr.globalCommand(
 				`Usage: \`speedrun set https://speedrun.com/mygame My Category\``,
 			);
 		}
-		info.startLoading();
+		await info.typing();
 		const game = await getGameAtPage(abbreviation);
 		if (typeof game === "string") {
 			return await info.error(game);

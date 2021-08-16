@@ -136,7 +136,7 @@ async function createPaperSoccer(_cwd: string): Promise<ProjectResult[]> {
 	const token = await fs.readFile(path.join(cwd, "assets/token"), "utf-8");
 	
 	const client = new discord.Client({
-		intents: [discord.Intents.NON_PRIVILEGED],
+		intents: [], // TODO
 	});
 	await client.login(token);
 	
@@ -146,10 +146,10 @@ async function createPaperSoccer(_cwd: string): Promise<ProjectResult[]> {
 	
 	const progress = new Map(allEmojis.map(emji => [emji.emojiname, emji]));
 	const emojisToDelete: discord.GuildEmoji[] = [];
-	for(const guild of client.guilds.cache.array()) {
+	for(const guild of client.guilds.cache.values()) {
 		await guild.fetch();
 		console.log("Checking server ", guild.name);
-		for(const emoji of guild.emojis.cache.array()) {
+		for(const emoji of guild.emojis.cache.values()) {
 			if(progress.has(emoji.name ?? "")) {
 				progress.delete(emoji.name ?? "");
 			}else{
@@ -168,7 +168,7 @@ async function createPaperSoccer(_cwd: string): Promise<ProjectResult[]> {
 	
 	const remaining = [...progress.values()];
 
-	for(const guild of client.guilds.cache.array()) {
+	for(const guild of client.guilds.cache.values()) {
 		console.log("Uploading emojis to server ", guild.name);
 		const putCount = 50 - guild.emojis.cache.size;
 		for(let i = 0; i < putCount; i++) {
@@ -188,8 +188,8 @@ async function createPaperSoccer(_cwd: string): Promise<ProjectResult[]> {
 	// now generate the id cache
 	const emojidata = new Map(allEmojis.map(emji => [emji.emojiname, emji]));
 	const resfile: {[data: string]: string} = {};
-	for(const guild of client.guilds.cache.array()) {
-		for(const emoji of guild.emojis.cache.array()) {
+	for(const guild of client.guilds.cache.values()) {
+		for(const emoji of guild.emojis.cache.values()) {
 			const ted = emojidata.get(emoji.name ?? "");
 			if(!ted) throw new Error("unexpected emoji :"+emoji.name+": on server "+guild.name);
 			resfile[ted.data] = "<:v:"+emoji.id+">";

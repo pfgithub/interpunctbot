@@ -13,5 +13,5 @@
 		"esModuleInterop": true,
 		"inlineSourceMap": true
 	},
-	"include": ["src/**/*", "test/**/*", "assets/**/*", "index.ts"]
+	"include": ["src/**/*", "assets/**/*", "index.ts"]
 }

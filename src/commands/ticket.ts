@@ -481,7 +481,7 @@ nr.globalCommand(
 			chan =>
 				(chan.name.toUpperCase() === catnme.toUpperCase() ||
 					chan.id === catnme) &&
-				chan.type === "category",
+				chan.type === "GUILD_CATEGORY",
 		) as discord.CategoryChannel | null;
 		if (!foundCategory)
 			return await info.error(
@@ -489,7 +489,7 @@ nr.globalCommand(
 			);
 
 		// check permissions
-		const everyonePerms = foundCategory.permissionOverwrites.get(
+		const everyonePerms = foundCategory.permissionOverwrites.resolve(
 			info.guild.roles.everyone.id,
 		);
 		if (!everyonePerms)
@@ -514,7 +514,7 @@ nr.globalCommand(
 		}
 
 		// make sure it's empty
-		const fchild = foundCategory.children.array();
+		const fchild = [...foundCategory.children.values()];
 		if (fchild.length > 0) {
 			return await info.error(
 				"<#" +
@@ -667,7 +667,7 @@ nr.globalCommand(
 		await info.db.setTicket(currentTickets);
 
 		// if there are no reactions on the invitation message yet, send a reminder to add a reaction
-		if (msgmsg.reactions.cache.array().length === 0)
+		if ([...msgmsg.reactions.cache.values()].length === 0)
 			reminders.push(
 				"React to the invitation message to pick the reaction.",
 			);
@@ -759,7 +759,7 @@ function genLogOneMessage(msg: discord.Message) {
 	});
 
 	const reactions: string[] = [];
-	for (const rxn of msg.reactions.cache.array()) {
+	for (const rxn of msg.reactions.cache.values()) {
 		const emojitxt = rxn.emoji.id
 			? emojiHTML(rxn.emoji.animated ?? false, rxn.emoji.id, rxn.emoji.name ?? "unknown")
 			: safehtml`:${rxn.emoji.name ?? "unknown"}:`;
@@ -788,7 +788,7 @@ function genLogOneMessage(msg: discord.Message) {
 	const embedsText = embeds.length ? "" + embeds.join("") : "";
 
 	const attachments: string[] = [];
-	for (const attachment of msg.attachments.array()) {
+	for (const attachment of msg.attachments.values()) {
 		const nmelcase = (attachment.name || "").toLowerCase();
 		if (
 			nmelcase.endsWith(".jpg") ||
@@ -810,7 +810,7 @@ function genLogOneMessage(msg: discord.Message) {
 	const attachmentsText = attachments.length ? attachments.join("") : "";
 
 	let memberColor = msg.member?.displayHexColor || "#000000";
-	if (memberColor === "#000000") memberColor = "undefined as any";
+	if (memberColor === "#000000") memberColor = "#undefined as any";
 	const authorign = msg.author.username + "#" + msg.author.discriminator;
 	return {
 		top: safehtml`<div class="message"
@@ -894,10 +894,10 @@ async function sendChannelLogMayError(
 	channel: discord.TextChannel,
 	sendTo: discord.TextChannel,
 ) {
-	sendTo.startTyping().catch(() => {}); // DO NOT await this. it resolves on stopTyping
-	const lastMessages = (
+	await sendTo.sendTyping();
+	const lastMessages = [...(
 		await channel.messages.fetch({ limit: 100 }, {cache: true, force: false})
-	).array();
+	).values()];
 	for (const lmsg of lastMessages) {
 		if (lmsg.partial) await lmsg.fetch();
 		if (lmsg.author.partial) await lmsg.author.fetch();
@@ -914,10 +914,9 @@ async function sendChannelLogMayError(
 			},
 		],
 	});
-	sendTo.stopTyping();
 	const atchurl =
 		"https://interpunct.info/viewticket?page=" +
-		logMsg.attachments.array()[0].url;
+		[...logMsg.attachments.values()][0].url;
 	await logMsg.edit("<@" + ticketOwnerID + ">'s ticket: " + atchurl);
 	return atchurl;
 }
@@ -929,7 +928,6 @@ async function sendChannelLog(
 ) {
 	const iltres = await ilt(sendChannelLogMayError(ticketOwnerID, channel, sendTo), "send channel log");
 	if(iltres.error) {
-		sendTo.stopTyping();
 		const stres = await ilt(sendTo.send(":x: There was an error uploading the channel log. Error code: `"+iltres.error.errorCode+"`"), "send log error");
 		if(stres.error) {
 			await ilt(channel.send(":x: There was an error uploading the channel log to <#"+sendTo.id+">. Error code: `"+iltres.error.errorCode+"`"), "send error 2");
@@ -1031,7 +1029,7 @@ async function closeTicketMayError(
 	}
 
 	await new Promise(r => setTimeout(r, deletetime));
-	const iltr = await ilt(channel.delete("closed by " + closer.toString()), "deleting channel for ticket");
+	const iltr = await ilt(channel.delete(), "deleting channel for ticket");
 	if(iltr.error) {
 		await channel.send(":x: There was an error deleting this channel. Maybe I don't have permissions? Error code: `"+iltr.error.errorCode+"`");
 	}
@@ -1076,9 +1074,9 @@ async function createTicket(
 ) {
 	const cat = ctx.guild.channels.resolve(ctx.ticket.main.category!);
 	if (!cat) return; // oop can't create a ticket if there is no ticket category…
-	if (cat.type !== "category") return; // oop can't create a ticket in a text channel
+	if (!(cat instanceof discord.CategoryChannel)) return; // oop can't create a ticket in a text channel
 
-	const ncperms: discord.OverwriteResolvable[] = cat.permissionOverwrites.array();
+	const ncperms: discord.OverwriteResolvable[] = [...cat.permissionOverwrites.cache.values()];
 	ncperms.push({ id: creator.id, allow: ["VIEW_CHANNEL"] });
 	const channelName = "ticket-" + creator.id;
 	// todo by topic?
@@ -1166,7 +1164,7 @@ export async function onMessage(
 	db: Database,
 ): Promise<boolean> {
 	if (!msg.guild) return false;
-	if (msg.channel.type === "dm") return false;
+	if (!('guild' in msg.channel)) return false;
 
 	const ticketData = await db.getTicket();
 	if (!ticketData.main.category) return false;
@@ -1203,7 +1201,7 @@ export async function onMessage(
 		}
 		const chantopic = (msg.channel as TopicHolder).topic || "";
 		if (chantopic.startsWith("~") && chantopic.includes(msg.author.id)) {
-			if(msg.channel.type !== "text") never();
+			if(msg.channel.type !== "GUILD_TEXT") never();
 			await msg.channel.setTopic(
 				(msg.channel.topic || "").replace("~", "+"),
 				"active",
@@ -1237,12 +1235,11 @@ export async function onMessageReactionAdd(
 
 	const ctx: TicketCtx = { guild: rxn.message.guild, ticket: ticketData };
 
-	if (rxn.message.channel instanceof discord.DMChannel) {
-		// unreachable;
+	if (rxn.message.channel.type !== "GUILD_TEXT") {
 		return false;
 	}
 
-	// if closing- and you click a reaction, maybe cancel the close?
+	// if closing- and you click a reaction, maybe `cancel the close?
 	// also if closing- and it's not queued here, retry the close I guess
 
 	const chaname = rxn.message.channel.name;

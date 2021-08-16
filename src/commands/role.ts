@@ -606,7 +606,7 @@ nr.globalCommand(
 			}
 		}
 
-		// info.startLoading();
+		// await info.typing();
 		const reason =
 			"Given by " +
 			info.message.member!.toString() +

@@ -250,8 +250,7 @@ export type MessageLike = {
 };
 
 export default class Info {
-	loading: boolean;
-	channel: Discord.TextChannel | Discord.DMChannel | Discord.NewsChannel | Discord.ThreadChannel;
+	channel: Discord.TextBasedChannels;
 	guild?: Discord.Guild | null;
 	message: MessageLike;
 	raw_message?: Discord.Message;
@@ -275,7 +274,6 @@ export default class Info {
 		},
 	) {
 	    this.timedEvents = timedEvents;
-	    this.loading = false;
 	    this.channel = message.channel;
 	    this.guild = message.guild;
 	    this.message = message;
@@ -317,7 +315,7 @@ export default class Info {
 	    return this.message.client.user!.toString();
 	}
 	get authorChannelPerms(): Readonly<Discord.Permissions> | undefined | null {
-	    if (!(this.channel instanceof Discord.DMChannel)) {
+	    if ('guild' in this.channel) {
 	        return this.channel.permissionsFor(this.member!);
 	    }
 	    return undefined;
@@ -329,7 +327,7 @@ export default class Info {
 	    return undefined;
 	}
 	get myChannelPerms(): Readonly<Discord.Permissions> | undefined | null {
-	    if (!(this.channel instanceof Discord.DMChannel)) {
+	    if ('guild' in this.channel) {
 	        return this.channel.permissionsFor(this.guild!.me!);
 	    }
 	    return undefined;
@@ -343,7 +341,7 @@ export default class Info {
 				? this.authorGuildPerms.has("MANAGE_CHANNELS")
 				: true,
 	        manageEmoji: this.authorGuildPerms
-				? this.authorGuildPerms.has("MANAGE_EMOJIS")
+				? this.authorGuildPerms.has("MANAGE_EMOJIS_AND_STICKERS")
 				: true,
 	        manageMessages: this.authorChannelPerms
 				? this.authorChannelPerms.has("MANAGE_MESSAGES")
@@ -362,7 +360,7 @@ export default class Info {
 				? this.myChannelPerms.has("MANAGE_CHANNELS")
 				: true,
 	        manageEmoji: this.myChannelPerms
-				? this.myChannelPerms.has("MANAGE_EMOJIS")
+				? this.myChannelPerms.has("MANAGE_EMOJIS_AND_STICKERS")
 				: true,
 	        manageMessages: this.myChannelPerms
 				? this.myChannelPerms.has("MANAGE_MESSAGES")
@@ -375,16 +373,13 @@ export default class Info {
 	get pm(): boolean {
 	    return !this.guild;
 	}
-	startLoading(): void {
-	    perr(this.channel.startTyping(), "started typing"); // never finishes? | finishes when stopTyping is called
-	}
-	stopLoading(): void {
-	    this.channel.stopTyping();
+	async typing(): Promise<void> {
+		await this.channel.sendTyping();
 	}
 	shouldAlert(): boolean {
 	    if(this.raw_message) {
 	        if(Date.now() - this.raw_message.createdAt.getTime() > 3000) return true;
-	        if(this.raw_message.channel.lastMessageID !== this.raw_message.id) return true;
+	        if(this.raw_message.channel.lastMessageId !== this.raw_message.id) return true;
 	        return false;
 	    }else{
 	        return false;
@@ -430,9 +425,6 @@ export default class Info {
 	    resultType: string,
 	    value: MessageParametersType,
 	): Promise<Discord.Message[] | undefined> {
-	    // Stop any loading if it is happening, we're replying now we're done loading
-	    this.stopLoading();
-
 	    if(this.raw_interaction && typeof value === "string") {
 	        try {
 	            await this.raw_interaction.reply(resultType + " " + value);

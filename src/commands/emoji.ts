@@ -104,8 +104,8 @@ async function getEmojiAndRole(
 		}
 		role = foundRole;
 	} else {
-		const matchingRoles = info.guild.roles.cache
-			.array()
+		const matchingRoles = [...info.guild.roles.cache
+			.values()]
 			.filter(rol => roleNameMatch(rol.name, rolename));
 		if (matchingRoles.length > 1) {
 			await info.error(
@@ -140,7 +140,7 @@ nr.globalCommand(
 	},
 	nr.list(nr.a.emoji(), ...nr.a.role()),
 	async ([emoji, role], info) => {
-		let newRoles = emoji.roles.cache.array();
+		let newRoles = [...emoji.roles.cache.values()];
 		newRoles.push(role);
 		newRoles = [...new Set(newRoles)];
 		await emoji.edit(
@@ -179,7 +179,7 @@ nr.globalCommand(
 		}
 		const { emoji, role } = emojiAndRole;
 
-		let newRoles = emoji.roles.cache.array();
+		let newRoles = [...emoji.roles.cache.values()];
 
 		// note that emojirolestore.set() and .add() exist. this way makes it possible to set a reason and await for completion.
 

@@ -305,10 +305,10 @@ ${fullList.map(role => `- ${role.toString()}\n`).join("")}
 			emoji: Discord.GuildEmoji,
 		): string => `**Emoji ${emoji.toString()}**:
 ${
-	emoji.roles.cache.array().length > 0
+	[...emoji.roles.cache.values()].length > 0
 		? `This emoji can only be used by members with at least one of these roles:
-${emoji.roles.cache
-			.array()
+${[...emoji.roles.cache
+			.values()]
 			.map(role => `- ${role.toString()}\n`)
 			.join("")}`
 		: ""

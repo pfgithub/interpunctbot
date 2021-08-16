@@ -4,23 +4,19 @@
 	"main": "index.js",
 	"license": "MIT",
 	"scripts": {
-		"test": "nyc mocha",
-		"posttest": "nyc report --reporter lcov",
-		"test-error": "mocha",
 		"docs": "ts-node . --gen-docs",
 		"serve": "serve docs",
 		"build": "tsc",
 		"build-watch": "tsc --watch",
 		"run-slow": "ts-node .",
 		"run-built": "node built",
-		"lint": "eslint index.ts bot.ts shardmanager.ts test/**/*.ts src/**/*.ts",
-		"format": "prettier --write index.ts bot.ts messages.ts shardmanager.ts test/**/*.ts src/**/*.ts"
+		"lint": "eslint index.ts bot.ts shardmanager.ts src && tsc --noEmit"
 	},
 	"dependencies": {
 		"async-request": "^1.2.0",
 		"bookshelf": "^1.1.0",
 		"deep-equal": "^2.0.5",
-		"discord.js": "^13.0.0-dev.e37ef3af2151e556527ccd8e98ec531bdcc0ed70",
+		"discord.js": "^13.1.0",
 		"fuse.js": "^5.0.7-beta",
 		"he": "^1.2.0",
 		"html-minifier": "^4.0.0",

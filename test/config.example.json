@@ -1,8 +1,0 @@
-{
-	"token": "tester bot token",
-	"rolegiverToken": "role giver bot token",
-	"server": "server id to test on",
-	"ipbot": "id of ipbot",
-	"testbot": "id of test bot",
-	"rolegiver": "id of admin bot"
-}

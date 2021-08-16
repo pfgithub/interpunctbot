@@ -119,8 +119,9 @@ nr.globalCommand(
 		if(msgt.length > 2000) {
 			msgt = msgt.substr(0, 1999) + "…";
 		}
-		const attch = info.raw_message?.attachments.array();
-		if(!attch || attch.length !== 1) return info.error("Attach an image.");
+		const attch = [...info.raw_message?.attachments.values() ?? []];
+		if(attch.length === 0) return info.error("Attach an image.");
+		if(attch.length > 1) return info.error("Attach only one image.");
 		await info.channel.send({
 			content: msg,
 			files: [{
@@ -507,14 +508,14 @@ async function runEvent(
 				);
 			channel = guild.systemChannel.id;
 		}
-		const channelDiscord = guild.channels.resolve(channel as Discord.Snowflake);
+		const channelDiscord = guild.channels.resolve(channel);
 		if (!channelDiscord) {
 			return await db.addError(
 				"/errors/ipscript/channel-id-not-found",
 				"",
 			);
 		}
-		if (!(channelDiscord instanceof Discord.TextChannel)) {
+		if (!channelDiscord.isText()) {
 			return await db.addError(
 				"/errors/ipscript/channel-not-text-channel",
 				"",
@@ -672,43 +673,7 @@ async function onMessage(msg: Discord.Message | Discord.PartialMessage) {
 				rule.type === "counting" &&
 				msg.channel.id === rule.channel
 			) {
-				// wow this doesn't work at all
-				const findNumber = (txt: string) => {
-					const chars = txt.match(/[0-9]/g);
-					if (!chars) return undefined;
-					if (chars.length > 10) return undefined;
-					const number = +chars.join("");
-					if (isNaN(number)) return undefined;
-					return number;
-				};
-				const pma = msg.channel.messages.cache.array();
-				// const pmsg = pma[pma.length - 2];
-				let i = 2;
-				const thisnum = findNumber(msg.content);
-				if (thisnum === undefined) {
-					deleteMsg = true;
-				} else {
-					let cnum = thisnum - 1;
-					while (true) {
-						const it = pma[pma.length - i];
-						if (!it) break;
-						if ((it as any)._____ignoreNumber____) break;
-						if (i > 100) break;
-						const number = findNumber(it.content);
-						if (number === undefined) i++;
-						else {
-							cnum = number;
-							break;
-						}
-					}
-					if (cnum + 1 !== thisnum) {
-						deleteMsg = true;
-						msg.reply("" + (cnum + 1)).catch(() => {});
-					}
-				}
-				if (deleteMsg) {
-					(msg as any)._____ignoreNumber____ = true;
-				}
+				// TODO counting
 			} else {
 				// assertNever(rule);
 			}
@@ -872,17 +837,16 @@ client.on("message", msg => {
 	);
 });
 
-function channelNameForLog(channel: Discord.TextChannel | Discord.NewsChannel | Discord.ThreadChannel | Discord.DMChannel): string {
-	if(channel instanceof Discord.ThreadChannel) {
-		// the typings are broken
-		const parent = channel.parent as unknown as Discord.TextChannel | Discord.NewsChannel | null;
+function channelNameForLog(channel: Discord.TextBasedChannels): string {
+	if(channel.type === "GUILD_PRIVATE_THREAD" || channel.type === "GUILD_PUBLIC_THREAD") {
+		const parent = channel.parent;
 
 		if(parent) {
-			return "<#"+parent.name+"→"+(channel.type === "private_thread" ? "[private]" : "")+channel.name+">";
+			return "<#"+parent.name+"→"+(channel.type === "GUILD_PRIVATE_THREAD" ? "[private]" : "")+channel.name+">";
 		}
 		// channel.
 	}
-	if(channel instanceof Discord.DMChannel) {
+	if(channel.type === "DM") {
 		return "<DM?>";
 	}
 	return "<#"+channel.name+">";
@@ -1036,7 +1000,7 @@ async function rankingMessageReactionAdd(
 		// check if in ticket
 		const ticket_info = await db.getTicket();
 
-		if((reaction.message.channel as Discord.TextChannel).parentID === ticket_info.main.category) {
+		if((reaction.message.channel as Discord.TextChannel).parentId === ticket_info.main.category) {
 			const topic = (reaction.message.channel as Discord.TextChannel).topic;
 	
 			if(topic) {
@@ -1145,138 +1109,6 @@ client.on("messageReactionAdd", (reaction, user) => {
 		"handle reactions",
 	);
 });
-
-//client.on("raw", async event => {
-//    if(event.t === "MESSAGE_REACTION_ADD") {
-//        //console.log("Got message reaction add event: {}", event);
-//        const data = event.d;
-//        const user_id = data.user_id;
-//        const message_id = data.message_id;
-//        const channel_id = data.channel_id;
-//        const channel = await client.channels.fetch(channel_id);
-//        if(!channel) return;
-//        if(!(channel instanceof Discord.TextChannel)) return;
-//        const message = await channel.messages.fetch(message_id);
-//        const emoji_key = getEmojiKey(data.emoji);
-//        const reaction = message.reactions.resolve(emoji_key);
-//
-//        console.log("Got message reaction add event: {}", reaction, user_id);
-//    }
-//});
-
-// function getEmojiKey(emoji: any) {
-// 	return emoji.id ? `${emoji.name}:${emoji.id}` : emoji.name;
-// }
-//
-// bot.on("raw", async event => {
-// 	if (event.t !== "MESSAGE_REACTION_ADD") {
-// 		return;
-// 	}
-//
-// 	const { d: data } = event;
-// 	const user = bot.users.get(data.user_id); // Not sure how there will ever be no user for an event but whatever
-// 	if (!user) {
-// 		return;
-// 	}
-// 	const channel = bot.channels.get(data.channel_id);
-// 	if (!channel) {
-// 		return;
-// 	}
-// 	await channel.fetch();
-// 	if (!(channel instanceof GuildChannel)) {
-// 		return;
-// 	}
-// 	let message = await (channel).messages.fetch(data.message_id);
-// 	if (!(<GuildChannel>message).guild) {
-// 		return;
-// 	}
-// 	const emojiKey = getEmojiKey(data.emoji);
-// 	const reaction = message.reactions.get(emojiKey);
-//
-// 	bot.emit("messageReactionAddCustom", reaction, user, message);
-// });
-// const rolesToAddToMessages = {};
-//
-// bot.on(
-// 	"messageReactionAddCustom",
-// 	async (reaction: MessageReaction, user: User, message: Message) => {
-// 		if (user.bot && user.id !== config.allowMessagesFrom) {
-// 			return;
-// 		}
-// 		if (!message.guild) {
-// 			return; // duplicate
-// 		}
-// 		const emoji = reaction.emoji.toString();
-// 		const db = new Database(message.guild.id);
-// 		const member = message.guild.member(user);
-// 	// 	if (message.channel.id !== db.getRankmojiChannel()) {
-// 	// 		return;
-// 	// 	}
-// 	// 	if (
-// 	// 		member.hasPermission("MANAGE_ROLES") &&
-// 	// 		message.guild.member(bot.user).hasPermission("MANAGE_ROLES")
-// 	// 	) {
-// 	// 		const delet = () => {
-// 	// 			if (rolesToAddToMessages[message.id]) {
-// 	// 				rolesToAddToMessages[message.id].reaxns.forEach(reaxn =>
-// 	// 					message.reactions.get(reaxn).remove()
-// 	// 				);
-// 	// 				delete rolesToAddToMessages[message.id];
-// 	// 			}
-// 	// 		};
-// 	// 		info.rankmojis.forEach(async ({ rank, moji }) => {
-// 	// 			if (moji !== emoji) {
-// 	// 				return;
-// 	// 			}
-// 	// 			if (!message.guild.roles.get(rank)) {
-// 	// 				return;
-// 	// 			}
-// 	// 			if (!rolesToAddToMessages[message.id]) {
-// 	// 				rolesToAddToMessages[message.id] = {
-// 	// 					roles: [],
-// 	// 					reaxns: []
-// 	// 				};
-// 	// 			}
-// 	// 			rolesToAddToMessages[message.id].roles.push(rank);
-// 	// 			rolesToAddToMessages[message.id].reaxns.push(
-// 	// 				getEmojiKey((await message.react("✅")).emoji)
-// 	// 			); // after awaiting for something you should check if the conditions are still met
-// 	// 			setTimeout(delet, 10 * 1000);
-// 	// 		});
-// 	// 		if (emoji === "✅") {
-// 	// 			if (rolesToAddToMessages[message.id]) {
-// 	// 				rolesToAddToMessages[message.id].roles.forEach(
-// 	// 					async rolid => {
-// 	// 						const role = message.guild.roles.get(rolid);
-// 	// 						try {
-// 	// 							if (message.member.roles.get(rolid)) {
-// 	// 								return;
-// 	// 							}
-// 	// 							await message.member.addRole(role);
-// 	// 							if (role.mentionable) {
-// 	// 								// TODO if !mentionable mention
-// 	// 								await message.reply(
-// 	// 									`Ranked with ${role.name}`
-// 	// 								);
-// 	// 							} else {
-// 	// 								await message.reply(
-// 	// 									`Ranked with ${role.toString()}`
-// 	// 								);
-// 	// 							}
-// 	// 						} catch (e) {
-// 	// 							(await message.reply(
-// 	// 								`Could not rank, I need to be above the role you want me to rank with`
-// 	// 							)).delete(10 * 1000);
-// 	// 						}
-// 	// 					}
-// 	// 				);
-// 	// 			}
-// 	// 		}
-// 	// 	}
-// 	// }
-// );
-
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 client.on("guildCreate", guild => {
 	if(guild.available) global.console.log(`_ Joined guild ${guild.name} (${guild.nameAcronym})`);
