@@ -1,164 +1,40 @@
 import client, { timedEvents } from "../bot";
 import * as discord from "discord.js";
-import { ilt, logCommand, production } from "..";
+import { ilt, logCommand, perr, production } from "..";
 import { globalConfig } from "./config";
 import Info, {MessageLike} from "./Info";
 import { ginteractionhandler, globalCommandNS, globalDocs } from "./NewRouter";
 import deepEqual from "deep-equal";
 import * as util from "util";
 
-const api = client as any as ApiHolder;
-
-type ApiHandler = {
-    get: <T>() => Promise<T>,
-    post: <T, Q>(value: T) => Promise<Q>,
-    patch: (value: any) => Promise<any>,
-    delete: () => Promise<any>,
-} & {[key: string]: ApiHandler} & ((...data: any[]) => ApiHandler);
-
-type ApiHolder = {api: ApiHandler};
-
-type UsedCommandOption = {
-    name: string,
-    options?: UsedCommandOption[],
-    value?: string,
-};
-type UsedCommand = {
-    name: string,
-    id: string,
-    options?: UsedCommandOption[],
-};
-type ClickedButton = {
-    custom_id: string,
-    component_type: number,
-};
-
-export type DiscordInteraction = DiscordCommandInteraction | DiscordButtonClickInteraction;
-
-export type DiscordBaseInteraction = {
-    id: string, // interaction id
-    token: string, // interaction token
-    application_id: string,
-};
-
-export type DiscordCommandInteraction = DiscordBaseInteraction & {
-    type: 2,
-    name: string,
-    guild_id: discord.Snowflake,
-    channel_id: discord.Snowflake,
-    member: {user: {id: string}}, // TODO add this to the discord member cache // in the future this will be done automatically so nah
-    data: UsedCommand,
-};
-export type DiscordButtonClickInteraction = DiscordBaseInteraction & {
-    type: 3,
-    version: 1,
-    guild_id: discord.Snowflake,
-    channel_id: discord.Snowflake,
-    message: {id: string, channel_id: string},
-    member: {user: {id: string}},
-    data: ClickedButton,
-};
-
-type SlashCommandOptionNamelessSubcommand = {
-    description: string,
-    options?: SlashCommandOption[],
-};
-type SlashCommandOptionNamelessNormal = {
-    description: string,
-    required: boolean,
-};
-
-type SlashCommandOptionNameless =
-    | SlashCommandOptionNamelessSubcommand & {type: 1} // sub_command
-    | SlashCommandOptionNamelessSubcommand & {type: 2} // sub_command_group
-    | SlashCommandOptionNamelessNormal & {type: 3, choices?: {name: string, value: string}[]} // string
-    | SlashCommandOptionNamelessNormal & {type: 4, choices?: {name: string, value: number}[]} // integer
-    | SlashCommandOptionNamelessNormal & {type: 5} // boolean
-    | SlashCommandOptionNamelessNormal & {type: 6} // user
-    | SlashCommandOptionNamelessNormal & {type: 7} // channel
-    | SlashCommandOptionNamelessNormal & {type: 8} // role
-;
-
-type SlashCommandOption = SlashCommandOptionNameless & {
-    name: string,
-};
-type SlashCommandNameless = {
-    description: string,
-    options?: SlashCommandOption[],
-};
-type SlashCommandUser = SlashCommandNameless & {
-    name: string,
-};
-type SlashCommand = SlashCommandUser & {
-    id: string,
-    application_id: string,
-};
-
-export type InteractionHandled<T> = {__interaction_handled: T};
-const interaction_handled: InteractionHandled<any> = {__interaction_handled: true};
-
-export class InteractionHelper {
-    raw_interaction: DiscordInteraction;
-    has_ackd: boolean;
-    options: UsedCommandOption[];
-
-    constructor(raw_interaction: DiscordInteraction) {
-    	this.raw_interaction = raw_interaction;
-    	this.has_ackd = false;
-    	this.options = undefined as any;
-    }
-    async sendRaw(value: unknown): Promise<void> {
-    	if(this.has_ackd) throw new Error("cannot double interact");
-    	await api.api.interactions(this.raw_interaction.id, this.raw_interaction.token).callback.post({data: value});
-    	this.has_ackd = true;
-    }
-    async editOriginal(value: unknown): Promise<void> {
-    	await api.api.webhooks(this.raw_interaction.application_id, this.raw_interaction.token).messages("@original").patch({data: value});
-    }
-    async delete(): Promise<void> {
-    	await api.api.webhooks(this.raw_interaction.application_id, this.raw_interaction.token).messages("@original").delete();
-    }
-    async acceptLater(): Promise<InteractionHandled<any>> {
-    	await this.sendRaw({
-    		type: 5,
-    	});
-    	return interaction_handled;
-    }
-    async accept(): Promise<InteractionHandled<any>> {
-    	await this.sendRaw({
-    		type: 4,
-    		data: {content: "✓", flags: 1 << 6, allowed_mentions: {parse: []}},
-    	});
-    	return interaction_handled;
-    }
-    async reply(message: string): Promise<InteractionHandled<any>> {
-    	await this.sendRaw({
-    		type: 4,
-    		data: {content: message, allowed_mentions: {parse: []}},
-    	});
-    	return interaction_handled;
-    }
-    async replyHiddenHideCommand(message: string, components: unknown = undefined): Promise<InteractionHandled<any>> {
-    	await this.sendRaw({
-    		type: 4,
-    		data: {content: message, flags: 1 << 6, allowed_mentions: {parse: []}, components},
-    	});
-    	return interaction_handled;
-    }
-}
-
-function on_interaction(interaction: DiscordInteraction) {
-	ilt(do_handle_interaction(interaction), false).then(async res => {
+client.on("interactionCreate", interaction => {
+	perr((async () => {
+		const res = await ilt(do_handle_interaction(interaction), false);
 		if(res.error) {
 			console.log("handle interaction failed with", res.error);
-			await api.api.webhooks(client.user!.id, interaction.token).post({data: {
-				content: "Uh oh! Something went wrong while handling this interaction",
-			}});
-			return;
+			if(interaction instanceof discord.MessageComponentInteraction) {
+				await interaction.reply({
+					content: "Uh oh! Something went wrong while handling this interaction",
+					ephemeral: true,
+				});
+			}else if(interaction instanceof discord.BaseCommandInteraction) {
+				await interaction.reply({
+					content: "Uh oh! Something went wrong while handling this interaction",
+					ephemeral: true,
+				});
+			}else {
+				throw new Error("interaction failed and is of unsupported type "+interaction.type);
+			}
 		}
-	}).catch(e => console.log("handle interaction x2 failed", e));
-}
-async function handle_interaction_routed(info: Info, route_name: string, route: SlashCommandRoute, options: UsedCommandOption[], interaction: InteractionHelper): Promise<unknown> {
+	})(), "handling interaction");
+});
+async function handle_interaction_routed(
+	info: Info,
+	route_name: string,
+	route: SlashCommandRoute,
+	options: discord.CommandInteractionOption[],
+	interaction: discord.Interaction,
+): Promise<unknown> {
 	if('subcommands' in route) {
 		// read option
 		if(options.length !== 1) return await info.error("Expected subcommand. This should never happen.");
@@ -192,34 +68,23 @@ async function handle_interaction_routed(info: Info, route_name: string, route: 
 // TODO update to built in discordjs stuff rather than api raw
 // api raw was nice while it lasted because I didn't have to think about caches and stuff
 
-async function do_handle_interaction(interaction: DiscordInteraction) {
+async function do_handle_interaction(interaction: discord.Interaction) {
 	const startTime = Date.now();
-
-	const interaction_helper = new InteractionHelper(interaction);
 
 	logCommand(interaction.guild_id, interaction.channel_id, false, interaction.member.user.id, 
 		(interaction.type === 2 ? "/"+interaction.data.name : "@"+interaction.type)+": "+JSON.stringify(interaction.data)
 	);
     
-	if(interaction.type === 3) {
+	if(interaction.isButton()) {
 		const data = interaction.data;
 
 		console.log(interaction);
 
-		const guild = client.guilds.cache.get(interaction.guild_id)!;
-		const channel = client.channels.cache.get(interaction.channel_id)! as discord.Message["channel"];
-		const member = guild.members.add(interaction.member, {});
-		let message: discord.Message | undefined;
-
-		if('type' in interaction.message) {
-			message = channel.messages.add(interaction.message);
-		}else{}
-
 		const message_like = { // weird; the message is sent by interpunct but the author is set to the interactor
 			channel: message?.channel ?? channel,
 			guild: message?.guild ?? guild,
-			member: member,
-			author: member.user,
+			member: interaction.member,
+			author: interaction.user,
 			client: message?.client ?? client,
 			content: message?.content ?? "*no content*",
 			delete: async () => {
@@ -248,23 +113,27 @@ async function do_handle_interaction(interaction: DiscordInteraction) {
 			}
 		}
 		return await info.error("Unsupported button kind `"+idv+"`.");
-	}else if(interaction.type !== 2) {
-		return await interaction_helper.replyHiddenHideCommand("× Interaction not supported.");
+	}else if(!interaction.isCommand()) {
+		throw new Error("Interaction kind not supported.");
+		// return await interaction("× Interaction not supported.");
 	}
     
-	const data = interaction.data;
+	// console.log("Got interaction: ", util.inspect(interaction.data, false, null, true));
+	console.log(interaction);
 
-	console.log("Got interaction: ", util.inspect(interaction.data, false, null, true));
 	// construct an info object
-	const guild = client.guilds.cache.get(interaction.guild_id)!;
-	const channel = client.channels.cache.get(interaction.channel_id)! as discord.Message["channel"];
-	const member = guild.members.add(interaction.member);
+	// const guild = client.guilds.cache.get(interaction.guild_id)!;
+	// const channel = client.channels.cache.get(interaction.channel_id)! as discord.Message["channel"];
+	// const member = guild.members.add(interaction.member);
     
+	if(!interaction.channel) throw new Error("Req. channel");
+	if(interaction.member && !(interaction.member instanceof discord.GuildMember)) interaction.member = null;
+
 	const mlike: MessageLike = {
-		channel,
-		guild,
-		member,
-		author: member.user,
+		channel: interaction.channel,
+		guild: interaction.guild,
+		member: interaction.member,
+		author: interaction.user,
 		client,
 		content: "*no content*",
 		delete: async () => {
@@ -274,26 +143,27 @@ async function do_handle_interaction(interaction: DiscordInteraction) {
 	const info = new Info(mlike, timedEvents!, {
 		startTime,
 		infoPerSecond: -1,
-		raw_interaction: interaction_helper,
+		raw_interaction: interaction,
 	});
 
 	const my_channel_perms = info.myChannelPerms!;
 	if(!my_channel_perms.has("VIEW_CHANNEL")) {
-		return await interaction_helper.replyHiddenHideCommand("Commands cannot be used in this channel because I don't have permission to see it.");
+		return await interaction.reply("Commands cannot be used in this channel because I don't have permission to see it.");
 	}
     
 	const route = slash_command_router[data.name];
 	if(!route) return await info.error("Unsupported interaction / This command should not exist.");
 
-	return await handle_interaction_routed(info, data.name, route, data.options || [], interaction_helper);
+	return await handle_interaction_routed(info, data.name, route, data.options || [], interaction);
 }
 
 type SlashCommandRouteBottomLevel = {
+	// handler?: () => {}
     route?: string,
     preload?: string,
     description?: string, // if no description is specified, it will be chosen from the route
-    args?: {[key: string]: SlashCommandOptionNameless},
-    arg_stringifier?: (args: UsedCommandOption[]) => string,
+    args?: {[key: string]: UnnamedOption},
+    arg_stringifier?: (args: discord.CommandInteractionOption[]) => string,
 };
 type SlashCommandRouteSubcommand = {
     description: string,
@@ -301,8 +171,13 @@ type SlashCommandRouteSubcommand = {
 };
 type SlashCommandRoute = SlashCommandRouteBottomLevel | SlashCommandRouteSubcommand;
 
+type UnnamedOption =
+	| Omit<discord.ApplicationCommandChoicesData, "name">
+	| Omit<discord.ApplicationCommandNonOptionsData, "name">
+;
+
 const opt = {
-	oneOf(description: string, choices: {[key: string]: string}): SlashCommandOptionNameless {
+	oneOf(description: string, choices: {[key: string]: string}): UnnamedOption {
 		if(description.length > 100) throw new Error("max 100 len desc");
 		return {
 			type: 3,
@@ -311,33 +186,33 @@ const opt = {
 			choices: Object.entries(choices).map(([value, key]) => ({name: key, value})),
 		};
 	},
-	channel(description: string): SlashCommandOptionNameless {
+	channel(description: string): UnnamedOption {
 		if(description.length > 100) throw new Error("max 100 len desc");
 		return {type: 7, description, required: true};
 	},
-	string(description: string): SlashCommandOptionNameless {
+	string(description: string): UnnamedOption {
 		if(description.length > 100) throw new Error("max 100 len desc");
 		return {type: 3, description, required: true};
 	},
 	// boolean is not necessary, oneOf is better in almost every case.
-	integer(description: string): SlashCommandOptionNameless {
+	integer(description: string): UnnamedOption {
 		if(description.length > 100) throw new Error("max 100 len desc");
 		return {type: 4, description, required: true};
 	},
-	user(description: string): SlashCommandOptionNameless {
+	user(description: string): UnnamedOption {
 		if(description.length > 100) throw new Error("max 100 len desc");
 		return {type: 6, description, required: true};
 	},
-	role(description: string): SlashCommandOptionNameless {
+	role(description: string): UnnamedOption {
 		if(description.length > 100) throw new Error("max 100 len desc");
 		return {type: 8, description, required: true};
 	},
 	// TODO update when discord adds multiline support
-	multiline(description: string): SlashCommandOptionNameless {
+	multiline(description: string): UnnamedOption {
 		if(description.length > 100) throw new Error("max 100 len desc");
 		return {type: 3, description, required: true};
 	},
-	optional(scon: SlashCommandOptionNameless): SlashCommandOptionNameless {
+	optional(scon: UnnamedOption): UnnamedOption {
 		return {...scon, required: false} as any;
 	},
 };
@@ -515,9 +390,7 @@ const slash_command_router: {[key: string]: SlashCommandRoute} = {
 	},
 };
 
-const global_slash_commands: {[key: string]: SlashCommandNameless} = {};
-
-function createBottomLevelCommand(cmdname: string, cmddata: SlashCommandRouteBottomLevel): SlashCommandUser {
+function createBottomLevelCommand(cmdname: string, cmddata: SlashCommandRouteBottomLevel): discord.ApplicationCommandSubCommandData {
 	const base_command_name = cmddata.route ?? cmdname;
 	const base_command = globalCommandNS[base_command_name];
 	if(!base_command) throw new Error("Undefined command `"+base_command_name+"`");
@@ -529,6 +402,7 @@ function createBottomLevelCommand(cmdname: string, cmddata: SlashCommandRouteBot
 	if(final_desc.length > 100) final_desc = final_desc.substr(0, 99) + "…";
 
 	return {
+		type: "SUB_COMMAND",
 		name: cmdname,
 		description: final_desc,
 		options: Object.entries(cmddata.args ?? {}).map(([optname, optvalue]) => {
@@ -537,37 +411,42 @@ function createBottomLevelCommand(cmdname: string, cmddata: SlashCommandRouteBot
 	};
 }
 
-for(const [cmdname, cmddata] of Object.entries(slash_command_router)) {
+function getCommandsOut(cmdname: string, cmddata: SlashCommandRoute): discord.ApplicationCommandData {
 	if('subcommands' in cmddata) {
 		if(Object.entries(cmddata.subcommands).length > 25) throw new Error("Max 25 subcommands");
-		global_slash_commands[cmdname] = {
+		return {
+			name: cmdname,
+			type: "CHAT_INPUT",
 			description: cmddata.description,
-			options: Object.entries(cmddata.subcommands).map(([scname, scdata_raw]) => {
+			options: Object.entries(cmddata.subcommands).map(([scname, scdata_raw]): (
+				| discord.ApplicationCommandSubGroupData
+				| discord.ApplicationCommandSubCommandData
+			) => {
 				const scdata = scdata_raw as SlashCommandRouteBottomLevel | SlashCommandRouteSubcommand;
 				if('subcommands' in scdata) {
 					if(Object.entries(scdata.subcommands).length > 25) throw new Error("Max 25 subsubcommands");
 					return {
-						type: 2,
+						type: "SUB_COMMAND_GROUP",
 						name: scname,
 						description: scdata.description,
-						options: Object.entries(scdata.subcommands).map(([sscname, sscdata_raw]) => {
+						options: Object.entries(scdata.subcommands).map(([sscname, sscdata_raw]): discord.ApplicationCommandSubCommandData => {
 							if('subcommands' in sscdata_raw) throw new Error("too nested!");
 							const sscdata = sscdata_raw as SlashCommandRouteBottomLevel;
-							return {type: 1, ...createBottomLevelCommand(sscname, sscdata)};
+							return createBottomLevelCommand(sscname, sscdata);
 						}),
 					};
 				} else {
-					return {type: 1, ...createBottomLevelCommand(scname, scdata)};
+					return createBottomLevelCommand(scname, scdata);
 				}
 			}),
 		};
-		continue;
 	}
-	const v = createBottomLevelCommand(cmdname, cmddata);
-	global_slash_commands[cmdname] = v;
+	return {...createBottomLevelCommand(cmdname, cmddata), type: "CHAT_INPUT"};
 }
 
-if(Object.entries(global_slash_commands).length > 50) throw new Error("Max 50 slash commands");
+const commands_out = Object.entries(slash_command_router).map(([k, v]) => getCommandsOut(k, v))
+
+if(commands_out.length > 50) throw new Error("Max 50 slash commands");
 
 let __is_First_Shard: boolean | undefined = undefined;
 function firstShard() {
@@ -575,8 +454,8 @@ function firstShard() {
 	const values = client.guilds.cache.values();
 	const first = values.next();
 	if(first.done) return false;
-	console.log("This shard is:",first.value.shardID);
-	__is_First_Shard = first.value.shardID === 0;
+	console.log("This shard is:",first.value.shardId);
+	__is_First_Shard = first.value.shardId === 0;
 	return __is_First_Shard;
 }
 
@@ -586,96 +465,25 @@ function shouldUpdateCommandsHere() {
 }
 
 const devCommandGuild = globalConfig.slashCommandServer;
-async function getCommands(): Promise<SlashCommand[]> {
-	if(!shouldUpdateCommandsHere()) throw new Error("Not supposed to update commands here");
-	if(production) {
-		return await api.api.applications(client.user!.id).commands.get<SlashCommand[]>();
-	}else{
-		return await api.api.applications(client.user!.id).guilds(devCommandGuild).commands.get<SlashCommand[]>();
-	}
-}
-
-async function addCommand(command_data: SlashCommandUser): Promise<SlashCommand> {
-	if(!shouldUpdateCommandsHere()) throw new Error("Not supposed to update commands here");
-	if(production) {
-		return await api.api.applications(client.user!.id).commands.post<{data: SlashCommandUser}, SlashCommand>({data: command_data});
-	}else{
-		return await api.api.applications(client.user!.id).guilds(devCommandGuild).commands.post<{data: SlashCommandUser}, SlashCommand>({data: command_data});
-	}
-}
-
-async function removeCommand(command_id: string): Promise<void> {
-	if(!shouldUpdateCommandsHere()) throw new Error("Not supposed to update commands here");
-	if(production) {
-		await api.api.applications(client.user!.id).commands(command_id).delete();
-	}else{
-		await api.api.applications(client.user!.id).guilds(devCommandGuild).commands(command_id).delete();
-	}
-}
-
-function normalizeSCO(inv: SlashCommandOption[]): SlashCommandOption[] {
-	return JSON.parse(JSON.stringify(inv), (key, value) => {
-		if(typeof value === "object") {
-			for(const [k, v] of Object.entries(value)) {
-				if(Array.isArray(v) && v.length === 0) delete value[k];
-				if(k === "required" && v === false) delete value[k];
-			}
-		}
-		return value;
-	});
-}
-
-function compareOptions(remote: SlashCommandOption[], local: SlashCommandOption[]): "same" | "different" {
-	if(deepEqual(normalizeSCO(local), normalizeSCO(remote), {strict: false})) return "same";
-	return "different";
-}
-
-function compareCommands(remote: SlashCommand, local: SlashCommandUser): "same" | "different" {
-	if(remote.description !== local.description) return "different";
-	if(compareOptions(remote.options ?? [], local.options ?? []) === "different") return "different";
-	return "same";
-}
 
 export async function start(): Promise<void> {
 	// get list of global slash commands
 	// update to match
-
-	client.ws.on("INTERACTION_CREATE" as any, on_interaction);
 
 	// NOTE that this only has to be done on shard 0
 	if(!shouldUpdateCommandsHere()) {
 		console.log("Not updating slash commands on this shard/config");
 		return;
 	}
-
-	const current_slash_commands = await getCommands();
-
-	// console.log("Current slash commands: ",current_slash_commands);
-	// update slash commands to match global slash commands
-
-	for(const remote of current_slash_commands) {
-		const local_user = global_slash_commands[remote.name];
-		if(!local_user) {
-			console.log("Removing command: "+remote.name+" (id "+remote.id+")");
-			await removeCommand(remote.id);
-			console.log("√ Removed");
-			continue;
-		}
-		const local = {...local_user, name: remote.name};
-		if(compareCommands(remote, local) === "different") {
-			console.log("Updating command: "+remote.name+" (id "+remote.id+")");
-			const res = await addCommand(local);
-			console.log("√ Edited", res);
-			continue;
-		}
+	if(!client.application) {
+		throw new Error("client.application undefined?");
 	}
-	for(const [cmd_name, new_command] of Object.entries(global_slash_commands)) {
-		const cmd_full: SlashCommandUser = {...new_command, name: cmd_name};
-		if(!current_slash_commands.find(csc => csc.name === cmd_name)) {
-			console.log("Adding new command: "+cmd_name);
-			const res = await addCommand(cmd_full);
-			console.log("√ Added", res);
-		}
+
+	if(!production && devCommandGuild) {
+		await client.application.commands.set(commands_out, devCommandGuild);
+	}else{
+		await client.application.commands.set(commands_out);
 	}
+
 	console.log("Slash commands up to date!");
 }

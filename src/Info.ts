@@ -6,7 +6,6 @@ import { TimedEvents } from "./TimedEvents";
 import { globalConfig } from "./config";
 import { globalDocs } from "./NewRouter";
 import { dgToDiscord } from "./parseDiscordDG";
-import { InteractionHelper } from "./SlashCommandManager";
 
 const result = {
 	error: "<:failure:508841130503438356> Error: ",
@@ -254,7 +253,7 @@ export default class Info {
 	guild?: Discord.Guild | null;
 	message: MessageLike;
 	raw_message?: Discord.Message;
-	raw_interaction?: InteractionHelper;
+	raw_interaction?: Discord.Interaction;
 	other?: {
 		startTime: number,
 		infoPerSecond: number,
@@ -270,7 +269,7 @@ export default class Info {
 			startTime: number,
 			infoPerSecond: number,
 			raw_message?: Discord.Message,
-			raw_interaction?: InteractionHelper,
+			raw_interaction?: Discord.Interaction,
 		},
 	) {
 	    this.timedEvents = timedEvents;
