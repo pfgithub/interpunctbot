@@ -54,9 +54,9 @@ client.on("ready", () => {
 		).split(":");
 		await fs.unlink(pth);
 		const channel = client.channels.resolve(
-			channelid as Discord.Snowflake,
+			channelid,
 		) as Discord.TextChannel;
-		const message = await channel.messages.fetch(msgid as Discord.Snowflake)!;
+		const message = await channel.messages.fetch(msgid)!;
 		await channel.send(
 			message.content.substr(0, message.content.lastIndexOf(",")) +
 				", <:success:508840840416854026> Bot restarted in " +
@@ -73,7 +73,7 @@ client.on("ready", () => {
 		}
 		const message = event.message;
 		const userID = event.user;
-		const user = await client.users.fetch(userID as Discord.Snowflake);
+		const user = await client.users.fetch(userID);
 		if (!user) {
 			return "handled"; // user could not be found.
 		}
@@ -81,24 +81,24 @@ client.on("ready", () => {
 		return "handled";
 	});
 	timedEvents.setHandler("delete", async event => {
-		const guild = client.guilds.resolve(event.guild as Discord.Snowflake);
+		const guild = client.guilds.resolve(event.guild);
 		if (!guild) {
 			return "notmine"; // !!! OR the guild has kicked the bot. this will create ghost events that everyone has notmine.
 		}
-		const channel = guild.channels.resolve(event.channel as Discord.Snowflake);
+		const channel = guild.channels.resolve(event.channel);
 		if (!channel) return "handled";
 		if (!channel.isText()) return "handled";
-		const message = await channel.messages.fetch(event.message as Discord.Snowflake);
+		const message = await channel.messages.fetch(event.message);
 		if (!message) return "handled";
 		await message.delete();
 		return "handled";
 	});
 	timedEvents.setHandler("send", async event => {
-		const guild = client.guilds.resolve(event.guild as Discord.Snowflake);
+		const guild = client.guilds.resolve(event.guild);
 		if (!guild) {
 			return "notmine"; // !!! OR the guild has kicked the bot. this will create ghost events that everyone has notmine.
 		}
-		const channel = guild.channels.resolve(event.channel as Discord.Snowflake);
+		const channel = guild.channels.resolve(event.channel);
 		if (!channel) return "handled";
 		if (!channel.isText()) return "handled";
 		await channel.send(event.message);

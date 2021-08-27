@@ -610,7 +610,7 @@ nr.globalCommand(
 				info.tag`The message you linked is on a different server. Please select a message from this server to be the ticket invitation.`,
 			);
 		const msgchan = info.guild.channels.resolve(
-			channelID as discord.Snowflake,
+			channelID,
 		) as discord.TextChannel;
 		if (!msgchan)
 			return await info.error(
@@ -621,7 +621,7 @@ nr.globalCommand(
 		// in zig this could just be const msgmsg = msgchan.messages.fetch(messageID) catch return info.error("...")
 		let msgmsg: discord.Message;
 		try {
-			msgmsg = await msgchan.messages.fetch(messageID as discord.Snowflake);
+			msgmsg = await msgchan.messages.fetch(messageID);
 		} catch (e) {
 			return await info.error(
 				"I could not find the message you linked in <#" +
@@ -687,7 +687,7 @@ function getTicketOwnerID(channel: discord.TextChannel): discord.Snowflake {
 		"",
 		"ERNOID",
 	])[1];
-	return creatorid as discord.Snowflake;
+	return creatorid;
 }
 
 type TicketCtx = {

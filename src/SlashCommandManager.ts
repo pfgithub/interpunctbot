@@ -208,11 +208,13 @@ async function do_handle_interaction(interaction: DiscordInteraction) {
 
 		const guild = client.guilds.cache.get(interaction.guild_id)!;
 		const channel = client.channels.cache.get(interaction.channel_id)! as discord.Message["channel"];
-		const member = guild.members.add(interaction.member, {});
+		// @ts-expect-error
+		const member = guild.members._add(interaction.member);
 		let message: discord.Message | undefined;
-
+		
 		if('type' in interaction.message) {
-			message = channel.messages.add(interaction.message);
+			// @ts-expect-error
+			message = channel.messages._add(interaction.message);
 		}else{}
 
 		const message_like = { // weird; the message is sent by interpunct but the author is set to the interactor
@@ -236,7 +238,7 @@ async function do_handle_interaction(interaction: DiscordInteraction) {
 			raw_interaction: interaction_helper,
 		});
 
-		const idv = data.custom_id.split("|")[0]!;
+		const idv = data.custom_id.split("|")[0]!.replace(/^#.+?#/, "");
 		const inh = ginteractionhandler[idv];
 		// note: does not check for channel view perms
 		if(inh) {
@@ -258,7 +260,8 @@ async function do_handle_interaction(interaction: DiscordInteraction) {
 	// construct an info object
 	const guild = client.guilds.cache.get(interaction.guild_id)!;
 	const channel = client.channels.cache.get(interaction.channel_id)! as discord.Message["channel"];
-	const member = guild.members.add(interaction.member);
+	// @ts-expect-error
+	const member = guild.members._add(interaction.member);
     
 	const mlike: MessageLike = {
 		channel,
@@ -575,8 +578,8 @@ function firstShard() {
 	const values = client.guilds.cache.values();
 	const first = values.next();
 	if(first.done) return false;
-	console.log("This shard is:",first.value.shardID);
-	__is_First_Shard = first.value.shardID === 0;
+	console.log("This shard is:",first.value.shardId);
+	__is_First_Shard = first.value.shardId === 0;
 	return __is_First_Shard;
 }
 

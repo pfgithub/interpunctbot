@@ -5,7 +5,7 @@ import Info, { memberCanManageRole } from "../../../Info";
 import {
 	ButtonStyle,
 
-	buttonStyles, callback, componentRow, CreateOpts, Game, HandleInteractionResponse,
+	buttonStyles, callback, componentRow, CreateOpts, fixID, Game, HandleInteractionResponse,
 	IKey,
 	mkbtn, RenderActionButton, RenderActionButtonAction,
 	RenderActionButtonActionCallbackOpt, RenderActionRow, RenderResult,
@@ -192,7 +192,7 @@ function displayPanel(saved_in: SavedState, info: Info, mode: "error" | "preview
 						style: is_link ? 5 : buttonStyles[btn.color],
 						url: is_link ? links_to : undefined,
 						disabled: !!btn.disabled,
-						custom_id: is_link ? undefined : custom_id,
+						custom_id: fixID(is_link ? undefined : custom_id),
 						label: btn.label || "\u200b",
 						emoji: btn.emoji ? {id: btn.emoji} : undefined,
 					};	

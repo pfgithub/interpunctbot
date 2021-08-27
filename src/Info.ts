@@ -67,7 +67,7 @@ export const theirPerm = {
 			return true;
 		}
 		const mngbotrol = await info.db!.getManageBotRole();
-		if (info.message.member!.roles.cache.has(mngbotrol.role as Discord.Snowflake)) {
+		if (info.message.member!.roles.cache.has(mngbotrol.role)) {
 			return true;
 		}
 		const frol = info.guild!.roles.resolve(mngbotrol.role);

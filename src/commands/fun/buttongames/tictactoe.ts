@@ -63,11 +63,12 @@ type ApiHolder = {api: ApiHandler};
 // 	url: string,
 // 	disabled: boolean,
 // };
+export type CustomID = `#${string}#${string}`;
 export type ButtonComponent = {
 	type: 2,
 	style: 1 | 2 | 3 | 4 | 5, // primary, primary (green), secondary, destructive (red), URL
 	label?: string,
-	custom_id?: string,
+	custom_id?: CustomID,
 	url?: string,
 	disabled?: boolean,
 	emoji?: {id: string},
@@ -100,13 +101,20 @@ type ExtraButtonOpts = {
 	emoji?: {name: string, id: string, animated: boolean},
 };
 
+let global_cid_id = 0;
+
+export function fixID(id: string | undefined): CustomID | undefined {
+	if(id == null) return undefined;
+	return `#${(global_cid_id++).toString(36)}#${id}` as const;
+}
+
 export function button(id: string, label: string | undefined, style: ButtonStyle, opts: ExtraButtonOpts): ButtonComponent {
 	if(id.length > 100) throw new Error("bad id");
 	return {
 		type: 2,
 		style: buttonStyles[style],
 		label: label,
-		custom_id: id,
+		custom_id: fixID(id),
 		...opts,
 	};
 }
@@ -233,7 +241,7 @@ export function renderResultToResult(rr: RenderResult<unknown>, key: (a: string)
 					style: itm.action.kind === "link" ? 5 : buttonStyles[itm.color],
 					url: itm.action.kind === "link" ? itm.action.url : undefined,
 					label: itm.label.length > 80 ? itm.label.substr(0, 79) + "…" : itm.label || "\u200B",
-					custom_id,
+					custom_id: fixID(custom_id),
 					disabled: itm.disabled,
 					emoji: itm.emoji,
 				};
@@ -805,7 +813,7 @@ nr.ginteractionhandler["GRANTROLE"] = {
 		const [, role_id] = custom_id.split("|");
 		let adding_role = true;
 		try {
-			if(info.member!.roles.cache.has(role_id as discord.Snowflake)) {
+			if(info.member!.roles.cache.has(role_id)) {
 				adding_role = false;
 				await info.member!.roles.remove(role_id);
 			}else{

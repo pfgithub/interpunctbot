@@ -1006,7 +1006,7 @@ async function rankingMessageReactionAdd(
 			if(topic) {
 				const ticket_user = /\d+/.exec(topic);
 				if(ticket_user) {
-					member = await msg.guild?.members.fetch(ticket_user[0] as Discord.Snowflake);
+					member = await msg.guild?.members.fetch(ticket_user[0]);
 	
 					if (!member) {
 						await msg.channel.send(

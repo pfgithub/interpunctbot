@@ -416,7 +416,7 @@ nr.globalCommand(
 		for (const [emojiID, rule] of Object.entries(qr.emojiAlias)) {
 			if (!byRole[rule.role]) byRole[rule.role] = {}; // ??=
 			let emojiName = "unknown";
-			const match = info.message.client.emojis.resolve(emojiID as Discord.Snowflake);
+			const match = info.message.client.emojis.resolve(emojiID);
 			if (match) {
 				emojiName = match.name ?? "unknown";
 			}
