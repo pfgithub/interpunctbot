@@ -1,5 +1,5 @@
 import * as Discord from "discord.js";
-import { Guild, GuildChannel, TextChannel } from "discord.js";
+import { TextChannel } from "discord.js";
 import { assertNever, ilt, perr } from "../..";
 import { messages, raw, safe } from "../../messages";
 import { AutodeleteRule, AutodeleteRuleNoID } from "../Database";
