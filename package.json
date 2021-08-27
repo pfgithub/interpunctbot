@@ -10,7 +10,7 @@
 		"build-watch": "tsc --watch",
 		"run-slow": "ts-node .",
 		"run-built": "node built",
-		"lint": "eslint index.ts bot.ts shardmanager.ts src && tsc --noEmit"
+		"lint": "eslint index.ts bot.ts src && tsc --noEmit"
 	},
 	"dependencies": {
 		"async-request": "^1.2.0",
