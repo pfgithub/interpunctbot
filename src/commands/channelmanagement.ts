@@ -409,7 +409,7 @@ nr.globalCommand(
 	"autodelete add",
 	{
 		usage:
-			"autodelete add {Required|{Duration}} {Required|{Enum|prefix|user|channel|role|counting}}",
+			"autodelete add {Required|{Duration}} {Required|{Enum|prefix|user|channel|role}}",
 		description:
 			"create an autodelete rule. autodelete rules will delete messages that match a certain rule, such as those from a specific user or in a specific channel.",
 		extendedDescription: `{UsageSummary|/help/autodelete/add/prefix}
