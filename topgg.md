@@ -209,6 +209,6 @@
 > Note\: Autodelete rules set to \<1 second will PM the user of the deleted message.
 > 
 > ## Commands
-> - `ip!autodelete add <duration eg. 10h 5min> <prefix|user|channel|role|counting>` — [create an autodelete rule. autodelete rules will delete messages that match a certain rule, such as those from a specific user or in a specific channel.](https://interpunct.info/help/autodelete/add)
+> - `ip!autodelete add <duration eg. 10h 5min> <prefix|user|channel|role>` — [create an autodelete rule. autodelete rules will delete messages that match a certain rule, such as those from a specific user or in a specific channel.](https://interpunct.info/help/autodelete/add)
 > - `ip!autodelete list` — [list all autodelete rules on this server](https://interpunct.info/help/autodelete/list)
 > - `ip!autodelete remove #` — [remove an autodelete rule. use `ip!autodelete list` to list.](https://interpunct.info/help/autodelete/remove)
