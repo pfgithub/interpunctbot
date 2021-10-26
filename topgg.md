@@ -116,17 +116,6 @@
 > 
 > 
 
-> # Logging
-> 
-> @inter·punct has the ability to log all messages sent and edited in your server.
-> 
-> Logs can be deleted using the `ip!log reset` command, and all logs are deleted if you kick @inter·punct. Old messages will be automatically removed from logs after 60 days, and a note will be inserted at the top of the log file.
-> 
-> - `ip!log enable` — [enable logging messages on the server. @inter·punct can only log messages from channels it has access to. Message edits will be logged too.](https://interpunct.info/help/log/enable)
-> - `ip!log disable` — [disable message logging and delete any existing logs](https://interpunct.info/help/log/disable)
-> - `ip!log download` — [Upload the log file to the channel you sent this in. **Anyone will be able to download it in that channel**.](https://interpunct.info/help/log/download)
-> - `ip!log reset` — [reset the log file on the server and start a new one](https://interpunct.info/help/log/reset)
-
 > # Fun
 > 
 > @inter·punct has a variety of fun commands.
