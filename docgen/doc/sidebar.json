@@ -2,6 +2,7 @@
 	["channel", "/index", "home"],
 	["channel", "/about"],
 	["channel", "/updates"],
+	["channel", "/privacy"],
 	["category", "/help"],
 	["channel", "/help/configuration"],
 	["channel", "/help/games"],

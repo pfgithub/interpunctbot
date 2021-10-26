@@ -44,6 +44,40 @@ Invite (no slash commands) {Link|https://interpunct.info/invite_no_slash/}
 );
 
 nr.addDocsWebPage(
+	"/privacy",
+	"Privacy",
+	"Privacy Policy",
+	`{Title|Privacy Policy}
+
+{Interpunct} collects:
+- Information required to run the bot including:
+- - Guild IDs
+- - Settings you configure
+- Aggregate command usage statistics
+
+,
+
+{Interpunct} does not collect message data. If mods enable message data collection,
+all message data is stored on Discord and is not accessible to {Interpunct}.
+
+,
+
+Cookies: {Interpunct} does not use cookies
+
+,
+
+Data sharing:
+- {Interpunct} shares data with Discord
+
+,
+
+{Interpunct} will delete your data if:
+- You kick {Interpunct} from your server
+- You request it on the support server: {Link|https://interpunct.info/support}
+`,
+);
+
+nr.addDocsWebPage(
 	"/updates",
 	"Updates",
 	"bot updates",
