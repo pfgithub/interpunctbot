@@ -16,7 +16,6 @@ nr.addDocsWebPage(
 {LinkSummary|/help/channels}
 {LinkSummary|/help/administration}
 {LinkSummary|/help/customcommands}
-{LinkSummary|/help/log}
 {LinkSummary|/help/fun}
 {LinkSummary|/help/speedrun}
 {LinkSummary|/help/quickrank}

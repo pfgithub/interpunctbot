@@ -6,20 +6,23 @@ import { messages } from "../../messages";
 import { ilt } from "../..";
 import * as nr from "../NewRouter";
 
+const LOG_END_TIME = 1640453124096;
+const logging_removed_extended_reason = ""
+	+ " due to discord policy changes. Please disable logging on your server."
+	+ " If you need this functionality, please find a different bot that can"
+	+ " provide it or ask me in the support server: <https://interpunct.info/support>"
+;
+const logging_removed_message =
+	"Logging has been removed from interpunctbot" + logging_removed_extended_reason
+;
+
 nr.addDocsWebPage(
 	"/help/log",
 	"Logging",
 	"commands to manage a server message log (disabled by default)",
 	`{Title|Logging}
 
-{Interpunct} has the ability to log all messages sent and edited in your server.
-
-Logs can be deleted using the {Command|log reset} command, and all logs are deleted if you kick {Interpunct}. Old messages will be automatically removed from logs after 60 days, and a note will be inserted at the top of the log file.
-
-{CmdSummary|log enable}
-{CmdSummary|log disable}
-{CmdSummary|log download}
-{CmdSummary|log reset}`,
+Logging functionality has been removed from {Interpunct}`,
 );
 
 nr.globalCommand(
@@ -40,6 +43,19 @@ nr.globalCommand(
 	},
 	nr.list(),
 	async ([], info) => {
+		const days_remaining = ((LOG_END_TIME - Date.now()) / 1000 / 60 / 60 / 24) |0;
+		if(days_remaining <= 0) {
+			return await info.error(
+				logging_removed_message,
+			);
+		}
+		await info.warn(
+			"Logging will be removed from interpunctbot in"
+			+ " " + days_remaining
+			+ " days"
+			+ logging_removed_extended_reason,
+		);
+
 		if (!info.db || !info.guild) {
 			return await info.error("This command cannot be used in PMs");
 		}
@@ -151,6 +167,10 @@ nr.globalCommand(
 	},
 	nr.list(),
 	async ([], info) => {
+		if(true as false) {
+			return await info.error(logging_removed_message);
+		}
+		
 		if (!info.db || !info.guild) {
 			return await info.error("This command cannot be used in PMs");
 		}
@@ -158,11 +178,3 @@ nr.globalCommand(
 		await info.success("Logs have been enabled.");
 	},
 );
-
-// router.add("", [], async (cmd, info) => {
-// 	await info.result(
-// 		"Logging commands: ```log download - download the log\nlog reset - reset the log\nlog disable/enable - enable/disable logging```",
-// 	);
-// });
-//
-// export default router;

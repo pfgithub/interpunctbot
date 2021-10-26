@@ -9,8 +9,6 @@
     help administration
 -   [Custom Commands](https://interpunct.info/help/customcommands): custom
     commands config
--   [Logging](https://interpunct.info/help/log): commands to manage a server
-    message log \(disabled by default\)
 -   [Speedrun](https://interpunct.info/help/speedrun): speedrun.com integrations
 -   [Quickrank](https://interpunct.info/help/quickrank): allow moderators to
     rank people quickly

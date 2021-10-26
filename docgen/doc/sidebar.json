@@ -12,7 +12,6 @@
 	["channel", "/help/channels"],
 	["channel", "/help/administration"],
 	["channel", "/help/customcommands", "custom commands"],
-	["channel", "/help/log", "logging"],
 	["channel", "/help/speedrun", "speedrun.com"],
 	["channel", "/help/fun"],
 	["channel", "/help/quickrank"],
