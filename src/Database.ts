@@ -81,7 +81,7 @@ export type TicketConfig = {
 		/// message id (globally unique but channel is included for resolution if necessary)
 		invitation?: { channel: string, message: string },
 		joinmsg?: string,
-		logs?: { uploads: Snowflake, pretty: Snowflake },
+		logs?: { pretty: Snowflake },
 		transcripts?: Snowflake,
 		/// autodelete ms
 		autoclose?: number,
@@ -149,9 +149,9 @@ type Fields = {
 	quickrank_limit?: number,
 	events?: string,
 	nameScreening2?: string,
-	managebotrole: string,
-	channeloptions: string,
-	ticket: string,
+	managebotrole?: string,
+	channeloptions?: string,
+	ticket?: string,
 };
 
 type JSONFields = {
@@ -392,7 +392,8 @@ class Database {
 	        },
 	    });
 	}
-	async setTicket(nt: TicketConfig): Promise<void> {
+	async setTicket(nt: TicketConfig | undefined): Promise<void> {
+		if(!nt) return await this._set("ticket", "");
 	    return await this._setJson("ticket", nt);
 	}
 	async getUnknownCommandMessages(): Promise<"always" | "admins" | "never"> {

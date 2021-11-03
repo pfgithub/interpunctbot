@@ -4,4 +4,8 @@ Add right click commands:
 - View message source
 - Edit message
 
+Improve ticket logs:
+- An 'attachments' channel is no longer required
+- Tickets can be disabled with 'ip!ticket disable' and there's a fancy new confirmation dialog
+
 --- ... button update & remove logs

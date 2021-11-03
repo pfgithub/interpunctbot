@@ -11,6 +11,7 @@ import * as nr from "../NewRouter";
 import { safehtml } from "../parseDiscordDG";
 import { durationFormat } from "../durationFormat";
 import { ilt } from "../../";
+import { confirm } from "../RequestManager";
 
 type DiscordMarkdownOptions = {
 	/// Boolean (default: false), if it should parse embed contents (rules are slightly different)
@@ -76,9 +77,7 @@ Tickets are set up. To try it out, click the reaction on your invitation message
 {Heading|Ticket logs}
 {Blockquote|For logs like this:
 {Screenshot|https://i.imgur.com/3S6YtZI.png}
-you need 2 channels. The second one will have messages like this in it:
-{Screenshot|https://i.imgur.com/8AdVa6k.png}
-{ExampleUserMessage|ticket logs {Channel|ticket-logs} {Channel|uploads}}
+{ExampleUserMessage|ticket logs {Channel|ticket-logs}}
 Note that only the last 100 messages in a ticket will be logged.}
 
 {Blockquote|For logs like this:
@@ -132,6 +131,7 @@ nr.addDocsWebPage(
 {CmdSummary|ticket deletetime}
 {CmdSummary|ticket creatorcanclose}
 {CmdSummary|ticket dmonclose}
+{CmdSummary|ticket disable}
 
 To disable tickets, delete the invitation message and the ticket category.
 `,
@@ -193,6 +193,36 @@ nr.globalCommand(
 			"Success! Ticket welcome message " +
 				(msgtxt ? "set." : "removed.") +
 				suggestions.map(sg => "\n" + sg).join(""),
+		);
+	},
+);
+
+nr.globalCommand(
+	"/help/ticket/disable",
+	"ticket disable",
+	{
+		usage: "ticket disable",
+		description:
+			"Disable tickets.",
+		examples: [],
+		perms: { runner: ["manage_bot"] },
+	},
+	nr.list(...nr.a.words()),
+	async ([msgtxt], info) => {
+		if (!info.db || !info.guild) return await info.error("pms");
+		// I could do a button based are-you-sure confirm prompt
+
+		if((await confirm(info, "Are you sure you want to disable tickets?", {
+			destructive: "Disable Tickets",
+			cancel: "Cancel",
+		})) === "cancel") {
+			return;
+		}
+
+		await info.db.setTicket(undefined);
+
+		await info.success(
+			"Success! Tickets have been disabled.",
 		);
 	},
 );
@@ -357,7 +387,6 @@ nr.globalCommand(
 function confirmLogPermissions(
 	channels: {
 		logsChan: discord.GuildChannel,
-		uploadsChan: discord.GuildChannel,
 	},
 	info: Info,
 ): string[] {
@@ -366,16 +395,13 @@ function confirmLogPermissions(
 	const makeError = (why: string, what: string, where: discord.GuildChannel) =>
 		"In order to "+why+", I need permission to "+what+" in "+where.toString();
 
-	for (const channel of [channels.logsChan, channels.uploadsChan]) {
+	for (const channel of [channels.logsChan]) {
 		const myPerms = channel.permissionsFor(info.guild!.me!)!;
 		if (!myPerms.has("VIEW_CHANNEL")) {
 			errors.push(makeError("create logs", "read messages", channel));
 		}
 		if (!myPerms.has("SEND_MESSAGES")) {
 			errors.push(makeError("create logs", "send messages", channel));
-		}
-		if (channel === channels.uploadsChan && !myPerms.has("ATTACH_FILES")) {
-			errors.push(makeError("create logs", "attach files", channel));
 		}
 	}
 	return errors;
@@ -385,19 +411,19 @@ nr.globalCommand(
 	"/help/ticket/logs",
 	"ticket logs",
 	{
-		usage: "ticket logs {Channel|ticket-logs} {Channel|uploads}",
+		usage: "ticket logs {Channel|ticket-logs}",
 		description:
 			"Log the last 100 messages in a ticket to #ticket-logs when the ticket is closed. To disable, delete the log channels.",
 		examples: [],
 		perms: { runner: ["manage_bot"] },
 	},
-	nr.list(nr.a.channel(), nr.a.channel()),
-	async ([logsChan, uploadsChan], info) => {
+	nr.list(nr.a.channel()),
+	async ([logsChan], info) => {
 		if (!(await Info.theirPerm.manageBot(info))) return;
 		if (!info.db || !info.guild) return await info.error("pms");
 		// make sure I have send messages perms on each
 		const perm_errors = confirmLogPermissions(
-			{ logsChan, uploadsChan },
+			{ logsChan },
 			info,
 		);
 		if (perm_errors.length > 1) {
@@ -406,7 +432,7 @@ nr.globalCommand(
 
 		// save
 		const ticket = await info.db.getTicket();
-		ticket.main.logs = { pretty: logsChan.id, uploads: uploadsChan.id };
+		ticket.main.logs = { pretty: logsChan.id };
 		await info.db.setTicket(ticket);
 
 		const suggestions = ticketSuggestions(ticket, info);
@@ -414,8 +440,6 @@ nr.globalCommand(
 		await info.success(
 			"Success! Pretty ticket logs will show up in " +
 				logsChan.toString() +
-				" and uploads will be in " +
-				uploadsChan.toString() +
 				suggestions.map(sg => "\n" + sg).join(""),
 		);
 	},
@@ -485,13 +509,14 @@ nr.globalCommand(
 		) as discord.CategoryChannel | null;
 		if (!foundCategory)
 			return await info.error(
-				"I could not find a category with that name. Make sure you have made a category and its permissions look like this: https://i.imgur.com/3S6YtZI.png",
+				"I could not find a category with that name. Make sure you have made a category and its permissions look like this: https://i.imgur.com/IgmAku7.png",
 			);
 
 		// check permissions
 		const everyonePerms = foundCategory.permissionOverwrites.resolve(
 			info.guild.roles.everyone.id,
 		);
+		const myPerms = foundCategory.permissionsFor(info.guild.me!);
 		if (!everyonePerms)
 			return await info.error(
 				"Make sure your permissions for <#" +
@@ -502,7 +527,7 @@ nr.globalCommand(
 			return await info.error(
 				"@everyone must not be allowed to Read Text Channels & See Voice Channels in <#" +
 					foundCategory.id +
-					">. Your permissions should look something like this: https://i.imgur.com/3S6YtZI.png",
+					">. Your permissions should look something like this: https://i.imgur.com/IgmAku7.png",
 			);
 		}
 		if (everyonePerms.deny.has("SEND_MESSAGES")) {
@@ -510,6 +535,16 @@ nr.globalCommand(
 				"@everyone needs to be allowed to send messages in <#" +
 					foundCategory.id +
 					">. https://i.imgur.com/UkAp4ZW.png",
+			);
+		}
+		if (!myPerms.has("VIEW_CHANNEL")) {
+			return await info.error(
+				"I need permission to View Channels in <#"+foundCategory.id+">. Check that my permissions and channel overwrites are correct.",
+			);
+		}
+		if (!myPerms.has("MANAGE_CHANNELS")) {
+			return await info.error(
+				"I need permission to MANAGE CHANNELS in <#"+foundCategory.id+">. Check that my permissions and channel overwrites are correct.",
 			);
 		}
 
@@ -928,7 +963,7 @@ async function sendChannelLog(
 ) {
 	const iltres = await ilt(sendChannelLogMayError(ticketOwnerID, channel, sendTo), "send channel log");
 	if(iltres.error) {
-		const stres = await ilt(sendTo.send(":x: There was an error uploading the channel log. Error code: `"+iltres.error.errorCode+"`"), "send log error");
+		const stres = await ilt(sendTo.send(":x: There was an error uploading the channel log. Make sure I have permission to Attach Files. Error code: `"+iltres.error.errorCode+"`"), "send log error");
 		if(stres.error) {
 			await ilt(channel.send(":x: There was an error uploading the channel log to <#"+sendTo.id+">. Error code: `"+iltres.error.errorCode+"`"), "send error 2");
 		}
@@ -993,16 +1028,11 @@ async function closeTicketMayError(
 
 	let chanLogUrl: string | undefined;
 	if (ctx.ticket.main.logs) {
-		const chanLogSendTo = ctx.guild.channels.resolve(
-			ctx.ticket.main.logs.uploads,
+		chanLogUrl = await sendChannelLog(
+			getTicketOwnerID(channel),
+			channel,
+			channel,
 		);
-		if (chanLogSendTo && chanLogSendTo instanceof discord.TextChannel) {
-			chanLogUrl = await sendChannelLog(
-				getTicketOwnerID(channel),
-				channel,
-				chanLogSendTo,
-			);
-		}
 	}
 
 	await ticketLog(

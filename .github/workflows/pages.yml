@@ -1,8 +1,6 @@
-name: Build and Deploy Docs
+name: Deploy interpunct.info
 on:
-    push:
-        branches:
-            - master
+    workflow_dispatch: {}
 jobs:
     build-and-deploy:
         runs-on: ubuntu-latest

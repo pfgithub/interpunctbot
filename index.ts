@@ -825,7 +825,7 @@ client.on("disconnect", () => {
 });
 
 let handlingCount = 0;
-client.on("message", msg => {
+client.on("messageCreate", msg => {
 	if (handlingCount > 100)
 		return console.log("Handling too many messages, skipping one.");
 	perr(

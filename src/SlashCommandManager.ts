@@ -406,7 +406,7 @@ const slash_command_router: {[key: string]: SlashCommandRoute} = {
 			category: {route: "ticket category", args: {category: opt.channel("Category to use tickets in")}},
 			invitation: {route: "ticket invitation", args: {category: opt.string("Link to the invitation message")}},
 			welcome: {route: "ticket welcome", args: {message: opt.optional(opt.string("The message. Use `{Mention}` and `{Name}`, or leave empty to unset"))}},
-			logs: {route: "ticket logs", args: {log_channel: opt.channel("Channel for pretty logs"), upload_channel: opt.channel("Channel for uploading files.")}},
+			logs: {route: "ticket logs", args: {log_channel: opt.channel("Channel for pretty logs")}},
 			logs_transcripts: {route: "ticket logs", args: {log_channel: opt.channel("Channel for immediate transcripts of every message sent in a ticket")}},
 			ping: {route: "ticket ping", args: {who: opt.string("Who to ping after someone says something in their ticket")}},
 			autoclose: {route: "ticket autoclose", args: {time: opt.string("How long until the ticket is auto closed. Eg: 15 min. Use 0s to disable.")}},
@@ -414,7 +414,7 @@ const slash_command_router: {[key: string]: SlashCommandRoute} = {
 			diagnose: {route: "ticket diagnose"},
 			creatorcanclose: {route: "ticket creatorcanclose", args: {can: opt.oneOf("Can close?", {yes: "Yes", no: "No"})}},
 			dmonclose: {route: "ticket dmonclose", args: {dm: opt.oneOf("DM creator on close?", {yes: "Yes", no: "No"})}},
-			// - creatorscanclose
+			// - disable
 		},
 	},
 	// // this will require a rework of autodelete

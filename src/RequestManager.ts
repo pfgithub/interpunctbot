@@ -2,6 +2,7 @@ import * as nr from "./NewRouter";
 import * as discord from "discord.js";
 import Info from "./Info";
 import { getMsgFrom } from "./commands/fun";
+import { fixID } from "./commands/fun/buttongames/tictactoe";
 
 export type ResponseType = {
     kind: "text",
@@ -115,3 +116,61 @@ nr.globalCommand(
 		await postResponse(info.message.author.id, {kind: "longtext", value: msgval}, info);
 	},
 );
+
+const confirmations = new Map<string, (msg: string) => void>();
+
+let cnfrid = 0;
+
+export async function confirm(info: Info, question: string, options: {
+	destructive: string,
+	cancel: string,
+}): Promise<"cancel" | "destructive"> {
+	const confirmid = "" + (Math.random() + ++ cnfrid);
+	const res = new Promise<"cancel" | "destructive">((resolve) => {
+		confirmations.set(confirmid, a => resolve(a as "cancel" | "destructive"));
+	});
+	await info.reply(question, {
+		components: [
+			new discord.MessageActionRow().addComponents(
+				new discord.MessageButton()
+					.setCustomId(fixID("CONFIRM|"+confirmid+"|destructive"))
+					.setLabel(options.destructive)
+					.setStyle("DANGER")
+				,
+				new discord.MessageButton()
+					.setCustomId(fixID("CONFIRM|"+confirmid+"|cancel"))
+					.setLabel(options.cancel)
+					.setStyle("PRIMARY")
+				,
+			),
+		],
+	});
+	return await res;
+}
+
+nr.ginteractionhandler["CONFIRM"] = {
+	async handle(info, custom_id) {
+		const [, idc, ida] = custom_id.split("|");
+		const cnfrm = confirmations.get(idc);
+		if(!cnfrm) {
+			await info.raw_interaction!.sendRaw({
+				type: 7,
+				data: {
+					content: "This confirmation is no longer valid",
+					allowed_mentions: {parse: []},
+					components: [],
+				},
+			});
+			return;
+		}
+		cnfrm(ida);
+		await info.raw_interaction!.sendRaw({
+			type: 7,
+			data: {
+				content: ida,
+				allowed_mentions: {parse: []},
+				components: [],
+			},
+		});
+	}
+};
