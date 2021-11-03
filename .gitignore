@@ -18,3 +18,11 @@ assets/*/res/
 assets/*/Makefile
 assets/token
 package-lock.json
+
+.yarn/*
+!.yarn/cache
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
