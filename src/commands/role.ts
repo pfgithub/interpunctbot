@@ -338,7 +338,9 @@ nr.globalCommand(
 			return;
 		}
 
-		const arrowSplit = info.raw_interaction ? info.raw_interaction.options.map(opt => opt.value!) : cmd.split("->");
+		const arrowSplit = info.raw_interaction ? info.raw_interaction.options.map(opt => (
+			'value' in opt ? "" + opt.value || "" : "!!ERROR:"+opt.type+"!!"
+		)) : cmd.split("->");
 		console.log(arrowSplit);
 		if (arrowSplit.length !== 2) {
 			await info.error("Usage: quickrank add provides @role1 -> @role2");

@@ -597,7 +597,13 @@ async function guildLog(id: string, log: string) {
 	);
 }
 
-export function logCommand(guild_id: string | undefined, channel_id: string, author_bot: boolean, author_id: string, message: string): void {
+export function logCommand(
+	guild_id: string | undefined,
+	channel_id: string | undefined,
+	author_bot: boolean,
+	author_id: string | undefined,
+	message: string,
+): void {
 	try {
 		guildLog(
 			"__commands", // db ? guild! : guild?

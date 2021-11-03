@@ -13,6 +13,7 @@ import {
 
 	requestEmojiInput, requestLongTextInput, requestRoleInput, requestTextInput, SampleMessage
 } from "./tictactoe";
+import * as d from "discord-api-types/v9";
 
 // NOTE this will retain all fields, even those
 // that are not of the active tag.
@@ -170,13 +171,13 @@ function displayPanel(saved_in: SavedState, info: Info, mode: "error" | "preview
 		content: saved.content || "\u200B",
 		components: [
 			...saved.rows.map(row => {
-				return componentRow(row.map(btn => {
+				return componentRow(row.map((btn): d.APIMessageComponent => {
 					const is_link = btn.action.kind === "link";
 					const links_to_err = isValidURL(btn.action.kind === "link" ? btn.action.url ?? "" : "");
-					const links_to = links_to_err ?
+					const links_to = (links_to_err ?
 						"https://interpunct.info/invalid-url?reason="+encodeURIComponent(links_to_err) : btn.action.kind === "link"
 						? btn.action.url : "https://interpunct.info/invalid-url?reason="+encodeURIComponent("No link")
-					;
+					) ?? "https://example.com/";
 					const custom_id = btn.action.kind === "link"
 						? "*no*"
 						: btn.action.kind === "role"
@@ -190,7 +191,8 @@ function displayPanel(saved_in: SavedState, info: Info, mode: "error" | "preview
 					return {
 						type: 2,
 						style: is_link ? 5 : buttonStyles[btn.color],
-						url: is_link ? links_to : undefined,
+						// not sure why this is necessary; style is 5 | other so shouldn't it be erroring?
+						url: is_link ? links_to : undefined as unknown as string,
 						disabled: !!btn.disabled,
 						custom_id: fixID(is_link ? undefined : custom_id),
 						label: btn.label || "\u200b",

@@ -8,6 +8,8 @@ import { clearRequest, requestInput2, ResponseType } from "../../../RequestManag
 import { shortenLink } from "../../fun";
 import * as discord from "discord.js";
 
+import * as d from "discord-api-types/v9";
+
 nr.addDocsWebPage(
 	"/help/buttons",
 	"Buttons",
@@ -64,29 +66,6 @@ type ApiHolder = {api: ApiHandler};
 // 	disabled: boolean,
 // };
 export type CustomID = `#${string}#${string}`;
-export type ButtonComponent = {
-	type: 2,
-	style: 1 | 2 | 3 | 4 | 5, // primary, primary (green), secondary, destructive (red), URL
-	label?: string,
-	custom_id?: CustomID,
-	url?: string,
-	disabled?: boolean,
-	emoji?: {id: string},
-} | {
-    type: 3,
-    custom_id: string,
-	options: SelectOption[], // min 3, max 25
-	placeholder?: string, // max 100
-	min_values: number,
-	max_values: number,
-};
-export type SelectOption = {
-	label: string, // max 25 chars
-	value: string, // max 100 chars
-	description?: string, // max 50 chars
-	emoji?: {id: string},
-	default?: boolean,
-};
 
 export const buttonStyles = {
 	primary: 1,
@@ -103,12 +82,14 @@ type ExtraButtonOpts = {
 
 let global_cid_id = 0;
 
+export function fixID(id: string): CustomID;
+export function fixID(id: string | undefined): CustomID | undefined;
 export function fixID(id: string | undefined): CustomID | undefined {
 	if(id == null) return undefined;
 	return `#${(global_cid_id++).toString(36)}#${id}` as const;
 }
 
-export function button(id: string, label: string | undefined, style: ButtonStyle, opts: ExtraButtonOpts): ButtonComponent {
+export function button(id: string, label: string | undefined, style: ButtonStyle, opts: ExtraButtonOpts): d.APIMessageComponent {
 	if(id.length > 100) throw new Error("bad id");
 	return {
 		type: 2,
@@ -119,8 +100,8 @@ export function button(id: string, label: string | undefined, style: ButtonStyle
 	};
 }
 
-export type ActionRow = {type: 1, components: ButtonComponent[]};
-export function componentRow(children: ButtonComponent[]): ActionRow {
+export type ActionRow = {type: 1, components: d.APIMessageComponent[]};
+export function componentRow(children: d.APIMessageComponent[]): ActionRow {
 	if(children.length > 5) throw new Error("too many buttons");
 	return {type: 1, components: children};
 }
@@ -167,7 +148,7 @@ export type RenderActionSelect<T> = {
 	kind: "select",
 
 	action: RenderActionButtonAction<T>,
-	options: SelectOption[],
+	options: d.APISelectMenuOption[],
 	placeholder?: string,
 	min_values?: number,
 	max_values?: number,
@@ -225,7 +206,7 @@ export function renderResultToResult(rr: RenderResult<unknown>, key: (a: string)
 	const keys = new Map<string, RenderActionButtonActionCallback<unknown>>();
 	return {
 		...rr,
-		components: rr.components.map((component): ActionRow => componentRow(component.map((itm): ButtonComponent => {
+		components: rr.components.map((component): ActionRow => componentRow(component.map((itm): d.APIMessageComponent => {
 			if(itm.action.kind === "callback") {
 				const pv = keys.get(itm.action.id);
 				if(pv && pv !== itm.action.cb) {
@@ -239,7 +220,7 @@ export function renderResultToResult(rr: RenderResult<unknown>, key: (a: string)
 				return {
 					type: 2,
 					style: itm.action.kind === "link" ? 5 : buttonStyles[itm.color],
-					url: itm.action.kind === "link" ? itm.action.url : undefined,
+					url: itm.action.kind === "link" ? itm.action.url : undefined as unknown as string,
 					label: itm.label.length > 80 ? itm.label.substr(0, 79) + "…" : itm.label || "\u200B",
 					custom_id: fixID(custom_id),
 					disabled: itm.disabled,

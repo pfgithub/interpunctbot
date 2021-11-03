@@ -321,7 +321,9 @@ export function globalCommand<APList extends APListAny>(
 			pres = [cmd];
 		}else{
 			const apresult = await ilt(
-				AP({ info, cmd: info.raw_interaction ? info.raw_interaction.options.map(opt => "" + opt.value) : cmd, help: docsPath, partial: false }, ...aplist.list),
+				AP({ info, cmd: info.raw_interaction ? info.raw_interaction.options.map(opt => (
+					'value' in opt ? "" + opt.value || "" : "!!ERROR:"+opt.type+"!!"
+				)) : cmd, help: docsPath, partial: false }, ...aplist.list),
 				"running command ap " + uniqueGlobalName,
 			);
 			if (apresult.error) {
