@@ -28,7 +28,7 @@ type DistributiveOmit<T, K extends keyof any> = T extends any
 type SlashCommandOptionNameless = DistributiveOmit<d.APIApplicationCommandOption, "name">;
 
 type NamelessAPIApplicationCommand = Omit<UnsubmittedAPIApplicationCommand, "name">;
-type UnsubmittedAPIApplicationCommand = Omit<d.APIApplicationCommand, "id" | "application_id">;
+type UnsubmittedAPIApplicationCommand = Omit<d.APIApplicationCommand, "id" | "application_id" | "version">;
 
 export type InteractionHandled<T> = {__interaction_handled: T};
 const interaction_handled: InteractionHandled<any> = {__interaction_handled: true};
@@ -199,8 +199,12 @@ async function do_handle_interaction(interaction: d.APIInteraction) {
 			}
 		}
 		return await info.error("Unsupported button kind `"+idv+"`.");
-	}else if(interaction.type !== 2) {
+	}else if(interaction.type !== d.InteractionType.ApplicationCommand) {
 		return await interaction_helper.replyHiddenHideCommand("× Interaction not supported.");
+	}
+
+	if(interaction.data.type !== d.ApplicationCommandType.ChatInput) {
+		return await interaction_helper.replyHiddenHideCommand("× Context menu commands not yet supported.");
 	}
     
 	const data = interaction.data;
@@ -466,10 +470,19 @@ const slash_command_router: {[key: string]: SlashCommandRoute} = {
 		},
 	},
 };
+// const context_menu_commands: {
+// 	user: d.APIApplicationCommand[],
+// 	message: {}[],
+// } = {
+// 	user: [],
+// 	message: [],
+// };
 
 const global_slash_commands: {[key: string]: NamelessAPIApplicationCommand} = {};
 
-function createBottomLevelCommand(cmdname: string, cmddata: SlashCommandRouteBottomLevel): UnsubmittedAPIApplicationCommand {
+function createBottomLevelCommand(cmdname: string, cmddata: SlashCommandRouteBottomLevel): Omit<
+	UnsubmittedAPIApplicationCommand, "type"
+> {
 	const base_command_name = cmddata.route ?? cmdname;
 	const base_command = globalCommandNS[base_command_name];
 	if(!base_command) throw new Error("Undefined command `"+base_command_name+"`");
@@ -481,6 +494,7 @@ function createBottomLevelCommand(cmdname: string, cmddata: SlashCommandRouteBot
 	if(final_desc.length > 100) final_desc = final_desc.substr(0, 99) + "…";
 
 	return {
+		// type: d.ApplicationCommandType.ChatInput,
 		name: cmdname,
 		description: final_desc,
 		options: Object.entries(cmddata.args ?? {}).map(([optname, optvalue]) => {
@@ -493,30 +507,39 @@ for(const [cmdname, cmddata] of Object.entries(slash_command_router)) {
 	if('subcommands' in cmddata) {
 		if(Object.entries(cmddata.subcommands).length > 25) throw new Error("Max 25 subcommands");
 		global_slash_commands[cmdname] = {
+			type: d.ApplicationCommandType.ChatInput,
 			description: cmddata.description,
-			options: Object.entries(cmddata.subcommands).map(([scname, scdata_raw]) => {
+			options: Object.entries(cmddata.subcommands).map(([scname, scdata_raw]): d.APIApplicationCommandOption => {
 				const scdata = scdata_raw as SlashCommandRouteBottomLevel | SlashCommandRouteSubcommand;
 				if('subcommands' in scdata) {
 					if(Object.entries(scdata.subcommands).length > 25) throw new Error("Max 25 subsubcommands");
 					return {
-						type: 2,
+						type: d.ApplicationCommandOptionType.SubcommandGroup,
 						name: scname,
 						description: scdata.description,
-						options: Object.entries(scdata.subcommands).map(([sscname, sscdata_raw]) => {
+						options: Object.entries(scdata.subcommands).map(([sscname, sscdata_raw]): d.APIApplicationCommandOption => {
 							if('subcommands' in sscdata_raw) throw new Error("too nested!");
 							const sscdata = sscdata_raw as SlashCommandRouteBottomLevel;
-							return {type: 1, ...createBottomLevelCommand(sscname, sscdata)};
+							return {
+								type: d.ApplicationCommandOptionType.Subcommand,
+								...createBottomLevelCommand(sscname, sscdata),
+							};
 						}),
 					};
 				} else {
-					return {type: 1, ...createBottomLevelCommand(scname, scdata)};
+					return {
+						type: d.ApplicationCommandOptionType.Subcommand,
+						...createBottomLevelCommand(scname, scdata),
+					};
 				}
 			}),
 		};
 		continue;
 	}
-	const v = createBottomLevelCommand(cmdname, cmddata);
-	global_slash_commands[cmdname] = v;
+	global_slash_commands[cmdname] = {
+		type: d.ApplicationCommandType.ChatInput,
+		...createBottomLevelCommand(cmdname, cmddata),
+	};
 }
 
 if(Object.entries(global_slash_commands).length > 50) throw new Error("Max 50 slash commands");
