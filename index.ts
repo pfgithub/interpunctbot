@@ -609,8 +609,8 @@ export function logCommand(
 			"__commands", // db ? guild! : guild?
 			`[${moment().format("YYYY-MM-DD HH:mm:ss Z")}] (${
 				guild_id || "DM"
-			}) <#${channel_id}> ${author_bot ? "[BOT] " : ""}<@${
-				author_id
+			}) <#${channel_id ?? "ENOCH"}> ${author_bot ? "[BOT] " : ""}<@${
+				author_id ?? "ENOA"
 			}>: ${message}`,
 		).catch(() => {});
 	} catch (e) {}

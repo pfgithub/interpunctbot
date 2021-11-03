@@ -7,6 +7,7 @@ import { ginteractionhandler, globalCommandNS, globalDocs } from "./NewRouter";
 import deepEqual from "deep-equal";
 import * as util from "util";
 import * as d from "discord-api-types/v9";
+import { shortenLink } from "./commands/fun";
 
 const api = client as any as ApiHolder;
 
@@ -87,9 +88,8 @@ function on_interaction(interaction: d.APIInteraction) {
 	ilt(do_handle_interaction(interaction), false).then(async res => {
 		if(res.error) {
 			console.log("handle interaction failed with", res.error);
-			await api.api.webhooks(client.user!.id, interaction.token).post({data: {
-				content: "Uh oh! Something went wrong while handling this interaction",
-			}});
+			const helper = new InteractionHelper(interaction);
+			await helper.replyHiddenHideCommand("Uh oh! Something went wrong while handling this interaction");
 			return;
 		}
 	}).catch(e => console.log("handle interaction x2 failed", e));
@@ -110,6 +110,10 @@ async function handle_interaction_routed(info: Info, route_name: string, route: 
 
 		return await handle_interaction_routed(info, optnme, next_route, opt0.options ?? [], interaction);
 	}else{
+		if('handler' in route) {
+			return await route.handler(info);
+		}
+
 		// (subcommand.options || []).map(opt => opt.value || ""
 		const ns_path = route.route ?? route_name;
 
@@ -127,7 +131,7 @@ async function handle_interaction_routed(info: Info, route_name: string, route: 
 
 		return handler.handler([route.preload ?? [], (options || []).map(opt => (
 			'value' in opt ? "" + opt.value || "" : "!!ERROR:"+opt.type+"!!"
-		))].flat().join(" "), info);
+		))].flat(), info);
 	}
 }
 
@@ -202,10 +206,6 @@ async function do_handle_interaction(interaction: d.APIInteraction) {
 	}else if(interaction.type !== d.InteractionType.ApplicationCommand) {
 		return await interaction_helper.replyHiddenHideCommand("× Interaction not supported.");
 	}
-
-	if(interaction.data.type !== d.ApplicationCommandType.ChatInput) {
-		return await interaction_helper.replyHiddenHideCommand("× Context menu commands not yet supported.");
-	}
     
 	const data = interaction.data;
 
@@ -237,20 +237,53 @@ async function do_handle_interaction(interaction: d.APIInteraction) {
 	if(!my_channel_perms.has("VIEW_CHANNEL")) {
 		return await interaction_helper.replyHiddenHideCommand("Commands cannot be used in this channel because I don't have permission to see it.");
 	}
+
+	// if(interaction.data.type === d.ApplicationCommandType.User) {
+	// 	context_menu_command_router.user[];
+	// }
+
+	if(interaction.data.type === d.ApplicationCommandType.User) {
+		const route = context_menu_command_router.user[interaction.data.name];
+		if(!route) return await interaction_helper.replyHiddenHideCommand("× Unsupported interaction / This command should not exist");
+		return await route.handler(info, {
+			user: interaction.data.resolved.users[interaction.data.target_id],
+			member: interaction.data.resolved.members?.[interaction.data.target_id],
+		});
+	}
+	if(interaction.data.type === d.ApplicationCommandType.Message) {
+		const route = context_menu_command_router.message[interaction.data.name];
+		if(!route) return await interaction_helper.replyHiddenHideCommand("× Unsupported interaction / This command should not exist");
+		return await route.handler(info, {
+			message: interaction.data.resolved.messages[interaction.data.target_id],
+		});
+	}
+	if(interaction.data.type !== d.ApplicationCommandType.ChatInput) {
+		return await interaction_helper.replyHiddenHideCommand("× This type of command is not yet supported.");
+	}
     
 	const route = slash_command_router[data.name];
 	if(!route) return await info.error("Unsupported interaction / This command should not exist.");
 
-	return await handle_interaction_routed(info, data.name, route, data.options || [], interaction_helper);
+	return await handle_interaction_routed(info, data.name, route, interaction.data.options || [], interaction_helper);
 }
 
-type SlashCommandRouteBottomLevel = {
+type SlashCommandRouteBottomLevelAutomatic = {
     route?: string,
     preload?: string,
     description?: string, // if no description is specified, it will be chosen from the route
     args?: {[key: string]: SlashCommandOptionNameless},
     arg_stringifier?: (args: d.APIApplicationCommandInteractionDataOption[]) => string,
 };
+type SlashCommandRouteBottomLevelCallback = {
+	handler: (info: Info) => Promise<void>,
+	description: string,
+    args?: {[key: string]: SlashCommandOptionNameless},
+};
+
+type SlashCommandRouteBottomLevel =
+	| SlashCommandRouteBottomLevelAutomatic
+	| SlashCommandRouteBottomLevelCallback
+;
 type SlashCommandRouteSubcommand = {
     description: string,
     subcommands: {[key: string]: SlashCommandRouteBottomLevel} | {[key: string]: SlashCommandRouteSubcommand},
@@ -470,24 +503,67 @@ const slash_command_router: {[key: string]: SlashCommandRoute} = {
 		},
 	},
 };
-// const context_menu_commands: {
-// 	user: d.APIApplicationCommand[],
-// 	message: {}[],
-// } = {
-// 	user: [],
-// 	message: [],
-// };
+
+type ContextMenuCommand<T> = {
+	handler: (info: Info, a: T) => Promise<void>,
+};
+
+const context_menu_command_router: {
+	user: {[key: string]: ContextMenuCommand<{
+		user: d.APIUser,
+		member: d.APIInteractionDataResolvedGuildMember | undefined,
+	}>},
+	message: {[key: string]: ContextMenuCommand<{
+		message: d.APIMessage,
+	}>},
+} = {
+	user: {},
+	message: {
+		'View Source': {
+			handler: async (info, {message}) => {
+				// wait can't I upload a text file now
+				// https://discord.com/developers/docs/reference#uploading-files ok yeah I can
+				// but I don't feel like figuring out that mess rn
+
+				const resurl =
+					"https://pfg.pw/spoilerbot/spoiler?s=" +
+					encodeURIComponent(message.content);
+				const postres = await shortenLink(resurl);
+				if ("error" in postres) return await info.error(postres.error);
+				
+				await info.result("Message source: <" + postres.url + ">");
+				return;
+			},
+		},
+		'Edit Message': {
+			handler: async (info, {message}) => {
+				const handler = globalCommandNS["editmsg"];
+				if(!handler) throw new Error("missing handler for editmsg");
+				// hacky. ideally we'd just use the data given to us in the interaction
+				// to check permissions and stuff rather than doing this hack
+				return handler.handler([
+					"https://discord.com/channels/"+info.guild?.id+"/"+message.channel_id+"/"+message.id,
+				], info);
+			},
+		},
+	},
+};
 
 const global_slash_commands: {[key: string]: NamelessAPIApplicationCommand} = {};
 
 function createBottomLevelCommand(cmdname: string, cmddata: SlashCommandRouteBottomLevel): Omit<
 	UnsubmittedAPIApplicationCommand, "type"
 > {
-	const base_command_name = cmddata.route ?? cmdname;
-	const base_command = globalCommandNS[base_command_name];
-	if(!base_command) throw new Error("Undefined command `"+base_command_name+"`");
-	const base_command_docs = globalDocs[base_command.docsPath];
-	const docs_desc = base_command_docs.summaries.description;
+	let docs_desc = "error; no description provided";
+	if('handler' in cmddata) {
+		// nothing to do
+	}else{
+		const base_command_name = cmddata.route ?? cmdname;
+		const base_command = globalCommandNS[base_command_name];
+		if(!base_command) throw new Error("Undefined command `"+base_command_name+"`");
+		const base_command_docs = globalDocs[base_command.docsPath];
+		docs_desc = base_command_docs.summaries.description;
+	}
 
 	if(cmddata.description && cmddata.description.length > 100) throw new Error("max length 100");
 	let final_desc = cmddata.description ?? docs_desc;
@@ -539,6 +615,18 @@ for(const [cmdname, cmddata] of Object.entries(slash_command_router)) {
 	global_slash_commands[cmdname] = {
 		type: d.ApplicationCommandType.ChatInput,
 		...createBottomLevelCommand(cmdname, cmddata),
+	};
+}
+for(const [cmdname] of Object.entries(context_menu_command_router.user)) {
+	global_slash_commands[cmdname] = {
+		type: d.ApplicationCommandType.User,
+		description: "",
+	};
+}
+for(const [cmdname] of Object.entries(context_menu_command_router.message)) {
+	global_slash_commands[cmdname] = {
+		type: d.ApplicationCommandType.Message,
+		description: "",
 	};
 }
 
@@ -606,7 +694,7 @@ function compareOptions(remote: d.APIApplicationCommandOption[], local: d.APIApp
 }
 
 function compareCommands(remote: d.APIApplicationCommand, local: UnsubmittedAPIApplicationCommand): "same" | "different" {
-	if(remote.description !== local.description) return "different";
+	if(remote.description !== local.description && local.type === d.ApplicationCommandType.ChatInput) return "different";
 	if(compareOptions(remote.options ?? [], local.options ?? []) === "different") return "different";
 	return "same";
 }
@@ -637,6 +725,14 @@ export async function start(): Promise<void> {
 			continue;
 		}
 		const local = {...local_user, name: remote.name};
+		if(remote.type !== local.type) {
+			console.log("Re-adding command: "+remote.name+" (id "+remote.id+")");
+			await removeCommand(remote.id);
+			console.log("... Removed");
+			const res = await addCommand(local);
+			console.log("√ Re-added", res);
+			continue;
+		}
 		if(compareCommands(remote, local) === "different") {
 			console.log("Updating command: "+remote.name+" (id "+remote.id+")");
 			const res = await addCommand(local);

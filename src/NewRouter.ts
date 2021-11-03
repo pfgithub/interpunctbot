@@ -41,7 +41,7 @@ export type ErrorData = {
 export type CommandData = {
 	docsPath: string,
 	command: string,
-	handler: (cmd: string, info: Info) => void,
+	handler: (cmd: string | string[], info: Info) => void,
 	config: {supports_slash: boolean},
 };
 
@@ -273,7 +273,7 @@ export function globalCommand<APList extends APListAny>(
 
 	addHelpDocsPage(docsPath, Object.assign({ title: uniqueGlobalName }, help));
 
-	const handleCommand = async (cmd: string, info: Info) => {
+	const handleCommand = async (cmd: string | string[], info: Info) => {
 		// 1: check perms
 		if(help.perms.raw_message) {
 			if(!info.raw_message) {
@@ -321,9 +321,7 @@ export function globalCommand<APList extends APListAny>(
 			pres = [cmd];
 		}else{
 			const apresult = await ilt(
-				AP({ info, cmd: info.raw_interaction ? info.raw_interaction.options.map(opt => (
-					'value' in opt ? "" + opt.value || "" : "!!ERROR:"+opt.type+"!!"
-				)) : cmd, help: docsPath, partial: false }, ...aplist.list),
+				AP({ info, cmd, help: docsPath, partial: false }, ...aplist.list),
 				"running command ap " + uniqueGlobalName,
 			);
 			if (apresult.error) {
@@ -354,7 +352,7 @@ export function globalCommand<APList extends APListAny>(
 	globalCommandNS[uniqueGlobalName] = {
 		command: uniqueGlobalName,
 		docsPath,
-		handler: (cmd: string, info: Info) => {
+		handler: (cmd: string | string[], info: Info) => {
 			perr(
 				handleCommand(cmd, info),
 				"running command ns handler " + uniqueGlobalName,

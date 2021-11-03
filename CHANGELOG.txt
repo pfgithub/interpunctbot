@@ -1,0 +1,7 @@
+--- WIP ; not published:
+
+Add right click commands:
+- View message source
+- Edit message
+
+--- ... button update & remove logs

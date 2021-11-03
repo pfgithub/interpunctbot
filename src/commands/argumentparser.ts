@@ -505,8 +505,9 @@ function MessageArgumentType(): ArgumentType<Discord.Message> {
 		}
 		const [, urlink, final] = word;
 		const ids = urlink.match(/[0-9]{5,}/g);
-		if (!ids || ids.length !== 3)
+		if (!ids || ids.length !== 3) {
 			return await error("/arg/message/not-found");
+		}
 
 		const [guildID, channelID, messageID] = ids;
 		if (!info.guild || info.guild.id !== guildID)

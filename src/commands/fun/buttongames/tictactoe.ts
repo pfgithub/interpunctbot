@@ -360,12 +360,12 @@ export function getInteractionKey(id: GameID, kind: GameKind, stage: number, nam
 	return res;
 }
 function parseInteractionKey(key: InteractionKey): {game_id: GameID, kind: GameKind, stage: number, name: string} {
-	const [, a, b, c, d] = key.split("|") as [string, string, string, string, string];
+	const [, a, b, c, d_d] = key.split("|") as [string, string, string, string, string];
 	return {
 		game_id: a as GameID,
 		kind: b as GameKind,
 		stage: +c,
-		name: d,
+		name: d_d,
 	};
 }
 
