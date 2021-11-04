@@ -414,7 +414,7 @@ const slash_command_router: {[key: string]: SlashCommandRoute} = {
 			diagnose: {route: "ticket diagnose"},
 			creatorcanclose: {route: "ticket creatorcanclose", args: {can: opt.oneOf("Can close?", {yes: "Yes", no: "No"})}},
 			dmonclose: {route: "ticket dmonclose", args: {dm: opt.oneOf("DM creator on close?", {yes: "Yes", no: "No"})}},
-			// - disable
+			disable: {route: "ticket disable"},
 		},
 	},
 	// // this will require a rework of autodelete
@@ -630,7 +630,7 @@ for(const [cmdname] of Object.entries(context_menu_command_router.message)) {
 	};
 }
 
-if(Object.entries(global_slash_commands).length > 50) throw new Error("Max 50 slash commands");
+if(Object.entries(global_slash_commands).length > 100) throw new Error("Max 100 slash commands");
 
 let __is_First_Shard: boolean | undefined = undefined;
 function firstShard() {
