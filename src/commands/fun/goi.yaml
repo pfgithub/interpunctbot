@@ -48,6 +48,7 @@ emojis:
     constructionedge: "<:constructionedge:755694803622166611>"
     chimneytree: "<:chimneytree:755697021029056583>"
     rocksbackground: "<:rocksbackground:755697967163244544>"
+    cfloor1: "<:cfloor1:907355523572178985>"
 start: constructionstart
 levels:
     tree:
@@ -457,9 +458,10 @@ levels:
               chance: 20
     constructionstart:
         text: |
-            {player} This level is not implemented yet! {player}
-            Add it yourself:
-            https://github.com/pfgithub/interpunctbot/blob/master/src/commands/fun/goi.yaml
+            {skyblue}{skyblue}{skyblue}{skyblue         }
+            {skyblue}{skyblue}{skyblue}{skyblue         }
+            {skyblue}{player }{skyblue}{skyblue         }
+            {skyblue}{constructionedge}{cfloor1}{cfloor1}
         left:
             - msg: "*You go back down to chimney.*"
               goto: chimneytop
