@@ -466,6 +466,7 @@ levels:
             - msg: "*You go back down to chimney.*"
               goto: chimneytop
         up:
-            - "*You go up.*"
+            - "*You pogo up but fall back down.*"
         right:
-            - "*You go right.*"
+            - msg: "*You go right.*"
+              goto: constructionsite
