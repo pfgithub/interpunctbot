@@ -48,7 +48,7 @@ emojis:
     constructionedge: "<:constructionedge:755694803622166611>"
     chimneytree: "<:chimneytree:755697021029056583>"
     rocksbackground: "<:rocksbackground:755697967163244544>"
-start: tree
+start: chimneytop
 levels:
     tree:
         text: |
