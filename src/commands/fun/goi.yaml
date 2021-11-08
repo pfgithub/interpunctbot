@@ -470,3 +470,16 @@ levels:
         right:
             - msg: "*You go right.*"
               goto: constructionsite
+    constructionsite:
+        text: |
+            Getting Over It with Bennett Foddy
+            {player} This level is not implemented yet! {player}
+            Add it yourself:
+            https://github.com/pfgithub/interpunctbot/blob/master/src/commands/fun/goi.yaml
+        left:
+            - msg: "*You go back to the left.*"
+              goto: constructionstart
+        up:
+            - "*You go up.*"
+        right:
+            - "*You go right.*"
