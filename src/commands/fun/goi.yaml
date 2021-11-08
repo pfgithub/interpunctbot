@@ -49,7 +49,7 @@ emojis:
     chimneytree: "<:chimneytree:755697021029056583>"
     rocksbackground: "<:rocksbackground:755697967163244544>"
     cfloor1: "<:cfloor1:907355523572178985>"
-start: constructionstart
+start: constructionsite
 levels:
     tree:
         text: |
