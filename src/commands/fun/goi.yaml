@@ -460,8 +460,8 @@ levels:
         text: |
             {skyblue}{skyblue}{skyblue}{skyblue         }
             {skyblue}{skyblue}{skyblue}{skyblue         }
-            {skyblue}{player }{skyblue}{skyblue         }
-            {skyblue}{constructionedge}{cfloor1}{cfloor1}
+            {skyblue}{skyblue}{player }{skyblue         }
+            {skyblue}{skyblue}{constructionedge}{cfloor1}
         left:
             - msg: "*You go back down to chimney.*"
               goto: chimneytop
