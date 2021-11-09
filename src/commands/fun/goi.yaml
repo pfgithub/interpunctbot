@@ -64,7 +64,7 @@ emojis:
     constwall6: "<:constwall6:907673232860131348>"
     consttop1: "<:consttop1:907680578202132580>"
     consttop2: "<:consttop2:907680880993128468>"
-start: constructionbox
+start: construction3
 levels:
     tree:
         text: |
