@@ -625,5 +625,5 @@ levels:
         text: |
             {skyblue}{crate4}{crate3      }{crate2          }
             {rail1}{skyblue}{player       }{crate1          }
-            {skyblue}{skyblue}{constructiontop2}{consttopbg2}
-            {skyblue}{skyblue}{constructiontop1}{consttopbg1}
+            {skyblue}{skyblue}{consttop2}{consttopbg2}
+            {skyblue}{skyblue}{consttop1}{consttopbg1}
