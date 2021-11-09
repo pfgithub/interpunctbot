@@ -525,12 +525,12 @@ levels:
               chance: 5
               goto: chimney
         up:
-            - msg: "*You try to grab the [INSERT THING NAME HERE] but fail.*"
+            - msg: "*You try to grab the support bracket but fail.*"
               chance: 60
-            - msg: "*You try to grab the [INSERT THING NAME HERE] but fall off the electricity box.*"
+            - msg: "*You try to grab the support bracket but fall off the electricity box.*"
               goto: constructionsite
               chance: 25
-            - msg: "*You grab the [INSERT THING NAME HERE] and pull yourself onto it.*"
+            - msg: "*You grab the support bracket and pull yourself onto it.*"
               goto: construction2
               chance: 15
         right:
