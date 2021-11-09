@@ -627,3 +627,22 @@ levels:
             {rail1}{skyblue}{player       }{crate1          }
             {skyblue}{skyblue}{consttop2}{consttopbg2}
             {skyblue}{skyblue}{consttop1}{consttopbg1}
+        left:
+            - msg: "*You grab the rail and go to the other side.*"
+              goto: slidehouse
+              chance: 80
+            - msg: "*You miss the rail and fall down to the bottom of construction.*"
+              goto: constructionsite
+              chance: 10
+            - msg: "*You grab the rail but fall when you reach the other side.*"
+              goto: constructionstart
+              chance: 10
+        up:
+            - "*You hit your head on the crate.*"
+        right:
+            - "*You hit the crate.*"
+    slidehouse:
+        text: |
+            {player} This level is not implemented yet! {player}
+            Add it yourself:
+            https://github.com/pfgithub/interpunctbot/blob/master/src/commands/fun/goi.yaml
