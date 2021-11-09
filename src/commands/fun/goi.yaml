@@ -71,7 +71,7 @@ emojis:
     crate3: "<:crate3:907695530946228234>"
     crate4: "<:crate4:907695780003979305>"
     rail1: "<:rail1:907696403822804992>"
-start: construction3
+start: construction2
 levels:
     tree:
         text: |
