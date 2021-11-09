@@ -569,3 +569,9 @@ levels:
             - msg: "*You grab the rock and pull yourself up.*"
               goto:: construction3
               chance: 30
+        right:
+            - msg: "*You hit the wall.*"
+              chance: 10
+            - msg: "*You hit the wall and fall back to the ground.*"
+              goto: constructionsite
+              chance: 90
