@@ -49,6 +49,10 @@ emojis:
     chimneytree: "<:chimneytree:755697021029056583>"
     rocksbackground: "<:rocksbackground:755697967163244544>"
     cfloor1: "<:cfloor1:907355523572178985>"
+    cfloor2: "<:cfloor2:907659645789831220>"
+    electricitybox: "<:electricityBox:907660132345860166>"
+    constwall1: "<:constwall1:907660948658061372>"
+    constwall2: "<:constwall2:907661232671178772>"
 start: constructionsite
 levels:
     tree:
@@ -472,10 +476,10 @@ levels:
               goto: constructionsite
     constructionsite:
         text: |
-            Getting Over It with Bennett Foddy
-            {player} This level is not implemented yet! {player}
-            Add it yourself:
-            https://github.com/pfgithub/interpunctbot/blob/master/src/commands/fun/goi.yaml
+            {skyblue}{skyblue}{skyblue}{constwall2   }
+            {skyblue}{skyblue}{skyblue}{constwall1   }
+            {skyblue}{skyblue}{player}{electricitybox}
+            {cfloor1}{cfloor1}{cfloor1}{cfloor1      }
         left:
             - msg: "*You go back to the left.*"
               goto: constructionstart
