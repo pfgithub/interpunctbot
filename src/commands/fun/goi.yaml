@@ -62,7 +62,9 @@ emojis:
     constwall4: "<:constwall4:907668369799544833>"
     constwall5: "<:constwall5:907669173344276481>"
     constwall6: "<:constwall6:907673232860131348>"
-start: constructionsite
+    consttop1: "<:consttop1:907680578202132580>"
+    consttop2: "<:consttop2:907680880993128468>"
+start: construction3
 levels:
     tree:
         text: |
@@ -562,16 +564,25 @@ levels:
               chance: 5
         up:
             - msg: "*You try to grab the rock but fail.*"
-              chance: 20
+              chance: 10
             - msg: "*You try to grab the rock but fall back to the bottom of construction.*"
               goto: constructionsite
               chance: 50
             - msg: "*You grab the rock and pull yourself up.*"
               goto:: construction3
               chance: 30
+            - msg: "*You grab the rock and pull yourself up to the top of construction.*"
+              goto: constructiontop
+              chance: 10
         right:
             - msg: "*You hit the wall.*"
               chance: 10
             - msg: "*You hit the wall and fall back to the ground.*"
               goto: constructionsite
               chance: 90
+    construction3:
+        text: |
+            {skyblue}{skyblue}{skyblue}{consttop2      }
+            {skyblue}{skyblue}{skyblue}{consttop1      }
+            {skyblue}{skyblue}{player}{constwall6      }
+            {skyblue}{skyblue}{constwall5}{constwallbg5}
