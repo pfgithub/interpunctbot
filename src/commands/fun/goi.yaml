@@ -574,10 +574,10 @@ levels:
               chance: 5
             - msg: "*You try to grab the rock but fall back to the bottom of construction.*"
               goto: constructionsite
-              chance: 45
+              chance: 35
             - msg: "*You grab the rock and pull yourself up.*"
               goto:: construction3
-              chance: 35
+              chance: 40
             - msg: "*You grab the rock and pull yourself up to the top of construction.*"
               goto: constructiontop
               chance: 15
