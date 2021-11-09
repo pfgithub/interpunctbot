@@ -646,3 +646,14 @@ levels:
             {player} This level is not implemented yet! {player}
             Add it yourself:
             https://github.com/pfgithub/interpunctbot/blob/master/src/commands/fun/goi.yaml
+        left:
+            - "*You go left.*"
+        right:
+            - msg: "*You go back to the right side.*"
+              goto: constructiontop
+              chance: 90
+            - msg: "*You fall back down to the bottom of construction.*"
+              goto: constructionstart
+              chance: 10
+        up:
+            - "*You go up.*"
