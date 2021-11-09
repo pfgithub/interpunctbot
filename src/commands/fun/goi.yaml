@@ -576,7 +576,7 @@ levels:
               goto: constructionsite
               chance: 35
             - msg: "*You grab the rock and pull yourself up.*"
-              goto:: construction3
+              goto: construction3
               chance: 40
             - msg: "*You grab the rock and pull yourself up to the top of construction.*"
               goto: constructiontop
