@@ -536,10 +536,10 @@ levels:
               chance: 60
             - msg: "*You try to grab the support bracket but fall off the electricity box.*"
               goto: constructionsite
-              chance: 25
+              chance: 10
             - msg: "*You grab the support bracket and pull yourself onto it.*"
               goto: construction2
-              chance: 15
+              chance: 30
         right:
             - "*You hit the wall.*"
             - msg: "*You hit the wall and fall off the electricity box.*"
