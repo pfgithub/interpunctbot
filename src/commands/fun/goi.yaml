@@ -51,10 +51,16 @@ emojis:
     cfloor1: "<:cfloor1:907355523572178985>"
     cfloor2: "<:cfloor2:907659645789831220>"
     electricitybox: "<:electricityBox:907660132345860166>"
-    constwallbg: "<:constwallbg:907664523069112390>"
+    constwallbg1: "<:constwallbg1:907664523069112390>"
+    constwallbg2: "<:constwallbg2:907669677071822909>"
+    constwallbg3: "<:constwallbg3:907670549419937852>"
+    constwallbg4: "<:constwallbg4:907670207517032519>"
+    constwallbg5: "<:constwallbg5:907670870393237565>"
     constwall1: "<:constwall1:907660948658061372>"
     constwall2: "<:constwall2:907661232671178772>"
     constwall3: "<:constwall3:907664256961478686>"
+    constwall4: "<:constwall4:907668369799544833>"
+    constwall5: "<:constwall5:907669173344276481>"
 start: constructionsite
 levels:
     tree:
@@ -498,10 +504,10 @@ levels:
             - "*You go right and hit the electricity box.*"
     constructionbox:
         text: |
-            {skyblue}{skyblue}{skyblue}{constwall3        }
-            {skyblue}{skyblue}{skyblue}{constwall2        }
-            {skyblue}{skyblue}{player}{constwall1         }
-            {skyblue}{skyblue}{electricitybox}{constwallbg}
+            {skyblue}{skyblue}{skyblue}{constwall3         }
+            {skyblue}{skyblue}{skyblue}{constwall2         }
+            {skyblue}{skyblue}{player}{constwall1          }
+            {skyblue}{skyblue}{electricitybox}{constwallbg1}
         left:
             - msg: "*You go back down.*"
               goto: constructionsite
@@ -528,3 +534,9 @@ levels:
             - "*You hit the wall.*"
             - msg: "*You hit the wall and fall off the electricity box.*"
               goto: constructionsite
+    construction2:
+        text: |
+            {skyblue}{skyblue}{constwall5}{constwallbg5}
+            {skyblue}{skyblue}{constwall4}{constwallbg4}
+            {skyblue}{skyblue}{player}{constwallbg3}
+            {skyblue}{skyblue}{constwall3}{constwallbg2}
