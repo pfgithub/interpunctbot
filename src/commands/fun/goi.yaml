@@ -51,8 +51,10 @@ emojis:
     cfloor1: "<:cfloor1:907355523572178985>"
     cfloor2: "<:cfloor2:907659645789831220>"
     electricitybox: "<:electricityBox:907660132345860166>"
+    constwallbg: "<:constwallbg:907664523069112390>"
     constwall1: "<:constwall1:907660948658061372>"
     constwall2: "<:constwall2:907661232671178772>"
+    constwall3: "<:constwall3:907664256961478686>"
 start: constructionsite
 levels:
     tree:
@@ -484,6 +486,45 @@ levels:
             - msg: "*You go back to the left.*"
               goto: constructionstart
         up:
-            - "*You go up.*"
+            - msg: "*You try to go up the electricity box but fail.*"
+              chance: 15
+            - msg: "*You grab the electricity box and pull yourself onto it.*"
+              goto: constructionbox
+              chance: 80
+            - msg: "You grab the electricity box and pull yourself onto the [INSERT THING NAME HERE]"
+              goto: construction2
+              chance: 5
         right:
-            - "*You go right.*"
+            - "*You go right and hit the electricity box.*"
+    constructionbox:
+        text: |
+            {skyblue}{skyblue}{skyblue}{constwall3        }
+            {skyblue}{skyblue}{skyblue}{constwall2        }
+            {skyblue}{skyblue}{player}{constwall1         }
+            {skyblue}{skyblue}{electricitybox}{constwallbg}
+        left:
+            - msg: "*You go back down.*"
+              goto: constructionsite
+              chance: 80
+            - msg: "*You pogo to the left and almost fall back to chimney.*"
+              goto: constructionstart
+              chance: 10
+            - msg: "*You pogo to the left and fall onto the chimney rock.*"
+              goto: chimneytop
+              chance: 5
+            - msg: "*You pogo to the left and fall down chimney.*"
+              chance: 5
+              goto: chimney
+        up:
+            - msg: "*You try to grab the [INSERT THING NAME HERE] but fail.*"
+              chance: 60
+            - msg: "*You try to grab the [INSERT THING NAME HERE] but fall off the electricity box.*"
+              goto: constructionsite
+              chance: 25
+            - msg: "*You grab the [INSERT THING NAME HERE] and pull yourself onto it.*"
+              goto: construction2
+              chance: 15
+        right:
+            - "*You hit the wall.*"
+            - msg: "*You hit the wall and fall off the electricity box.*"
+              goto: constructionsite
