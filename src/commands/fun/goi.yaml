@@ -56,6 +56,8 @@ emojis:
     constwallbg3: "<:constwallbg3:907670549419937852>"
     constwallbg4: "<:constwallbg4:907670207517032519>"
     constwallbg5: "<:constwallbg5:907670870393237565>"
+    consttopbg1: "<:consttopbg1:907694673773097010>"
+    consttopbg2: "<:consttopbg2:907694454817849375>"
     constwall1: "<:constwall1:907660948658061372>"
     constwall2: "<:constwall2:907661232671178772>"
     constwall3: "<:constwall3:907664256961478686>"
@@ -64,6 +66,11 @@ emojis:
     constwall6: "<:constwall6:907673232860131348>"
     consttop1: "<:consttop1:907680578202132580>"
     consttop2: "<:consttop2:907680880993128468>"
+    crate1: "<:crate1:907695083174899772>"
+    crate2: "<:crate2:907696111823773718>"
+    crate3: "<:crate3:907695530946228234>"
+    crate4: "<:crate4:907695780003979305>"
+    rail1: "<:rail1:907696403822804992>"
 start: construction3
 levels:
     tree:
@@ -586,3 +593,37 @@ levels:
             {skyblue}{skyblue}{skyblue}{consttop1      }
             {skyblue}{skyblue}{player}{constwall6      }
             {skyblue}{skyblue}{constwall5}{constwallbg5}
+        left:
+            - msg: "*You go back down to the ground.*"
+              goto: constructionsite
+              chance: 15
+            - msg: "*You pogo to the left and almost fall down to chimney.*"
+              goto: constructionstart
+              chance: 45
+            - msg: "*You pogo to the left and fall to the top of chimney.*"
+              goto: chimneytop
+              chance: 5
+            - msg: "*You pogo to the left and fall to the left of chimney back to the basin.*"
+              goto: basin
+              chance: 10
+            - msg: "*You pogo to the left and fall down to chimney.*"
+              goto: chimney
+              chance: 5
+        up:
+            - msg: "*You try to grab the top of construction but fail.*"
+              chance: 5
+            - msg: "*You grab the top of construction and pull yourself up.*"
+              goto: constructiontop
+              chance: 90
+            - msg: "*You try to grab the top of construction but fall to the bottom of construction.*"
+              goto: constructionsite
+              chance: 5
+        right:
+            - msg: "*You hit the wall and fall down to the ground.*"
+              goto: constructionsite
+    constructiontop:
+        text: |
+            {skyblue}{crate4}{crate3      }{crate2          }
+            {rail1}{skyblue}{player       }{crate1          }
+            {skyblue}{skyblue}{constructiontop2}{consttopbg2}
+            {skyblue}{skyblue}{constructiontop1}{consttopbg1}
