@@ -9,7 +9,7 @@ import * as util from "util";
 import * as d from "discord-api-types/v9";
 import { shortenLink } from "./commands/fun";
 
-const api = client as any as ApiHolder;
+export const api = client as any as ApiHolder;
 
 type ApiHandler = {
     get: <T>() => Promise<T>,
