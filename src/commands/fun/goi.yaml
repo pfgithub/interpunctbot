@@ -61,6 +61,7 @@ emojis:
     constwall3: "<:constwall3:907664256961478686>"
     constwall4: "<:constwall4:907668369799544833>"
     constwall5: "<:constwall5:907669173344276481>"
+    constwall6: "<:constwall6:907673232860131348>"
 start: constructionsite
 levels:
     tree:
@@ -538,5 +539,33 @@ levels:
         text: |
             {skyblue}{skyblue}{constwall5}{constwallbg5}
             {skyblue}{skyblue}{constwall4}{constwallbg4}
-            {skyblue}{skyblue}{player}{constwallbg3}
+            {skyblue}{skyblue}{player}{constwallbg3    }
             {skyblue}{skyblue}{constwall3}{constwallbg2}
+        left:
+            - msg: "*You go back down to the construction box.*"
+              goto: constructionbox
+              chance: 35
+            - msg: "*You go back to the bottom of construction.*"
+              goto: constructionsite
+              chance: 40
+            - msg: "*You pogo to the left and almost fall to chimney.*"
+              goto: constructionstart
+              chance: 10
+            - msg: "*You pogo to the left and fall back to the top of chimney.*"
+              goto: chimneytop
+              chance: 5
+            - msg: "*You pogo to the left and fall down the chimney.*"
+              goto: chimney
+              chance: 5
+            - msg: "*You pogo to the left and fall down from chimney back to the basin.*"
+              goto: basin
+              chance: 5
+        up:
+            - msg: "*You try to grab the rock but fail.*"
+              chance: 20
+            - msg: "*You try to grab the rock but fall back to the bottom of construction.*"
+              goto: constructionsite
+              chance: 50
+            - msg: "*You grab the rock and pull yourself up.*"
+              goto:: construction3
+              chance: 30
