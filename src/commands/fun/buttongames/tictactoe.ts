@@ -1913,6 +1913,7 @@ let itttgame = require("./infinite_tictactoe") as typeof import("./infinite_tict
 let battleshipgame = require("./battleship") as typeof import("./battleship");
 
 import * as fs from "fs";
+import { GOIGame } from "../goi";
 if(process.env.NODE_ENV !== "production") {
 	fs.watchFile(require.resolve("./paneleditor"), (curr, prev) => {
 		try {
@@ -2076,6 +2077,29 @@ export function requestInput<T>(info: Info, ikey: IKey,
 	};
 }
 
+nr.globalCommand(
+	"/help/fun/goi",
+	"goi",
+	{
+		usage: "goi",
+		description: "Play a game of Getting Over It with Bennett Foddy",
+		examples: [],
+		perms: {fun: true}
+	},
+	nr.list(),
+	async ([], info) => {
+		if (info.myChannelPerms) {
+			if (!info.myChannelPerms.has("USE_EXTERNAL_EMOJIS")) {
+				return await info.error(
+					"I need permission to `use external emojis` here to play goi\n> https://interpunct.info/help/fun/goi",
+				);
+			}
+		}
+
+		const game_id = await createGame(GOIGame, GOIGame.init({author_id: info.message.author.id}));
+		await renderGame(info, game_id);
+	},
+);
 
 type GameKind =
     | "TTT" // tic tac toe
@@ -2088,6 +2112,7 @@ type GameKind =
 	| "PANL" // panel
 	| "ITTT" // infinite tic tac toe
 	| "BTTL" // battleship
+	| "GOI" // goigame
 ;
 
 const games: {[key in GameKind]: Game<any>} = {
@@ -2101,4 +2126,5 @@ const games: {[key in GameKind]: Game<any>} = {
 	"PANL": paneleditor.PanelEditor,
 	"ITTT": itttgame.ITTTGame,
 	"BTTL": battleshipgame.BattleshipGame,
+	"GOI": GOIGame,
 };
