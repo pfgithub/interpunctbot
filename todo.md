@@ -1,11 +1,18 @@
-~~Add minesweeper command~~ done
+IPv4:
 
-## a ranking thing::
+- ipv4 is usage of libfancy
+- ipv4 can be transitioned into over time, rather than an all-or-nothing
+  approach like ipv3 was
 
-so part 1: if you rank the ticket welcome message with quickrank, it will rank
-the user
+GOALS:
 
-part 2: there will be a way to add emojis to the list of emojis that are auto
-added to tickets
+- libfancy
 
-also todo add builtin emojis to quickrank
+NOTES:
+
+- when I rewrite `$wr` and similar src commands:
+  - I can use a like 10min cache or something but critical thing:
+    keep around the previous cache and use invalidated data.
+    after using the invalidated data, fetch the current data
+    and edit the response when the updated data is available.
+- more notes are available in the #todo channel on the support server
