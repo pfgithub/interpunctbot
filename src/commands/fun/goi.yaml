@@ -48,6 +48,29 @@ emojis:
     constructionedge: "<:constructionedge:755694803622166611>"
     chimneytree: "<:chimneytree:755697021029056583>"
     rocksbackground: "<:rocksbackground:755697967163244544>"
+    cfloor1: "<:cfloor1:907355523572178985>"
+    cfloor2: "<:cfloor2:907659645789831220>"
+    electricitybox: "<:electricityBox:907660132345860166>"
+    constwallbg1: "<:constwallbg1:907664523069112390>"
+    constwallbg2: "<:constwallbg2:907669677071822909>"
+    constwallbg3: "<:constwallbg3:907670549419937852>"
+    constwallbg4: "<:constwallbg4:907670207517032519>"
+    constwallbg5: "<:constwallbg5:907670870393237565>"
+    consttopbg1: "<:consttopbg1:907694673773097010>"
+    consttopbg2: "<:consttopbg2:907694454817849375>"
+    constwall1: "<:constwall1:907660948658061372>"
+    constwall2: "<:constwall2:907661232671178772>"
+    constwall3: "<:constwall3:907664256961478686>"
+    constwall4: "<:constwall4:907668369799544833>"
+    constwall5: "<:constwall5:907669173344276481>"
+    constwall6: "<:constwall6:907673232860131348>"
+    consttop1: "<:consttop1:907680578202132580>"
+    consttop2: "<:consttop2:907680880993128468>"
+    crate1: "<:crate1:907695083174899772>"
+    crate2: "<:crate2:907696111823773718>"
+    crate3: "<:crate3:907695530946228234>"
+    crate4: "<:crate4:907695780003979305>"
+    rail1: "<:rail1:907696403822804992>"
 start: tree
 levels:
     tree:
@@ -457,13 +480,180 @@ levels:
               chance: 20
     constructionstart:
         text: |
-            {player} This level is not implemented yet! {player}
-            Add it yourself:
-            https://github.com/pfgithub/interpunctbot/blob/master/src/commands/fun/goi.yaml
+            {skyblue}{skyblue}{skyblue}{skyblue         }
+            {skyblue}{skyblue}{skyblue}{skyblue         }
+            {skyblue}{skyblue}{player }{skyblue         }
+            {skyblue}{skyblue}{constructionedge}{cfloor1}
         left:
             - msg: "*You go back down to chimney.*"
               goto: chimneytop
         up:
-            - "*You go up.*"
+            - "*You pogo up but fall back down.*"
         right:
-            - "*You go right.*"
+            - msg: "*You go right.*"
+              goto: constructionsite
+    constructionsite:
+        text: |
+            {skyblue}{skyblue}{skyblue}{constwall2   }
+            {skyblue}{skyblue}{skyblue}{constwall1   }
+            {skyblue}{skyblue}{player}{electricitybox}
+            {cfloor1}{cfloor1}{cfloor1}{cfloor1      }
+        left:
+            - msg: "*You go back to the left.*"
+              goto: constructionstart
+        up:
+            - msg: "*You try to go up the electricity box but fail.*"
+              chance: 15
+            - msg: "*You grab the electricity box and pull yourself onto it.*"
+              goto: constructionbox
+              chance: 80
+            - msg: "You grab the electricity box and pull yourself onto the [INSERT THING NAME HERE]"
+              goto: construction2
+              chance: 5
+        right:
+            - "*You go right and hit the electricity box.*"
+    constructionbox:
+        text: |
+            {skyblue}{skyblue}{skyblue}{constwall3         }
+            {skyblue}{skyblue}{skyblue}{constwall2         }
+            {skyblue}{skyblue}{player}{constwall1          }
+            {skyblue}{skyblue}{electricitybox}{constwallbg1}
+        left:
+            - msg: "*You go back down.*"
+              goto: constructionsite
+              chance: 80
+            - msg: "*You pogo to the left and almost fall back to chimney.*"
+              goto: constructionstart
+              chance: 10
+            - msg: "*You pogo to the left and fall onto the chimney rock.*"
+              goto: chimneytop
+              chance: 5
+            - msg: "*You pogo to the left and fall down chimney.*"
+              chance: 5
+              goto: chimney
+        up:
+            - msg: "*You try to grab the support bracket but fail.*"
+              chance: 60
+            - msg: "*You try to grab the support bracket but fall off the electricity box.*"
+              goto: constructionsite
+              chance: 10
+            - msg: "*You grab the support bracket and pull yourself onto it.*"
+              goto: construction2
+              chance: 30
+        right:
+            - "*You hit the wall.*"
+            - msg: "*You hit the wall and fall off the electricity box.*"
+              goto: constructionsite
+    construction2:
+        text: |
+            {skyblue}{skyblue}{constwall5}{constwallbg5}
+            {skyblue}{skyblue}{constwall4}{constwallbg4}
+            {skyblue}{skyblue}{player}{constwallbg3    }
+            {skyblue}{skyblue}{constwall3}{constwallbg2}
+        left:
+            - msg: "*You go back down to the construction box.*"
+              goto: constructionbox
+              chance: 35
+            - msg: "*You go back to the bottom of construction.*"
+              goto: constructionsite
+              chance: 40
+            - msg: "*You pogo to the left and almost fall to chimney.*"
+              goto: constructionstart
+              chance: 10
+            - msg: "*You pogo to the left and fall back to the top of chimney.*"
+              goto: chimneytop
+              chance: 5
+            - msg: "*You pogo to the left and fall down the chimney.*"
+              goto: chimney
+              chance: 5
+            - msg: "*You pogo to the left and fall down from chimney back to the basin.*"
+              goto: basin
+              chance: 5
+        up:
+            - msg: "*You try to grab the rock but fail.*"
+              chance: 5
+            - msg: "*You try to grab the rock but fall back to the bottom of construction.*"
+              goto: constructionsite
+              chance: 35
+            - msg: "*You grab the rock and pull yourself up.*"
+              goto: construction3
+              chance: 40
+            - msg: "*You grab the rock and pull yourself up to the top of construction.*"
+              goto: constructiontop
+              chance: 15
+        right:
+            - msg: "*You hit the wall.*"
+              chance: 10
+            - msg: "*You hit the wall and fall back to the ground.*"
+              goto: constructionsite
+              chance: 90
+    construction3:
+        text: |
+            {skyblue}{skyblue}{skyblue}{consttop2      }
+            {skyblue}{skyblue}{skyblue}{consttop1      }
+            {skyblue}{skyblue}{player}{constwall6      }
+            {skyblue}{skyblue}{constwall5}{constwallbg5}
+        left:
+            - msg: "*You go back down to the ground.*"
+              goto: constructionsite
+              chance: 15
+            - msg: "*You pogo to the left and almost fall down to chimney.*"
+              goto: constructionstart
+              chance: 45
+            - msg: "*You pogo to the left and fall to the top of chimney.*"
+              goto: chimneytop
+              chance: 5
+            - msg: "*You pogo to the left and fall to the left of chimney back to the basin.*"
+              goto: basin
+              chance: 10
+            - msg: "*You pogo to the left and fall down to chimney.*"
+              goto: chimney
+              chance: 5
+        up:
+            - msg: "*You try to grab the top of construction but fail.*"
+              chance: 5
+            - msg: "*You grab the top of construction and pull yourself up.*"
+              goto: constructiontop
+              chance: 90
+            - msg: "*You try to grab the top of construction but fall to the bottom of construction.*"
+              goto: constructionsite
+              chance: 5
+        right:
+            - msg: "*You hit the wall and fall down to the ground.*"
+              goto: constructionsite
+    constructiontop:
+        text: |
+            {skyblue}{crate4}{crate3      }{crate2          }
+            {rail1}{skyblue}{player       }{crate1          }
+            {skyblue}{skyblue}{consttop2}{consttopbg2}
+            {skyblue}{skyblue}{consttop1}{consttopbg1}
+        left:
+            - msg: "*You grab the rail and go to the other side.*"
+              goto: slidehouse
+              chance: 80
+            - msg: "*You miss the rail and fall down to the bottom of construction.*"
+              goto: constructionsite
+              chance: 10
+            - msg: "*You grab the rail but fall when you reach the other side.*"
+              goto: constructionstart
+              chance: 10
+        up:
+            - "*You hit your head on the crate.*"
+        right:
+            - "*You hit the crate.*"
+    slidehouse:
+        text: |
+            {player} This level is not implemented yet! {player}
+            Add it yourself:
+            https://github.com/pfgithub/interpunctbot/blob/master/src/commands/fun/goi.yaml
+        left:
+            - "*You go left.*"
+        right:
+            - msg: "*You go back to the right side.*"
+              goto: constructiontop
+              chance: 90
+            - msg: "*You fall back down to the bottom of construction.*"
+              goto: constructionstart
+              chance: 10
+        up:
+            - "*You go up.*"
