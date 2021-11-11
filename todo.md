@@ -15,4 +15,6 @@ NOTES:
     keep around the previous cache and use invalidated data.
     after using the invalidated data, fetch the current data
     and edit the response when the updated data is available.
+- randomword could be redone to use unicode chars rather than an image for
+  decreased latency
 - more notes are available in the #todo channel on the support server
