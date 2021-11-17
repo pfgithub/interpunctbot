@@ -2,6 +2,14 @@ import * as d from "discord-api-types/v9";
 import { shortenLink } from "../commands/fun";
 import { api } from "../SlashCommandManager";
 
+// ! a fancy solution to the persistence issue
+// - when the bot updates, some internal structures might change
+// - make a difference between critical state eg like game state and temporary ui
+//   state that might only last until the bot restarts / gets updated
+// - do it
+// - buttons that don't support long lasting stuff can have messages like "this panel
+//   has expired"
+
 // unfortunately we can't be super fancy and use jsx because of a
 // typescript issue: https://github.com/microsoft/TypeScript/issues/21699
 
