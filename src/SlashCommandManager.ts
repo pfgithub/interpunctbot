@@ -8,6 +8,7 @@ import deepEqual from "deep-equal";
 import * as util from "util";
 import * as d from "discord-api-types/v9";
 import { shortenLink } from "./commands/fun";
+import { registerFancylib } from "./fancy/fancylib";
 
 export const api = client as any as ApiHolder;
 
@@ -248,6 +249,7 @@ async function do_handle_interaction(interaction: d.APIInteraction) {
 		return await route.handler(info, {
 			user: interaction.data.resolved.users[interaction.data.target_id],
 			member: interaction.data.resolved.members?.[interaction.data.target_id],
+			interaction: interaction as d.APIUserApplicationCommandInteraction,
 		});
 	}
 	if(interaction.data.type === d.ApplicationCommandType.Message) {
@@ -255,6 +257,7 @@ async function do_handle_interaction(interaction: d.APIInteraction) {
 		if(!route) return await interaction_helper.replyHiddenHideCommand("× Unsupported interaction / This command should not exist");
 		return await route.handler(info, {
 			message: interaction.data.resolved.messages[interaction.data.target_id],
+			interaction: interaction as d.APIMessageApplicationCommandInteraction,
 		});
 	}
 	if(interaction.data.type !== d.ApplicationCommandType.ChatInput) {
@@ -508,15 +511,19 @@ type ContextMenuCommand<T> = {
 	handler: (info: Info, a: T) => Promise<void>,
 };
 
-const context_menu_command_router: {
+export type ContextMenuCommandRouter = {
 	user: {[key: string]: ContextMenuCommand<{
 		user: d.APIUser,
 		member: d.APIInteractionDataResolvedGuildMember | undefined,
+		interaction: d.APIUserApplicationCommandInteraction,
 	}>},
 	message: {[key: string]: ContextMenuCommand<{
 		message: d.APIMessage,
+		interaction: d.APIMessageApplicationCommandInteraction,
 	}>},
-} = {
+};
+
+const context_menu_command_router: ContextMenuCommandRouter = {
 	user: {},
 	message: {
 		'View Source': {
@@ -578,6 +585,8 @@ function createBottomLevelCommand(cmdname: string, cmddata: SlashCommandRouteBot
 		}),
 	};
 }
+
+registerFancylib(context_menu_command_router);
 
 for(const [cmdname, cmddata] of Object.entries(slash_command_router)) {
 	if('subcommands' in cmddata) {
