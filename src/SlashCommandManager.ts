@@ -112,7 +112,10 @@ async function handle_interaction_routed(info: Info, route_name: string, route: 
 		return await handle_interaction_routed(info, optnme, next_route, opt0.options ?? [], interaction);
 	}else{
 		if('handler' in route) {
-			return await route.handler(info);
+			if(interaction.raw_interaction.type !== d.InteractionType.ApplicationCommand) {
+				return await info.error("Expected a command interaction. This should never happen.");
+			}
+			return await route.handler(info, interaction.raw_interaction);
 		}
 
 		// (subcommand.options || []).map(opt => opt.value || ""
@@ -270,28 +273,28 @@ async function do_handle_interaction(interaction: d.APIInteraction) {
 	return await handle_interaction_routed(info, data.name, route, interaction.data.options || [], interaction_helper);
 }
 
-type SlashCommandRouteBottomLevelAutomatic = {
+export type SlashCommandRouteBottomLevelAutomatic = {
     route?: string,
     preload?: string,
     description?: string, // if no description is specified, it will be chosen from the route
     args?: {[key: string]: SlashCommandOptionNameless},
     arg_stringifier?: (args: d.APIApplicationCommandInteractionDataOption[]) => string,
 };
-type SlashCommandRouteBottomLevelCallback = {
-	handler: (info: Info) => Promise<void>,
+export type SlashCommandRouteBottomLevelCallback = {
+	handler: (info: Info, interaction: d.APIApplicationCommandInteraction) => Promise<void>,
 	description: string,
     args?: {[key: string]: SlashCommandOptionNameless},
 };
 
-type SlashCommandRouteBottomLevel =
+export type SlashCommandRouteBottomLevel =
 	| SlashCommandRouteBottomLevelAutomatic
 	| SlashCommandRouteBottomLevelCallback
 ;
-type SlashCommandRouteSubcommand = {
+export type SlashCommandRouteSubcommand = {
     description: string,
     subcommands: {[key: string]: SlashCommandRouteBottomLevel} | {[key: string]: SlashCommandRouteSubcommand},
 };
-type SlashCommandRoute = SlashCommandRouteBottomLevel | SlashCommandRouteSubcommand;
+export type SlashCommandRoute = SlashCommandRouteBottomLevel | SlashCommandRouteSubcommand;
 
 const opt = {
 	oneOf(description: string, choices: {[key: string]: string}): SlashCommandOptionNameless {
@@ -334,7 +337,9 @@ const opt = {
 	},
 };
 
-const slash_command_router: {[key: string]: SlashCommandRoute} = {
+export type SlashCommandRouter = {[key: string]: SlashCommandRoute};
+
+const slash_command_router: SlashCommandRouter = {
 	test: {},
 	ping: {},
 	help: {args: {command: opt.optional(opt.string("Command/page to get help for"))}},
@@ -556,6 +561,8 @@ const context_menu_command_router: ContextMenuCommandRouter = {
 	},
 };
 
+registerFancylib(context_menu_command_router, slash_command_router);
+
 const global_slash_commands: {[key: string]: NamelessAPIApplicationCommand} = {};
 
 function createBottomLevelCommand(cmdname: string, cmddata: SlashCommandRouteBottomLevel): Omit<
@@ -585,8 +592,6 @@ function createBottomLevelCommand(cmdname: string, cmddata: SlashCommandRouteBot
 		}),
 	};
 }
-
-registerFancylib(context_menu_command_router);
 
 for(const [cmdname, cmddata] of Object.entries(slash_command_router)) {
 	if('subcommands' in cmddata) {
