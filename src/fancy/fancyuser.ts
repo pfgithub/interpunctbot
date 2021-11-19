@@ -1,5 +1,7 @@
 import { CallFrom, MessageElement, Message, x, MessageContextMenuItem, MessageContextMenuItemElement, SlashCommandGroup, SlashCommand, renderEphemeral, renderError, SlashCommandElement, registerPersistentElement } from "./fancylib";
 
+// ok should I go try firebase or a similar realtime database for this
+
 export function Sample(props: {event: CallFrom.MessageContextMenu}): MessageElement {
     return x(Message, {
         text: "The message ID is <"+props.event.message.id+">",
