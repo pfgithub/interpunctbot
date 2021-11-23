@@ -3,9 +3,9 @@ import { CallFrom, MessageElement, Message, x, MessageContextMenuItem, MessageCo
 // ok should I go try firebase or a similar realtime database for this
 
 export function Sample(props: {event: CallFrom.MessageContextMenu}): MessageElement {
-    return x(Message, {
-        text: "The message ID is <"+props.event.message.id+">",
-    });
+	return x(Message, {
+		text: "The message ID is <"+props.event.message.id+">",
+	});
 }
 
 type RPSState = {
@@ -15,13 +15,13 @@ type RPSState = {
     p2: string | undefined,
 };
 export function RockPaperScissors(props: {state: RPSState}): MessageElement {
-    return x(Message, {
-        text: "Rock paper scissors. P1 is: "+props.state.p1,
-    });
+	return x(Message, {
+		text: "Rock paper scissors. P1 is: "+props.state.p1,
+	});
 }
 
 const rps = registerPersistentElement<RPSState>("rock_paper_scissors", state => {
-    return x(RockPaperScissors, {state});
+	return x(RockPaperScissors, {state});
 });
 
 // rather than guild: guild | undefined,
@@ -29,36 +29,36 @@ const rps = registerPersistentElement<RPSState>("rock_paper_scissors", state => 
 // re-call that any time there's a relevant db change
 // we can even use a solid js store to track what's used if we want to be fancy
 export function onRightClick(): MessageContextMenuItemElement[] {
-    return [
-        x(MessageContextMenuItem, {label: "Sample", onClick: event => {
-            return renderEphemeral(() => x(Sample, {event}), {visibility: "private"});
-        }}),
-        /*
+	return [
+		x(MessageContextMenuItem, {label: "Sample", onClick: event => {
+			return renderEphemeral(() => x(Sample, {event}), {visibility: "private"});
+		}}),
+		/*
         <MessageContextMenuItem onClick={e => renderEphemeral(() => <Sample event={e} />)}>
             Sample
         </MessageContextMenuItem>
         */
-    ];
+	];
 }
 
 export function onSlashCommand(): SlashCommandElement[] {
-    return [
-        x(SlashCommandGroup, {label: "play", description: "Play a game", children: [
-            x(SlashCommand, {label: "rock_paper_scissors", description: "Play a game of rock paper scissors", children: [
-                // player?: User
-                // thing?: string, oninput=(text) => [array of suggestions]
-            ], onSend: event => {
-                const user = event.interaction.member?.user ?? event.interaction.user;
-                if(!user) return renderError("No User");
-                return rps({
-                    p1: user.id,
-                    p2: undefined,
-                    p1_choice: undefined,
-                    p2_choice: undefined,
-                }, {visibility: "public"});
-            }}),
-        ]}),
-        /*
+	return [
+		x(SlashCommandGroup, {label: "play", description: "Play a game", children: [
+			x(SlashCommand, {label: "rock_paper_scissors", description: "Play a game of rock paper scissors", children: [
+				// player?: User
+				// thing?: string, oninput=(text) => [array of suggestions]
+			], onSend: event => {
+				const user = event.interaction.member?.user ?? event.interaction.user;
+				if(!user) return renderError("No User");
+				return rps({
+					p1: user.id,
+					p2: undefined,
+					p1_choice: undefined,
+					p2_choice: undefined,
+				}, {visibility: "public"});
+			}}),
+		]}),
+		/*
         <SlashCommandGroup label="play">
             <Description></Description>
             <SlashCommand label="rock_paper_scissors" onSend={event => {
@@ -70,7 +70,7 @@ export function onSlashCommand(): SlashCommandElement[] {
             </SlashCommand>
         </SlashCommandGroup>
         */
-    ];
+	];
 }
 
 // export function ViewSource(call: CallFrom.MessageContextMenu): InteractionResponseSpec {

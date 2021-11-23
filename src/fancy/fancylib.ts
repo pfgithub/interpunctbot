@@ -1,7 +1,6 @@
 import * as d from "discord-api-types/v9";
 import { assertNever } from "../..";
-import { shortenLink } from "../commands/fun";
-import { api, ContextMenuCommandRouter, SlashCommandRoute, SlashCommandRouteBottomLevelCallback, SlashCommandRouter, SlashCommandRouteSubcommand } from "../SlashCommandManager";
+import { api, ContextMenuCommandRouter, SlashCommandRouteBottomLevelCallback, SlashCommandRouter } from "../SlashCommandManager";
 
 export type MessageElement = {
     kind: "message",
@@ -215,4 +214,4 @@ function addRoute(router: SlashCommandRouter, command: SlashCommandElement) {
 		if(route.description !== command.description) throw new Error("already exists and different descriptions: "+command.label);
 		for(const cmd of command.children) addRoute(route.subcommands, cmd);
 	}else assertNever(command);
-};
+}
