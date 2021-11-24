@@ -1,10 +1,10 @@
-import { CallFrom, MessageElement, Message, x, MessageContextMenuItem, MessageContextMenuItemElement, SlashCommandGroup, SlashCommand, renderEphemeral, renderError, SlashCommandElement, registerPersistentElement } from "./fancylib";
+import { CallFrom, MessageElement, Message, x, MessageContextMenuItem, MessageContextMenuItemElement, SlashCommandGroup, SlashCommand, renderEphemeral, renderError, SlashCommandElement, registerPersistentElement, u } from "./fancylib";
 
 // ok should I go try firebase or a similar realtime database for this
 
 export function Sample(props: {event: CallFrom.MessageContextMenu}): MessageElement {
 	return x(Message, {
-		text: "The message ID is <"+props.event.message.id+">",
+		text: u("The message ID is <"+props.event.message.id+">"),
 	});
 }
 
@@ -16,7 +16,7 @@ type RPSState = {
 };
 export function RockPaperScissors(props: {state: RPSState}): MessageElement {
 	return x(Message, {
-		text: "Rock paper scissors. P1 is: "+props.state.p1,
+		text: u("Rock paper scissors. P1 is: "+props.state.p1),
 	});
 }
 
@@ -30,7 +30,7 @@ const rps = registerPersistentElement<RPSState>("rock_paper_scissors", state => 
 // we can even use a solid js store to track what's used if we want to be fancy
 export function onRightClick(): MessageContextMenuItemElement[] {
 	return [
-		x(MessageContextMenuItem, {label: "Sample", onClick: event => {
+		x(MessageContextMenuItem, {label: u("Sample"), onClick: event => {
 			return renderEphemeral(() => x(Sample, {event}), {visibility: "private"});
 		}}),
 		/*
@@ -43,13 +43,13 @@ export function onRightClick(): MessageContextMenuItemElement[] {
 
 export function onSlashCommand(): SlashCommandElement[] {
 	return [
-		x(SlashCommandGroup, {label: "play", description: "Play a game", children: [
-			x(SlashCommand, {label: "rock_paper_scissors", description: "Play a game of rock paper scissors", children: [
+		x(SlashCommandGroup, {label: u("play"), description: u("Play a game"), children: [
+			x(SlashCommand, {label: u("rock_paper_scissors"), description: u("Play a game of rock paper scissors"), children: [
 				// player?: User
 				// thing?: string, oninput=(text) => [array of suggestions]
 			], onSend: event => {
 				const user = event.interaction.member?.user ?? event.interaction.user;
-				if(!user) return renderError("No User");
+				if(!user) return renderError(u("No User"));
 				return rps({
 					p1: user.id,
 					p2: undefined,

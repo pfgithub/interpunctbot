@@ -4,7 +4,7 @@ import { api, ContextMenuCommandRouter, SlashCommandRouteBottomLevelCallback, Sl
 
 export type MessageElement = {
     kind: "message",
-    text: string,
+    text: LocalizedString,
 };
 
 type InteractionResponse = {
@@ -17,6 +17,13 @@ type InteractionConfig = {
 	visibility: "public" | "private",
 };
 
+export type LocalizedString = string & {__is_user_str: "is"};
+
+/// a string that is shown to the user
+export function u(text: string): LocalizedString {
+	return text as unknown as LocalizedString;
+}
+
 export function renderEphemeral(element: () => MessageElement, opts: InteractionConfig): InteractionResponse {
 	return {
 		persist: false,
@@ -25,9 +32,9 @@ export function renderEphemeral(element: () => MessageElement, opts: Interaction
 	};
 }
 
-export function renderError(message: string): InteractionResponse {
+export function renderError(message: LocalizedString): InteractionResponse {
 	return renderEphemeral(() => x(Message, {
-		text: "× Error: "+message,
+		text: u("× Error: "+message),
 	}), {visibility: "private"});
 }
 
@@ -62,14 +69,14 @@ export function MessageContextMenuItem(
 export type SlashCommandElement = SlashCommandGroupElement | SlashCommandLeafElement<unknown>;
 export type SlashCommandGroupElement = {
 	kind: "slash_command_group",
-	label: string,
-	description: string,
+	label: LocalizedString,
+	description: LocalizedString,
 	children: SlashCommandElement[],
 };
 export type SlashCommandLeafElement<Args> = {
 	kind: "slash_command",
-	label: string,
-	description: string,
+	label: LocalizedString,
+	description: LocalizedString,
 	children: unknown[],
 	onSend: (e: CallFrom.SlashCommand<Args>) => InteractionResponse,
 };
@@ -108,7 +115,7 @@ export function Button(props: Omit<ComponentButtonSpec, "kind">): ComponentSpec 
 }
 
 export function Message(props: {
-    text: string,
+    text: LocalizedString,
     components?: ComponentSpec[],
 }): MessageElement {
 	return {
@@ -117,7 +124,7 @@ export function Message(props: {
 	};
 }
 
-export function ErrorMsg(message: string): MessageElement {
+export function ErrorMsg(message: LocalizedString): MessageElement {
 	return Message({text: message});
 }
 
