@@ -285,7 +285,7 @@ nr.globalCommand(
 	async ([cmd], info) => {
 		if (cmd.trim())
 			return await info.error("timezones are not implemented yet :(");
-		return await info.result(new Date().toUTCString());
+		return await info.result("<t:"+(Date.now() / 1000 |0)+">");
 	},
 );
 
@@ -708,22 +708,17 @@ nr.globalCommand(
 	},
 	nr.list(nr.a.user()),
 	async ([ussr], info) => {
-		const now = new Date().getTime();
 		let l2o = "";
 		if (info.guild) {
 			const member = info.guild.members.resolve(ussr)!;
 			const jat = member.joinedAt!.getTime();
-			l2o = safe`\nJoined this server ${durationFormat(
-				now - jat,
-			)} ago (${new Date(jat).toUTCString()})`;
+			l2o = safe`\nJoined this server <t:${"" + (jat / 1000 |0)}:R> <t:${"" + (jat / 1000 |0)}>`;
 		}
 		const dat = ussr.createdAt.getTime();
 		return await info.result(
 			safe`Info about ${raw(
 				ussr.toString(),
-			)}\nJoined discord ${durationFormat(now - dat)} ago (${new Date(
-				dat,
-			).toUTCString()})${raw(l2o)}`,
+			)}\nJoined discord <t:${"" + (dat / 1000 |0)}:R> <t:${"" + (dat / 1000 |0)}>${raw(l2o)}`,
 		);
 	},
 );
@@ -1269,16 +1264,7 @@ nr.globalCommand(
 			restime,
 		);
 		await info.success(
-			"Reminder set for " +
-				(delay >= 86400000
-					? new Date(restime).toUTCString() +
-					  " (" +
-					  durationFormat(delay) +
-					  ")"
-					: durationFormat(delay) +
-					  " (" +
-					  new Date(restime).toUTCString() +
-					  ")"),
+			"Reminder set for <t:"+(restime / 1000 |0)+"> (<t:"+(restime / 1000 |0)+":R>)",
 		);
 	},
 );
