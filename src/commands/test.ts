@@ -4,7 +4,7 @@ import { promises as fs } from "fs";
 import * as path from "path";
 import { stripMentions } from "./channelmanagement";
 import { safe } from "../../messages";
-import { TextChannel } from "discord.js";
+import { TextChannel, MessageActionRow } from "discord.js";
 
 nr.globalCommand(
 	"/help/test/test",
@@ -146,6 +146,38 @@ nr.globalCommand(
 // 	},
 // );
 
+
+nr.globalCommand(
+	"/help/test/testsafemode",
+	"testsafemode",
+	{
+		usage: "testsafemode",
+		description: "Test the safemode",
+		examples: [],
+		perms: {},
+	},
+	nr.list(),
+	async ([], info) => {
+		return info.reply("response", {
+			components: [
+				new MessageActionRow().addComponents(
+					{
+						type: "BUTTON",
+						label: "× error :/",
+						style: "DANGER",
+						customId: "TESTSAFEMODE|error",
+					},
+					{
+						type: "BUTTON",
+						label: "✓ succeed :)",
+						style: "SUCCESS",
+						customId: "TESTSAFEMODE|success",
+					},
+				),
+			],
+		});
+	},
+);
 
 
 nr.globalCommand(

@@ -100,10 +100,10 @@ export function button(id: string, label: string | undefined, style: ButtonStyle
 	};
 }
 
-export type ActionRow = {type: 1, components: d.APIMessageComponent[]};
+export type ActionRow = d.APIActionRowComponent;
 export function componentRow(children: d.APIMessageComponent[]): ActionRow {
 	if(children.length > 5) throw new Error("too many buttons");
-	return {type: 1, components: children};
+	return {type: 1, components: children as Exclude<d.APIMessageComponent, d.APIActionRowComponent>[]};
 }
 
 export type SampleMessage = {
@@ -284,6 +284,29 @@ nr.ginteractionhandler["boo_btn"] = {
 				])
 			]);
 		}
+	}
+};
+
+nr.ginteractionhandler["TESTSAFEMODE"] = {
+	async handle(info, custom_id_split) {
+		const [, idbit] = custom_id_split.split("|");
+		await info.raw_interaction!.sendRaw({
+			type: 7,
+			data: {
+				content: "fancy! a message! neat! "+Date.now(),
+				allowed_mentions: {parse: []},
+				components: [
+					componentRow([
+						button("TESTSAFEMODE|error", "× error :/", "deny", (
+							idbit === "error" ? {
+								emoji: {name: "dnjklancjkd", id: "cdjnklanl", animated: false},
+							} : {}
+						)),
+						button("TESTSAFEMODE|success", "✓ succeed :)", "accept", {}),
+					]),
+				],
+			},
+		});
 	}
 };
 

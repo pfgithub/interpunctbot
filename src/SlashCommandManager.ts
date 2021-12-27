@@ -35,6 +35,16 @@ type UnsubmittedAPIApplicationCommand = Omit<d.APIApplicationCommand, "id" | "ap
 export type InteractionHandled<T> = {__interaction_handled: T};
 const interaction_handled: InteractionHandled<any> = {__interaction_handled: true};
 
+export function enterSafeMode(emsg: string, value: d.APIInteractionResponse): d.APIInteractionResponse {
+	// if it says something like ""
+	// components[1].components[0] we know exactly which one to fix
+	// but that might allow for like double errors and stuff
+	// so for now I'll just get rid of all of them
+	return JSON.parse(JSON.stringify(value, (k, v) => {
+		return v;
+	}));
+}
+
 export class InteractionHelper {
     raw_interaction: d.APIInteraction;
     has_ackd: boolean;
@@ -45,9 +55,17 @@ export class InteractionHelper {
     	this.has_ackd = false;
     	this.options = undefined as any;
     }
-    async sendRaw(value: unknown): Promise<void> {
+    async sendRaw(value: d.APIInteractionResponse): Promise<void> {
     	if(this.has_ackd) throw new Error("cannot double interact");
-    	await api.api.interactions(this.raw_interaction.id, this.raw_interaction.token).callback.post({data: value});
+		const iltres = await ilt(api.api.interactions(this.raw_interaction.id, this.raw_interaction.token).callback.post({data: value}), "interaction sendraw");
+		if(iltres.error) {
+			const e = iltres.error;
+			if(e.toString().includes("Invalid Form Body")) {
+				await api.api.interactions(this.raw_interaction.id, this.raw_interaction.token).callback.post({
+					data: enterSafeMode(e.toString(), value),
+				});
+			}
+		}
     	this.has_ackd = true;
     }
     async editOriginal(value: unknown): Promise<void> {
@@ -76,7 +94,7 @@ export class InteractionHelper {
     	});
     	return interaction_handled;
     }
-    async replyHiddenHideCommand(message: string, components: unknown = undefined): Promise<InteractionHandled<any>> {
+    async replyHiddenHideCommand(message: string, components: d.APIActionRowComponent[] | undefined = undefined): Promise<InteractionHandled<any>> {
     	await this.sendRaw({
     		type: 4,
     		data: {content: message, flags: 1 << 6, allowed_mentions: {parse: []}, components},
