@@ -71,6 +71,157 @@ emojis:
     crate3: "<:crate3:907695530946228234>"
     crate4: "<:crate4:907695780003979305>"
     rail1: "<:rail1:907696403822804992>"
+    window1: "<:window1:907772794232799303>"
+    slidehousefloor: "<:slidehousefloor:907773493616214016>"
+    slidehouseroof: "<:slidehouseroof:907774170899808287>"
+    poolstairs: "<:poolstairs:907774852675534858>"
+    slidesecbg: "<:slidesecbg:907775202434379837>"
+    slidehousebg: "<:slidehousebg:907776065404043326>"
+    bbqfloor: "<:bbqfloor:908188832330051625>"
+    bbqbg: "<:bbqbg:908190003597807617>"
+    barbeque: "<:barbeque:908190471967346719>"
+    barricade1: "<:barricade1:908194886027722773>"
+    barricade2: "<:barricade2:908195316568817705>"
+    ladder1: "<:ladder1:908195641438642178>"
+    ladderbg1: "<:ladderbg1:908196138916659251>"
+    ladderbg2: "<:ladderbg2:908196609190416484>"
+    slidefloor1: "<:slidefloor1:908197122841649163>"
+    slideumbrella: "<:slideumbrella:908201140095705098>"
+    slidebg1: "<:slidebg1:908201551544332299>"
+    slidebg2: "<:slidebg2:908419283036569650>"
+    slidebg3: "<:slidebg3:908423325158617141>"
+    slidechair: "<:slidechair:908201979036196915>"
+    slidehouse1: "<:slidehouse1:908202389578842142>"
+    slidehouse2: "<:slidehouse2:908437368531472384>"
+    slidehouse3: "<:slidehouse3:908437583019798618>"
+    sliderake: "<:sliderake:908419046268108850>"
+    slide1: "<:slide1:908422393750515794>"
+    slide2: "<:slide2:908440751367659580>"
+    lawnmower: "<:lawnmower:908422868843495494>"
+    boxesbg1: "<:boxesbg1:908438092103417876>"
+    boxesbg2: "<:boxesbg2:908442143226495006>"
+    boxesbg3: "<:boxesbg3:908449078420058143>"
+    boxesbg4: "<:boxesbg4:908449733977198602>"
+    boxes1: "<:boxes1:908441013733982260>"
+    boxes2: "<:boxes2:908441319683289129>"
+    boxes3: "<:boxes3:908441683673362462>"
+    boxes4: "<:boxes4:908441902901243954>"
+    boxesbottom1: "<:boxesbottom1:908452811791028275>"
+    boxesbottom2: "<:boxesbottom2:908453108689043476>"
+    skybox: "<:skybox:908453353607020614>"
+    boxtopbg1: "<:boxtopbg1:908453739269087243>"
+    boxtopbg2: "<:boxtopbg2:908454087643774976>"
+    stairswall1: "<:stairswall1:908454770493227028>"
+    stairswall2: "<:stairswall2:908458283721973812>"
+    stairswall3: "<:stairswall3:908857821062369322>"
+    stairs1: "<:stairs1:908455828573532220>"
+    stairs2: "<:stairs2:908456496457736202>"
+    stairs3: "<:stairs3:908858440150024282>"
+    stairs4: "<:stairs4:908858641073967185>"
+    stairschair1: "<:stairschair1:908457771199004713>"
+    stairschair2: "<:stairschair2:908855368074031114>"
+    furnicamera: "<:furnicamera:908857672512716832>"
+    furnibg1: "<:furnibg1:908859377136590891>"
+    furnibg2: "<:furnibg2:908859476193468467>"
+    furnibg3: "<:furnibg3:908859892322934844>"
+    furnibg4: "<:furnibg4:908859914615664720>"
+    furnibg5: "<:furnibg5:922604662346104872>"
+    furnibg6: "<:furnibg6:922605725254037504>"
+    furnibg7: "<:furnibg7:922607213435060254>"
+    furnibg8: "<:furnibg8:922607434957226045>"
+    furnibg9: "<:furnibg9:922607729728684072>"
+    furnibg10: "<:furnibg10:922608886249304095>"
+    furnibg11: "<:furnibg11:923219220190335029>"
+    furnibg12: "<:furnibg12:923222530075009034>"
+    furnibg13: "<:furnibg13:923223107051868221>"
+    furnibg14: "<:furnibg14:923223614243876874>"
+    furnibg15: "<:furnibg15:923223855118577665>"
+    furnibg16: "<:furnibg16:923225503475859518>"
+    furnibg17: "<:furnibg17:923225831927582810>"
+    furnibg18: "<:furnibg18:923226079219572777>"
+    furnibg19: "<:furnibg19:923226255380328569>"
+    furnibg20: "<:furnibg20:923233678753140806>"
+    furnibg21: "<:furnibg21:923234962868670464>"
+    furnibg22: "<:furnibg22:923241801316454481>"
+    furnibg23: "<:furnibg23:923241801782026291>"
+    furnibg24: "<:furnibg24:923243085461323776>"
+    furnichair: "<:furnichair:923233540311752766>"
+    furnicouch1: "<:furnicouch1:922603806905204746>"
+    furnicouch2: "<:furnicouch2:922605116773793862>"
+    furnicouch3: "<:furnicouch3:923236212272169020>"
+    furnitoprock: "<:furnitoprock:923241802495058021>"
+    furnihole: "<:furnihole:923235693172518912>"
+    furnitoilet: "<:furnitoilet:923219630477156373>"
+    furniwindow: "<:furniwindow:923224406950555649>"
+    couchrock: "<:couchrock:923583001936408616>"
+    diopainting: "<:diopainting:923225156409761852>"
+    skyorange: "<:skyorange:923220665534922852>"
+    orangerockbg: "<:orangerockbg:923241802100797500>"
+    orangerock2bg: "<:orangerock2bg:923593380301262918>"
+    orangetablerock: "<:orangetablerock:923580990658584586>"
+    orangetable: "<:orangetable:923584258369536000>"
+    orangerock1: "<:orangerock1:923585413858328636>"
+    orangerock2: "<:orangerock2:923593380263526460>"
+    orangerock3: "<:orangerock3:923594713011994626>"
+    orangetoprock: "<:orangetoprock:923601481553293354>"
+    churchrock: "<:churchrock:923601481024831548>"
+    churchrockbg: "<:churchrockbg:923601480659898459>"
+    churchrockbg2: "<:churchrockbg2:923602383248977951>"
+    churchbg: "<:churchbg:923602383764881478>"
+    churchbg2: "<:churchbg2:923603157324546128>"
+    churchbg3: "<:churchbg3:923602778696331275>"
+    churchwall1: "<:churchwall1:923601481012219934>"
+    gargoyle: "<:gargoyle:923602778851516456>"
+    skypurple: "<:skypurple:923607027605966928>"
+    churchtop: "<:churchtop:923606735065845874>"
+    churchtopbg: "<:churchtopbg:923614047113478225>"
+    churchbell: "<:churchbell:923614047759368234>"
+    churchtoprock1: "<:churchtoprock1:923615478658785350>"
+    churchtoprock2: "<:churchtoprock2:923615478524547162>"
+    churchtoprock3: "<:churchtoprock3:923615478436479046>"
+    churchtop1: "<:churchtop1:923616868718227606>"
+    churchtop2: "<:churchtop2:923617547532767252>"
+    hatrock1: "<:hatrock1:923961837597376572>"
+    hatrock2: "<:hatrock2:923961837769330778>"
+    hatrock3: "<:hatrock3:923964598544113664>"
+    hatrock4: "<:hatrock4:923964289713336330>"
+    hatrockbg1: "<:hatrockbg1:923963018432352256>"
+    hatrockbg2: "<:hatrockbg2:923963018117779467>"
+    hatrockbg3: "<:hatrockbg3:923963955112714242>"
+    hatrockbg4: "<:hatrockbg4:923964895689584671>"
+    hat: "<:hat:923969747765301288>"
+    anvilrock: "<:anvilrock:923969747652063243>"
+    anvil1: "<:anvil1:923970848841408554>"
+    anvil2: "<:anvil2:923970313857937489>"
+    anviltoprock1: "<:anviltoprock1:924008231662137366>"
+    anviltoprock2: "<:anviltoprock2:924009600439685181>"
+    anviltoprock3: "<:anviltoprock3:924009600943001610>"
+    anviltoprockbg: "<:anviltoprockbg:924008231263678535>"
+    boulder1: "<:boulder1:924008231578251304>"
+    boulder2: "<:boulder2:924008231502749747>"
+    bucketrock1: "<:bucketrock1:924020993389903954>"
+    bucketrock2: "<:bucketrock2:924020993809346610>"
+    bucketrock3: "<:bucketrock3:924020993700270140>"
+    bucket1: "<:bucket1:924280945740226590>"
+    bucketrope: "<:bucketrope:924280948714004570>"
+    bucketsnake: "<:bucketsnake:924281305544396830>"
+    snakerock1: "<:snakerock1:924280946465837077>"
+    snakerock2: "<:snakerock2:924280946105131048>"
+    icerock1: "<:icerock1:924287014055075851>"
+    icerock2: "<:icerock2:924287014428364821>"
+    icewall1: "<:icewall1:924288470908809226>"
+    icewall2: "<:icewall2:924287014424174602>"
+    icewall3: "<:icewall3:924289125253799976>"
+    icewallbg1: "<:icewallbg1:924290682846318642>"
+    icewallbg2: "<:icewallbg2:924287014344466456>"
+    icewallbg3: "<:icewallbg3:924290950388400168>"
+    skydarkblue: "<:skydarkblue:924292967055917076>"
+    towerrock1: "<:towerrock1:924292641775038495>"
+    towerrock2: "<:towerrock2:924292642005741568>"
+    towerrock3: "<:towerrock3:924294098976927784>"
+    tower1: "<:tower1:924294099085959208>"
+    tower2: "<:tower2:924294098687516743>"
+    tower3: "<:tower3:924294098997903450>"
 start: tree
 levels:
     tree:
@@ -248,15 +399,10 @@ levels:
               goto: vanrock
               chance: 0.2
             - msg:
-                  "*You try grabbing the tube but accidentally push yourself to
-                  the left with great force*"
-              goto: rock
-              chance: 0.2
-            - msg:
                   "*You try grabbing the tube but you accidentally push yourself
                   to the left and fall back down to the basin*"
               goto: basin
-              chance: 0.2
+              chance: 0.15
             - msg: "*You grab the tube and pull yourself up*"
               goto: barrels
               chance: 0.9
@@ -643,11 +789,13 @@ levels:
             - "*You hit the crate.*"
     slidehouse:
         text: |
-            {player} This level is not implemented yet! {player}
-            Add it yourself:
-            https://github.com/pfgithub/interpunctbot/blob/master/src/commands/fun/goi.yaml
+            {skyblue}{slidehouseroof     }{slidehouseroof}{slidehouseroof }
+            {slidesecbg}{window1           }{player      }{slidehousebg   }
+            {poolstairs}{slidehousefloor}{slidehousefloor}{slidehousefloor}
+            {skyblue   }{skyblue        }{skyblue        }{skyblue        }
         left:
-            - "*You go left.*"
+            - msg: "*You go left to the barbeque.*"
+              goto: barbeque
         right:
             - msg: "*You go back to the right side.*"
               goto: constructiontop
@@ -656,4 +804,742 @@ levels:
               goto: constructionstart
               chance: 10
         up:
-            - "*You go up.*"
+            - "*You hit your head on the ceilling.*"
+    barbeque:
+        text: |
+            {skyblue}{skyblue}{skyblue  }{skyblue }
+            {skyblue}{skyblue}{skyblue  }{skyblue }
+            {skyblue}{barbeque}{player  }{bbqbg   }
+            {skyblue}{bbqfloor}{bbqfloor}{bbqfloor}
+        left:
+            - msg: "*You go left and fall to the ladder.*"
+              goto: ladder
+              chance: 50
+            - msg: "*You go left to the other side.*"
+              goto: slide1
+              chance: 36
+            - msg: "*You try to go to the left but fall off from the ladder back to chimney.*"
+              goto: chimneygrider
+              chance: 10
+            - msg: "*You try to go to the left but fall off from the ladder back to the van.*"
+              goto: vanrock
+              chance: 4
+        up:
+            - "*You pogo up and fall back down.*"
+    ladder:
+        text: |
+            {slidefloor1}{skyblue}{skyblue  }{barbeque  }
+            {ladderbg2}{skyblue}{skyblue}{bbqfloor      }
+            {ladderbg1}{ladder1}{player }{skyblue       }
+            {barricade2}{barricade2}{barricade1}{skyblue}
+        left:
+            - "*You hit the ladder.*"
+        up:
+            - msg: "*You go back up to the barbeque.*"
+              goto: barbeque
+              chance: 50
+            - msg: "*You try to go back up but fall back down to the ladder.*"
+              chance: 25
+            - msg: "*You go up to the other side.*"
+              goto: slide1
+              chance: 10
+            - msg: "*You try to go up but fall down back to the chimney.*"
+              goto: chimneygrider
+              chance: 10
+            - msg: "*You try to go up but fall down back to the van.*"
+              goto: vanrock
+              chance: 5
+        right:
+            - msg: "*You go back to the house.*"
+              goto: slidehouse
+    slide1:
+        text: |
+            {slidehouse1}{skyblue}{skyblue}{skyblue  }
+            {slidechair }{skyblue}{skyblue}{skyblue  }
+            {slideumbrella}{player}{skyblue}{skyblue }
+            {slidebg1}{slidefloor1}{skyblue}{barbeque}
+        left:
+            - "*You hit the umbrella.*"
+        up:
+            - msg: "*You try to climb onto the umbrella but fail.*"
+              chance: 55
+            - msg: "*You climb onto the umbrella.*"
+              goto: slideumbrella
+              chance: 35
+            - msg: "*You try to climb onto the umbrella but accidentally push yourself to the ladder.*"
+              goto: ladder
+              chance: 5
+            - msg: "*You try to climb onto the umbrella but push yourself to the right all the way to the chimney.*"
+              goto: chimneygrider
+              chance: 5
+        right:
+            - msg: "*You go back to the barbeque.*"
+              goto: barbeque
+              chance: 50
+            - msg: "*You try to go to the barbeque but fall to the ladder.*"
+              goto: ladder
+              chance: 35
+            - msg: "*You try to go to the barbeque but miss and fall to the chimney.*"
+              goto: chimneygrider
+              chance: 15
+    slideumbrella:
+        text: |
+            {sliderake}{skyblue     }{skyblue}{skyblue}
+            {slidehouse1}{skyblue   }{skyblue}{skyblue}
+            {slidechair}{player     }{skyblue}{skyblue}
+            {slidebg2}{slideumbrella}{skyblue}{skyblue}
+        left:
+            - "*You hit the chair.*"
+        up:
+            - msg: "*You try to climb onto the rake but fail.*"
+              chance: 65
+            - msg: "*You try to climb onto the rake but fall off the umbrella*"
+              goto: slide1
+              chance: 10
+            - msg: "*You climb up onto the rake.*"
+              goto: sliderake
+              chance: 15
+            - msg: "*You try to climb onto the rake but fall off to the ladder.*"
+              goto: ladder
+              chance: 5
+            - msg: "*You try to climb onto the rake but fall to the right all the way to chimney.*"
+              goto: chimneygrider
+              chance: 5
+        right:
+            - msg: "*You go back down.*"
+              goto: slide1
+              chance: 50
+            - msg: "*You go back to the barbeque.*"
+              goto: barbeque
+              chance: 25
+            - msg: "*You try to go back to the barbeque but fall to the ladder.*"
+              goto: ladder
+              chance: 20
+            - msg: "*You try to go back to the barbeque but fall off the ladder to chimney.*"
+              goto: chimneygrider
+              chance: 5
+    sliderake:
+        text: |
+            {slidehouse3}{skyblue}{skyblue   }{boxesbg1}
+            {slidehouse2}{slide1}{skyblue    }{skyblue }
+            {lawnmower}{player}{skyblue      }{skyblue }
+            {slidebg3}{sliderake}{skyblue    }{skyblue }
+        left:
+            - "*You hit the lawn mower.*"
+        up:
+            - msg: "*You climb onto the slide.*"
+              goto: slidetop
+              chance: 70
+            - msg: "*You try to climb onto the slide but fail.*"
+              chance: 15
+            - msg: "*You try to climb onto the slide but fall back down.*"
+              goto: slide1
+              chance: 10
+            - msg: "*You try to climb onto the slide but fall down to the ladder.*"
+              goto: ladder
+              chance: 3
+            - msg: "*You pull yourself from the slide to the boxes with great force.*"
+              goto: boxes
+              chance: 2
+        right:
+            - msg: "*You go back down.*"
+              goto: slide1
+              chance: 50
+            - msg: "*You go back to the barbeque.*"
+              goto: barbeque
+              chance: 40
+            - msg: "*You try to go back to the barbeque but fall to the ladder.*"
+              goto: ladder
+              chance: 10
+    slidetop:
+        text: |
+            {skyblue}{skyblue}{boxes1    }{boxes2 }
+            {slide2}{skyblue}{boxesbg2   }{boxes3 }
+            {slidehouse3}{player}{skyblue}{boxes4 }
+            {slidehouse2}{slide1}{skyblue}{skyblue}
+        left:
+            - "*You hit the slide.*"
+        up:
+            - msg: "*You climb up to the boxes.*"
+              goto: boxestop
+              chance: 75
+            - msg: "*You try to climb onto the boxes but fall back to the slide.*"
+              chance: 15
+            - msg: "*You try to climb onto the boxes but fall back down to the bottom.*"
+              goto: slide1
+              chance: 10
+        right:
+            - msg: "*You go back down to the bottom.*"
+              goto: slide1
+              chance: 50
+            - msg: "*You go back to the barbeque.*"
+              goto: barbeque
+              chance: 40
+            - msg: "*You try to go back to the barbeque but fall down to the ladder.*"
+              goto: ladder
+              chance: 10
+    boxestop:
+        text: |
+            {skyblue}{skyblue}{skyblue}{boxesbg4}
+            {skyblue}{skyblue}{player}{boxesbg3}
+            {skyblue}{boxes1}{boxes2}{boxesbg3}
+            {skyblue}{boxesbg2}{boxes3}{boxesbg3}
+        left:
+            - msg: "*You go back to the slide.*"
+              goto: slidetop
+              chance: 90
+            - msg: "*You go back down to the bottom.*"
+              goto: slide1
+              chance: 10
+        up:
+            - "*You pogo up and fall back down.*"
+        right:
+            - msg: "*You try to go right and fall back down to the barbeque.*"
+              goto: barbeque
+              chance: 65
+            - msg: "*You fall down to the other boxes.*"
+              goto: boxesbottom
+              chance: 35
+    boxesbottom:
+        text: |
+            {skyblue }{skyblue}{stairswall2}{stairschair1}
+            {boxtopbg1}{boxtopbg2}{stairswall1  }{stairs2}
+            {skybox   }{player   }{skyblue      }{stairs1}
+            {boxesbottom1}{boxesbottom2}{skyblue}{skyblue}
+        left:
+            - msg: "*You try to go back up to the other boxes but fall back down to the barbeque.*"
+              goto: barbeque
+              chance: 85
+            - msg: "*You go back to the other boxes.*"
+              goto: boxestop
+              chance: 15
+        up:
+            - "*You hit your head on the ceiling.*"
+        right:
+            - msg: "*You try to climb up the stairs but fall back down to the house.*"
+              goto: slidehouse
+              chance: 60
+            - msg: "*You climb up the stairs.*"
+              goto: furnichair
+              chance: 40
+    furnichair:
+        text: |
+            {stairswall3}{skyblue}{furnibg4   }{furnibg3}
+            {furnicamera}{skyblue}{furnibg2   }{furnibg1}
+            {stairswall3}{skyblue}{player      }{stairs4}
+            {stairswall3}{skyblue}{stairschair2}{stairs3}
+        left:
+          - msg: "*You go back down the stairs to the boxes.*"
+            goto: boxesbottom
+            chance: 35
+          - msg: "*You try to go back down to the boxes but fall back down to the house.*"
+            goto: slidehouse
+            chance: 65
+        up:
+          - msg: "*You try to climb up to the couch but fall back down.*"
+            chance: 65
+          - msg: "*You climb up to the couches.*"
+            goto: furnicouch
+            chance: 20
+          - msg: "*You try to climb to the couch but fall down the stairs.*"
+            goto: slidehouse
+            chance: 15
+        right:
+          - "*You hit the stairs.*"
+    furnicouch:
+        text: |
+            {furnibg9   }{skyblue}{skyblue    }{furnibg6}
+            {furnibg8   }{skyblue}{skyblue }{furnicouch2}
+            {furnibg7   }{skyblue}{player    }{furnibg10}
+            {stairswall3}{skyblue}{furnicouch1}{furnibg5}
+        left:
+          - msg: "*You go back down the stairs to the boxes.*"
+            goto: boxesbottom
+            chance: 25
+          - msg: "*You try to go back down to the camera but fall to the chair.*"
+            goto: furnichair
+            chance: 45
+          - msg: "*You try to get back down to the chair and fall down the stairs.*"
+            goto: slidehouse
+            chance: 30
+        up:
+          - msg: "*You grab the chair and pull yourself up to the toilet.*"
+            goto: furnitoilet
+            chance: 15
+          - msg: "*You grab the chair and slip and fall to the chair*"
+            goto: furnichair
+            chance: 25
+          - msg: "*You pogo up from the couch and fling yourself all the way down the stairs.*"
+            goto: furnihouse
+            chance: 20
+          - msg: "*You pogo up and fail to grip anything and land back on the couch.*"
+            chance: 10
+          - msg: "*You pull up and fail to grab the toilet and bounce back to the couch.*"
+            chance: 30
+        right:
+          - msg: "*You smack your hammer into the couch wall and pull yourself back up to the couch.*"
+            chance: 48
+          - msg: "*You bounce off the wall and land back on the couch.*"
+            chance: 38
+          - msg: "*You bounce off the wall and slip off the couch landing on the chair below.*"
+            goto: furnichair
+            chance: 10
+          - msg: "*You bounce off the wall and fall all the way down the stairs.*"
+            goto: slidehouse
+            chance: 4
+    furnitoilet:
+        text: |
+            {furnibg15}{diopainting}{skyorange  }{furnibg19}
+            {furnibg14}{skyorange  }{player     }{furnibg18}
+            {furnibg13}{furniwindow}{furnitoilet}{furnibg17}
+            {furnibg12}{skyorange  }{furnibg11  }{furnibg16}
+        left:
+          - msg: "*You jump the whole way down furniture.*"
+            goto: slidehouse
+            chance: 10
+          - msg: "*You jump down to the chair and slip down to the couch.*"
+            goto: furnicouch
+            chance: 30
+          - msg: "*You push off to the left furniture wall and bounce onto the couch.*"
+            goto: furnicouch
+            chance: 30
+          - msg: "*You push off to the left and fall down to the chair below the couch.*"
+            goto: furnichair
+            chance: 30
+        up:
+          - msg: "*You pogo up and fail to grip the top cabinet and fall back to the toilet.*"
+            chance: 30
+          - msg: "*You pogo up, fail to grab anything, and land safely back on the toilet.*"
+            chance: 18
+          - msg: "*You pogo up and slip off the cabinet and fall down, saving yourself at the couch.*"
+            goto: furnicouch
+            chance: 15
+          - msg: "*You pogo up and swing your hammer the wrong way, bouncing off the right wall and falling down to the chair.*"
+            goto: furnichair
+            chance: 10
+          - msg: "*You pogo up to the cabinet, grab the lamp above and pull yourself up.*"
+            goto: furnitop
+            chance: 25
+          - msg: "*You slam up to the cabinet, pull up on the chair, and make an outstanding pull on the ceiling chair landing you all the way past the top of furniture.*"
+            goto: orange1
+            chance: 2
+        right: 
+          - msg: "*You pogo to the right and hit the wall and land back on the toilet.*"
+            chance: 50
+          #- msg: "*You pull up on the right wall and find yourself in a crevice on the right wall"
+          #  goto: furniwallledge
+          #  chance: 10
+          - msg: "*You push to the right and bounce off the right wall but pull yourself back up to the toilet.*"
+            chance: 30
+          - msg: "*You pogo up to the right and bounce off the wall falling down to the couch.*"
+            goto: furnicouch
+            chance: 10
+          - msg: "*You pogo up to the right and bounce off the wall falling down the whole of furniture but pushing off the wall and landing on the bottom chair.*"
+            goto: furnichair
+            chance: 5
+          - msg: "*You pogo up to the right and bounce off the wall falling all the way down furniture leaving you at the house.*"
+            goto: slidehouse
+            chance: 5
+    furnitop:
+        text: |
+            {orangerockbg}{furnitoprock}{furnibg23}{furnibg22}
+            {skyorange   }{skyorange}{skyorange   }{skyorange}
+            {skyorange   }{skyorange}{player     }{furnichair}
+            {furnicouch3 }{furnihole}{furnibg20   }{furnibg21}
+        left:
+          - msg: "*You push yourself straight left leaping over the gap.*"
+            goto: orange1
+            chance: 40
+          - msg: "*You drop into the gap but pull yourself up and over the couch and to the orange table.*"
+            goto: orange1
+            chance: 30
+          #- msg: "*You fall into the gap landing you in a peculiar place below the top of furniture.*"
+          # goto: lampjump
+          # chance: 20
+
+          # Placeholder fall:
+          - msg: "*You fall into the gap and slip further down to the boxes.*"
+            goto: boxestop
+            chance: 20
+          - msg: "*You drop into the gap but push yourself back to where you were.*"
+            chance: 10
+        up:
+          #- msg: "*You pogo up and hit your head on a rock. Hurt and in the midst of the air, you panic and lose your sense of direction and fall down the gap.*"
+          #  goto: lampjump
+          #  chance: 20
+          - msg: "*You angled your hammer a little further to the left than you would have liked, and thread the needle straight through the gap and find yourself back at the boxes.*"
+            goto: boxestop
+            chance: 20
+          - msg: "*You pogo straight up and land back where you were.*"
+            chance: 30
+          - msg: "*You pogo up and land a little higher than you were before.*"
+            goto: furnitop2
+            chance: 30
+        right: 
+          - msg: "*You push yourself to the right and get stuck.  Frustrated, you give up on your dreams of going back to before you played this game.*"
+            chance: 40
+            # Remember to separate this one below into two separate chances for falling to lampjump and boxestop
+          - msg: "*You push yourself to the right and instead of acheiving your desired position, you clumsily fall down the hole.*"
+            goto: boxestop
+            chance: 30
+            # Remember to make another one below this for pulling yourself too far to the right and getting to the middle of the top of furni.
+          - msg: "*You push yourself up to the right and achieve your dream position.*"
+            goto: furnitop2
+            chance: 30
+    furnitop2:
+        text: |
+            {orangerockbg}{furnitoprock}{furnibg23}{furnibg22}
+            {skyorange   }{skyorange}{skyorange   }{skyorange}
+            {skyorange   }{skyorange}{player     }{furnichair}
+            {furnicouch3 }{furnihole}{furnibg20   }{furnibg21}
+        left:
+          - msg: "*You push yourself straight left leaping over the gap.*"
+            goto: orange1
+            chance: 50
+          - msg: "*You- less gracefully than you had hoped- drop onto the couch and pull yourself to the orange table.*"
+            goto: orange1
+            chance: 20
+          - msg: "*You smoothly transition onto the couch and pull yourself over to the orange table.*"
+            goto: orange1
+            chance: 15
+          #- msg: "*You fall into the gap landing you in a peculiar place below the top of furniture.*"
+          # goto: lampjump
+          # chance: 20
+
+          # Placeholder fall:
+          - msg: "*You fall into the gap and slip further down to the boxes.*"
+            goto: boxestop
+            chance: 5
+          - msg: "*You drop into the gap but push yourself back to where you were.*"
+            chance: 10
+        up:
+          #- msg: "*You pogo up and hit your head on a rock. Hurt and in the midst of the air, you panic and lose your sense of direction and fall down the gap.*"
+          #  goto: lampjump
+          #  chance: 20
+          - msg: "*You angled your hammer a little straighter than you tried to have, and almost fell through the gap, but luckily, you saved yourself.*"
+            goto: furnitop
+            chance: 10
+          - msg: "*You pogo up and mistakenly land back where you were before you put in the work and the hours.*"
+            goto: furnitop
+            chance: 30
+          - msg: "*You pogo up and land back where you just were.*"
+            goto: furnitop
+            chance: 10
+        right: 
+          - msg: "*You push yourself to the right and get stuck.  Frustrated, you give up on your dreams of going back to before you played this game, but not before losing your spot of unquestionable success.*"
+            goto: furnitop
+            chance: 60
+            # Remember to make another one below this for pulling yourself not quite as far to the right and getting to the middle of the top of furni.
+          - msg: "*You go right, back to where you were.*"
+            goto: furnitoilet
+            chance: 40
+    orange1:
+        text: |
+            {skyorange}{orangerock1}{orangerockbg}{furnitoprock}
+            {skyorange}{skyorange      }{skyorange}{skyorange  }
+            {skyorange}{orangetable    }{player   }{skyorange  }
+            {skyorange}{orangetablerock}{couchrock}{furnicouch3}
+        left: 
+          - msg: "*You pull up gently onto the orange table.*"
+            goto: orangetable
+            chance: 70
+          - msg: "*You attempt to pull yourself onto the orange table, but get trolled by the orange.*"
+            chance: 10
+          - msg: "*You try to pull yourself onto the orange table, and midjudged the orange and fell down to the slide.*"
+            goto: slidetop
+            chance: 5
+          - msg: "*You try to pull yourself onto the orange table, and midjudged the orange and fell down to the boxes.*"
+            goto: boxestop
+            chance: 10
+          - msg: "*You try to pull yourself onto the orange table, and were a little too aggressive and uncalculated in your actions, now paying the ultimate price.*"
+            goto: tree
+            chance: 5
+        up:
+          - msg: "*You pogo up- too scared to try anything- and land back safely where you were.*"
+            chance: 50
+          - msg: "*You pogo up and hit your head on the ceiling and conveniently land on the orange table.*"
+            goto: orangetable
+            chance: 20
+          - msg: "*You make a bold move, attempting to skip the frightening orange and it's table, and grab the top rock directly.  But fling yourself all the way to the beginning of the game.*"
+            goto: tree
+            chance: 6
+          - msg: "*You pogo up and swing your hammer onto the table, displacing the orange and slowly lowering yourself onto the table.*"
+            goto: orangetable
+            chance: 14
+          - msg: "*You pogo up and swing your hammer onto the table, slipping on the orange, panicking, and flinging yourself off the mountain.*"
+            goto: tree
+            chance: 4
+          - msg: "*You pogo up and slap your hammer onto the table, slipping on the orange, panicking, and flinging yourself down to the boxes.*"
+            goto: boxestop
+            chance: 3
+          - msg: "*You pogo up and swing your hammer onto the table, slipping on the orange, panicking, and flinging yourself down to the slide.*"
+            goto: boxestop
+            chance: 3
+    orangetable:
+        text: |
+            {skyorange}{orangerock1}{orangerockbg}{furnitoprock}
+            {skyorange}{player         }{skyorange}{skyorange  }
+            {skyorange}{orangetable    }{skyorange}{skyorange  }
+            {skyorange}{orangetablerock}{couchrock}{furnicouch3}
+        left: 
+          - msg: "*You try to look down into the abyss, but see nothing.*"
+            chance: 40
+          - msg: "*You lower yourself slowly into the void, and slip, but save yourself.*"
+            goto: orange1
+            chance: 20
+          - msg: "*You lower yourself slowly into the void, staring your worst nightmares in the face, and slip, landing yourself back at the boxes.*"
+            goto: boxestop
+            chance: 20
+          - msg: "*You lower yourself foolishly into the abyss, attempting to peer into the worst case scenario, and slip, landing yourself back at the boxes.*"
+            goto: boxestop
+            chance: 18
+          - msg: "*You jump knowingly into deaths warm embrace, laughing all the way down as you land at the beginning of the game.*"
+            goto: boxestop
+            chance: 2
+        up:
+          - msg: "*You pogo up and hit your head on the rock, shifting your position a little on the table.*"
+            chance: 30
+          - msg: "*You pogo up and hit your head on the tip of the rock, falling down to the edge of the ground but grabbing the rock and flinging yourself back to safety.*"
+            goto: orange1
+            chance: 10
+          - msg: "*You pogo up and hit your head on the tip of the rock, falling down to the edge of the ground but grabbing the rock and getting ahold of yourself.*"
+            goto: orangetable
+            chance: 5
+          - msg: "*You pogo up and your amygdala immediately activates, you feel more fear than ever before in your life, the adrenaline rushes across your body, your heart beats faster, before anything even happens, you grab the right side of the table, and flinging yourself all the way back to the top of furniture.*"
+            goto: furnitop
+            chance: 5
+          - msg: "*You pogo up and grab the top of the ceiling rock and pull yourself up.*"
+            goto: orange2
+            chance: 25
+        right:
+          - msg: "*You get scared and jump off the table.*"
+            goto: orange1
+            chance: 45
+          - msg: "*You jump off the table back to where you came.*"
+            goto: orange1
+            chance: 25
+          - msg: "*You weren't prepared for the inevitable, and shyed away from the challenge.*"
+            goto: orange1
+            chance: 30
+    orange2:
+        text: |
+            {skyorange}{skyorange  }{skyorange   }{skyorange    }
+            {skyorange}{skyorange  }{skyorange   }{orangerock3  }
+            {skyorange}{player     }{orangerock2 }{orangerock2bg}
+            {skyorange}{orangerock1}{orangerockbg}{furnitoprock }
+        left:
+          - msg: "*You try to go back down to the orange table but fall down to the slide.*"
+            goto: slidetop
+            chance: 40
+          - msg: "*You go back down to the orange table.*"
+            goto: orangetable
+            chance: 60
+        up:
+          - msg: "*You try to pull up to the church but fail.*"
+            chance: 30
+          - msg: "*You try to pull up to the church but fall down to the slide.*"
+            goto: slidetop
+            chance: 43
+          - msg: "*You pull up to the church.*"
+            goto: orangetop
+            chance: 27
+        right:
+          - "*You hit the rock.*"
+    orangetop:
+        text: |
+            {skyorange}{skyorange    }{gargoyle    }{churchbg3    }
+            {skyorange}{skyorange    }{churchwall1 }{churchbg2    }
+            {skyorange}{player       }{churchrock  }{churchbg     }
+            {skyorange}{orangetoprock}{churchrockbg}{churchrockbg2}
+    church:
+        text: |
+            {skypurple}{skypurple}{churchtop2 }{skypurple     }
+            {skypurple}{skypurple}{churchtop1 }{churchtoprock3}
+            {skypurple}{player   }{churchbell }{churchtoprock2}
+            {skypurple}{churchtop}{churchtopbg}{churchtoprock1}
+        left:
+          - msg: "*You go back down to the bottom of church*"
+            goto: orangetop
+            chance: 35
+          - msg: "*You go back down to the orange rock.*"
+            goto: orange2
+            chance: 15
+          - msg: "*You try to go down to the orange rock but fall back down to the slide.*"
+            goto: slidetop
+            chance: 50
+        up:
+          - msg: "*You try to pull up to the hat jump but fall back down.*"
+            chance: 20
+          - msg: "*You try to pull up to the hat jump but fall down to the orange rock.*"
+            goto: orange2
+            chance: 15
+          - msg: "*You try to pull up to the hat jump but fall down to the bottom of church.*"
+            goto: orangetop
+            chance: 35
+          - msg: "*You try to pull up to the hat jump but fall back down to the slide.*"
+            goto: slidetop
+            chance: 5
+          - msg: "*You pull up to the hat jump.*"
+            goto: hatjump
+            chance: 25
+        right:
+          - "*You hit the wall.*"
+    hatjump:
+        text: |
+            {skypurple}{skypurple}{skypurple}{hatrock4  }
+            {skypurple}{skypurple}{skypurple}{hatrock3  }
+            {skypurple}{player   }{hatrock2 }{hatrockbg3}
+            {skypurple}{hatrock1}{hatrockbg1}{hatrockbg2}
+        left:
+          - msg: "*You go back to the church.*"
+            goto: church
+        up:
+          - msg: "*You try to pull up to the anvil jump but fall back down.*"
+            chance: 90
+          - msg: "*You pull up to the anvil jump.*"
+            goto: anviljump
+            chance: 10
+        right:
+          - "*You hit the rock.*"
+    anviljump:
+        text: |
+            {skypurple}{skypurple}{skypurple}{skypurple}
+            {skypurple}{skypurple}{skypurple}{skypurple}
+            {skypurple}{skypurple}{player   }{anvil2   }
+            {skypurple}{hat      }{anvilrock}{anvil1   }
+        left:
+          - msg: "*You go back to the hat jump.*"
+            goto: hatjump
+        up:
+          - msg: "*You try to pull up to the boulders but fail.*"
+            chance: 80
+          - msg: "*You pull up to the boulders.*"
+            goto: boulderjump
+            chance: 20
+        right:
+          - "*You go into the hole and climb back up to anvil.*"
+    boulderjump:
+        text: |
+            {skypurple}{skypurple}{skypurple    }{skypurple     }
+            {boulder2 }{skypurple}{skypurple    }{anviltoprock3 }
+            {boulder1 }{skypurple}{player       }{anviltoprock2 }
+            {skypurple}{skypurple}{anviltoprock1}{anviltoprockbg}
+        left:
+          - msg: "*You try to get to the other side of boulders but fall down to the anvil jump.*"
+            goto: anviljump
+            chance: 45
+          - msg: "*You try to get to the other side of boulders but fall down to the hat jump.*"
+            goto: hatjump
+            chance: 17
+          - msg: "*You go to the other side of boulders.*"
+            goto: bucketjump
+            chance: 38
+        up:
+          - "*You pogo up.*"
+        right:
+          - "*You hit the rock*"
+    bucketjump:
+        text: |
+            {snakerock2 }{skypurple}{bucketrope }{skypurple  }
+            {snakerock1 }{skypurple}{bucket1    }{skypurple  }
+            {bucketsnake}{skypurple}{player     }{skypurple  }
+            {skypurple}{bucketrock1}{bucketrock2}{bucketrock3}
+        left:
+          - msg: "*You ride the snake.*"
+            goto: tree
+            chance: 90
+          - msg: "You tried to ride the snake but fell under it."
+            goto: slidetop
+            chance: 10
+        up:
+          - msg: "*You try to grab the bucket but fail.*"
+            chance: 65
+          - msg: "*You try to grab the bucket but fall down to the hat jump.*"
+            goto: hatjump
+            chance: 15
+          - msg: "*You try to grab the bucket but fall down the snake.*"
+            goto: tree
+            chance: 4
+          - msg: "*You try to grab the bucket but fall under the snake.*"
+            goto: slidetop
+            chance: 6
+          - msg: "You grab the bucket and pull yourself up to the ice mountain."
+            goto: icemountain1
+            chance: 10
+        right:
+          - msg: "*You try to go back to the boulders but fall down to the hat jump.*"
+            goto: hatjump
+            chance: 60
+          - msg: "*You try to go back to the boulders but fall down to the anvil jump.*"
+            goto: anviljump
+            chance: 35
+          - msg: "You go back to the other side of boulders."
+            goto: boulderjump
+            chancE: 5
+    icemountain1:
+        text: |
+            {skypurple}{skypurple}{skypurple}{icewall3 }
+            {skypurple}{skypurple}{skypurple}{icewall2 }
+            {skypurple}{player }{icewall1  }{icewallbg3}
+            {icerock1}{icerock2}{icewallbg1}{icewallbg2}
+        left:
+          - msg: "*You go back down to the bucket.*"
+            goto: bucketjump
+            chance: 94
+          - msg: "*You try to go back down to the bucket but you fall down the snake.*"
+            goto: tree
+            chance: 2
+          - msg: "*You try to go back down to the bucket but you fall under the snake.*"
+            goto: slidetop
+            chance: 4
+        up:
+          - msg: "*You try to climb up the mountain but fall back down.*"
+            goto: tower
+            chance: 65
+          - msg: "*You try to climb up the mountain but fall back down to the bucket.*"
+            goto: bucketjump
+            chance: 25
+          - msg: "*You try to climb up the mountain but fall down the snake.*"
+            goto: tree
+            chance: 4
+          - msg: "*You try to climb up the mountain but fall under the snake.*"
+            goto: slidetop
+            chance: 6
+        right:
+          - "*You hit the mountain*"
+    tower:
+        text: |
+            {skydarkblue}{skydarkblue}{skydarkblue}{tower3  }
+            {skydarkblue}{skydarkblue}{skydarkblue}{tower2  }
+            {skydarkblue}{skydarkblue}{player     }{tower1  }
+            {skydarkblue}{towerrock1}{towerrock2}{towerrock2}
+        left:
+          - msg: "*You go back down the ice mountain.*"
+            goto: icemountain1
+            chance: 25
+          - msg: "*You try to go back down the mountain but fall down to the bucket.*"
+            goto: bucketjump
+            chance: 50
+          - msg: "*You try to go back down the mountain but fall down the snake.*"
+            goto: tree
+            chance: 15
+          - msg: "*You try to go back down the mountain but fall under the snake.*"
+            goto: slidetop
+            chance: 10
+        up:
+          - msg: "*You try to go up the tower but fall back down.*"
+            chance: 85
+          # - msg: "*You try to pogo up the mountain but fall back down to the cart.*"
+          #   goto: towercart
+          #   chance: TBD
+          - msg: "*You try to go up the tower but fall back down the mountain*"
+            goto: icemountain1
+            chance: 5
+          - msg: "*You successfully go up the tower and finish the game.*"
+            goto: endscreen
+            chance: 10
+        right:
+          - "*You hit the tower.*"
+    endscreen:
+        text: |
+            Congratulations, you finished the game!
