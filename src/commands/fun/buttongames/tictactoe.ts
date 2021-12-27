@@ -2033,17 +2033,22 @@ export function requestRoleInput<T>(info: Info, ikey: IKey,
 		return cb(res.value);
 	}, {slash: "give role", base: "giverole {Role name or id}"});
 }
+
+type RequestInputOpts = {note?: undefined | string} | undefined;
+
 export function requestEmojiInput<T>(info: Info, ikey: IKey,
 	cb: (a: {id: string}) => HandleInteractionResponse<T>,
+	opts?: RequestInputOpts,
 ): HandleInteractionResponse<T> {
 	return requestInput(info, ikey, (res): HandleInteractionResponse<T> => {
 		if(res.kind !== "emoji") return {kind: "error", msg: "Expected emoji."};
 		return cb(res.value);
-	}, {slash: "give emoji", base: "giveemoji {Emoji or emoji id}"});
+	}, {slash: "give emoji", base: "giveemoji {Emoji or emoji id}"}, opts);
 }
 export function requestInput<T>(info: Info, ikey: IKey,
 	cb: (a: ResponseType) => HandleInteractionResponse<T>,
 	messages: {slash: string, base: string, entire?: string},
+	opts?: RequestInputOpts,
 ): HandleInteractionResponse<T> {
 	requestInput2(info.message.author.id, (response, input_info) => {
 		perr((async () => {
@@ -2055,10 +2060,11 @@ export function requestInput<T>(info: Info, ikey: IKey,
 				return await input_info.error(resp.msg);
 			}else if(resp.kind === "update_state") {
 				await updateGameState<T>(info, ikey, resp.state, {edit_original: info.raw_interaction!});	
+				const setmsg = "✓ Set." + (opts?.note != null ? "\n"+opts.note : "");
 				if(input_info.raw_interaction) {
-					await input_info.raw_interaction.replyHiddenHideCommand("✓ Set.");
+					await input_info.raw_interaction.replyHiddenHideCommand(setmsg);
 				}else{
-					await input_info.success("Set.");
+					await input_info.success(setmsg);
 				}
 			}else if(resp.kind === "other"){
 				return await resp.handler(input_info);

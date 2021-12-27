@@ -219,6 +219,12 @@ async function do_handle_interaction(interaction: d.APIInteraction) {
 		if(inh) {
 			const result = await ilt(inh.handle(info, data.custom_id), "button click on "+data.custom_id);
 			if(result.error) {
+				if(result.error.message.includes("Invalid Form Body")) {
+					return await info.error("An internal error occured while handling this button click."
+					+" Error code: `"+result.error.errorCode+"`"+"\n"+"Note: This error may "
+					+"be caused by an incorrect emoji in a button. The error text is:\n"+
+					"```\n"+result.error.message+"\n```");
+				}
 				return await info.error("An internal error occured while handling this button click."
 				+" Error code: `"+result.error.errorCode+"`");
 			}

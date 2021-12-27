@@ -111,7 +111,7 @@ function isValidLabel(label: string): string | undefined {
 	return "Label must be at most 80 characters long";
 }
 
-function previewButton(btn: Button, action: RenderActionButtonAction<PanelState>): RenderActionButton<PanelState> {
+function previewButton(opts: {safe: boolean}, btn: Button, action: RenderActionButtonAction<PanelState>): RenderActionButton<PanelState> {
 	// btn.action.kind === "link" ? ((): RenderActionButtonAction<PanelState> => {
 	// 	const is_valid_url = isValidURL(btn.action.url ?? "");
 	// 	return {kind: "link", url: is_valid_url ? "https://interpunct.info/invalid-url?reason="+encodeURIComponent(is_valid_url) : btn.action.url!};
@@ -126,7 +126,11 @@ function previewButton(btn: Button, action: RenderActionButtonAction<PanelState>
 		color: btn.action.kind === "link" ? "secondary" : btn.color,
 		action: action,
 		disabled: false,
-		emoji: btn.emoji ? {id: btn.emoji, name: "a", animated: false} : undefined,
+		emoji: btn.emoji ? (
+			opts.safe
+			? {id: "685668888842993833", name: "a", animated: false}
+			: {id: btn.emoji, name: "a", animated: false}
+		) : undefined,
 	};
 }
 
@@ -576,7 +580,7 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 				embeds: [],
 				components: [
 					...state.rows.filter((_, i) => omode.show_last ? true : i < 4).map((row, row_idx): RenderActionRow<PanelState> => [
-						...row.map((btn, btn_idx) => previewButton(btn, callback<PanelState>("EDITBTN,"+row_idx+","+btn_idx, req_author, () => {
+						...row.map((btn, btn_idx) => previewButton({safe: true}, btn, callback<PanelState>("EDITBTN,"+row_idx+","+btn_idx, req_author, () => {
 							state.edit_mode = {kind: "edit_button", btn_row: row_idx, btn_col: btn_idx};
 							return {kind: "update_state", state};
 						}))),
@@ -614,7 +618,7 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 				components: [
 					[
 						mkbtn<PanelState>("Preview:", "secondary", {disabled: true}, {kind: "none"}),
-						previewButton(btn, callback("PREVIEW_CLICK", req_author, () => {
+						previewButton({safe: true}, btn, callback("PREVIEW_CLICK", req_author, () => {
 							return {kind: "reply_hidden", response: {
 								content: "When you click this button, "+btn.action.kind,
 								embeds: [],
@@ -641,7 +645,7 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 							return requestEmojiInput(info, a, (emoji) => {
 								btn.emoji = emoji.id;
 								return {kind: "update_state", state};
-							});
+							}, {note: "<:info:508842207089000468> The emoji will only display when you preview or send this panel due to Discord API issues."});
 						})),
 						...btn.emoji ? [mkbtn<PanelState>("Clear Emoji", "secondary", {}, callback("CLR_EMOJI", req_author, (author_id) => {
 							btn.emoji = undefined;
