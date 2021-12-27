@@ -199,12 +199,12 @@ async function do_handle_interaction(interaction: d.APIInteraction) {
 		const inh = ginteractionhandler[idv];
 		// note: does not check for channel view perms
 		if(inh) {
-			try {
-				return await inh.handle(info, data.custom_id);
-			}catch(e) {
-				console.log(e);
-				return await info.error("An error occured while handling this button click.");
+			const result = await ilt(inh.handle(info, data.custom_id), "button click on "+data.custom_id);
+			if(result.error) {
+				return await info.error("An internal error occured while handling this button click."
+				+" Error code: `"+result.error.errorCode+"`");
 			}
+			return result.result;
 		}
 		return await info.error("Unsupported button kind `"+idv+"`.");
 	}else if(interaction.type !== d.InteractionType.ApplicationCommand) {
