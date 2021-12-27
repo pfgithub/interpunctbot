@@ -1132,7 +1132,7 @@ client.on("guildDelete", guild => {
 
 export async function reportILTFailure(message: ErrorWithID, reason: Error): Promise<void> {
 	await fs.mkdir("logs/__errors", {recursive: true});
-	await fs.writeFile("logs/__errors/"+message.errorCode, `
+	await fs.writeFile("logs/__errors/"+message.errorCode+"_"+(reason.toString().replace(/[^a-zA-Z]/g, "_")), `
 Error code ${message.errorCode}
 It is now ${Date.now()}
 
