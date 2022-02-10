@@ -9,6 +9,7 @@ import * as util from "util";
 import * as d from "discord-api-types/v9";
 import { shortenLink } from "./commands/fun";
 import { registerFancylib } from "./fancy/fancylib";
+import { textinput_handlers } from "./commands/fun/buttongames/tictactoe";
 
 export const api = client as any as ApiHolder;
 
@@ -27,7 +28,7 @@ type DistributiveOmit<T, K extends keyof any> = T extends any
 	? Omit<T, K>
 	: never
 ;
-type SlashCommandOptionNameless = DistributiveOmit<d.APIApplicationCommandOption, "name">;
+type SlashCommandOptionNameless = DistributiveOmit<d.APIApplicationCommandBasicOption, "name">;
 
 type NamelessAPIApplicationCommand = Omit<UnsubmittedAPIApplicationCommand, "name">;
 type UnsubmittedAPIApplicationCommand = Omit<d.APIApplicationCommand, "id" | "application_id" | "version">;
@@ -35,7 +36,7 @@ type UnsubmittedAPIApplicationCommand = Omit<d.APIApplicationCommand, "id" | "ap
 export type InteractionHandled<T> = {__interaction_handled: T};
 const interaction_handled: InteractionHandled<any> = {__interaction_handled: true};
 
-export function enterSafeMode(emsg: string, value: d.APIInteractionResponse): d.APIInteractionResponse {
+export function enterSafeMode(emsg: string, value: d.APIInteractionResponse | d.APIModalInteractionResponse): d.APIInteractionResponse {
 	// if it says something like ""
 	// components[1].components[0] we know exactly which one to fix
 	// but that might allow for like double errors and stuff
@@ -46,16 +47,16 @@ export function enterSafeMode(emsg: string, value: d.APIInteractionResponse): d.
 }
 
 export class InteractionHelper {
-    raw_interaction: d.APIInteraction;
+    raw_interaction: d.APIInteraction | d.APIModalSubmitInteraction;
     has_ackd: boolean;
     options: d.APIApplicationCommandInteractionDataOption[];
 
-    constructor(raw_interaction: d.APIInteraction) {
+    constructor(raw_interaction: d.APIInteraction | d.APIModalSubmitInteraction) {
     	this.raw_interaction = raw_interaction;
     	this.has_ackd = false;
     	this.options = undefined as any;
     }
-    async sendRaw(value: d.APIInteractionResponse): Promise<void> {
+    async sendRaw(value: d.APIInteractionResponse | d.APIModalInteractionResponse): Promise<void> {
     	if(this.has_ackd) throw new Error("cannot double interact");
 		const iltres = await ilt(api.api.interactions(this.raw_interaction.id, this.raw_interaction.token).callback.post({data: value}), "interaction sendraw");
 		if(iltres.error) {
@@ -76,34 +77,41 @@ export class InteractionHelper {
     }
     async acceptLater(): Promise<InteractionHandled<any>> {
     	await this.sendRaw({
-    		type: 5,
+    		type: d.InteractionResponseType.DeferredChannelMessageWithSource,
     	});
     	return interaction_handled;
     }
     async accept(): Promise<InteractionHandled<any>> {
     	await this.sendRaw({
-    		type: 4,
+    		type: d.InteractionResponseType.ChannelMessageWithSource,
     		data: {content: "✓", flags: 1 << 6, allowed_mentions: {parse: []}},
     	});
     	return interaction_handled;
     }
     async reply(message: string): Promise<InteractionHandled<any>> {
     	await this.sendRaw({
-    		type: 4,
+    		type: d.InteractionResponseType.ChannelMessageWithSource,
     		data: {content: message, allowed_mentions: {parse: []}},
     	});
     	return interaction_handled;
     }
-    async replyHiddenHideCommand(message: string, components: d.APIActionRowComponent[] | undefined = undefined): Promise<InteractionHandled<any>> {
+    async replyHiddenHideCommand(message: string, components: d.APIActionRowComponent<d.APIMessageComponent>[] | undefined = undefined): Promise<InteractionHandled<any>> {
     	await this.sendRaw({
-    		type: 4,
+    		type: d.InteractionResponseType.ChannelMessageWithSource,
     		data: {content: message, flags: 1 << 6, allowed_mentions: {parse: []}, components},
     	});
     	return interaction_handled;
     }
+	async replyModal(modal: d.APIModalInteractionResponseCallbackData): Promise<InteractionHandled<any>> {
+		await this.sendRaw({
+			type: d.InteractionResponseType.Modal,
+			data: modal,
+		});
+		return interaction_handled;
+	}
 }
 
-function on_interaction(interaction: d.APIInteraction) {
+function on_interaction(interaction: d.APIInteraction | d.APIModalSubmitInteraction) {
 	ilt(do_handle_interaction(interaction), false).then(async res => {
 		if(res.error) {
 			console.log("handle interaction failed with", res.error);
@@ -163,7 +171,7 @@ async function handle_interaction_routed(info: Info, route_name: string, route: 
 // TODO don't do that; migrate to api raw
 // potential issues: may have to worry about retry functionality and stuff
 
-async function do_handle_interaction(interaction: d.APIInteraction) {
+async function do_handle_interaction(interaction: d.APIInteraction | d.APIModalSubmitInteraction) {
 	const startTime = Date.now();
 
 	const interaction_helper = new InteractionHelper(interaction);
@@ -176,9 +184,7 @@ async function do_handle_interaction(interaction: d.APIInteraction) {
 		return await interaction_helper.replyHiddenHideCommand("× DMs not supported.");
 	}
     
-	if(interaction.type === d.InteractionType.MessageComponent) {
-		const data = interaction.data;
-
+	if(interaction.type === d.InteractionType.MessageComponent || interaction.type === d.InteractionType.ModalSubmit) {
 		console.log(interaction);
 
 		const guild = client.guilds.cache.get(interaction.guild_id)!;
@@ -187,7 +193,7 @@ async function do_handle_interaction(interaction: d.APIInteraction) {
 		const member = guild.members._add(interaction.member);
 		let message: discord.Message | undefined;
 		
-		if('type' in interaction.message) {
+		if(interaction.message && 'type' in interaction.message) {
 			// @ts-expect-error
 			message = channel.messages._add(interaction.message);
 		}else{}
@@ -213,24 +219,41 @@ async function do_handle_interaction(interaction: d.APIInteraction) {
 			raw_interaction: interaction_helper,
 		});
 
-		const idv = data.custom_id.split("|")[0]!.replace(/^#.+?#/, "");
-		const inh = ginteractionhandler[idv];
-		// note: does not check for channel view perms
-		if(inh) {
-			const result = await ilt(inh.handle(info, data.custom_id), "button click on "+data.custom_id);
-			if(result.error) {
-				if(result.error.message.includes("Invalid Form Body")) {
+		if(interaction.type === d.InteractionType.MessageComponent) {
+			const data = interaction.data;
+
+			const idv = data.custom_id.split("|")[0]!.replace(/^#.+?#/, "");
+			const inh = ginteractionhandler[idv];
+			// note: does not check for channel view perms
+			if(inh) {
+				const result = await ilt(inh.handle(info, data.custom_id), "button click on "+data.custom_id);
+				if(result.error) {
+					if(result.error.message.includes("Invalid Form Body")) {
+						return await info.error("An internal error occured while handling this button click."
+						+" Error code: `"+result.error.errorCode+"`"+"\n"+"Note: This error may "
+						+"be caused by an incorrect emoji in a button. The error text is:\n"+
+						"```\n"+result.error.message+"\n```");
+					}
 					return await info.error("An internal error occured while handling this button click."
-					+" Error code: `"+result.error.errorCode+"`"+"\n"+"Note: This error may "
-					+"be caused by an incorrect emoji in a button. The error text is:\n"+
-					"```\n"+result.error.message+"\n```");
+					+" Error code: `"+result.error.errorCode+"`");
 				}
-				return await info.error("An internal error occured while handling this button click."
-				+" Error code: `"+result.error.errorCode+"`");
+				return result.result;
 			}
-			return result.result;
+			return await info.error("Unsupported button kind `"+idv+"`.");
+		}else{
+			const data = interaction.data!;
+
+			const handler = textinput_handlers.get(data.custom_id);
+			if(!handler) {
+				return await interaction_helper.replyHiddenHideCommand("× Modal expired.");
+			}
+			const value = data.components?.[0]?.components?.[0]?.value;
+			if(value == null) {
+				return await interaction_helper.replyHiddenHideCommand("× No value.");
+			}
+
+			return handler(value, info);
 		}
-		return await info.error("Unsupported button kind `"+idv+"`.");
 	}else if(interaction.type !== d.InteractionType.ApplicationCommand) {
 		return await interaction_helper.replyHiddenHideCommand("× Interaction not supported.");
 	}
@@ -590,8 +613,10 @@ registerFancylib(context_menu_command_router, slash_command_router);
 const global_slash_commands: {[key: string]: NamelessAPIApplicationCommand} = {};
 
 function createBottomLevelCommand(cmdname: string, cmddata: SlashCommandRouteBottomLevel): Omit<
-	UnsubmittedAPIApplicationCommand, "type"
-> {
+	UnsubmittedAPIApplicationCommand, "type" | "options"
+> & {
+	options: d.APIApplicationCommandBasicOption[],
+} {
 	let docs_desc = "error; no description provided";
 	if('handler' in cmddata) {
 		// nothing to do
@@ -611,7 +636,7 @@ function createBottomLevelCommand(cmdname: string, cmddata: SlashCommandRouteBot
 		// type: d.ApplicationCommandType.ChatInput,
 		name: cmdname,
 		description: final_desc,
-		options: Object.entries(cmddata.args ?? {}).map(([optname, optvalue]) => {
+		options: Object.entries(cmddata.args ?? {}).map(([optname, optvalue]): d.APIApplicationCommandBasicOption => {
 			return {...optvalue, name: optname};
 		}),
 	};
@@ -631,7 +656,7 @@ for(const [cmdname, cmddata] of Object.entries(slash_command_router)) {
 						type: d.ApplicationCommandOptionType.SubcommandGroup,
 						name: scname,
 						description: scdata.description,
-						options: Object.entries(scdata.subcommands).map(([sscname, sscdata_raw]): d.APIApplicationCommandOption => {
+						options: Object.entries(scdata.subcommands).map(([sscname, sscdata_raw]): d.APIApplicationCommandSubcommandOption => {
 							if('subcommands' in sscdata_raw) throw new Error("too nested!");
 							const sscdata = sscdata_raw as SlashCommandRouteBottomLevel;
 							return {

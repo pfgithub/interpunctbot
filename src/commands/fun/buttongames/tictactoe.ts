@@ -100,10 +100,10 @@ export function button(id: string, label: string | undefined, style: ButtonStyle
 	};
 }
 
-export type ActionRow = d.APIActionRowComponent;
+export type ActionRow = d.APIActionRowComponent<d.APIMessageComponent>;
 export function componentRow(children: d.APIMessageComponent[]): ActionRow {
 	if(children.length > 5) throw new Error("too many buttons");
-	return {type: 1, components: children as Exclude<d.APIMessageComponent, d.APIActionRowComponent>[]};
+	return {type: 1, components: children as Exclude<d.APIMessageComponent, d.APIActionRowComponent<d.APIMessageComponent>>[]};
 }
 
 export type SampleMessage = {
@@ -441,6 +441,9 @@ export type HandleInteractionResponse<T> = {
 } | {
 	kind: "replace_content",
 	content: SampleMessage,
+} | {
+	kind: "modal",
+	modal: d.APIModalInteractionResponseCallbackData,
 };
 
 export type CreateOpts = {author_id: string};
@@ -777,6 +780,8 @@ nr.ginteractionhandler["GAME"] = {
 				type: 4,
 				data: {...res.response, flags: 1 << 6},
 			});
+		}else if(res.kind === "modal") {
+			await info.raw_interaction!.replyModal(res.modal);
 		}else assertNever(res);
 	}
 };
@@ -1997,33 +2002,58 @@ export function callback<T>(id: string, ...cb: [
 	}};
 }
 
+export const textinput_handlers = new Map<string, (value: string, input_info: Info) => void>();
+
+let global_id = 0;
+
+function getModal<T>(
+	current_value: string,
+	style: d.TextInputStyle,
+	cb: (a: string) => HandleInteractionResponse<T>,
+	info: Info,
+	ikey: IKey,
+	opts: RequestInputOpts,
+): HandleInteractionResponse<T> {
+	const custom_id = ("#" + (global_id++) + "#" + Date.now() + "#" + Math.random()).substr(0, 100);
+
+	textinput_handlers.set(custom_id, (value, input_info) => {
+		handleResponseV(cb(value), input_info, input_info, ikey, opts);
+	});
+
+	return {
+		kind: "modal",
+		modal: {
+			custom_id,
+			title: "Text Input",
+			components: [
+				{type: d.ComponentType.ActionRow, components: [
+					{
+						type: d.ComponentType.TextInput,
+						custom_id: "value",
+						style: style, // paragraph
+						label: "Text",
+						min_length: 0,
+						max_length: 2000,
+						required: true,
+						value: current_value,
+						placeholder: "",
+					}
+				]},
+			],
+		},
+	};
+}
+
 export function requestTextInput<T>(info: Info, ikey: IKey,
 	cb: (a: string) => HandleInteractionResponse<T>,
 ): HandleInteractionResponse<T> {
-	return requestInput(info, ikey, (res): HandleInteractionResponse<T> => {
-		if(res.kind !== "text") return {kind: "error", msg: "Expected text."};
-		return cb(res.value);
-	}, {slash: "give text", base: "givetext {Text}"});
+	return getModal("", d.TextInputStyle.Short, cb, info, ikey, {});
 }
 export function requestLongTextInput<T>(info: Info, ikey: IKey,
 	current_value: string,
 	cb: (a: string) => HandleInteractionResponse<T>,
 ): HandleInteractionResponse<T> {
-	return {
-		kind: "async",
-		handler: async () => {
-			const resurl =
-				"https://pfg.pw/sitepages/messagecreator?content=" +
-				encodeURIComponent(current_value) + "&post=true";
-			const postres = await shortenLink(resurl);
-			if ("error" in postres) return {kind: "error", msg: postres.error};
-
-			return requestInput(info, ikey, (res): HandleInteractionResponse<T> => {
-				if(res.kind !== "longtext") return {kind: "error", msg: "Expected text."};
-				return cb(res.value);
-			}, {entire: "Edit the content here: <"+postres.url+">", slash: "", base: ""});
-		}
-	};
+	return getModal(current_value, d.TextInputStyle.Paragraph, cb, info, ikey, {});
 }
 export function requestRoleInput<T>(info: Info, ikey: IKey,
 	cb: (a: discord.Role) => HandleInteractionResponse<T>,
@@ -2045,47 +2075,54 @@ export function requestEmojiInput<T>(info: Info, ikey: IKey,
 		return cb(res.value);
 	}, {slash: "give emoji", base: "giveemoji {Emoji or emoji id}"}, opts);
 }
+function handleResponseV<T>(hir: HandleInteractionResponse<T>, input_info: Info, info: Info, ikey: IKey, opts: RequestInputOpts): void {
+	perr((async () => {
+		let resp = hir;
+		while(resp.kind === "async") {
+			resp = await resp.handler(input_info);
+		}
+		if(resp.kind === "error") {
+			return await input_info.error(resp.msg);
+		}else if(resp.kind === "update_state") {
+			await updateGameState<T>(info, ikey, resp.state, info === input_info ? {} : {edit_original: info.raw_interaction!});	
+			const setmsg = "✓ Set." + (opts?.note != null ? "\n"+opts.note : "");
+			if(input_info !== info) {
+				if(input_info.raw_interaction) {
+					await input_info.raw_interaction.replyHiddenHideCommand(setmsg);
+				}else{
+					await input_info.success(setmsg);
+				}
+			}
+		}else if(resp.kind === "other"){
+			return await resp.handler(input_info);
+		}else if(resp.kind === "reply_hidden"){
+			if(info.raw_interaction) {
+				return await input_info.raw_interaction!.sendRaw({
+					type: 4,
+					data: {...resp.response, flags: 1 << 6},
+				});
+			}else{
+				return await info.accept();
+			}
+		}else if(resp.kind === "replace_content"){
+			await info.raw_interaction!.editOriginal({
+				...resp.content, allowed_mentions: {parse: []},
+			});
+		}else if(resp.kind === "modal") {
+			await info.raw_interaction!.replyModal(resp.modal);
+		}else assertNever(resp);
+	})().catch(async (e) => {
+		console.log(e);
+		return await input_info.error("Internal error.");
+	}), "responding to input");
+}
 export function requestInput<T>(info: Info, ikey: IKey,
 	cb: (a: ResponseType) => HandleInteractionResponse<T>,
 	messages: {slash: string, base: string, entire?: string},
 	opts?: RequestInputOpts,
 ): HandleInteractionResponse<T> {
 	requestInput2(info.message.author.id, (response, input_info) => {
-		perr((async () => {
-			let resp = cb(response);
-			while(resp.kind === "async") {
-				resp = await resp.handler(input_info);
-			}
-			if(resp.kind === "error") {
-				return await input_info.error(resp.msg);
-			}else if(resp.kind === "update_state") {
-				await updateGameState<T>(info, ikey, resp.state, {edit_original: info.raw_interaction!});	
-				const setmsg = "✓ Set." + (opts?.note != null ? "\n"+opts.note : "");
-				if(input_info.raw_interaction) {
-					await input_info.raw_interaction.replyHiddenHideCommand(setmsg);
-				}else{
-					await input_info.success(setmsg);
-				}
-			}else if(resp.kind === "other"){
-				return await resp.handler(input_info);
-			}else if(resp.kind === "reply_hidden"){
-				if(info.raw_interaction) {
-					return await input_info.raw_interaction!.sendRaw({
-						type: 4,
-						data: {...resp.response, flags: 1 << 6},
-					});
-				}else{
-					return await info.accept();
-				}
-			}else if(resp.kind === "replace_content"){
-				await info.raw_interaction!.editOriginal({
-					...resp.content, allowed_mentions: {parse: []},
-				});
-			}else assertNever(resp);
-		})().catch(async (e) => {
-			console.log(e);
-			return await input_info.error("Internal error.");
-		}), "responding to input");
+		handleResponseV(cb(response), input_info, info, ikey, opts);
 	});
 	const key = (name: string) => getInteractionKey(ikey.game_id, ikey.kind, ikey.stage, name);
 	const msgv: SampleMessage = {

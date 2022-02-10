@@ -1748,6 +1748,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"discord-api-types@npm:^0.27.0":
+  version: 0.27.0
+  resolution: "discord-api-types@npm:0.27.0"
+  checksum: 5a74a49ad7e57ea24e67d431de30cc7056d6d422b607c7d5a7dd35c683c8b87d70ec35a0d3929971adb411acc3df2bd6a77c1401ce30b29690bd1305e427265c
+  languageName: node
+  linkType: hard
+
 "discord-markdown@npm:^2.3.1":
   version: 2.3.1
   resolution: "discord-markdown@npm:2.3.1"
@@ -6395,6 +6402,7 @@ __metadata:
     async-request: ^1.2.0
     bookshelf: ^1.1.0
     deep-equal: ^2.0.5
+    discord-api-types: ^0.27.0
     discord-markdown: ^2.3.1
     discord.js: ^13.1.0
     eslint: ^7.27.0
