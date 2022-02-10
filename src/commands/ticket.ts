@@ -1129,7 +1129,9 @@ async function createTicket(
 		creator.toString() +
 			", " +
 			(ctx.ticket.main.joinmsg ||
-				"No join message has been set. Set one with `ticket welcome <Welcome message…>`"),
+				"No join message has been set. Set one with `ticket welcome <Welcome message…>`"
+			) + (ctx.ticket.main.transcripts || ctx.ticket.main.logs ?
+				"\n\nMessages sent in this channel will be logged and visible to moderators." : ""),
 	);
 	const hndlfn = async () => {
 		if (cre8tedchan.deleted) return;
