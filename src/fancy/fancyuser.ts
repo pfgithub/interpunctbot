@@ -1,6 +1,14 @@
 import { CallFrom, MessageElement, Message, x, MessageContextMenuItem, MessageContextMenuItemElement, SlashCommandGroup, SlashCommand, renderEphemeral, renderError, SlashCommandElement, registerPersistentElement, u, AtMention, MarkdownText, InteractionResponse, Button, ComponentButtonSpec, LocalizedString } from "./fancylib";
 
-// ok should I go try firebase or a similar realtime database for this
+// ok
+// I think we're ready - let's start porting commands over
+// still have to:
+// - persist values in the database
+// - hmr for dev experience
+// - do what I outlined in fancylib.ts to avoid unnecessary refreshes
+// - oh also it would be nice if we could use the source code hash rather than Date.now()
+//   for the version. that way things only need to be refreshed if the source changes
+// - doesn't matter once we do that thing though
 
 export function Sample(props: {event: CallFrom.MessageContextMenu}): MessageElement {
 	return x(Message, {
