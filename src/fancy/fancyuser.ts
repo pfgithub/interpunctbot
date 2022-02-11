@@ -1,4 +1,4 @@
-import { CallFrom, MessageElement, Message, x, MessageContextMenuItem, MessageContextMenuItemElement, SlashCommandGroup, SlashCommand, renderEphemeral, renderError, SlashCommandElement, registerPersistentElement, u, AtMention, MarkdownText, InteractionResponse, Button, ComponentButtonSpec } from "./fancylib";
+import { CallFrom, MessageElement, Message, x, MessageContextMenuItem, MessageContextMenuItemElement, SlashCommandGroup, SlashCommand, renderEphemeral, renderError, SlashCommandElement, registerPersistentElement, u, AtMention, MarkdownText, InteractionResponse, Button, ComponentButtonSpec, LocalizedString } from "./fancylib";
 
 // ok should I go try firebase or a similar realtime database for this
 
@@ -8,9 +8,43 @@ export function Sample(props: {event: CallFrom.MessageContextMenu}): MessageElem
 	});
 }
 
-export function RockPaperScissors(props: {state: RPSState, updateState: (ns: RPSState) => InteractionResponse}): MessageElement {
+export function RockPaperScissors({state, updateState}: {state: RPSState, updateState: (ns: RPSState) => InteractionResponse}): MessageElement {
+	if(state.p1.choice && state.p2?.choice) {
+		if(state.p1.choice === state.p2.choice) {
+			return x(Message, {
+				text: [
+					u("Tie. "),
+					x(AtMention, {user: state.p1.id, ping: false}),
+					u(" and "),
+					x(AtMention, {user: state.p1.id, ping: false}),
+					u("'s "+(state.p1.choice.endsWith("s") ? state.p1.choice : state.p1.choice + "s")),
+					u(" refuse to fight eachother. No one wins."),
+				],
+			});
+		}
+		const rps_beats: {[key in RPSChoice]: [RPSChoice, LocalizedString, LocalizedString]} = {
+			rock: ["scissors", u("smashes"), u(" to bits. ")],
+			scissors: ["paper", u("cuts up"), u(" into shreds. ")],
+			paper: ["rock", u("covers"), u(". ")],
+		};
+		const winner = rps_beats[state.p1.choice][0] === state.p2.choice ? state.p1 : state.p2;
+		const loser = winner == state.p1 ? state.p2 : state.p1;
+		const verbs = rps_beats[winner.choice!][1];
+		const flavour = rps_beats[winner.choice!][2];
+		return x(Message, {
+			text: [
+				x(AtMention, {user: winner.id, ping: true}),
+				u("'s "+winner.choice+" "+verbs+" "),
+				x(AtMention, {user: loser.id, ping: false}),
+				u("'s "+loser.choice+flavour),
+				x(AtMention, {user: winner.id, ping: true}),
+				u("wins."),
+			],
+			// we could add a gif attachment showing what happens
+		});
+	}
 	const pinfo = (player: "p1" | "p2"): MarkdownText[] => {
-		const p = props.state[player];
+		const p = state[player];
 		return [
 			u("Player "+player+": "),
 			p != null ? [
@@ -31,31 +65,31 @@ export function RockPaperScissors(props: {state: RPSState, updateState: (ns: RPS
 			label: choice,
 			style: "gray",
 			onClick: ev => {
-				if(props.state.p1.id === ev.clicker) {
-					if(props.state.p1.choice == null) {
-						return props.updateState({
-							...props.state,
-							p1: {...props.state.p1, choice},
+				if(state.p1.id === ev.clicker) {
+					if(state.p1.choice == null) {
+						return updateState({
+							...state,
+							p1: {...state.p1, choice},
 						});
 					}else{
 						return renderEphemeral(x(Message, {
 							text: u("You cannot change your selection."),
 						}), {visibility: "private"});
 					}
-				}else if(props.state.p2?.id === ev.clicker) {
-					if(props.state.p2.choice == null) {
-						return props.updateState({
-							...props.state,
-							p2: {...props.state.p2, choice},
+				}else if(state.p2?.id === ev.clicker) {
+					if(state.p2.choice == null) {
+						return updateState({
+							...state,
+							p2: {...state.p2, choice},
 						});
 					}else{
 						return renderEphemeral(x(Message, {
 							text: u("You cannot change your selection."),
 						}), {visibility: "private"}); // TODO ephemeral
 					}
-				}else if(props.state.p2 == null) {
-					return props.updateState({
-						...props.state,
+				}else if(state.p2 == null) {
+					return updateState({
+						...state,
 						p2: {id: ev.clicker, choice},
 					});
 				}else{
