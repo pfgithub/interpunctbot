@@ -8,3 +8,5 @@
 //     flib = require("fancylib");
 //     flib.initialize();
 // }
+
+// and then we register stuff or something

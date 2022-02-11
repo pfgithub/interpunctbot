@@ -2,6 +2,7 @@ import * as d from "discord-api-types/v9";
 import { assertNever } from "../..";
 import { api, ContextMenuCommandRouter, SlashCommandRouteBottomLevelCallback, SlashCommandRouter } from "../SlashCommandManager";
 import * as crypto from "crypto";
+import { ginteractionhandler } from "../NewRouter";
 
 export type MessageElement = {
     kind: "message",
@@ -50,35 +51,25 @@ export function renderError(message: LocalizedString): InteractionResponseNewMes
 	}), {visibility: "private"});
 }
 
+const persistent_elements = new Map<string, PersistentElement<any>>();
+
+export type PersistentElement<State> = (
+	state: State,
+	updateState: (ns: State) => InteractionResponse,
+) => MessageElement;
 export function registerPersistentElement<State>(
 	name: string,
-	element: (
-		state: State,
-		updateState: (ns: State) => InteractionResponse,
-	) => MessageElement,
+	element: PersistentElement<State>,
 ): (initial_state: State, opts: InteractionConfig) => InteractionResponseNewMessage {
-	// , setState: (new_state: State) => InteractionRespons
-	return (initial_state, opts): InteractionResponseNewMessage => {
-		let state = initial_state;
-		const setState = (new_state: State) => {
-			state = new_state;
-		};
+	persistent_elements.set(name, element);
 
-		const rerender = () => element(state, (ns): InteractionResponse => {
-			setState(ns);
-			return {
-				kind: "edit_original",
-				// this assumes that this was called on an interaction where
-				// edit_original is available and refers to the correct message.
-				//
-				// hopefully it was.
-				persist: {data: state, name},
-				value: rerender(),
-			}
+	return (initial_state, opts): InteractionResponseNewMessage => {
+		const rerender = () => element(initial_state, (ns): InteractionResponse => {
+			throw new Error("Event handlers should not be called from registerPersistentElement");
 		});
 		return {
 			kind: "new_message",
-			persist: {data: state, name},
+			persist: {data: initial_state, name},
 			config: opts,
 			value: rerender(),
 		};
@@ -321,11 +312,17 @@ function formatMarkdownText(
 	};
 }
 
+const version = (Date.now() / 1000 |0).toString(36);
+
+function getCustomIdForButton(x: number, y: number, persist_id: string): string {
+	return "#"+x+","+y+"#fancylib|"+version+"|"+persist_id;
+}
+
 // buttons get formatted to
-// #{row,col}#fancylib|{persist_id}
+// #{row,col}#fancylib|{version}|{persist_id}
 // example:
-// "#5,5#|fancylib|rock_paper_scissors|5T+ud1r+Gv/YANrqe8fI0us1Mp88YUDgWq+/55EtMg0"
-// that's 78/100 characters and that is the maximum length as long as
+// "#5,5#fancylib|r75n2p|rock_paper_scissors|5T+ud1r+Gv/YANrqe8fI0us1Mp88YUDgWq+/55EtMg0"
+// that's 84/100 characters and that is the maximum length as long as
 // we don't use any names longer than "rock_paper_scissors"
 function formatComponents(persist_id: string, components: ComponentSpec[]): d.APIActionRowComponent<d.APIMessageComponent>[] {
 	return components.map((button_row, y): d.APIActionRowComponent<d.APIMessageComponent> => {
@@ -339,7 +336,7 @@ function formatComponents(persist_id: string, components: ComponentSpec[]): d.AP
 			components: button_row.map((button, x): d.APIButtonComponent => {
 				return {
 					type: d.ComponentType.Button,
-					custom_id: "#"+x+","+y+"#fancylib|"+persist_id,
+					custom_id: getCustomIdForButton(x, y, persist_id),
 
 					label: button.label,
 					style: d.ButtonStyle.Secondary,
@@ -360,11 +357,11 @@ export async function sendCommandResponse(
 ): Promise<void> {
 	const result = response.value;
 
-	let persist_id = "@NO_PERSIST@";
+	let persist_id = "NO_PERSIST";
 	if(response.persist !== false) {
 		const stringified = JSON.stringify(response.persist.data);
 		const hash = crypto.createHash("sha256").update(stringified).digest("base64");
-		persist_id = "@"+response.persist.name+"@"+hash;
+		persist_id = response.persist.name+"|"+hash;
 		persistence.set(hash, {last_used: Date.now(), value: stringified});
 	}
 
@@ -411,6 +408,105 @@ export function registerFancylib(cmcr: ContextMenuCommandRouter, scr: SlashComma
 		addRoute(scr, command);
 	}
 }
+
+async function sendButtonClickResponse(interaction: d.APIMessageComponentInteraction, response: InteractionResponse): Promise<void> {
+	const result = response.value;
+
+	let persist_id = "NO_PERSIST";
+	if(response.persist !== false) {
+		const stringified = JSON.stringify(response.persist.data);
+		const hash = crypto.createHash("sha256").update(stringified).digest("base64");
+		persist_id = response.persist.name+"|"+hash;
+		persistence.set(hash, {last_used: Date.now(), value: stringified});
+	}
+
+	if(result.kind === "message") {
+		// send an immediate response
+
+		const data: d.APIInteractionResponse = response.kind === "edit_original" ? {
+			type: d.InteractionResponseType.UpdateMessage,
+			data: {
+				...formatMarkdownText(result.text),
+				components: result.components ? formatComponents(persist_id, result.components) : [],
+			},
+		} : {
+			type: d.InteractionResponseType.ChannelMessageWithSource,
+			data: {
+				...formatMarkdownText(result.text),
+				flags: response.config.visibility === "private" ? d.MessageFlags.Ephemeral : 0,
+				components: result.components ? formatComponents(persist_id, result.components) : [],
+			},
+		};
+
+		await api.api(d.Routes.interactionCallback(
+			interaction.id,
+			interaction.token,
+		)).post({data});
+	}
+}
+
+ginteractionhandler["fancylib"] = {
+	handle: async (info, custom_id) => {
+		const interaction = info.raw_interaction!.raw_interaction as d.APIMessageComponentInteraction;
+		return await sendButtonClickResponse(interaction, await (async (): Promise<InteractionResponse> => {
+			const m2 = custom_id.split("|")[2];
+			if(m2 === "NO_PERSIST") {
+				return renderError(u("An internal error occured. Message was set to no-persist, but trying to handle button click. State: `"+custom_id+"`"));
+			}
+			const hash = custom_id.split("|")[3];
+			const state_value = persistence.get(hash);
+			if(!state_value) {
+				return renderError(u("Component has expired."));
+			}
+			const handler = persistent_elements.get(m2);
+			if(!handler) {
+				return renderError(u("Element type "+m2+" is no longer available."));
+			}
+	
+			const state = JSON.parse(state_value.value);
+	
+			const element = handler(state, (new_state) => {
+				return {
+					kind: "edit_original",
+					persist: {data: new_state, name: m2},
+					value: handler(new_state, () => {
+						throw new Error("unreachable");
+					}),
+				};
+			});
+			let resonclick: undefined | ((ev: ButtonClickEvent) => InteractionResponse);
+			(element.components ?? []).forEach((cr, y) => {
+				cr.forEach((c, x) => {
+					const button_id = getCustomIdForButton(x, y, m2+"|"+hash);
+					if(custom_id === button_id) {
+						resonclick = c.onClick;
+					}
+				});
+			});
+			if(!resonclick) {
+				console.log("out of date! refreshing component.");
+				// TODO: render the component. check if the rendered one
+				// is deepEqual to interaction.message
+				//
+				// if they are, we don't have to refresh the element.
+
+				// check:
+				// message.content
+				// message.allowed_mentions
+				// message.components
+
+				return {
+					kind: "edit_original",
+					persist: {data: state, name: m2},
+					value: element,
+				};
+			}
+			return resonclick({
+				clicker: (interaction.member?.user ?? interaction.user ?? {id: "ENOID"}).id,
+			});
+		})());
+	},
+};
 function addRoute(router: SlashCommandRouter, command: SlashCommandElement) {
 	if(command.kind === "slash_command") {
 		const route: SlashCommandRouteBottomLevelCallback = {

@@ -38,7 +38,7 @@ export function RockPaperScissors({state, updateState}: {state: RPSState, update
 				x(AtMention, {user: loser.id, ping: false}),
 				u("'s "+loser.choice+flavour),
 				x(AtMention, {user: winner.id, ping: true}),
-				u("wins."),
+				u(" wins."),
 			],
 			// we could add a gif attachment showing what happens
 		});
