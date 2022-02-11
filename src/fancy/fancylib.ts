@@ -3,6 +3,7 @@ import { assertNever } from "../..";
 import { api, ContextMenuCommandRouter, SlashCommandRouteBottomLevelCallback, SlashCommandRouter } from "../SlashCommandManager";
 import * as crypto from "crypto";
 import { ginteractionhandler } from "../NewRouter";
+import { fancylib_persistence } from "./fancyhmr";
 
 // NOTE:
 // https://github.com/microsoft/TypeScript/issues/21699
@@ -90,7 +91,7 @@ export function registerPersistentElement<State>(
 
 export type MessageContextMenuItemElement = {
 	label: string,
-	onClick: (e: CallFrom.MessageContextMenu) => InteractionResponse,
+	onClick: (e: CallFrom.MessageContextMenu) => InteractionResponseNewMessage,
 };
 
 export function MessageContextMenuItem(
@@ -109,6 +110,7 @@ export type SlashCommandGroupElement = {
 export type SlashCommandLeafElement<Args> = {
 	kind: "slash_command",
 	label: LocalizedString,
+	default_permission?: undefined | boolean,
 	description: LocalizedString,
 	children: unknown[],
 	onSend: (e: CallFrom.SlashCommand<Args>) => SlashCommandInteractionResponse,
@@ -357,9 +359,6 @@ function formatComponents(persist_id: string, components: ComponentSpec[]): d.AP
 	});
 }
 
-// fields are only added, never updated
-const persistence = new Map<string, {last_used: number, value: string}>();
-
 export async function sendCommandResponse(
 	response: SlashCommandInteractionResponse,
 	interaction: d.APIApplicationCommandInteraction,
@@ -371,7 +370,7 @@ export async function sendCommandResponse(
 		const stringified = JSON.stringify(response.persist.data);
 		const hash = crypto.createHash("sha256").update(stringified).digest("base64");
 		persist_id = response.persist.name+"|"+hash;
-		persistence.set(hash, {last_used: Date.now(), value: stringified});
+		fancylib_persistence.set(hash, {last_used: Date.now(), value: stringified});
 	}
 
 	if(result.kind === "message") {
@@ -394,9 +393,6 @@ export async function sendCommandResponse(
 }
 
 export function registerFancylib(cmcr: ContextMenuCommandRouter, scr: SlashCommandRouter): void {
-	const fuser = require("./fancyuser");
-	// this could allow hot reload once we do diffing and stuff
-
 	const right_click_commands = fuser.onRightClick();
 	for(const command of right_click_commands) {
 		cmcr.message[command.label] = {
@@ -426,7 +422,7 @@ async function sendButtonClickResponse(interaction: d.APIMessageComponentInterac
 		const stringified = JSON.stringify(response.persist.data);
 		const hash = crypto.createHash("sha256").update(stringified).digest("base64");
 		persist_id = response.persist.name+"|"+hash;
-		persistence.set(hash, {last_used: Date.now(), value: stringified});
+		fancylib_persistence.set(hash, {last_used: Date.now(), value: stringified});
 	}
 
 	if(result.kind === "message") {
@@ -463,7 +459,7 @@ ginteractionhandler["fancylib"] = {
 				return renderError(u("An internal error occured. Message was set to no-persist, but trying to handle button click. State: `"+custom_id+"`"));
 			}
 			const hash = custom_id.split("|")[3];
-			const state_value = persistence.get(hash);
+			const state_value = fancylib_persistence.get(hash);
 			if(!state_value) {
 				return renderError(u("Component has expired."));
 			}
@@ -520,6 +516,7 @@ function addRoute(router: SlashCommandRouter, command: SlashCommandElement) {
 	if(command.kind === "slash_command") {
 		const route: SlashCommandRouteBottomLevelCallback = {
 			description: command.description,
+			default_permission: command.default_permission,
 			handler: async (info, interaction) => {
 				const arg: CallFrom.SlashCommand<unknown> = {
 					from: "slash_command",
@@ -543,3 +540,9 @@ function addRoute(router: SlashCommandRouter, command: SlashCommandElement) {
 		for(const cmd of command.children) addRoute(route.subcommands, cmd);
 	}else assertNever(command);
 }
+
+export function destroyFancylib() {
+	// nothing to do;
+}
+
+const fuser = require("./fancyuser") as typeof import("./fancyuser");

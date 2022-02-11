@@ -1,3 +1,4 @@
+import { refreshFancylib } from "./fancyhmr";
 import { CallFrom, MessageElement, Message, x, MessageContextMenuItem, MessageContextMenuItemElement, SlashCommandGroup, SlashCommand, renderEphemeral, renderError, SlashCommandElement, registerPersistentElement, u, AtMention, MarkdownText, InteractionResponse, Button, ComponentButtonSpec, LocalizedString } from "./fancylib";
 
 // ok
@@ -169,6 +170,16 @@ export function onSlashCommand(): SlashCommandElement[] {
 					p2: null,
 				}, {visibility: "public"});
 			}}),
+		]}),
+		x(SlashCommandGroup, {label: u("dev"), description: u("Developer Commands"), children: [
+			x(SlashCommand, {label: u("reload_libfancy"), default_permission: false, description: u("Reload libfancy"), children: [], onSend: ev => {
+				const user = ev.interaction.member?.user ?? ev.interaction.user;
+				if(!user || user.id !== "341076015663153153") return renderError(u("× You can't do that"));
+				const result = refreshFancylib();
+				return renderEphemeral(x(Message, {
+					text: [u(result)],
+				}), {visibility: "public"});
+			}})
 		]}),
 		/*
         <SlashCommandGroup label="play">

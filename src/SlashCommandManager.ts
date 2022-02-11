@@ -8,7 +8,7 @@ import deepEqual from "deep-equal";
 import * as util from "util";
 import * as d from "discord-api-types/v9";
 import { shortenLink } from "./commands/fun";
-import { registerFancylib } from "./fancy/fancylib";
+import { registerFancylib } from "./fancy/fancyhmr";
 import { textinput_handlers } from "./commands/fun/buttongames/tictactoe";
 
 export const api = client as any as ApiHolder;
@@ -326,11 +326,13 @@ export type SlashCommandRouteBottomLevelAutomatic = {
     description?: string, // if no description is specified, it will be chosen from the route
     args?: {[key: string]: SlashCommandOptionNameless},
     arg_stringifier?: (args: d.APIApplicationCommandInteractionDataOption[]) => string,
+	default_permission?: undefined | boolean,
 };
 export type SlashCommandRouteBottomLevelCallback = {
 	handler: (info: Info, interaction: d.APIApplicationCommandInteraction) => Promise<void>,
 	description: string,
     args?: {[key: string]: SlashCommandOptionNameless},
+	default_permission?: undefined | boolean,
 };
 
 export type SlashCommandRouteBottomLevel =
@@ -636,6 +638,7 @@ function createBottomLevelCommand(cmdname: string, cmddata: SlashCommandRouteBot
 		// type: d.ApplicationCommandType.ChatInput,
 		name: cmdname,
 		description: final_desc,
+		default_permission: cmddata.default_permission,
 		options: Object.entries(cmddata.args ?? {}).map(([optname, optvalue]): d.APIApplicationCommandBasicOption => {
 			return {...optvalue, name: optname};
 		}),
@@ -773,6 +776,10 @@ export async function start(): Promise<void> {
 		console.log("Not updating slash commands on this shard/config");
 		return;
 	}
+
+	// https://discord.com/developers/docs/interactions/application-commands#bulk-overwrite-global-application-commands
+	// we can just use this now
+	// > Commands that do not already exist will count toward daily application command create limits
 
 	const current_slash_commands = await getCommands();
 
