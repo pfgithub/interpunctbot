@@ -25,7 +25,7 @@ export function RockPaperScissors({state, updateState}: {state: RPSState, update
 					u("Tie. "),
 					x(AtMention, {user: state.p1.id, ping: false}),
 					u(" and "),
-					x(AtMention, {user: state.p1.id, ping: false}),
+					x(AtMention, {user: state.p2.id, ping: false}),
 					u("'s "+(state.p1.choice.endsWith("s") ? state.p1.choice : state.p1.choice + "s")),
 					u(" refuse to fight eachother. No one wins."),
 				],
