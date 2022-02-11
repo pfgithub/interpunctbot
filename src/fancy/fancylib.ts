@@ -4,6 +4,15 @@ import { api, ContextMenuCommandRouter, SlashCommandRouteBottomLevelCallback, Sl
 import * as crypto from "crypto";
 import { ginteractionhandler } from "../NewRouter";
 
+// NOTE:
+// https://github.com/microsoft/TypeScript/issues/21699
+// as soon as this issue is fixed,
+// anything that is currently x(Element, {…})
+// can be switched to <Element … />
+//
+// unfortunately it's been open for four years and there's a PR but it slows
+// down the compiler so it hasn't been accepted yet.
+
 export type MessageElement = {
     kind: "message",
     text: MarkdownText,
