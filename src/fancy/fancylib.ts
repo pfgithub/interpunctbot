@@ -392,7 +392,11 @@ export async function sendCommandResponse(
 	}
 }
 
-export function registerFancylib(cmcr: ContextMenuCommandRouter, scr: SlashCommandRouter): void {
+export type RoutingOpts = {
+	allow_overwrite?: undefined | boolean,
+};
+
+export function registerFancylib(cmcr: ContextMenuCommandRouter, scr: SlashCommandRouter, opts: RoutingOpts = {}): void {
 	const right_click_commands = fuser.onRightClick();
 	for(const command of right_click_commands) {
 		cmcr.message[command.label] = {
@@ -410,7 +414,7 @@ export function registerFancylib(cmcr: ContextMenuCommandRouter, scr: SlashComma
 
 	const slash_commands = fuser.onSlashCommand();
 	for(const command of slash_commands) {
-		addRoute(scr, command);
+		addRoute(scr, command, opts);
 	}
 }
 
@@ -512,7 +516,8 @@ ginteractionhandler["fancylib"] = {
 		})());
 	},
 };
-function addRoute(router: SlashCommandRouter, command: SlashCommandElement) {
+function addRoute(router: SlashCommandRouter, command: SlashCommandElement, opts: RoutingOpts) {
+	const disallow_overwrite = !(opts.allow_overwrite ?? false);
 	if(command.kind === "slash_command") {
 		const route: SlashCommandRouteBottomLevelCallback = {
 			description: command.description,
@@ -527,7 +532,7 @@ function addRoute(router: SlashCommandRouter, command: SlashCommandElement) {
 				return await sendCommandResponse(command.onSend(arg), interaction);
 			},
 		};
-		if(router[command.label]) throw new Error("already exists label: "+command.label);
+		if(router[command.label] && disallow_overwrite) throw new Error("already exists label: "+command.label);
 
 		router[command.label] = route;
 	}else if(command.kind === "slash_command_group") {
@@ -537,7 +542,7 @@ function addRoute(router: SlashCommandRouter, command: SlashCommandElement) {
 		};
 		if(!('subcommands' in route)) throw new Error("already exists label: "+command.label+" not subcommands");
 		if(route.description !== command.description) throw new Error("already exists and different descriptions: "+command.label);
-		for(const cmd of command.children) addRoute(route.subcommands, cmd);
+		for(const cmd of command.children) addRoute(route.subcommands, cmd, opts);
 	}else assertNever(command);
 }
 
