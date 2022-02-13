@@ -33,7 +33,7 @@ export function RockPaperScissors({state, updateState}: {state: RPSState, update
 		}
 		const rps_beats: {[key in RPSChoice]: [RPSChoice, LocalizedString, LocalizedString]} = {
 			rock: ["scissors", u("smashes"), u(" to bits. ")],
-			scissors: ["paper", u("cuts up"), u(" into shreds. ")],
+			scissors: ["paper", u("cut up"), u(" into shreds. ")],
 			paper: ["rock", u("covers"), u(". ")],
 		};
 		const winner = rps_beats[state.p1.choice][0] === state.p2.choice ? state.p1 : state.p2;
