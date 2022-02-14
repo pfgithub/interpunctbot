@@ -882,8 +882,8 @@ function genLogMayError(messages: discord.Message[]) {
 				console.log(e);
 				return {
 					top: safehtml`<div class="msgerr">`,
-					center: safehtml`<pre><code>${e.toString()}${"\n" +
-						e.stack}</code></pre>`,
+					center: safehtml`<pre><code>${(e as Error).toString()}${"\n" +
+						(e as Error).stack}</code></pre>`,
 					bottom: safehtml`</div>`,
 				};
 			}

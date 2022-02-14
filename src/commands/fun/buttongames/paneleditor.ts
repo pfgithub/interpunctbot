@@ -98,7 +98,7 @@ function isValidURL(url_in: string): undefined | string {
 	try {
 		url = new URL(url_in);
 	}catch(e) {
-		return "Invalid URL. URL must start with `http://` or `https://`. "+e.toString();
+		return "Invalid URL. URL must start with `http://` or `https://`. "+(e as Error).toString();
 	}
 	if(url.protocol !== "http:" && url.protocol !== "https:") {
 		return "URL must start with `http://` or `https://`";

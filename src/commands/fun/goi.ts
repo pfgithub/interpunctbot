@@ -164,7 +164,7 @@ function reloadGoi(): undefined | Error {
 		goilevels = gamedata.levels;
 		game_start_level = gamedata.start;
 	} catch (e) {
-		return e;
+		return e as Error;
 	}
 }
 

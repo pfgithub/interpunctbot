@@ -80,7 +80,7 @@ export async function ilt<T>(
 	try {
 		result = await v;
 	} catch (error) {
-		const ewid = wrapErrorAddID(error);
+		const ewid = wrapErrorAddID(error as Error);
 		if (typeof reason === "string") {
 			void reportILTFailure(ewid, new Error(reason));
 		}
@@ -755,7 +755,7 @@ async function onMessage(msg: Discord.Message | Discord.PartialMessage) {
 				}`,
 			);
 		} catch (e) {
-			logError(e);
+			logError(e as Error);
 		}
 	}
 
@@ -888,7 +888,7 @@ async function onMessageUpdate(
 					} \`${msg.author.tag}\` To: ${msg.content}`,
 				);
 			} catch (e) {
-				logError(e);
+				logError(e as Error);
 			}
 		}
 	}
