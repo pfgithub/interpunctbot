@@ -326,13 +326,11 @@ export type SlashCommandRouteBottomLevelAutomatic = {
     description?: string, // if no description is specified, it will be chosen from the route
     args?: {[key: string]: SlashCommandOptionNameless},
     arg_stringifier?: (args: d.APIApplicationCommandInteractionDataOption[]) => string,
-	default_permission?: undefined | boolean,
 };
 export type SlashCommandRouteBottomLevelCallback = {
 	handler: (info: Info, interaction: d.APIApplicationCommandInteraction) => Promise<void>,
 	description: string,
     args?: {[key: string]: SlashCommandOptionNameless},
-	default_permission?: undefined | boolean,
 };
 
 export type SlashCommandRouteBottomLevel =
@@ -341,6 +339,7 @@ export type SlashCommandRouteBottomLevel =
 ;
 export type SlashCommandRouteSubcommand = {
     description: string,
+	default_permission?: boolean | undefined,
     subcommands: {[key: string]: SlashCommandRouteBottomLevel} | {[key: string]: SlashCommandRouteSubcommand},
 };
 export type SlashCommandRoute = SlashCommandRouteBottomLevel | SlashCommandRouteSubcommand;
@@ -638,7 +637,6 @@ function createBottomLevelCommand(cmdname: string, cmddata: SlashCommandRouteBot
 		// type: d.ApplicationCommandType.ChatInput,
 		name: cmdname,
 		description: final_desc,
-		default_permission: cmddata.default_permission,
 		options: Object.entries(cmddata.args ?? {}).map(([optname, optvalue]): d.APIApplicationCommandBasicOption => {
 			return {...optvalue, name: optname};
 		}),
@@ -651,6 +649,7 @@ for(const [cmdname, cmddata] of Object.entries(slash_command_router)) {
 		global_slash_commands[cmdname] = {
 			type: d.ApplicationCommandType.ChatInput,
 			description: cmddata.description,
+			default_permission: cmddata.default_permission,
 			options: Object.entries(cmddata.subcommands).map(([scname, scdata_raw]): d.APIApplicationCommandOption => {
 				const scdata = scdata_raw as SlashCommandRouteBottomLevel | SlashCommandRouteSubcommand;
 				if('subcommands' in scdata) {
@@ -761,6 +760,7 @@ function compareOptions(remote: d.APIApplicationCommandOption[], local: d.APIApp
 
 function compareCommands(remote: d.APIApplicationCommand, local: UnsubmittedAPIApplicationCommand): "same" | "different" {
 	if(remote.description !== local.description && local.type === d.ApplicationCommandType.ChatInput) return "different";
+	if((remote.default_permission ?? true) !== (local.default_permission ?? true)) return "different";
 	if(compareOptions(remote.options ?? [], local.options ?? []) === "different") return "different";
 	return "same";
 }

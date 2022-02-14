@@ -143,6 +143,11 @@ const rps = registerPersistentElement<RPSState>("rock_paper_scissors", (state, u
 // make a seperate onRightClickInGuid(guild: guild | undefined)
 // re-call that any time there's a relevant db change
 // we can even use a solid js store to track what's used if we want to be fancy
+
+// here's something fun for the right click menu
+// right click -> Target Message
+// but permission-gate it. default permission: false and only show it for people
+// who have a pending thing that needs a target message
 export function onRightClick(): MessageContextMenuItemElement[] {
 	return [
 		x(MessageContextMenuItem, {label: u("Sample"), onClick: event => {
@@ -156,6 +161,12 @@ export function onRightClick(): MessageContextMenuItemElement[] {
 	];
 }
 
+// I wasn't sure if this should have a param guild: null | …
+// it should.
+// permissions can only be set for a guild, and all commands are needed there.
+//
+// so we should ask to refresh the guild command list when permissions change and it will
+// apply the permission changes too
 export function onSlashCommand(): SlashCommandElement[] {
 	return [
 		x(SlashCommandGroup, {label: u("play"), description: u("Play a game"), children: [
@@ -171,8 +182,8 @@ export function onSlashCommand(): SlashCommandElement[] {
 				}, {visibility: "public"});
 			}}),
 		]}),
-		x(SlashCommandGroup, {label: u("dev"), description: u("Developer Commands"), children: [
-			x(SlashCommand, {label: u("reload_libfancy"), default_permission: false, description: u("Reload libfancy"), children: [], onSend: ev => {
+		x(SlashCommandGroup, {label: u("dev"), default_permission: false, description: u("Developer Commands"), children: [
+			x(SlashCommand, {label: u("reload_libfancy"), description: u("Reload libfancy"), children: [], onSend: ev => {
 				const user = ev.interaction.member?.user ?? ev.interaction.user;
 				if(!user || user.id !== "341076015663153153") return renderError(u("× You can't do that"));
 				const result = refreshFancylib();
