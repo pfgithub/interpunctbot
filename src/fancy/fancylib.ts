@@ -326,15 +326,25 @@ function formatMarkdownText(
 const version = (Date.now() / 1000 |0).toString(36);
 
 function getCustomIdForButton(x: number, y: number, persist_id: string): string {
+	// is there any reason version is in here instead of in the persisted content?
 	return "#"+x+","+y+"#fancylib|"+version+"|"+persist_id;
+}
+
+async function saveValue(value: string): Promise<string> {
+	const hash = crypto.createHash("sha256").update(value).digest("base64");
+	fancylib_persistence.set(hash, {last_used: Date.now(), value});
+	return hash;
+}
+async function getSavedValue(value: string): Promise<string | null> {
+	const v = fancylib_persistence.get(value);
+	if(v == null) return null;
+	return v.value;
 }
 
 // buttons get formatted to
 // #{row,col}#fancylib|{version}|{persist_id}
 // example:
-// "#5,5#fancylib|r75n2p|rock_paper_scissors|5T+ud1r+Gv/YANrqe8fI0us1Mp88YUDgWq+/55EtMg0"
-// that's 84/100 characters and that is the maximum length as long as
-// we don't use any names longer than "rock_paper_scissors"
+// "#5,5#fancylib|r75n2p|5T+ud1r+Gv/YANrqe8fI0us1Mp88YUDgWq+/55EtMg0"
 function formatComponents(persist_id: string, components: ComponentSpec[]): d.APIActionRowComponent<d.APIMessageComponent>[] {
 	return components.map((button_row, y): d.APIActionRowComponent<d.APIMessageComponent> => {
 		// if(Array.isArray(button_row))
@@ -367,10 +377,7 @@ export async function sendCommandResponse(
 
 	let persist_id = "NO_PERSIST";
 	if(response.persist !== false) {
-		const stringified = JSON.stringify(response.persist.data);
-		const hash = crypto.createHash("sha256").update(stringified).digest("base64");
-		persist_id = response.persist.name+"|"+hash;
-		fancylib_persistence.set(hash, {last_used: Date.now(), value: stringified});
+		persist_id = await saveValue(JSON.stringify({name: response.persist.name, state: response.persist.data}));
 	}
 
 	if(result.kind === "message") {
@@ -423,10 +430,7 @@ async function sendButtonClickResponse(interaction: d.APIMessageComponentInterac
 
 	let persist_id = "NO_PERSIST";
 	if(response.persist !== false) {
-		const stringified = JSON.stringify(response.persist.data);
-		const hash = crypto.createHash("sha256").update(stringified).digest("base64");
-		persist_id = response.persist.name+"|"+hash;
-		fancylib_persistence.set(hash, {last_used: Date.now(), value: stringified});
+		persist_id = await saveValue(JSON.stringify({name: response.persist.name, state: response.persist.data}));
 	}
 
 	if(result.kind === "message") {
@@ -458,26 +462,28 @@ ginteractionhandler["fancylib"] = {
 	handle: async (info, custom_id) => {
 		const interaction = info.raw_interaction!.raw_interaction as d.APIMessageComponentInteraction;
 		return await sendButtonClickResponse(interaction, await (async (): Promise<InteractionResponse> => {
-			const m2 = custom_id.split("|")[2];
-			if(m2 === "NO_PERSIST") {
+			const hash = custom_id.split("|")[2];
+			if(hash === "NO_PERSIST") {
 				return renderError(u("An internal error occured. Message was set to no-persist, but trying to handle button click. State: `"+custom_id+"`"));
 			}
-			const hash = custom_id.split("|")[3];
-			const state_value = fancylib_persistence.get(hash);
+			const state_value = await getSavedValue(hash);
 			if(!state_value) {
 				return renderError(u("Component has expired."));
 			}
-			const handler = persistent_elements.get(m2);
-			if(!handler) {
-				return renderError(u("Element type "+m2+" is no longer available."));
-			}
 	
-			const state = JSON.parse(state_value.value);
+			const {name: element_type, state} = JSON.parse(state_value) as {
+				name: string,
+				state: string,
+			};
+			const handler = persistent_elements.get(element_type);
+			if(!handler) {
+				return renderError(u("Element type "+element_type+" is no longer available."));
+			}
 	
 			const element = handler(state, (new_state) => {
 				return {
 					kind: "edit_original",
-					persist: {data: new_state, name: m2},
+					persist: {data: new_state, name: element_type},
 					value: handler(new_state, () => {
 						throw new Error("unreachable");
 					}),
@@ -486,7 +492,7 @@ ginteractionhandler["fancylib"] = {
 			let resonclick: undefined | ((ev: ButtonClickEvent) => InteractionResponse);
 			(element.components ?? []).forEach((cr, y) => {
 				cr.forEach((c, x) => {
-					const button_id = getCustomIdForButton(x, y, m2+"|"+hash);
+					const button_id = getCustomIdForButton(x, y, hash);
 					if(custom_id === button_id) {
 						resonclick = c.onClick;
 					}
@@ -506,7 +512,7 @@ ginteractionhandler["fancylib"] = {
 
 				return {
 					kind: "edit_original",
-					persist: {data: state, name: m2},
+					persist: {data: state, name: element_type},
 					value: element,
 				};
 			}
