@@ -1,10 +1,9 @@
-import { refreshFancylib } from "../../../fancyhmr";
-import { Message, renderEphemeral, renderError, SlashCommand, u } from "../../../fancylib";
 import * as d from "discord-api-types/v9";
 import { promises as fs } from "fs";
 import path from "path";
+import { SlashCommand, SlashCommandElement, u } from "../../../fancylib";
 
-export default function Command() {
+export default function Command(): SlashCommandElement {
     return SlashCommand({
         label: u("restart"),
         description: u("Restart the bot"),
@@ -28,7 +27,7 @@ export default function Command() {
                     );
                     process.exit(0);
                 },
-            }
+            };
         },
     });
 }

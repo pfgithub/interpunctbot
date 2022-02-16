@@ -411,8 +411,8 @@ export default class Info {
 	        if (iltres.error) {
 	            console.log(iltres.error);
 	            return;
-	        } // oop
-	        resmsgs.push(iltres.result!); // typescript broke
+	        }
+	        resmsgs.push(iltres.result);
 	    }
 	    return resmsgs;
 	}

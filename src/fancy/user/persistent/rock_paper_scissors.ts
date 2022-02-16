@@ -20,7 +20,7 @@ export function RockPaperScissors({state, updateState}: {state: RPSState, update
 			paper: ["rock", u("covers"), u(". ")],
 		};
 		const winner = rps_beats[state.p1.choice][0] === state.p2.choice ? state.p1 : state.p2;
-		const loser = winner == state.p1 ? state.p2 : state.p1;
+		const loser = winner === state.p1 ? state.p2 : state.p1;
 		const verbs = rps_beats[winner.choice!][1];
 		const flavour = rps_beats[winner.choice!][2];
 		return Message({

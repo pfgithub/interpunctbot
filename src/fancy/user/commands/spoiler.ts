@@ -1,8 +1,7 @@
 import fetch from "node-fetch";
-import { refreshFancylib } from "../../fancyhmr";
-import { InteractionResponseNewMessage, Message, renderEphemeral, renderError, SlashCommand, u } from "../../fancylib";
+import { InteractionResponseNewMessage, Message, renderError, SlashCommand, SlashCommandElement, u } from "../../fancylib";
 
-export default function Command() {
+export default function Command(): SlashCommandElement {
     return SlashCommand({
         label: u("spoiler"),
         description: u("Send an image as a spoiler, helpful for discord mobile users"),

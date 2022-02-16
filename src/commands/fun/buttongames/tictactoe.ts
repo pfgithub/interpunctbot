@@ -5,7 +5,6 @@ import Info, {permTheyCanManageRole, permWeCanManageRole} from "../../../Info";
 import { InteractionHandled, InteractionHelper } from "../../../SlashCommandManager";
 import { assertNever, perr } from "../../../..";
 import { clearRequest, requestInput2, ResponseType } from "../../../RequestManager";
-import { shortenLink } from "../../fun";
 import * as discord from "discord.js";
 
 import * as d from "discord-api-types/v9";

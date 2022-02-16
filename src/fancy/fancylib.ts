@@ -74,7 +74,7 @@ export function renderEphemeral(element: MessageElement, opts: InteractionConfig
 }
 
 export function renderError(message: LocalizedString): InteractionResponseNewMessage {
-	return renderEphemeral(x(Message, {
+	return renderEphemeral(Message({
 		text: u("× Error: "+message),
 	}), {visibility: "private"});
 }
@@ -159,10 +159,6 @@ export function SlashCommand<T extends ArgT[]>(props: Omit<SlashCommandLeafEleme
 	};
 }
 
-export function x<Props, Result>(a: (props: Props) => Result, props: Props): Result {
-	return a(props);
-}
-
 export type ButtonClickEvent = {
 	clicker: string,
 	// … more
@@ -220,7 +216,7 @@ export function AtMention(props: {
 			roles: [],
 			groups: [],
 		},
-	}
+	};
 	if('role' in props) return {
 		kind: "raw",
 		value: "<@&"+props.role+">",
@@ -229,7 +225,7 @@ export function AtMention(props: {
 			roles: props.ping ? [props.role] : [],
 			groups: [],
 		},
-	}
+	};
 	if('group' in props) return {
 		kind: "raw",
 		value: "@"+props.group,
@@ -238,7 +234,7 @@ export function AtMention(props: {
 			roles: [],
 			groups: props.ping ? [props.group] : [],
 		},
-	}
+	};
 	if('channel' in props) return {
 		kind: "raw",
 		value: "<#"+props.channel+">",
@@ -247,7 +243,7 @@ export function AtMention(props: {
 			roles: [],
 			groups: [],
 		},
-	}
+	};
 	assertNever(props);
 }
 
@@ -311,7 +307,7 @@ function formatMarkdownTextInternal(mdtxt: MarkdownText): {
 		return {
 			content: mdtxt, // TODO escape
 			mentions: {roles: [], users: [], groups: []},
-		}
+		};
 	}
 	if(mdtxt.kind === "bold") {
 		const resv = formatMarkdownTextInternal(mdtxt.content);
@@ -331,7 +327,7 @@ function formatMarkdownTextInternal(mdtxt: MarkdownText): {
 		return {
 			content: mdtxt.value,
 			mentions: mdtxt.mentions,
-		}
+		};
 	}
 	assertNever(mdtxt);
 }
@@ -458,7 +454,7 @@ export async function sendCommandResponse(
 				name: ach.filename,
 				key: "files["+i+"]",
 				file: Buffer.from(ach.value),
-			}
+			};
 		}) : undefined;
 
 		console.log("updating something or other", opts.is_deferred, "files:", files, data.data.attachments);
@@ -673,7 +669,7 @@ function addRoute(router: SlashCommandRouter, command: SlashCommandElement, opts
 	}else assertNever(command);
 }
 
-export function destroyFancylib() {
+export function destroyFancylib(): void {
 	// nothing to do;
 }
 

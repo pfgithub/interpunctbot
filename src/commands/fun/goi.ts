@@ -1,18 +1,15 @@
 import fs from "fs";
 import yaml from "js-yaml";
 import path from "path";
-import { ilt, perr } from "../../..";
 import * as nr from "../../NewRouter";
-import { createTimer, setEditInterval } from "./helpers";
-
-import { boardRender, newBoard } from "./gamelib/gamelib";
 import {
 	callback,
 	CreateOpts, Game, HandleInteractionResponse,
 	mkbtn,
 	RenderResult,
-	renderResultToHandledInteraction, renderResultToResult, showPlayAgainstYourselfMenu
+	renderResultToHandledInteraction, renderResultToResult
 } from "./buttongames/tictactoe";
+
 
 type GOIState = {
 	player: string,

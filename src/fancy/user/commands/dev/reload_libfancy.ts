@@ -1,7 +1,7 @@
 import { refreshFancylib } from "../../../fancyhmr";
-import { Message, renderEphemeral, renderError, SlashCommand, u } from "../../../fancylib";
+import { Message, renderEphemeral, SlashCommand, SlashCommandElement, u } from "../../../fancylib";
 
-export default function Command() {
+export default function Command(): SlashCommandElement {
     return SlashCommand({
         label: u("reload_libfancy"),
         description: u("Reload libfancy"),
