@@ -1,6 +1,7 @@
 import * as crypto from "crypto";
 import { APIApplicationCommandOptionBase } from "discord-api-types/payloads/v9/_interactions/_applicationCommands/_chatInput/base";
 import * as d from "discord-api-types/v9";
+import FormData from "form-data";
 import { assertNever } from "../..";
 import { ginteractionhandler } from "../NewRouter";
 import { api, ContextMenuCommandRouter, SlashCommandRouteBottomLevelCallback, SlashCommandRouter } from "../SlashCommandManager";
@@ -19,6 +20,7 @@ export type MessageElement = {
     kind: "message",
     text: MarkdownText,
 	components?: undefined | ComponentSpec[],
+	attachments?: undefined | MessageAttachment[],
 };
 
 export type InteractionResponseNewMessage = {
@@ -61,6 +63,7 @@ export function u(text: string): LocalizedString {
 	return text as unknown as LocalizedString;
 }
 
+// ?? rename this??
 export function renderEphemeral(element: MessageElement, opts: InteractionConfig): InteractionResponseNewMessage {
 	return {
 		kind: "new_message",
@@ -249,14 +252,17 @@ export function AtMention(props: {
 	assertNever(props);
 }
 
-export function Message(props: {
-    text: MarkdownText,
-    components?: ComponentSpec[],
-}): MessageElement {
+export type MessageAttachment = {
+	// id: {index of array element}
+	filename: string,
+	description: undefined | string,
+	value: ArrayBuffer,
+};
+
+export function Message(props: Omit<MessageElement, "kind">): MessageElement {
 	return {
 		kind: "message",
-		text: props.text,
-		components: props.components,
+		...props,
 	};
 }
 
@@ -278,7 +284,7 @@ export declare namespace CallFrom {
     type SlashCommand<Args extends ArgT[]> = {
         from: "slash_command",
         args: FlattenArgs<Args>,
-		interaction: d.APIApplicationCommandInteraction,
+		interaction: d.APIChatInputApplicationCommandInteraction,
     };
 }
 
@@ -407,20 +413,22 @@ export async function sendCommandResponse(
 	opts: {is_deferred: boolean} = {is_deferred: false},
 ): Promise<void> {
 	if(response.deferred) {
-		const data: d.APIInteractionResponse = {
-			type: d.InteractionResponseType.DeferredChannelMessageWithSource,
-			data: {
-				flags: response.config.visibility === "private" ? d.MessageFlags.Ephemeral : 0,
-			},
-		};
+		// const data: d.APIInteractionResponse = {
+		// 	type: d.InteractionResponseType.DeferredChannelMessageWithSource,
+		// 	data: {
+		// 		flags: response.config.visibility === "private" ? d.MessageFlags.Ephemeral : 0,
+		// 	},
+		// };
 
-		await api.api(d.Routes.interactionCallback(
-			interaction.id,
-			interaction.token,
-		)).post({data});
+		// if(!opts.is_deferred) await api.api(d.Routes.interactionCallback(
+		// 	interaction.id,
+		// 	interaction.token,
+		// )).post({data});
 
+		// const res = await response.value;
+		// return sendCommandResponse(res, interaction, {is_deferred: true});
 		const res = await response.value;
-		return sendCommandResponse(res, interaction, {is_deferred: true});
+		return sendCommandResponse(res, interaction, {is_deferred: false});
 	}
 	const result = response.value;
 
@@ -438,17 +446,64 @@ export async function sendCommandResponse(
 				...formatMarkdownText(result.text),
 				flags: response.config.visibility === "private" ? d.MessageFlags.Ephemeral : 0,
 				components: result.components ? formatComponents(persist_id, result.components) : [],
+				attachments: result.attachments ? result.attachments.map((ach, index) => {
+					return {
+						id: "" + index,
+						description: ach.description,
+						filename: ach.filename,
+					};
+				}) : undefined,
 			},
 		};
 
-		if(opts.is_deferred) await api.api(d.Routes.webhookMessage(
-			interaction.application_id, interaction.token,
-		)).patch({data: data.data}); else await api.api(d.Routes.interactionCallback(
+		const files: djs_request_manager.RawFileOld[] | undefined = result.attachments ? result.attachments.map((ach, i): djs_request_manager.RawFileOld => {
+			return {
+				name: ach.filename,
+				key: "files["+i+"]",
+				file: Buffer.from(ach.value),
+			}
+		}) : undefined;
+
+		console.log("updating something or other", opts.is_deferred, "files:", files, data.data.attachments);
+
+		if(opts.is_deferred) {
+			try {
+				await api.api(d.Routes.webhookMessage(
+					interaction.application_id, interaction.token,
+				)).patch({data: data.data, files});
+			}catch(e) {
+				// [!] don't do this for update message events
+				// oh we can send a followup message maybe instead
+				// but it can't be ephemeral
+				console.log("EBAD", e);
+				await api.api(d.Routes.webhookMessage(
+					interaction.application_id, interaction.token,
+				)).patch({data: {
+					content: "✗ An error occured.",
+				}});
+			}
+		} else await api.api(d.Routes.interactionCallback(
 			interaction.id,
 			interaction.token,
-		)).post({data});
+		)).post({data, files});
 		console.log("✓ sent!", opts.is_deferred);
 	}
+}
+
+export declare namespace djs_request_manager {
+	// https://github.com/discordjs/discord.js/blob/main/packages/rest/src/lib/RequestManager.ts
+	export type RawFile = {
+		name: string,
+		key?: undefined | string, // `files[${index}]` by default.
+		data: Buffer,
+	};
+	// https://github.com/discordjs/discord.js/blob/ac26d9b1307d63e116b043505e5f925db7ed01aa/packages/discord.js/src/rest/APIRequest.js#L55
+	// for discord js v12 or 13 or something, not using the new rest manager
+	export type RawFileOld = {
+		file: Buffer,
+		key: string,
+		name: string,
+	};
 }
 
 export type RoutingOpts = {
@@ -585,8 +640,10 @@ function addRoute(router: SlashCommandRouter, command: SlashCommandElement, opts
 			handler: async (info, interaction, options) => {
 				const arg: CallFrom.SlashCommand<ArgT[]> = {
 					from: "slash_command",
+					// TODO: check that the option value type matches the expected one configured in the command
+					// [there is a one hour period where stuff might be wrong]
 					args: Object.fromEntries(options.map(opt => ([opt.name, opt]))) as any,
-					interaction,
+					interaction: interaction as d.APIChatInputApplicationCommandInteraction,
 				};
 
 				return await sendCommandResponse(command.onSend(arg), interaction);

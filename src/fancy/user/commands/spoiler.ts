@@ -1,3 +1,4 @@
+import fetch from "node-fetch";
 import { refreshFancylib } from "../../fancyhmr";
 import { InteractionResponseNewMessage, Message, renderEphemeral, renderError, SlashCommand, u } from "../../fancylib";
 
@@ -20,18 +21,32 @@ export default function Command() {
             // ev.args.image.value
             // oh we have to go into .resolved.attachments to get it
 
-            // const attachment_data = ev.interaction.data.resolved?.attachments[ev.args.image.value];
+            const attachment_data = ev.interaction.data.resolved?.attachments?.[ev.args.image.value];
+            if(!attachment_data) return renderError(u("Internal error - Could not find attachment?"));
 
             return {
                 kind: "new_message",
                 deferred: true,
-                config: {visibility: "private"},
+                config: {visibility: "public"},
                 value: (async (): Promise<InteractionResponseNewMessage> => {
-                    return renderEphemeral(Message({
-                        text: u("TODO. Got arg:\n\n```json\n"+JSON.stringify(ev.args)+"\n```"),
-                    }), {visibility: "private"})
+                    return {
+                        kind: "new_message",
+                        deferred: false,
+                        persist: false,
+                        config: {visibility: "public"},
+                        value: Message({
+                            text: u("Spoiler"),
+                            attachments: [
+                                {
+                                    filename: "SPOILER_"+attachment_data.filename,
+                                    description: attachment_data.description,
+                                    value: await fetch(attachment_data.url).then(r => r.arrayBuffer()),
+                                }
+                            ],
+                        }),
+                    };
                 })(),
-            }
+            };
         },
     });
 }

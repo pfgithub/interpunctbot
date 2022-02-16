@@ -33,3 +33,27 @@ the bot seperately. that is a good idea i think. we should do that too.
 - cache anything that it's okay to cache. don't cache anything else.
 
 for now we're using discord.js for those
+
+## huh, interesting
+
+https://github.com/discordjs/discord.js/tree/dee27db35af379b0835f9fd5cc19563f7bf3dfc0/packages/rest
+
+look into using that?
+
+oh actually I think we'll have to, discord js seems to have switched to that from
+the `client.api` thing.
+
+ok so we can move to client.rest and then eventually to the @discordjs/rest package entirely.
+
+update should be pretty simple. `client.rest` has typescript types. basically they switched
+from a proxy query builder to a nicely typed thing.
+
+```
+to:
+client.rest[method](url, {body, files})
+
+from:
+client.api[url][method]({data, files})
+```
+
+simple translation
