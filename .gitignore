@@ -12,6 +12,7 @@ dist
 docs
 .DS_Store
 .restarting
+.restarting_interaction
 
 assets/*/inter/
 assets/*/res/

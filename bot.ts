@@ -65,6 +65,16 @@ client.on("ready", () => {
 		);
 		await message.delete();
 	})().catch(() => {});
+	(async () => {
+		const pth = path.join(process.cwd(), ".restarting_interaction");
+		const {route, time} = JSON.parse(
+			await fs.readFile(pth, "utf-8")
+		) as {route: string, time: number};
+		await fs.unlink(pth);
+		await (client as any).api(route).patch({data: {
+			content: "✓, Bot restarted in "+durationFormat(Date.now() - time),
+		}});
+	})().catch(() => {});
 
 	timedEvents = new TimedEvents(client);
 	timedEvents.setHandler("pmuser", async event => {
