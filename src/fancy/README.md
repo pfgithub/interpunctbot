@@ -57,3 +57,19 @@ client.api[url][method]({data, files})
 ```
 
 simple translation
+
+---
+
+## planning
+
+### permissions!
+
+so a command will have
+
+```
+permissions: [array of permissions]
+```
+
+when the bot joins a guild or a guild command update is performed:
+
+- set all command permissions
