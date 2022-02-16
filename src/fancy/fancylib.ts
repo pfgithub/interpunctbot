@@ -1,8 +1,9 @@
+import * as crypto from "crypto";
+import { APIApplicationCommandOptionBase } from "discord-api-types/payloads/v9/_interactions/_applicationCommands/_chatInput/base";
 import * as d from "discord-api-types/v9";
 import { assertNever } from "../..";
-import { api, ContextMenuCommandRouter, SlashCommandRouteBottomLevelCallback, SlashCommandRouter } from "../SlashCommandManager";
-import * as crypto from "crypto";
 import { ginteractionhandler } from "../NewRouter";
+import { api, ContextMenuCommandRouter, SlashCommandRouteBottomLevelCallback, SlashCommandRouter } from "../SlashCommandManager";
 import { fancylib_persistence } from "./fancyhmr";
 
 // NOTE:
@@ -116,7 +117,8 @@ export function MessageContextMenuItem(
 	return props;
 }
 
-export type SlashCommandElement = SlashCommandGroupElement | SlashCommandLeafElement<any>;
+export type ArgT = SlashCommandArg;
+export type SlashCommandElement = SlashCommandGroupElement | SlashCommandLeafElement<ArgT[]>;
 export type SlashCommandGroupElement = {
 	kind: "slash_command_group",
 	default_permission?: undefined | boolean,
@@ -127,6 +129,7 @@ export type SlashCommandGroupElement = {
 export type SlashCommandArgBase = {
 	name: string,
 	description: string,
+	required?: boolean,
 };
 export type SlashCommandAttachmentArg = SlashCommandArgBase & {
 	kind: "attachment",
@@ -147,7 +150,7 @@ export function SlashCommandGroup(props: Omit<SlashCommandGroupElement, "kind">)
 	};
 }
 
-export function SlashCommand(props: Omit<SlashCommandLeafElement<any>, "kind">): SlashCommandLeafElement<any> {
+export function SlashCommand<T extends ArgT[]>(props: Omit<SlashCommandLeafElement<T>, "kind">): SlashCommandLeafElement<T> {
 	return {
 		kind: "slash_command",
 		...props,
@@ -261,15 +264,20 @@ export function ErrorMsg(message: LocalizedString): MessageElement {
 	return Message({text: message});
 }
 
+export type ArgValueType<T extends ArgT> = T extends SlashCommandAttachmentArg ? d.APIApplicationCommandInteractionDataAttachmentOption : never;
+export type FlattenArgs<Args extends ArgT[]> = {
+	[key in Args[number]["name"]]: ArgValueType<Extract<Args[number], {name: key}>> // if the arg required is false, undefined | v
+};
+
 export declare namespace CallFrom {
     type MessageContextMenu = {
         from: "message_context_menu",
         message: d.APIMessage,
 		interaction: d.APIMessageApplicationCommandInteraction,
     };
-    type SlashCommand<Args> = {
+    type SlashCommand<Args extends ArgT[]> = {
         from: "slash_command",
-        args: Args,
+        args: FlattenArgs<Args>,
 		interaction: d.APIApplicationCommandInteraction,
     };
 }
@@ -574,15 +582,27 @@ function addRoute(router: SlashCommandRouter, command: SlashCommandElement, opts
 	if(command.kind === "slash_command") {
 		const route: SlashCommandRouteBottomLevelCallback = {
 			description: command.description,
-			handler: async (info, interaction) => {
-				const arg: CallFrom.SlashCommand<unknown> = {
+			handler: async (info, interaction, options) => {
+				const arg: CallFrom.SlashCommand<ArgT[]> = {
 					from: "slash_command",
-					args: [],
+					args: Object.fromEntries(options.map(opt => ([opt.name, opt]))) as any,
 					interaction,
 				};
 
 				return await sendCommandResponse(command.onSend(arg), interaction);
 			},
+			args_raw: command.children.map((arg): d.APIApplicationCommandBasicOption => {
+				const shared = <T extends d.ApplicationCommandOptionType>(type: T): APIApplicationCommandOptionBase<T> => ({
+					type,
+					name: arg.name,
+					description: arg.description,
+					required: arg.required ?? true,
+				});
+				if(arg.kind === "attachment") return {
+					...shared(d.ApplicationCommandOptionType.Attachment),
+				};
+				throw new Error("unreachable");
+			}),
 		};
 		if(router[command.label] && disallow_overwrite) throw new Error("already exists label: "+command.label);
 

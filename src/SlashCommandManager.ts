@@ -141,7 +141,7 @@ async function handle_interaction_routed(info: Info, route_name: string, route: 
 			if(interaction.raw_interaction.type !== d.InteractionType.ApplicationCommand) {
 				return await info.error("Expected a command interaction. This should never happen.");
 			}
-			return await route.handler(info, interaction.raw_interaction);
+			return await route.handler(info, interaction.raw_interaction, options);
 		}
 
 		// (subcommand.options || []).map(opt => opt.value || ""
@@ -325,12 +325,18 @@ export type SlashCommandRouteBottomLevelAutomatic = {
     preload?: string,
     description?: string, // if no description is specified, it will be chosen from the route
     args?: {[key: string]: SlashCommandOptionNameless},
+	args_raw?: d.APIApplicationCommandBasicOption[],
     arg_stringifier?: (args: d.APIApplicationCommandInteractionDataOption[]) => string,
 };
 export type SlashCommandRouteBottomLevelCallback = {
-	handler: (info: Info, interaction: d.APIApplicationCommandInteraction) => Promise<void>,
+	handler: (
+		info: Info,
+		interaction: d.APIApplicationCommandInteraction,
+		options: d.APIApplicationCommandInteractionDataOption[],
+	) => Promise<void>,
 	description: string,
     args?: {[key: string]: SlashCommandOptionNameless},
+	args_raw?: d.APIApplicationCommandBasicOption[],
 };
 
 export type SlashCommandRouteBottomLevel =
@@ -637,9 +643,9 @@ function createBottomLevelCommand(cmdname: string, cmddata: SlashCommandRouteBot
 		// type: d.ApplicationCommandType.ChatInput,
 		name: cmdname,
 		description: final_desc,
-		options: Object.entries(cmddata.args ?? {}).map(([optname, optvalue]): d.APIApplicationCommandBasicOption => {
+		options: [...Object.entries(cmddata.args ?? {}).map(([optname, optvalue]): d.APIApplicationCommandBasicOption => {
 			return {...optvalue, name: optname};
-		}),
+		}), ...(cmddata.args_raw ?? [])],
 	};
 }
 
