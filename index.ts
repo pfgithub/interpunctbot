@@ -744,21 +744,6 @@ async function onMessage(msg: Discord.Message | Discord.PartialMessage) {
 		}
 	}
 
-	if (info.db && (await info.db.getLogEnabled())) {
-		try {
-			await guildLog(
-				msg.guild!.id, // db ? guild! : guild?
-				`[${moment().format("YYYY-MM-DD HH:mm:ss Z")}] ${
-					channelNameForLog(msg.channel)
-				} ${msg.author.bot ? "[BOT] " : ""}\`${msg.author.tag}\`: ${
-					msg.content
-				}`,
-			);
-		} catch (e) {
-			logError(e as Error);
-		}
-	}
-
 	logMsg({ prefix: "I", msg: msg });
 	if (shouldIgnore(msg.author)) {
 		return;
@@ -871,27 +856,6 @@ async function onMessageUpdate(
 	}
 	logMsg({ prefix: "Edit From", msg: from });
 	logMsg({ prefix: "Edit To  ", msg: msg });
-	if (msg.guild) {
-		const db = new Database(msg.guild.id);
-		if (await db.getLogEnabled()) {
-			try {
-				await guildLog(
-					msg.guild.id,
-					`[${moment().format("YYYY-MM-DD HH:mm:ss Z")}] ${
-						channelNameForLog(from.channel)
-					} \`${from.author.tag}\` Edited Message: ${from.content}`,
-				);
-				await guildLog(
-					msg.guild.id,
-					`[${moment().format("YYYY-MM-DD HH:mm:ss Z")}] ${
-						channelNameForLog(from.channel)
-					} \`${msg.author.tag}\` To: ${msg.content}`,
-				);
-			} catch (e) {
-				logError(e as Error);
-			}
-		}
-	}
 }
 
 client.on("messageUpdate", (from, msg) => {
