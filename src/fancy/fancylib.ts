@@ -22,15 +22,29 @@ export type MessageElement = {
 
 export type InteractionResponseNewMessage = {
 	kind: "new_message",
+	deferred: false,
 	persist: false | {data: unknown, name: string},
 	config: InteractionConfig,
 	value: MessageElement,
+} | {
+	kind: "new_message",
+	deferred: true,
+	config: InteractionConfig,
+	value: Promise<InteractionResponseNewMessage>,
 };
 export type InteractionResponseUpdateState = {
 	kind: "edit_original",
+	// deferred: false,
 	persist: false | {data: unknown, name: string},
 	value: MessageElement,
 };
+// we're skipping deferred update original for now because it needs
+// weird behaviour for errors
+//  | {
+// 	kind: "edit_original",
+// 	deferred: true,
+// 	value: Promise<InteractionResponseUpdateState>,
+// };
 
 export type SlashCommandInteractionResponse = InteractionResponseNewMessage;
 export type InteractionResponse = SlashCommandInteractionResponse | InteractionResponseUpdateState;
@@ -49,6 +63,7 @@ export function u(text: string): LocalizedString {
 export function renderEphemeral(element: MessageElement, opts: InteractionConfig): InteractionResponseNewMessage {
 	return {
 		kind: "new_message",
+		deferred: false,
 		persist: false,
 		config: opts,
 		value: element,
@@ -79,6 +94,7 @@ export function registerPersistentElement<State>(
 		});
 		return {
 			kind: "new_message",
+			deferred: false,
 			persist: {data: initial_state, name},
 			config: opts,
 			value: rerender(),
@@ -100,7 +116,7 @@ export function MessageContextMenuItem(
 	return props;
 }
 
-export type SlashCommandElement = SlashCommandGroupElement | SlashCommandLeafElement<unknown>;
+export type SlashCommandElement = SlashCommandGroupElement | SlashCommandLeafElement<any>;
 export type SlashCommandGroupElement = {
 	kind: "slash_command_group",
 	default_permission?: undefined | boolean,
@@ -108,11 +124,19 @@ export type SlashCommandGroupElement = {
 	description: LocalizedString,
 	children: SlashCommandElement[],
 };
-export type SlashCommandLeafElement<Args> = {
+export type SlashCommandArgBase = {
+	name: string,
+	description: string,
+};
+export type SlashCommandAttachmentArg = SlashCommandArgBase & {
+	kind: "attachment",
+};
+export type SlashCommandArg = SlashCommandAttachmentArg;
+export type SlashCommandLeafElement<Args extends SlashCommandArg[]> = {
 	kind: "slash_command",
 	label: LocalizedString,
 	description: LocalizedString,
-	children: unknown[],
+	children: Args,
 	onSend: (e: CallFrom.SlashCommand<Args>) => SlashCommandInteractionResponse,
 };
 
@@ -123,7 +147,7 @@ export function SlashCommandGroup(props: Omit<SlashCommandGroupElement, "kind">)
 	};
 }
 
-export function SlashCommand(props: Omit<SlashCommandLeafElement<unknown>, "kind">): SlashCommandLeafElement<unknown> {
+export function SlashCommand(props: Omit<SlashCommandLeafElement<any>, "kind">): SlashCommandLeafElement<any> {
 	return {
 		kind: "slash_command",
 		...props,
@@ -372,7 +396,24 @@ function formatComponents(persist_id: string, components: ComponentSpec[]): d.AP
 export async function sendCommandResponse(
 	response: SlashCommandInteractionResponse,
 	interaction: d.APIApplicationCommandInteraction,
+	opts: {is_deferred: boolean} = {is_deferred: false},
 ): Promise<void> {
+	if(response.deferred) {
+		const data: d.APIInteractionResponse = {
+			type: d.InteractionResponseType.DeferredChannelMessageWithSource,
+			data: {
+				flags: response.config.visibility === "private" ? d.MessageFlags.Ephemeral : 0,
+			},
+		};
+
+		await api.api(d.Routes.interactionCallback(
+			interaction.id,
+			interaction.token,
+		)).post({data});
+
+		const res = await response.value;
+		return sendCommandResponse(res, interaction, {is_deferred: true});
+	}
 	const result = response.value;
 
 	let persist_id = "NO_PERSIST";
@@ -392,10 +433,13 @@ export async function sendCommandResponse(
 			},
 		};
 
-		await api.api(d.Routes.interactionCallback(
+		if(opts.is_deferred) await api.api(d.Routes.webhookMessage(
+			interaction.application_id, interaction.token,
+		)).patch({data: data.data}); else await api.api(d.Routes.interactionCallback(
 			interaction.id,
 			interaction.token,
 		)).post({data});
+		console.log("✓ sent!", opts.is_deferred);
 	}
 }
 
@@ -426,6 +470,9 @@ export function registerFancylib(cmcr: ContextMenuCommandRouter, scr: SlashComma
 }
 
 async function sendButtonClickResponse(interaction: d.APIMessageComponentInteraction, response: InteractionResponse): Promise<void> {
+	if(response.kind === "new_message" && response.deferred) {
+		throw new Error("TODO deferred new_message button responses");
+	}
 	const result = response.value;
 
 	let persist_id = "NO_PERSIST";

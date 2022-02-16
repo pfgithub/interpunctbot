@@ -18,5 +18,6 @@ export function onSlashCommand(): SlashCommandElement[] {
 		SlashCommandGroup({label: u("dev"), default_permission: false, description: u("Developer Commands"), children: [
 			(require("./user/commands/dev/reload_libfancy") as typeof import("./user/commands/dev/reload_libfancy")).default(),
 		]}),
+        (require("./user/commands/spoiler") as typeof import("./user/commands/spoiler")).default(),
 	];
 }
