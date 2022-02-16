@@ -56,6 +56,9 @@ export const plural = (text: any[] | number): string =>
 
 export const safe = templateGenerator((str: string) =>
 	str
+		// oh that's funny
+		// this is incorrect
+		// it should be `<|>|\[|\]|"|` not `<|>|\[|\]"|`
 		.replace(/(\*|_|`|~|\\|<|>|\[|\]"|'|\(|\)|:)/g, "\\$1")
 		.replace(/everyone/g, "every\u200bone")
 		.replace(/here/g, "he\u200bre"),
