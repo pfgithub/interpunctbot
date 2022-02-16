@@ -33,7 +33,7 @@ export type InteractionResponseNewMessage = {
 	kind: "new_message",
 	deferred: true,
 	config: InteractionConfig,
-	value: Promise<InteractionResponseNewMessage>,
+	value: Promise<InteractionResponseNewMessage> | (() => Promise<InteractionResponseNewMessage>),
 };
 export type InteractionResponseUpdateState = {
 	kind: "edit_original",
@@ -413,22 +413,20 @@ export async function sendCommandResponse(
 	opts: {is_deferred: boolean} = {is_deferred: false},
 ): Promise<void> {
 	if(response.deferred) {
-		// const data: d.APIInteractionResponse = {
-		// 	type: d.InteractionResponseType.DeferredChannelMessageWithSource,
-		// 	data: {
-		// 		flags: response.config.visibility === "private" ? d.MessageFlags.Ephemeral : 0,
-		// 	},
-		// };
+		const data: d.APIInteractionResponse = {
+			type: d.InteractionResponseType.DeferredChannelMessageWithSource,
+			data: {
+				flags: response.config.visibility === "private" ? d.MessageFlags.Ephemeral : 0,
+			},
+		};
 
-		// if(!opts.is_deferred) await api.api(d.Routes.interactionCallback(
-		// 	interaction.id,
-		// 	interaction.token,
-		// )).post({data});
+		if(!opts.is_deferred) await api.api(d.Routes.interactionCallback(
+			interaction.id,
+			interaction.token,
+		)).post({data});
 
-		// const res = await response.value;
-		// return sendCommandResponse(res, interaction, {is_deferred: true});
-		const res = await response.value;
-		return sendCommandResponse(res, interaction, {is_deferred: false});
+		const res = await (typeof response.value === "function" ? response.value() : response.value);
+		return sendCommandResponse(res, interaction, {is_deferred: true});
 	}
 	const result = response.value;
 
