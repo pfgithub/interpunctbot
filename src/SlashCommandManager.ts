@@ -241,7 +241,7 @@ async function do_handle_interaction(interaction: d.APIInteraction | d.APIModalS
 			}
 			return await info.error("Unsupported button kind `"+idv+"`.");
 		}else{
-			const data = interaction.data!;
+			const data = interaction.data;
 
 			const handler = textinput_handlers.get(data.custom_id);
 			if(!handler) {
