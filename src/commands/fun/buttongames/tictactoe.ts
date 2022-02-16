@@ -100,10 +100,10 @@ export function button(id: string, label: string | undefined, style: ButtonStyle
 	};
 }
 
-export type ActionRow = d.APIActionRowComponent<d.APIMessageComponent>;
+export type ActionRow = d.APIActionRowComponent<d.APIMessageActionRowComponent>;
 export function componentRow(children: d.APIMessageComponent[]): ActionRow {
 	if(children.length > 5) throw new Error("too many buttons");
-	return {type: 1, components: children as Exclude<d.APIMessageComponent, d.APIActionRowComponent<d.APIMessageComponent>>[]};
+	return {type: 1, components: children as Exclude<d.APIMessageComponent, d.APIActionRowComponent<d.APIMessageActionRowComponent>>[]};
 }
 
 export type SampleMessage = {

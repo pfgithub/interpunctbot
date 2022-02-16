@@ -95,7 +95,7 @@ export class InteractionHelper {
     	});
     	return interaction_handled;
     }
-    async replyHiddenHideCommand(message: string, components: d.APIActionRowComponent<d.APIMessageComponent>[] | undefined = undefined): Promise<InteractionHandled<any>> {
+    async replyHiddenHideCommand(message: string, components: d.APIActionRowComponent<d.APIMessageActionRowComponent>[] | undefined = undefined): Promise<InteractionHandled<any>> {
     	await this.sendRaw({
     		type: d.InteractionResponseType.ChannelMessageWithSource,
     		data: {content: message, flags: 1 << 6, allowed_mentions: {parse: []}, components},

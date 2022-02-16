@@ -377,8 +377,8 @@ async function getSavedValue(value: string): Promise<string | null> {
 // #{row,col}#fancylib|{version}|{persist_id}
 // example:
 // "#5,5#fancylib|r75n2p|5T+ud1r+Gv/YANrqe8fI0us1Mp88YUDgWq+/55EtMg0"
-function formatComponents(persist_id: string, components: ComponentSpec[]): d.APIActionRowComponent<d.APIMessageComponent>[] {
-	return components.map((button_row, y): d.APIActionRowComponent<d.APIMessageComponent> => {
+function formatComponents(persist_id: string, components: ComponentSpec[]): d.APIActionRowComponent<d.APIMessageActionRowComponent>[] {
+	return components.map((button_row, y): d.APIActionRowComponent<d.APIMessageActionRowComponent> => {
 		// if(Array.isArray(button_row))
 		// else check .kind eg dropdown
 		// (even though dropdown takes up an entire actionrow, for some reason you still
