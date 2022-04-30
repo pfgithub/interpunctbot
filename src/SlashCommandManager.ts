@@ -585,33 +585,33 @@ export type ContextMenuCommandRouter = {
 const context_menu_command_router: ContextMenuCommandRouter = {
 	user: {},
 	message: {
-		'View Source': {
-			handler: async (info, {message}) => {
-				// wait can't I upload a text file now
-				// https://discord.com/developers/docs/reference#uploading-files ok yeah I can
-				// but I don't feel like figuring out that mess rn
+		// 'View Source': {
+		// 	handler: async (info, {message}) => {
+		// 		// wait can't I upload a text file now
+		// 		// https://discord.com/developers/docs/reference#uploading-files ok yeah I can
+		// 		// but I don't feel like figuring out that mess rn
 
-				const resurl =
-					"https://pfg.pw/spoilerbot/spoiler?s=" +
-					encodeURIComponent(message.content);
-				const postres = await shortenLink(resurl);
-				if ("error" in postres) return await info.error(postres.error);
+		// 		const resurl =
+		// 			"https://pfg.pw/spoilerbot/spoiler?s=" +
+		// 			encodeURIComponent(message.content);
+		// 		const postres = await shortenLink(resurl);
+		// 		if ("error" in postres) return await info.error(postres.error);
 				
-				await info.result("Message source: <" + postres.url + ">");
-				return;
-			},
-		},
-		'Edit Message': {
-			handler: async (info, {message}) => {
-				const handler = globalCommandNS["editmsg"];
-				if(!handler) throw new Error("missing handler for editmsg");
-				// hacky. ideally we'd just use the data given to us in the interaction
-				// to check permissions and stuff rather than doing this hack
-				return handler.handler([
-					"https://discord.com/channels/"+info.guild?.id+"/"+message.channel_id+"/"+message.id,
-				], info);
-			},
-		},
+		// 		await info.result("Message source: <" + postres.url + ">");
+		// 		return;
+		// 	},
+		// },
+		// 'Edit Message': {
+		// 	handler: async (info, {message}) => {
+		// 		const handler = globalCommandNS["editmsg"];
+		// 		if(!handler) throw new Error("missing handler for editmsg");
+		// 		// hacky. ideally we'd just use the data given to us in the interaction
+		// 		// to check permissions and stuff rather than doing this hack
+		// 		return handler.handler([
+		// 			"https://discord.com/channels/"+info.guild?.id+"/"+message.channel_id+"/"+message.id,
+		// 		], info);
+		// 	},
+		// },
 	},
 };
 
