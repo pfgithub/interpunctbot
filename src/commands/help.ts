@@ -259,7 +259,8 @@ nr.globalCommand(
 	},
 	nr.passthroughArgs,
 	async ([cmd], info) => {
-		const autoResolution = "/help/" + (cmd || "").split(" ").join("/");
+        cmd = "" + (cmd || "");
+		const autoResolution = "/help/" + cmd.split(" ").join("/");
 
 		const docsPage =
 			nr.globalDocs[cmd || "/help"] ||
