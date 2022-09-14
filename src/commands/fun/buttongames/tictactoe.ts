@@ -2005,7 +2005,7 @@ export const textinput_handlers = new Map<string, (value: string, input_info: In
 
 let global_id = 0;
 
-function getModal<T>(
+export function getModal<T>(
 	current_value: string,
 	style: d.TextInputStyle,
 	cb: (a: string) => HandleInteractionResponse<T>,
@@ -2044,9 +2044,10 @@ function getModal<T>(
 }
 
 export function requestTextInput<T>(info: Info, ikey: IKey,
+	current_value: string,
 	cb: (a: string) => HandleInteractionResponse<T>,
 ): HandleInteractionResponse<T> {
-	return getModal("", d.TextInputStyle.Short, cb, info, ikey, {});
+	return getModal(current_value, d.TextInputStyle.Short, cb, info, ikey, {});
 }
 export function requestLongTextInput<T>(info: Info, ikey: IKey,
 	current_value: string,

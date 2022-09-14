@@ -239,6 +239,15 @@ async function savePanelScreenState(info: Info, mode: "save" | "load" | "send"):
 	};
 }
 
+function setButtonText(info: Info, ikey: IKey, btn: Button, state: PanelState): HandleInteractionResponse<PanelState> {
+	return requestTextInput<PanelState>(info, ikey, btn.label, (value) => {
+		const is_valid = isValidLabel(value);
+		if(is_valid != null) return {kind: "error", msg: is_valid};
+		btn.label = value;
+		return {kind: "update_state", state};
+	});
+}
+
 function newRender(state: PanelState): RenderResult<PanelState> {
 	{
 		const req_author: RenderActionButtonActionCallbackOpt<PanelState> = (author_id) => {
@@ -310,6 +319,11 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 							),
 						] : [],
 						mkbtn<PanelState>("🖉 Edit", state.rows.length > 0 ? "secondary" : "primary", {}, callback("EDIT_BUTTONS", req_author, () => {
+							if(state.rows.length === 0) {
+								state.rows.push([{color: "secondary", label: "Button", action: {kind: "nothing"}}]);
+								state.edit_mode = {kind: "edit_button", btn_row: state.rows.length - 1, btn_col: 0};
+								return {kind: "update_state", state};
+							}
 							state.edit_mode = {kind: "root"};
 							return {kind: "update_state", state};
 						})),
@@ -332,7 +346,7 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 			// display a list of panels on this server and a "save new" button to save with a custom name
 			const performSaveAs = (author_id: string, owner: "author" | "guild", root_info: Info,
 				ikey: IKey,
-			): HandleInteractionResponse<PanelState> => requestTextInput(root_info, ikey, (save_name) => {
+			): HandleInteractionResponse<PanelState> => requestTextInput(root_info, ikey, "", (save_name) => {
 				if(save_name.length > 60) return {kind: "error", msg: "Name must be at most 60 characters"};
 
 				return {
@@ -585,18 +599,20 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 							return {kind: "update_state", state};
 						}))),
 						...row.length < 5 ? [
-							mkbtn<PanelState>("+", "primary", {}, callback("ADDBTN,"+row_idx, req_author, () => {
-								state.rows[row_idx].push({color: "secondary", label: "Button", action: {kind: "nothing"}});
+							mkbtn<PanelState>("+", "primary", {}, callback("ADDBTN,"+row_idx, req_author, (_, info, ikey) => {
+								const newbtn: Button = {color: "secondary", label: "Button", action: {kind: "nothing"}};
+								state.rows[row_idx].push(newbtn);
 								state.edit_mode = {kind: "edit_button", btn_row: row_idx, btn_col: state.rows[row_idx].length - 1};
-								return {kind: "update_state", state};
+								return setButtonText(info, ikey, newbtn, state);
 							})),
 						] : [],
 					]),
 					...omode.show_last ? [] : [[
-						...state.rows.length < 5 ? [mkbtn<PanelState>("+ Row", "primary", {}, callback("ADDROW", req_author, () => {
-							state.rows.push([{color: "secondary", label: "Button", action: {kind: "nothing"}}]);
+						...state.rows.length < 5 ? [mkbtn<PanelState>(state.rows.length === 0 ? "+" : "+ Row", "primary", {}, callback("ADDROW", req_author, (_, info, ikey) => {
+							const newbtn: Button = {color: "secondary", label: "Button", action: {kind: "nothing"}};
+							state.rows.push([newbtn]);
 							state.edit_mode = {kind: "edit_button", btn_row: state.rows.length - 1, btn_col: 0};
-							return {kind: "update_state", state};
+							return setButtonText(info, ikey, newbtn, state);
 						}))] : [mkbtn<PanelState>("Show Last Line", "secondary", {}, callback("SHOWLAST", req_author, () => {
 							state.edit_mode = {kind: "root", show_last: true};
 							return {kind: "update_state", state};
@@ -630,12 +646,7 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 					[
 						mkbtn<PanelState>("Label:", "secondary", {disabled: true}, {kind: "none"}),
 						mkbtn<PanelState>("Set Text", "secondary", {}, callback("SET_TEXT", req_author, (author_id, info, ikey) => {
-							return requestTextInput(info, ikey, (value) => {
-								const is_valid = isValidLabel(value);
-								if(is_valid != null) return {kind: "error", msg: is_valid};
-								btn.label = value;
-								return {kind: "update_state", state};
-							});
+							return setButtonText(info, ikey, btn, state);
 						})),
 						...btn.label ? [mkbtn<PanelState>("Clear Text", "secondary", {}, callback("CLR_TEXT", req_author, (author_id) => {
 							btn.label = "";
@@ -652,19 +663,29 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 							return {kind: "update_state", state};
 						}))] : [],
 					],
-					...btn.action.kind === "link" ? [] : [[
+					[
 						mkbtn<PanelState>("Color:", "secondary", {disabled: true}, {kind: "none"}),
-						...([["Blurple", "primary"], ["Gray", "secondary"], ["Green", "accept"], ["Red", "deny"]] as const).map(([name, color]) => {
+						...btn.action.kind === "link" ? [
+							mkbtn<PanelState>("Not allowed on links", "secondary", {disabled: true}, {kind: "none"}),
+						] : (([["Blurple", "primary"], ["Gray", "secondary"], ["Green", "accept"], ["Red", "deny"]] as const).map(([name, color]) => {
 							return mkbtn<PanelState>(name, btn.color === color ? "primary" : "secondary", {}, callback("SETCOL,"+color, req_author, () => {
 								btn.color = color;
 								return {kind: "update_state", state};
 							}));
-						}),
-					]],
+						})),
+					],
 					[
 						mkbtn<PanelState>("Action:", "secondary", {disabled: true}, {kind: "none"}),
 						...([["Nothing", "nothing"], ["Role", "role"], ["Link", "link"]] as const).map(([name, kind]) => {
-							return mkbtn<PanelState>(name, btn.action.kind === kind ? "primary" : "secondary", {}, callback("ACTION,"+kind, req_author, () => {
+							return mkbtn<PanelState>(name, btn.action.kind === kind ? "primary" : "secondary", {}, callback("ACTION,"+kind, req_author, (author_id, info, ikey) => {
+								if(kind === "link") {
+									return requestTextInput(info, ikey, btn.action.kind === "link" ? btn.action.url ?? "" : "", (text) => {
+										const is_valid = isValidURL(text);
+										if(is_valid != null) return {kind: "error", msg: is_valid};
+										btn.action = {kind: "link", url: text};
+										return {kind: "update_state", state};
+									});
+								}
 								btn.action.kind = kind;
 								if(kind !== "nothing") state.edit_mode = {...ostate, kind: "edit_action"};
 								return {kind: "update_state", state};
@@ -700,21 +721,9 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 					],
 				];
 			}else if(btn.action.kind === "link") {
-				const action = btn.action;
 				action_cfg = [
 					[
-						mkbtn<PanelState>("URL:", "secondary", {disabled: true}, {kind: "none"}),
-						...action.url ? [
-							mkbtn<PanelState>(action.url, "secondary", {}, {kind: "link", url: action.url}),
-						] : [],
-						mkbtn<PanelState>("🖉 Edit", action.url ? "secondary" : "primary", {}, callback("SET_URL", req_author, (author_id, info, a) => {
-							return requestTextInput(info, a, (text) => {
-								const is_valid = isValidURL(text);
-								if(is_valid != null) return {kind: "error", msg: is_valid};
-								action.url = text;
-								return {kind: "update_state", state};
-							});
-						})),
+						mkbtn<PanelState>("never", "secondary", {disabled: true}, {kind: "none"}),
 					],
 				];
 			}else if(btn.action.kind === "role") {
