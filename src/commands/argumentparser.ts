@@ -86,7 +86,7 @@ command.add("set", (command) => {
 
 */
 
-type ArgumentType<T> = (
+type ArgumentType<T> = ((
 	info: Info,
 	arg: undefined,
 	cmd: string,
@@ -97,7 +97,9 @@ type ArgumentType<T> = (
 		},
 	) => Promise<{ result: "exit" }>,
 	readavail?: "full" | "part",
-) => ArgumentParserResult<T>;
+) => ArgumentParserResult<T>) & {
+	is_words_arg_type?: undefined | boolean,
+};
 
 export const a = {
 	emoji(): ArgumentType<Discord.GuildEmoji> {
@@ -460,9 +462,11 @@ function DurationArgumentType(): ArgumentType<number> {
 }
 
 function WordsArgumentType(): ArgumentType<string> {
-	return async (info, arg, cmd, error) => {
+	const res: ArgumentType<string> = async (info, arg, cmd, error) => {
 		return { result: "continue", value: cmd.trim(), cmd: "" };
 	};
+	res.is_words_arg_type = true;
+	return res;
 }
 
 function BacktickArgumentType(): ArgumentType<string> {
@@ -708,7 +712,10 @@ export async function ArgumentParser<
 	if(Array.isArray(cmd_in)) {
 		const dupe = [...cmd_in];
 		for(const value of schema) {
-			const cmdv = dupe.shift();
+			let cmdv = dupe.shift();
+			if(value.is_words_arg_type ?? false) {
+				cmdv = cmdv ?? "";
+			}
 			if(cmdv === undefined) {
 				console.log("empty array", dupe);
 				await errfn(help);

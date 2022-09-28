@@ -315,27 +315,21 @@ export function globalCommand<APList extends APListAny>(
 		}
 
 		// 2: check AP
-		let pres: any;
-		if((aplist as any) === passthroughArgs) {
-			console.log("is passthroughargs");
-			pres = [cmd];
-		}else{
-			const apresult = await ilt(
-				AP({ info, cmd, help: docsPath, partial: false }, ...aplist.list),
-				"running command ap " + uniqueGlobalName,
+		const apresult = await ilt(
+			AP({ info, cmd, help: docsPath, partial: false }, ...aplist.list),
+			"running command ap " + uniqueGlobalName,
+		);
+		if (apresult.error) {
+			console.log("AP error!!!", apresult.error);
+			await info.error(
+				"AP test failed (score <2). Error code: `" +
+					apresult.error.errorCode +
+					"`",
 			);
-			if (apresult.error) {
-				console.log("AP error!!!", apresult.error);
-				await info.error(
-					"AP test failed (score <2). Error code: `" +
-						apresult.error.errorCode +
-						"`",
-				);
-				return;
-			}
-			if (!apresult.result) return;
-			pres = apresult.result.result;
+			return;
 		}
+		if (!apresult.result) return;
+		const pres = apresult.result.result;
 
 		// 3: run command
 		const cbResult = await ilt(
