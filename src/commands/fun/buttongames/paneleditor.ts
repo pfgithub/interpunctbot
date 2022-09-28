@@ -234,7 +234,7 @@ async function savePanelScreenState(info: Info, mode: "save" | "load" | "send"):
 
 	return {kind: "save_panel",
 		mode,
-		guild_panels: info.authorPerms.manageBot ? guild_panels : undefined,
+		guild_panels: await info.theyHavePermsToManageBot() ? guild_panels : undefined,
 		user_panels: user_panels,
 	};
 }
@@ -353,7 +353,7 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 					kind: "async",
 					handler: async (info) => {
 						if(owner === "guild") {
-							if(!info.authorPerms.manageBot) return {
+							if(!await info.theyHavePermsToManageBot()) return {
 								kind: "error",
 								msg: "You need permission to manage the bot to save to this server. (\"manage server\" permission)",
 							};

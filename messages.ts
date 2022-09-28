@@ -340,15 +340,16 @@ For help, ask on the support server with your error code \`${errorCode}\`
 			safe`Command \`${info.prefix}${command}\` not found. Type \`${raw(
 				info.prefix,
 			)}help\` for a list of commands.` +
-			(info.authorPerms.manageBot &&
-			!shownon[info.message.channel.id + "|" + info.message.author.id]
-				? ((shownon[
-					info.message.channel.id + "|" + info.message.author.id
-				  ] = true),
-				  "\n> Don't want to see this? Disable this message with `" +
-						safe`${info.prefix}set showunknowncommand never` +
-						"`.")
-				: ""),
+			// (info.authorPerms.REMOVETHIS &&
+			// !shownon[info.message.channel.id + "|" + info.message.author.id]
+			// 	? ((shownon[
+			// 		info.message.channel.id + "|" + info.message.author.id
+			// 	  ] = true),
+			// 	  "\n> Don't want to see this? Disable this message with `" +
+			// 			safe`${info.prefix}set showunknowncommand never` +
+			// 			"`.")
+			// 	: ""),
+			"", // too bad you don't get the notice anymore
 		command_removed: (
 			info: Info,
 			old: string,

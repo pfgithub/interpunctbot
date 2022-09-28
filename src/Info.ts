@@ -63,7 +63,7 @@ export const theirPerm = {
 		if (!theirPerm.pm(false)(info)) {
 			return false;
 		}
-		if (info.authorPerms.manageBot) {
+		if (await info.theyHavePermsToManageBot()) {
 			return true;
 		}
 		const mngbotrol = await info.db!.getManageBotRole();
@@ -332,11 +332,18 @@ export default class Info {
 	    }
 	    return undefined;
 	}
-	get authorPerms(): {manageBot: boolean, manageChannel: boolean, manageEmoji: boolean, manageMessages: boolean, banMembers: boolean} {
+	async theyHavePermsToManageBot(): Promise<boolean> {
+		if(this.authorGuildPerms?.has("MANAGE_GUILD") ?? true) {
+			return true; // in pm or author has perm
+		}
+		const mngbotrol = await this.db!.getManageBotRole();
+		if (this.message.member!.roles.cache.has(mngbotrol.role)) {
+			return true;
+		}
+		return false; // does not have perm
+	}
+	get authorPerms(): {manageChannel: boolean, manageEmoji: boolean, manageMessages: boolean, banMembers: boolean} {
 	    return {
-	        manageBot: this.authorGuildPerms
-				? this.authorGuildPerms.has("MANAGE_GUILD")
-				: true,
 	        manageChannel: this.authorGuildPerms
 				? this.authorGuildPerms.has("MANAGE_CHANNELS")
 				: true,
@@ -448,7 +455,7 @@ export default class Info {
 			: "always";
 	    if (
 	        unknownCommandMessages === "always" ||
-			(unknownCommandMessages === "admins" && this.authorPerms.manageBot)
+			(unknownCommandMessages === "admins" && await this.theyHavePermsToManageBot())
 	    ) {
 	    } else {
 	        return;

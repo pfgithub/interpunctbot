@@ -318,7 +318,7 @@ async function unknownCommandHandler(cmd: string, info: Info) {
 		: "always";
 	if (
 		unknownCommandMessages === "always" ||
-		(unknownCommandMessages === "admins" && info.authorPerms.manageBot)
+		(unknownCommandMessages === "admins" && await info.theyHavePermsToManageBot())
 	) {
 		if (/^[^a-zA-Z]/.exec(cmd)) return; // for people using different prefixes like $ so $10 doesn't trigger
 		return await info.errorAlways(
