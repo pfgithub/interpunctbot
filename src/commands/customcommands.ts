@@ -63,21 +63,22 @@ nr.globalCommand(
 			unsaferestext,
 			info,
 		);
-
+		
+		const cmdname = safecmdname.toLowerCase();
 		const lists = await info.db.getCustomCommands();
-		if (lists[safecmdname.toLowerCase()])
+		if (lists[cmdname])
 			return await info.error(
 				info.tag`That command already exists. Remove it with {Command|command remove ${safecmdname}}`,
 			);
-		if (nr.globalCommandNS[safecmdname.toLowerCase()])
+		if (nr.globalCommandNS[cmdname])
 			return await info.error(
 				"That command is already built into interpunct bot. Pick a different name.",
 			);
-		lists[safecmdname.toLowerCase()] = {
+		lists[cmdname] = {
 			type: "command",
 			text: safetext.trim(),
 		};
 		await info.db.setCustomCommands(lists);
-		await info.success("ok");
+		await info.success(info.tag`Command added. Try it with {Command|${cmdname}}`);
 	},
 );

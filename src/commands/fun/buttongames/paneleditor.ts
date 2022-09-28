@@ -1,6 +1,7 @@
 import { URL } from "url";
 import { assertNever } from "../../../..";
 import { globalKnex } from "../../../db";
+import * as nr from "../../../NewRouter";
 import Info, { memberCanManageRole } from "../../../Info";
 import {
 	ButtonStyle,
@@ -138,7 +139,7 @@ export function encodePanel(state: PanelState): SavedState {
 	return {rows: state.rows, content: state.content};
 }
 
-function displayPanel(saved_in: SavedState, info: Info, mode: "error" | "preview_error"): {result: "success", message: SampleMessage} | {result: "error", error: string} {
+export function displayPanel(saved_in: SavedState, info: Info, mode: "error" | "preview_error"): {result: "success", message: SampleMessage} | {result: "error", error: string} {
 	const saved: SavedState = JSON.parse(JSON.stringify(saved_in));
 
 	for(const row of saved.rows) {
@@ -391,6 +392,9 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 					},
 				};
 			});
+			// does the panel seriously get saved by just putting the ui state in the database?
+			// ?????????
+			// what is even going on
 			const performLoad = (
 				owner_id: string,
 				save_name: string,
@@ -399,19 +403,14 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 				return {
 					kind: "async",
 					handler: async (info) => {
-						const previous_save = await globalKnex!("panels").select(["last_updated", "data"]).where({
-							owner_id: owner_id,
-							name: save_name,
-						}) as {last_updated: number, data: string | Record<string, unknown>}[];
-						if(previous_save.length === 0) {
-							return {kind: "error", msg: "Panel not found?"};
+						const saveres = await getPanelByInfo(owner_id, save_name);
+						if(saveres == null) {
+							return {kind: "error", msg: "not found? name:["+save_name+"]"};
 						}
-
-						const first = previous_save[0]!;
 						const new_state: PanelState = {
-							...(typeof first.data === "string" ? JSON.parse(first.data) : first.data),
+							...saveres.saved_state,
 							initiator: state.initiator,
-							last_saved: first.last_updated,
+							last_saved: saveres.last_updated,
 							last_saved_as: {to: owner_id === info.message.author.id ? "user" : "guild", name: save_name},
 							edit_mode: {kind: "home"},
 						};
@@ -546,6 +545,8 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 						mkbtn<PanelState>("Cancel", "primary", {}, callback("CLOSE", req_author, (author_id) => {
 							return savePanelScreen(author_id);
 						})),
+					],
+					[
 						mkbtn<PanelState>("👁 Preview This", "secondary", {}, callback("PREVIEW_THIS", req_author, () => {
 							return {kind: "error", msg: "TODO"};
 						})),
@@ -565,6 +566,41 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 						mkbtn<PanelState>("Last Save:", "secondary", {disabled: true}, {kind: "none"}),
 						mkbtn<PanelState>(state.last_saved_as.to === "user" ? "Yourself" : "Server", "secondary", {disabled: true}, {kind: "none"}),
 						mkbtn<PanelState>(state.last_saved_as.name, "secondary", {disabled: true}, {kind: "none"}),
+					]] : [],
+					...state.last_saved_as?.to === "guild" ? [[
+						mkbtn<PanelState>("Add server command", "primary", {}, callback("ADDSERVERCMD", req_author, (author_id, info_outer, ikey_outer): HandleInteractionResponse<PanelState> => {
+							const savedto_name = state.last_saved_as?.name;
+							if(savedto_name == null) return {kind: "error", msg: "not saved? strange"};
+							return requestTextInput(info_outer, ikey_outer, "", (cmdname) => {
+								cmdname = cmdname.toLocaleLowerCase();
+								if(!cmdname.trim()) return {kind: "error", msg: "no command name"};
+								return {kind: "async", handler: async (info): Promise<HandleInteractionResponse<PanelState>> => {
+									if (!info.db) return {kind: "error", msg: "cannot in pms"};
+									if(!await info.theyHavePermsToManageBot()) return {kind: "error", msg: "you don't have permission"};
+
+									const lists = await info.db.getCustomCommands();
+									if (lists[cmdname]) {
+										// we should upgrade to slash command mentions
+										// https://discord.com/developers/docs/change-log#slash-command-mentions
+										return {kind: "error", msg: info.tag`That command already exists. Remove it with {Command|command remove ${cmdname}}`};
+									}
+									if (nr.globalCommandNS[cmdname]) {
+										return {kind: "error", msg: "That command is already built into interpunct bot. Pick a different name."};
+									}
+									lists[cmdname] = {
+										type: "sendpanel",
+										guild_command_name: savedto_name,
+									};
+									await info.db.setCustomCommands(lists);
+									return {kind: "reply_hidden", response: {
+										content: info.tag`✓ Command created {Command|${cmdname}}\n\nDelete it with {Command|command remove ${cmdname}}`,
+										embeds: [],
+										components: [],
+										allowed_mentions: {parse: []},
+									}};
+								}};
+							});
+						})),
 					]] : [],
 					[
 						mkbtn<PanelState>("Send", "primary", {}, callback("SEND", req_author, (author_id, info) => {
@@ -839,3 +875,24 @@ export const PanelEditor: Game<PanelState> & {
 		return renderResultToHandledInteraction(newRender(opts.state), opts);
 	},
 };
+
+
+export async function getPanelByInfo(owner_id: string, save_name: string): Promise<null | {
+		saved_state: PanelState,
+		last_updated: number,
+	}> {
+	const previous_save = await globalKnex!("panels").select(["last_updated", "data"]).where({
+		owner_id: owner_id,
+		name: save_name,
+	}) as {last_updated: number, data: string | Record<string, unknown>}[];
+	if(previous_save.length === 0) {
+		return null;
+	}
+	// if len > 1 uh oh
+
+	const first = previous_save[0]!;
+	return {
+		saved_state: typeof first.data === "string" ? JSON.parse(first.data) : first.data,
+		last_updated: first.last_updated,
+	};
+}

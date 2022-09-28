@@ -523,6 +523,8 @@ ${Object.entries(lists)
 		.map(([key, value]) =>
 		value.type === "list"
 			? `> ${key}: <https://pastebin.com/${value.pastebin}>`
+			: value.type === "sendpanel"
+			? `> ${key}: sendpanel ${value.guild_command_name}`
 			: `> ${key}: ${value.text.substr(0, 50) +
 					(value.text.length > 50 ? "..." : "")}`,
 		)

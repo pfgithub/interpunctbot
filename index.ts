@@ -40,6 +40,8 @@ import { deleteLogs } from "./src/commands/logging";
 import { sendPinBottom } from "./src/commands/channelmanagement";
 
 import * as SlashCommandManager from "./src/SlashCommandManager";
+import { getPanelByInfo, encodePanel, displayPanel } from "./src/commands/fun/buttongames/paneleditor";
+import { SampleMessage } from "./src/commands/fun/buttongames/tictactoe";
 
 mdf(moment as any);
 
@@ -282,6 +284,20 @@ async function unknownCommandHandler(cmd: string, info: Info) {
 				if (ll.type === "command") {
 					if (args) return await info.error("No args.");
 					await info.result(ll.text);
+					return;
+				}
+				if(ll.type === "sendpanel") {
+					if(info.guild == null) return await info.error("not in guid");
+					const panelcont = await getPanelByInfo(info.guild.id, ll.guild_command_name);
+					if(panelcont == null) return await info.error("Error displaying panel, it no longer exists. Named: ["+ll.guild_command_name+"]. tell a server mod to do command /delete or something.");
+					const display_res = displayPanel(encodePanel(panelcont.saved_state), info, "error");
+					if(display_res.result === "error") {
+						return await info.error("Error displaying a panel: " + display_res.error);
+					}
+
+					await SlashCommandManager.api.api.channels(info.message.channel.id).messages.post<{data: SampleMessage}, unknown>({data:
+						display_res.message,
+					});
 					return;
 				}
 				assertNever(ll);

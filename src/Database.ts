@@ -39,7 +39,9 @@ export type AutodeleteRuleNoID = {
 
 export type CustomCommand =
 	| { type: "list", pastebin: string }
-	| { type: "command", text: string };
+	| { type: "command", text: string }
+	| { type: "sendpanel", guild_command_name: string }
+;
 type CustomCommandsFieldRaw = { [key: string]: string | CustomCommand };
 export type CustomCommandsField = { [key: string]: CustomCommand };
 
