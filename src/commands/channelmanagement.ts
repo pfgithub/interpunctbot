@@ -485,7 +485,7 @@ nr.globalCommand(
 			return await info.error(
 				"This server has reached its autodelete limit (" +
 					autodeleteLimit +
-					").\n> To increase this limit, ask on the support server\n> <https://interpunct.info/support>",
+					").\n> To increase this limit, ask on the support server\n> Make sure to include your server id which is `"+info.guild?.id+"`\n> https://discord.gg/fYFZCaG25k",
 			); // !!!
 		const autodeleteID = await info.db.addAutodelete(autodeleteInfo);
 		return await info.success(

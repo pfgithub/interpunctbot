@@ -5,6 +5,7 @@ import * as path from "path";
 import { stripMentions } from "./channelmanagement";
 import { safe } from "../../messages";
 import { TextChannel, MessageActionRow } from "discord.js";
+import Database from "../Database";
 
 nr.globalCommand(
 	"/help/test/test",
@@ -126,6 +127,25 @@ nr.globalCommand(
 			"utf-8",
 		);
 		process.exit(0);
+	},
+);
+
+nr.globalCommand(
+	"/help/owner/setautodeletelimit",
+	"setautodeletelimit",
+	{
+		usage: "setautodeletelimit [guild_id] [new_limit]",
+		description: "setautodeletelimit",
+		examples: [],
+		perms: { runner: ["bot_owner"] },
+	},
+	nr.list(nr.a.word(), nr.a.number()),
+	async ([guild_id, new_limit], info) => {
+		const db_v = new Database(guild_id);
+		await db_v.getOrLoadData();
+		const old_limit = await db_v.getAutodeleteLimit();
+		await db_v.setAutodeleteLimit(new_limit);
+		return await info.success("Autodelete limit for ["+guild_id+"] updated from ["+old_limit+"] to ["+new_limit+"]");
 	},
 );
 
