@@ -409,6 +409,7 @@ const slash_command_router: SlashCommandRouter = {
 			connect4: {},
 			trivia: {},
 			randomword: {args: {custom_word: opt.optional(opt.string("A custom word. Costs 5 trophies."))}},
+			goi: {},
 		},
 	},
 	set: {
