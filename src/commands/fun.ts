@@ -674,7 +674,7 @@ nr.globalCommand(
 	nr.list(),
 	async ([], info) => {
 		await info.result(
-			"https://i.imgur.com/HXoUOPN.png\n\n> For more info on making cubes, ip!tutorial cube",
+			"https://i.imgur.com/HXoUOPN.png\n\n> For more info on making cubes, "+info.prefix+"tutorial cube",
 		);
 	},
 );
