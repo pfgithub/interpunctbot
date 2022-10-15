@@ -340,7 +340,7 @@ class Database {
 	    await this._setJson("managebotrole", { role: nmbr });
 	}
 	async getAutodeleteLimit(): Promise<number> {
-	    return (await this._get("autodelete_limit")) || 10;
+	    return (await this._get("autodelete_limit")) || 30;
 	}
 	async setAutodeleteLimit(newLimit: number): Promise<void> {
 	    return await this._set("autodelete_limit", newLimit);
