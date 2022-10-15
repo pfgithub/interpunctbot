@@ -1,9 +1,10 @@
+import { api } from "../../bot";
 import * as crypto from "crypto";
 import { APIApplicationCommandOptionBase } from "discord-api-types/payloads/v9/_interactions/_applicationCommands/_chatInput/base";
 import * as d from "discord-api-types/v9";
 import { assertNever } from "../..";
 import { ginteractionhandler } from "../NewRouter";
-import { api, ContextMenuCommandRouter, SlashCommandRouteBottomLevelCallback, SlashCommandRouter } from "../SlashCommandManager";
+import { ContextMenuCommandRouter, SlashCommandRouteBottomLevelCallback, SlashCommandRouter } from "../SlashCommandManager";
 import { fancylib_persistence } from "./fancyhmr";
 
 // NOTE:

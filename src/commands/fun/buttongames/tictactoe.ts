@@ -1,6 +1,6 @@
 import * as nr from "../../../NewRouter";
 import {globalKnex} from "../../../db";
-import client from "../../../../bot";
+import { api } from "../../../../bot";
 import Info, {permTheyCanManageRole, permWeCanManageRole} from "../../../Info";
 import { InteractionHandled, InteractionHelper } from "../../../SlashCommandManager";
 import { assertNever, perr } from "../../../..";
@@ -249,7 +249,6 @@ nr.globalCommand(
 	},
 	nr.list(),
 	async ([], info) => {
-		const api = info.message.client as any as ApiHolder;
 		await api.api.channels(info.message.channel.id).messages.post<{data: SampleMessage}, unknown>({data: {
 			content: "spooky",
 			embeds: [],
@@ -320,7 +319,6 @@ nr.globalCommand(
 	},
 	nr.list(),
 	async ([], info) => {
-		const api = info.message.client as any as ApiHolder;
 		await api.api.channels(info.message.channel.id).messages.post<{data: SampleMessage}, unknown>({data: {
 			content: "help2",
 			embeds: [],
@@ -414,7 +412,6 @@ async function getGameData(game_id: GameID): Promise<GameData> {
 async function renderGame(info: Info, game_id: GameID) {
 	const game_data = await getGameData(game_id);
 
-	const api = client as any as ApiHolder;
 	const key = (name: string) => getInteractionKey(game_id, game_data.kind, game_data.stage, name);
 	await api.api.channels(info.message.channel.id).messages.post<{data: SampleMessage}, unknown>({data:
         games[game_data.kind].render(game_data.state, key, info),
@@ -484,7 +481,6 @@ export async function updateGameState<T>(info: Info, ikey: IKey,
 		});
 	}else{
 		await info.accept();
-		const api = client as any as ApiHolder;
 		await api.api.channels(info.message.channel.id).messages.post<{data: SampleMessage}, unknown>({data:
             msgv
 		});
@@ -865,7 +861,6 @@ nr.globalCommand(
 		if(!await permTheyCanManageRole(role, info)) return;
 		if(!await permWeCanManageRole(role, info)) return;
 
-		const api = info.message.client as any as ApiHolder;
 		await api.api.channels(info.message.channel.id).messages.post<{data: SampleMessage}, unknown>({data: {
 			content: "​",
 			embeds: [],
@@ -890,7 +885,6 @@ nr.globalCommand(
 	},
 	nr.list(nr.a.backtick()),
 	async ([word], info) => {
-		const api = info.message.client as any as ApiHolder;
 		await api.api.channels(info.message.channel.id).messages.post<{data: SampleMessage}, unknown>({data: {
 			content: "​",
 			embeds: [],

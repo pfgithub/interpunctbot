@@ -1143,6 +1143,7 @@ async function createTicket(
 		}
 	};
 	if (ctx.ticket.main.autoclose) {
+		// consider using a timed event for this
 		setTimeout(() => {
 			hndlfn().catch(e => console.log(e));
 		}, ctx.ticket.main.autoclose);

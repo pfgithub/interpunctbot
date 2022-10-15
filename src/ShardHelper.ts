@@ -1,5 +1,4 @@
 import * as Discord from "discord.js";
-import { TimedEvents } from "./TimedEvents";
 
 export async function getGuilds(client: Discord.Client): Promise<number> {
 	if (!client.shard) return client.guilds.cache.size;
@@ -27,9 +26,9 @@ export async function getMembers(client: Discord.Client): Promise<number> {
 
 // async function sendError(message: string) {}
 
+// what does this do? i'm confused
 export function initHelper(
 	shard: Discord.ShardClientUtil,
-	timedEvents: TimedEvents,
 ): void {
 	// shard‽ ⨹
 }

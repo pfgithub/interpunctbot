@@ -2,7 +2,6 @@ import * as Discord from "discord.js";
 import Database from "./Database";
 import { ilt, perr } from "..";
 import { safe, messages, templateGenerator } from "../messages";
-import { TimedEvents } from "./TimedEvents";
 import { globalConfig } from "./config";
 import { globalDocs } from "./NewRouter";
 import { dgToDiscord } from "./parseDiscordDG";
@@ -262,10 +261,8 @@ export default class Info {
 	db?: Database;
 	member?: Discord.GuildMember | null;
 	prefix: string;
-	timedEvents: TimedEvents;
 	constructor(
 	    message: MessageLike,
-	    timedEvents: TimedEvents,
 	    other?: {
 			startTime: number,
 			infoPerSecond: number,
@@ -273,7 +270,6 @@ export default class Info {
 			raw_interaction?: InteractionHelper,
 		},
 	) {
-	    this.timedEvents = timedEvents;
 	    this.channel = message.channel;
 	    this.guild = message.guild;
 	    this.message = message;

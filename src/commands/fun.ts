@@ -15,6 +15,7 @@ import "./fun/spyfall";
 import { getGuilds, getMembers } from "../ShardHelper";
 import * as fsync from "fs";
 import fetch from "node-fetch";
+import { queueEvent } from "../fancy/lib/TimedEventsAt2";
 
 nr.addDocsWebPage(
 	"/help/games",
@@ -1240,9 +1241,6 @@ nr.globalCommand(
 	},
 	nr.passthroughArgs,
 	async ([cmd], info) => {
-		if (process.env.NODE_ENV === "production") {
-			return await info.error("Sorry! remindme doesn't work right now.");
-		}
 		const ap = await AP(
 			{ cmd, info, help: "/help/fun/remindme" },
 			a.duration(),
@@ -1250,19 +1248,27 @@ nr.globalCommand(
 		);
 		if (!ap) return;
 		const [delay, message] = ap.result;
-		const restime = new Date().getTime() + delay;
+		if(info.guild == null) {
+			// queueEvent always needs a guild id to know which shard to use
+			// maybe we could support shard id 0 allowing a guild id "0"
+			// - oh, not really. we would have to also tell shard 0 to update their events.
+			return await info.error("remindme is not supported in PMs");
+		}
 
-		await info.timedEvents.queue(
-			{
-				type: "pmuser",
+		await queueEvent({
+			for_guild: info.guild.id,
+			content: {
+				kind: "send_pm",
+				user_id: info.message.author.id,
 				message: `Reminder: ${info.raw_message!.url}\n${message
 					.split("\n")
 					.map(l => "> " + l)
 					.join("\n")}`,
-				user: info.message.author.id,
 			},
-			restime,
-		);
+		}, delay);
+
+		const restime = new Date().getTime() + delay;
+
 		await info.success(
 			"Reminder set for <t:"+(restime / 1000 |0)+"> (<t:"+(restime / 1000 |0)+":R>)",
 		);

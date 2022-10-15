@@ -1,4 +1,4 @@
-import client, { timedEvents } from "../bot";
+import client, { api } from "../bot";
 import * as discord from "discord.js";
 import { ilt, logCommand, production } from "..";
 import { globalConfig } from "./config";
@@ -7,22 +7,8 @@ import { ginteractionhandler, globalCommandNS, globalDocs } from "./NewRouter";
 import deepEqual from "deep-equal";
 import * as util from "util";
 import * as d from "discord-api-types/v9";
-import { shortenLink } from "./commands/fun";
 import { registerFancylib } from "./fancy/fancyhmr";
 import { textinput_handlers } from "./commands/fun/buttongames/tictactoe";
-
-export const api = client as any as ApiHolder;
-
-type ApiHandler = {
-    get: <T>() => Promise<T>,
-    post: <T, Q>(value: T) => Promise<Q>,
-    patch: (value: any) => Promise<any>,
-    delete: () => Promise<any>,
-} & {[key: string]: ApiHandler} & ((...data: any[]) => ApiHandler);
-// discord-api-types also has route url builders in it. TODO: use them instead
-
-type ApiHolder = {api: ApiHandler};
-
 
 type DistributiveOmit<T, K extends keyof any> = T extends any
 	? Omit<T, K>
@@ -213,7 +199,7 @@ async function do_handle_interaction(interaction: d.APIInteraction | d.APIModalS
 			},
 		};
 
-		const info = new Info(message_like, timedEvents!, {
+		const info = new Info(message_like, {
 			startTime,
 			infoPerSecond: -1,
 			raw_interaction: interaction_helper,
@@ -278,7 +264,7 @@ async function do_handle_interaction(interaction: d.APIInteraction | d.APIModalS
 			// nothing to do.
 		},
 	};
-	const info = new Info(mlike, timedEvents!, {
+	const info = new Info(mlike, {
 		startTime,
 		infoPerSecond: -1,
 		raw_interaction: interaction_helper,

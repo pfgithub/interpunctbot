@@ -1,10 +1,10 @@
 import * as Discord from "discord.js";
 import { globalConfig } from "./src/config";
-import { TimedEvents } from "./src/TimedEvents";
 import { promises as fs } from "fs";
 import path from "path";
 import { durationFormat } from "./src/durationFormat";
 import { initHelper } from "./src/ShardHelper";
+import { initializeTimedEvents } from "./src/fancy/lib/TimedEventsAt2";
 const client = new Discord.Client({
 	partials: ["USER", "MESSAGE", "CHANNEL", "GUILD_MEMBER", "REACTION"],
 	intents: [
@@ -25,6 +25,15 @@ const client = new Discord.Client({
 		// "DIRECT_MESSAGE_TYPING"
 	],
 });
+export const api = client as any as ApiHolder;
+
+type ApiHandler = {
+    get: <T>() => Promise<T>,
+    post: <T, Q>(value: T) => Promise<Q>,
+    patch: (value: any) => Promise<any>,
+    delete: () => Promise<any>,
+} & {[key: string]: ApiHandler} & ((...data: any[]) => ApiHandler);
+type ApiHolder = {api: ApiHandler};
 
 //eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
 function ignorePromise(_p: Promise<unknown>) {}
@@ -40,8 +49,6 @@ if (!docsGenMode) {
 		);
 	ignorePromise(client.login(globalConfig.token));
 }
-
-export let timedEvents: TimedEvents | undefined = undefined;
 
 client.on("rateLimit", rl => {
 	console.log("Client ratelimited", rl);
@@ -76,47 +83,10 @@ client.on("ready", () => {
 		}});
 	})().catch(() => {});
 
-	timedEvents = new TimedEvents(client);
-	timedEvents.setHandler("pmuser", async event => {
-		if (client.shard && !client.shard.ids.includes(0)) {
-			return "notmine"; // might be right
-		}
-		const message = event.message;
-		const userID = event.user;
-		const user = await client.users.fetch(userID);
-		if (!user) {
-			return "handled"; // user could not be found.
-		}
-		await user.send(message); // if this throws, the event will still succeed
-		return "handled";
-	});
-	timedEvents.setHandler("delete", async event => {
-		const guild = client.guilds.resolve(event.guild);
-		if (!guild) {
-			return "notmine"; // !!! OR the guild has kicked the bot. this will create ghost events that everyone has notmine.
-		}
-		const channel = guild.channels.resolve(event.channel);
-		if (!channel) return "handled";
-		if (!channel.isText()) return "handled";
-		const message = await channel.messages.fetch(event.message);
-		if (!message) return "handled";
-		await message.delete();
-		return "handled";
-	});
-	timedEvents.setHandler("send", async event => {
-		const guild = client.guilds.resolve(event.guild);
-		if (!guild) {
-			return "notmine"; // !!! OR the guild has kicked the bot. this will create ghost events that everyone has notmine.
-		}
-		const channel = guild.channels.resolve(event.channel);
-		if (!channel) return "handled";
-		if (!channel.isText()) return "handled";
-		await channel.send(event.message);
-		return "handled";
-	});
+	initializeTimedEvents();
 
 	if (client.shard) {
-		initHelper(client.shard, timedEvents);
+		initHelper(client.shard);
 	}
 });
 

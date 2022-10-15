@@ -111,7 +111,7 @@ const shouldCache: { [ey: string]: boolean | undefined } = {
 	ticket: true,
 };
 
-function tryParse<T>(json: string | undefined, defaultValue: T): T {
+export function tryParse<T>(json: string | undefined, defaultValue: T): T {
 	if (!json) {
 		return defaultValue;
 	}

@@ -4,7 +4,7 @@ import moment from "moment";
 import mdf from "moment-duration-format";
 import path from "path";
 
-import client, { timedEvents } from "./bot";
+import client, { api } from "./bot";
 import { messages, safe } from "./messages";
 import "./src/commands/about";
 import "./src/commands/channelmanagement";
@@ -42,6 +42,7 @@ import { sendPinBottom } from "./src/commands/channelmanagement";
 import * as SlashCommandManager from "./src/SlashCommandManager";
 import { getPanelByInfo, encodePanel, displayPanel } from "./src/commands/fun/buttongames/paneleditor";
 import { SampleMessage } from "./src/commands/fun/buttongames/tictactoe";
+import { queueEvent } from "./src/fancy/lib/TimedEventsAt2";
 
 mdf(moment as any);
 
@@ -295,7 +296,7 @@ async function unknownCommandHandler(cmd: string, info: Info) {
 						return await info.error("Error displaying a panel: " + display_res.error);
 					}
 
-					await SlashCommandManager.api.api.channels(info.message.channel.id).messages.post<{data: SampleMessage}, unknown>({data:
+					await api.api.channels(info.message.channel.id).messages.post<{data: SampleMessage}, unknown>({data:
 						display_res.message,
 					});
 					return;
@@ -664,13 +665,13 @@ async function onMessage(msg: Discord.Message | Discord.PartialMessage) {
 		},
 	};
 
-	const info = new Info(message_like, timedEvents!, {
+	const info = new Info(message_like, {
 		startTime: new Date().getTime(),
 		infoPerSecond: -1,
 		raw_message: msg,
 	});
 
-	if (info.db) {
+	if (info.db && info.guild && info.raw_message) {
 		await ticketMessage(msg, info.db);
 
 		const autodelete = await info.db.getAutodelete();
@@ -724,8 +725,13 @@ async function onMessage(msg: Discord.Message | Discord.PartialMessage) {
 					) {
 						// bypass rule
 					} else {
-						setTimeout(() => {
-							info.message.delete().catch(() => {});
+						await queueEvent({
+							for_guild: info.guild.id,
+							content: {
+								kind: "delete_message",
+								channel_id: info.message.channel.id,
+								message_id: info.raw_message.id,
+							},
 						}, rule.duration);
 					}
 				} else if (rule.duration.type === "autoreact") {
