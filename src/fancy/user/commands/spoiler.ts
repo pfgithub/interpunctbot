@@ -1,14 +1,14 @@
 import fetch from "node-fetch";
-import { InteractionResponseNewMessage, Message, renderError, SlashCommand, SlashCommandElement, u } from "../../fancylib";
+import { InteractionResponseNewMessage, Message, renderError, SlashCommand, SlashCommandArgAttachment, SlashCommandElement, u } from "../../fancylib";
 
 export default function Command(): SlashCommandElement {
     return SlashCommand({
         label: u("spoiler"),
         description: u("Send an image as a spoiler, helpful for discord mobile users"),
-        children: [
+        args: {
             // <arg type="attachment" />
-            {kind: "attachment", name: "image" as const, description: "The image will be uploaded as a spoiler"},
-        ],
+            image: SlashCommandArgAttachment({description: "The image will be uploaded as a spoiler"}),
+        },
         onSend: (ev): InteractionResponseNewMessage => {
             // deferredInteractionResponse(async () => {
             //     channel.send(…)
@@ -20,7 +20,7 @@ export default function Command(): SlashCommandElement {
             // ev.args.image.value
             // oh we have to go into .resolved.attachments to get it
 
-            const attachment_data = ev.interaction.data.resolved?.attachments?.[ev.args.image.value];
+            const attachment_data = ev.interaction.data.resolved?.attachments?.[ev.args.image];
             if(!attachment_data) return renderError(u("Internal error - Could not find attachment?"));
 
             return {

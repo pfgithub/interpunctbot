@@ -20,5 +20,6 @@ export function onSlashCommand(): SlashCommandElement[] {
 			(require("./user/commands/dev/restart") as typeof import("./user/commands/dev/restart")).default(),
 		]}),
         (require("./user/commands/spoiler") as typeof import("./user/commands/spoiler")).default(),
+        (require("./user/commands/remindme") as typeof import("./user/commands/remindme")).default(),
 	];
 }

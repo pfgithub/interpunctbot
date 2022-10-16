@@ -5,7 +5,7 @@ export default function Command(): SlashCommandElement {
     return SlashCommand({
         label: u("reload_libfancy"),
         description: u("Reload libfancy"),
-        children: [],
+        args: {},
         // permissions: () => {user_id: "341076015663153153"}
         onSend: ev => {
             // if(dev) {delete require.cache(require.resolve(__filename))

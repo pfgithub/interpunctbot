@@ -30,7 +30,7 @@ export function RockPaperScissors({state, updateState}: {state: RPSState, update
 				AtMention({user: loser.id, ping: false}),
 				u("'s "+loser.choice+flavour),
 				AtMention({user: winner.id, ping: true}),
-				u(" wins."),
+				u(" wins."), // best 2/3? best 3/5? best 5/7? best 7/9? would be funny to ask but a lot of dev effort for a small joke
 			],
 			// we could add a gif attachment showing what happens
 		});

@@ -6,6 +6,7 @@ import { assertNever } from "../..";
 import { ginteractionhandler } from "../NewRouter";
 import { ContextMenuCommandRouter, SlashCommandRouteBottomLevelCallback, SlashCommandRouter } from "../SlashCommandManager";
 import { fancylib_persistence } from "./fancyhmr";
+import { Snowflake } from "discord-api-types/v9";
 
 // NOTE:
 // https://github.com/microsoft/TypeScript/issues/21699
@@ -120,8 +121,14 @@ export function MessageContextMenuItem(
 	return props;
 }
 
-export type ArgT = SlashCommandArg;
-export type SlashCommandElement = SlashCommandGroupElement | SlashCommandLeafElement<ArgT[]>;
+
+// this would be easier if args was an object {name: value}
+export type FlattenArgs<Args extends SlashCommandArgs> = {
+	// TODO: support optional args
+	[key in keyof Args]: Args[key] extends SlashCommandArgBase<unknown, infer U> ? U : never
+};
+
+export type SlashCommandElement = SlashCommandGroupElement | SlashCommandLeafElement<SlashCommandArgs>;
 export type SlashCommandGroupElement = {
 	kind: "slash_command_group",
 	default_permission?: undefined | boolean,
@@ -129,21 +136,42 @@ export type SlashCommandGroupElement = {
 	description: LocalizedString,
 	children: SlashCommandElement[],
 };
-export type SlashCommandArgBase = {
-	name: string,
-	description: string,
-	required?: boolean,
+export type SlashCommandArgPostprocessRes<U> = {
+	kind: "success",
+	value: U,	
+} | {
+	kind: "error",
+	message: string,
 };
-export type SlashCommandAttachmentArg = SlashCommandArgBase & {
-	kind: "attachment",
+export interface SlashCommandArgBase<T, U> {
+	description: string;
+	required: boolean;
+	postprocess: (v: T) => SlashCommandArgPostprocessRes<U>;
+	// autofill?: (current_input) => …
+}
+export interface SlashCommandAttachmentArg<U> extends SlashCommandArgBase<
+	d.APIApplicationCommandInteractionDataAttachmentOption, U
+> {
+	kind: "attachment";
+}
+export interface SlashCommandTextArg<U> extends SlashCommandArgBase<
+	d.APIApplicationCommandInteractionDataStringOption, U
+> {
+	kind: "text";
+}
+export type SlashCommandArg =
+	| SlashCommandAttachmentArg<unknown>
+	| SlashCommandTextArg<unknown>
+;
+export type SlashCommandArgs = {
+	[key: string]: SlashCommandArg,
 };
-export type SlashCommandArg = SlashCommandAttachmentArg;
-export type SlashCommandLeafElement<Args extends SlashCommandArg[]> = {
+export type SlashCommandLeafElement<Args extends SlashCommandArgs> = {
 	kind: "slash_command",
 	label: LocalizedString,
 	description: LocalizedString,
-	children: Args,
-	onSend: (e: CallFrom.SlashCommand<Args>) => SlashCommandInteractionResponse,
+	args: Args,
+	onSend: (e: CallFrom.SlashCommand<SlashCommandArgs>) => SlashCommandInteractionResponse,
 };
 
 export function SlashCommandGroup(props: Omit<SlashCommandGroupElement, "kind">): SlashCommandGroupElement {
@@ -153,10 +181,162 @@ export function SlashCommandGroup(props: Omit<SlashCommandGroupElement, "kind">)
 	};
 }
 
-export function SlashCommand<T extends ArgT[]>(props: Omit<SlashCommandLeafElement<T>, "kind">): SlashCommandLeafElement<T> {
+export function SlashCommand<T extends SlashCommandArgs>(props: Omit<SlashCommandLeafElement<T>, "kind" | "onSend"> & {
+	onSend: (e: CallFrom.SlashCommand<T>) => SlashCommandInteractionResponse,
+}): SlashCommandLeafElement<T> {
 	return {
 		kind: "slash_command",
 		...props,
+		onSend: props.onSend as (e: CallFrom.SlashCommand<SlashCommandArgs>) => SlashCommandInteractionResponse,
+	};
+}
+
+export function SlashCommandArgAttachment(props: {
+	description: string,
+	required?: undefined | boolean,
+}): SlashCommandAttachmentArg<Snowflake> {
+	return {
+		kind: "attachment",
+
+		description: props.description,
+		required: props.required ?? true,
+		postprocess: v => ({kind: "success", value: v.value}),
+	};
+}
+
+export function SlashCommandArgText(props: {
+	description: string,
+	required?: undefined | boolean,
+}): SlashCommandTextArg<string> {
+	return {
+		kind: "text",
+
+		description: props.description,
+		required: props.required ?? true,
+		postprocess: v => ({kind: "success", value: v.value}),
+	};
+}
+
+export function SlashCommandArgDuration(props: {
+	description: string,
+	required?: undefined | boolean,
+}): SlashCommandTextArg<number> {
+	// hmm. this isn't composable. ideally, this would call SlashCommandArgText with a custom postprocess
+	// value. we can do that but not sure if it's good.
+	return {
+		kind: "text",
+		description: props.description,
+		required: props.required ?? true,
+		postprocess: v => {
+			const str = v.value;
+
+			const unit = {
+				ms: 1,
+				sec: 1000,
+				min: 60000,
+				hr: 3600000,
+				day: 86400000,
+				week: 86400000 * 7,
+				month: 2629746000,
+				year: 31556952000,
+				LL: 864000,
+				cc: 86400,
+				ii: 864,
+				qm: 108 / 125,
+			};
+			const names: { [key: string]: number } = {
+				ms: unit.ms,
+				milisecond: unit.ms,
+				miliseconds: unit.ms,
+				s: unit.sec,
+				sec: unit.sec,
+				secs: unit.sec,
+				second: unit.sec,
+				seconds: unit.sec,
+				m: unit.min,
+				min: unit.min,
+				mins: unit.min,
+				minute: unit.min,
+				minutes: unit.min,
+				h: unit.hr,
+				hr: unit.hr,
+				hrs: unit.hr,
+				hour: unit.hr,
+				hours: unit.hr,
+				d: unit.day,
+				day: unit.day,
+				days: unit.day,
+				w: unit.week,
+				week: unit.week,
+				weeks: unit.week,
+				mo: unit.month,
+				month: unit.month,
+				months: unit.month,
+				y: unit.year,
+				yr: unit.year,
+				year: unit.year,
+				years: unit.year,
+				ll: unit.LL,
+				cc: unit.cc,
+				ii: unit.ii,
+				qm: unit.qm,
+			};
+
+			if (!str.trim()) {
+				return {kind: "error", message: "missing duration"};
+			}
+
+			let remainder = str;
+			let result = 0;
+			let anyfound = false;
+
+			while (true) {
+				if (remainder.startsWith(","))
+					remainder = remainder.substr(1).trim();
+				const inum = /^[0-9.-]+/.exec(remainder);
+				// todo(/*check if makes sense as a number, eg remindme 1 day .hi! should not be a number. */);
+				if (!inum) break;
+
+				if (isNaN(+inum[0])) {
+					break; // parsing with ambiguity doesn't have a correct answer
+					// (other than removing the ambiguity)
+					// ip!remindme (2 days) do something
+					// but that looks bad and is weird, ip!remindme 2 days do something is better
+				}
+				const rmderTemp = remainder.substr(inum[0].length).trim();
+				const numberv = +inum[0];
+
+				const unitstr = /^[A-Za-z]+/.exec(rmderTemp);
+				if (!unitstr) {
+					if (!anyfound) {
+						return {kind: "error", message: "could not find unit. example: '10sec'"};
+					}
+					break;
+				}
+				remainder = rmderTemp;
+				const unitname = unitstr[0].toLowerCase();
+
+				if (names[unitname] === undefined) {
+					if (!anyfound) {
+						return {kind: "error", message: "does not support unit "+unitname+". try: '10 sec'/'6 min'/'2 hours'"};
+					}
+				}
+				remainder = remainder.substr(unitstr[0].length).trim();
+				result += numberv * names[unitname];
+				anyfound = true;
+			}
+			if (remainder.startsWith(",")) remainder = remainder.substr(1).trim();
+			if (!anyfound) {
+				return {kind: "error", message: "missing a time. example: '10sec'"};
+			}
+
+			const nearestMS = Math.round(result);
+			if (nearestMS < 0) {
+				return {kind: "error", message: "time cannot be in the past. try: '10 sec'"};
+			}
+			
+			return {kind: "success", value: nearestMS};
+		},
 	};
 }
 
@@ -266,18 +446,13 @@ export function ErrorMsg(message: LocalizedString): MessageElement {
 	return Message({text: message});
 }
 
-export type ArgValueType<T extends ArgT> = T extends SlashCommandAttachmentArg ? d.APIApplicationCommandInteractionDataAttachmentOption : never;
-export type FlattenArgs<Args extends ArgT[]> = {
-	[key in Args[number]["name"]]: ArgValueType<Extract<Args[number], {name: key}>> // if the arg required is false, undefined | v
-};
-
 export declare namespace CallFrom {
     type MessageContextMenu = {
         from: "message_context_menu",
         message: d.APIMessage,
 		interaction: d.APIMessageApplicationCommandInteraction,
     };
-    type SlashCommand<Args extends ArgT[]> = {
+    type SlashCommand<Args extends SlashCommandArgs> = {
         from: "slash_command",
         args: FlattenArgs<Args>,
 		interaction: d.APIChatInputApplicationCommandInteraction,
@@ -632,27 +807,44 @@ function addRoute(router: SlashCommandRouter, command: SlashCommandElement, opts
 		const route: SlashCommandRouteBottomLevelCallback = {
 			description: command.description,
 			handler: async (info, interaction, options) => {
-				const arg: CallFrom.SlashCommand<ArgT[]> = {
+				let got_error: null | LocalizedString = null;
+				const arg: CallFrom.SlashCommand<SlashCommandArgs> = {
 					from: "slash_command",
 					// TODO: check that the option value type matches the expected one configured in the command
 					// [there is a one hour period where stuff might be wrong]
-					args: Object.fromEntries(options.map(opt => ([opt.name, opt]))) as any,
+					args: Object.fromEntries(options.map((opt): [string, unknown] => {
+						const matching_opt = command.args[opt.name];
+						if(matching_opt == null) {
+							got_error = u("arg provided not specified in command");
+							return ["", 0];
+						}
+						const optval = matching_opt.postprocess(opt as unknown as never);
+						if(optval.kind === "error") {
+							got_error = u("error in argument ["+optval.message+"]: "+optval.message);
+							return ["", 0];
+						}
+						return [opt.name, optval.value];
+					})) as any,
 					interaction: interaction as d.APIChatInputApplicationCommandInteraction,
 				};
+				if(got_error != null) return await sendCommandResponse(renderError(got_error), interaction);
 
 				return await sendCommandResponse(command.onSend(arg), interaction);
 			},
-			args_raw: command.children.map((arg): d.APIApplicationCommandBasicOption => {
+			args_raw: Object.entries(command.args).map(([name, arg]): d.APIApplicationCommandBasicOption => {
 				const shared = <T extends d.ApplicationCommandOptionType>(type: T): APIApplicationCommandOptionBase<T> => ({
 					type,
-					name: arg.name,
+					name: name,
 					description: arg.description,
-					required: arg.required ?? true,
+					required: arg.required,
 				});
 				if(arg.kind === "attachment") return {
 					...shared(d.ApplicationCommandOptionType.Attachment),
 				};
-				throw new Error("unreachable");
+				if(arg.kind === "text") return {
+					...shared(d.ApplicationCommandOptionType.String),
+				};
+				assertNever(arg);
 			}),
 		};
 		if(router[command.label] && disallow_overwrite) throw new Error("already exists label: "+command.label);
