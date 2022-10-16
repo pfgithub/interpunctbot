@@ -68,7 +68,7 @@ export async function updateNextEvent(): Promise<void> {
     const next_event = await ourk().where({
         'completed': false,
     }).whereIn("for_guild", [...all_guilds]).orderBy('time', "asc").select("*").first();
-    console.log("[TEat2] next event:", next_event, [...all_guilds]);
+    console.log("[TEat2] next event:", next_event);
     
     if(next_event == null) return;
     
