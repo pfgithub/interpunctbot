@@ -69,6 +69,17 @@ export function u(text: string): LocalizedString {
 	return text as unknown as LocalizedString;
 }
 
+export function renderDeferred(config: InteractionConfig, value: () => Promise<MessageElement>): InteractionResponseNewMessage {
+	return {
+		kind: "new_message",
+		deferred: true,
+		config,
+		value: value().then(r => {
+			return renderEphemeral(r, config);
+		}),
+	};
+}
+
 // ?? rename this??
 export function renderEphemeral(element: MessageElement, opts: InteractionConfig): InteractionResponseNewMessage {
 	return {
@@ -130,7 +141,8 @@ export function MessageContextMenuItem(
 // this would be easier if args was an object {name: value}
 export type FlattenArgs<Args extends SlashCommandArgs> = {
 	// TODO: support optional args
-	[key in keyof Args]: Args[key] extends SlashCommandArgBase<unknown, infer U> ? U : never
+	// not sure why that [1] thing is needed
+	[key in keyof Args]: (Args[key] extends SlashCommandArgBase<infer T, infer U> ? [T, U] : [never, never])[1]
 };
 
 export type SlashCommandElement = SlashCommandGroupElement | SlashCommandLeafElement<SlashCommandArgs>;
@@ -152,6 +164,8 @@ export interface SlashCommandArgBase<T, U> {
 	description: string;
 	required: boolean;
 	postprocess: (v: T) => SlashCommandArgPostprocessRes<U>;
+	__t_is?: undefined | T;
+	__u_is?: undefined | U;
 	// autofill?: (current_input) => …
 }
 export interface SlashCommandArgAutocompletable<T, U> extends SlashCommandArgBase<T, U> {

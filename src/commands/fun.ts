@@ -286,7 +286,7 @@ nr.globalCommand(
 	async ([cmd], info) => {
 		if (cmd.trim())
 			return await info.error("timezones are not implemented yet :(");
-		return await info.result("<t:"+(Date.now() / 1000 |0)+">");
+		return await info.result("<t:"+Math.floor(Date.now() / 1000)+">");
 	},
 );
 
@@ -713,13 +713,13 @@ nr.globalCommand(
 		if (info.guild) {
 			const member = info.guild.members.resolve(ussr)!;
 			const jat = member.joinedAt!.getTime();
-			l2o = safe`\nJoined this server <t:${"" + (jat / 1000 |0)}:R> <t:${"" + (jat / 1000 |0)}>`;
+			l2o = safe`\nJoined this server <t:${"" + Math.floor(jat / 1000)}:R> <t:${"" + Math.floor(jat / 1000)}>`;
 		}
 		const dat = ussr.createdAt.getTime();
 		return await info.result(
 			safe`Info about ${raw(
 				ussr.toString(),
-			)}\nJoined discord <t:${"" + (dat / 1000 |0)}:R> <t:${"" + (dat / 1000 |0)}>${raw(l2o)}`,
+			)}\nJoined discord <t:${"" + Math.floor(dat / 1000)}:R> <t:${"" + Math.floor(dat / 1000)}>${raw(l2o)}`,
 		);
 	},
 );
@@ -1270,7 +1270,7 @@ nr.globalCommand(
 		const restime = new Date().getTime() + delay;
 
 		await info.success(
-			"Reminder set for <t:"+(restime / 1000 |0)+"> (<t:"+(restime / 1000 |0)+":R>)",
+			"Reminder set for <t:"+Math.floor(restime / 1000)+"> (<t:"+Math.floor(restime / 1000)+":R>)",
 		);
 	},
 );
