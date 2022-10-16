@@ -18,7 +18,7 @@ export default function Command(): SlashCommandElement {
                 content: {
                     kind: "send_pm",
                     user_id: event.interaction.member?.user.id ?? event.interaction.user?.id ?? 0 as never,
-                    message: `Reminder in <#${event.interaction.channel_id}> from ${Math.floor(Date.now() / 1000)}:\n${message
+                    message: `Reminder in <#${event.interaction.channel_id}> from <t:${Math.floor(Date.now() / 1000)}>:\n${message
                         .split("\n")
                         .map(l => "> " + l)
                         .join("\n")}`,
