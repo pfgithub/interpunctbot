@@ -19,6 +19,8 @@ export async function callEventInternal(event: TimedEvent): Promise<void> {
     const {content, for_guild} = event;
     if(content.kind === "send_pm") {
         // have to make a dm channel to use the api directly
+        // ah: we call '/users/@me/channels' https://discord.com/developers/docs/resources/user#create-dm
+        // that returns an object that it makes sense to cache
         const user = await client.users.fetch(content.user_id);
         await user.send({
             content: content.message,
