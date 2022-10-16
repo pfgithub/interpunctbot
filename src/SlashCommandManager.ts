@@ -97,10 +97,11 @@ export class InteractionHelper {
 	}
 }
 
-function on_interaction(interaction: d.APIInteraction | d.APIModalSubmitInteraction) {
+function on_interaction(interaction: d.APIInteraction) {
 	ilt(do_handle_interaction(interaction), false).then(async res => {
 		if(res.error) {
 			console.log("handle interaction failed with", res.error);
+			if(interaction.type === d.InteractionType.ApplicationCommandAutocomplete) return; // just let it load forever
 			const helper = new InteractionHelper(interaction);
 			await helper.replyHiddenHideCommand("Uh oh! Something went wrong while handling this interaction");
 			return;
@@ -157,14 +158,39 @@ async function handle_interaction_routed(info: Info, route_name: string, route: 
 // TODO don't do that; migrate to api raw
 // potential issues: may have to worry about retry functionality and stuff
 
-async function do_handle_interaction(interaction: d.APIInteraction | d.APIModalSubmitInteraction) {
+async function do_handle_interaction(interaction: d.APIInteraction) {
 	const startTime = Date.now();
-
-	const interaction_helper = new InteractionHelper(interaction);
 
 	logCommand(interaction.guild_id, interaction.channel_id, false, interaction.user?.id, 
 		(interaction.type === 2 ? "/"+interaction.data.name : "@"+interaction.type)+": "+JSON.stringify(interaction.data)
 	);
+
+	if(interaction.type === d.InteractionType.ApplicationCommandAutocomplete) {
+		let route = slash_command_router[interaction.data.name];
+		let options = interaction.data.options ?? [];
+		while('subcommands' in route) {
+			if(options.length !== 1) return; // *do not reply to the request*
+			const opt0 = options[0];
+			if(opt0.type !== d.ApplicationCommandOptionType.Subcommand
+			&& opt0.type !== d.ApplicationCommandOptionType.SubcommandGroup) return; // *do not reply to the request*
+			const optnme = opt0.name;
+
+			const next_route = route.subcommands[optnme];
+			if(!next_route) return; // *do not reply to the request*
+
+			route = next_route;
+			options = opt0.options ?? [];
+		}
+
+		if('handler' in route) {
+			// if no autocomplete handler: do not reply
+			await route.autocompleteHandler?.(interaction, options);
+		}
+		return; // *do not reply*
+	}
+
+	const interaction_helper = new InteractionHelper(interaction);
+
 	if(interaction.guild_id === undefined
 	|| interaction.channel_id === undefined) {
 		return await interaction_helper.replyHiddenHideCommand("× DMs not supported.");
@@ -323,6 +349,11 @@ export type SlashCommandRouteBottomLevelCallback = {
 	description: string,
     args?: {[key: string]: SlashCommandOptionNameless},
 	args_raw?: d.APIApplicationCommandBasicOption[],
+
+	autocompleteHandler?: null | ((
+		interaction: d.APIApplicationCommandAutocompleteInteraction,
+		options: d.APIApplicationCommandInteractionDataOption[],
+	) => Promise<void>),
 };
 
 export type SlashCommandRouteBottomLevel =

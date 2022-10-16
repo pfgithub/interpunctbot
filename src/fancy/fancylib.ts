@@ -24,6 +24,10 @@ export type MessageElement = {
 	attachments?: undefined | MessageAttachment[],
 };
 
+export type InteractionResponseAutocomplete = {
+	kind: "autocomplete",
+	choices: string[],
+};
 export type InteractionResponseNewMessage = {
 	kind: "new_message",
 	deferred: false,
@@ -50,6 +54,7 @@ export type InteractionResponseUpdateState = {
 // 	value: Promise<InteractionResponseUpdateState>,
 // };
 
+export type AutocompleteInteractionResponse = InteractionResponseAutocomplete;
 export type SlashCommandInteractionResponse = InteractionResponseNewMessage;
 export type InteractionResponse = SlashCommandInteractionResponse | InteractionResponseUpdateState;
 
@@ -149,12 +154,15 @@ export interface SlashCommandArgBase<T, U> {
 	postprocess: (v: T) => SlashCommandArgPostprocessRes<U>;
 	// autofill?: (current_input) => …
 }
+export interface SlashCommandArgAutocompletable<T, U> extends SlashCommandArgBase<T, U> {
+	autocomplete?: null | ((v: T) => AutocompleteInteractionResponse);
+}
 export interface SlashCommandAttachmentArg<U> extends SlashCommandArgBase<
 	d.APIApplicationCommandInteractionDataAttachmentOption, U
 > {
 	kind: "attachment";
 }
-export interface SlashCommandTextArg<U> extends SlashCommandArgBase<
+export interface SlashCommandTextArg<U> extends SlashCommandArgAutocompletable<
 	d.APIApplicationCommandInteractionDataStringOption, U
 > {
 	kind: "text";
@@ -223,119 +231,184 @@ export function SlashCommandArgDuration(props: {
 }): SlashCommandTextArg<number> {
 	// hmm. this isn't composable. ideally, this would call SlashCommandArgText with a custom postprocess
 	// value. we can do that but not sure if it's good.
+	const autocomplete = (v: d.APIApplicationCommandInteractionDataStringOption): ({
+		duration_ms: null | number,
+		autocomplete_entries: string[],
+		error_msg: null | string,
+	}) => {
+		const str = v.value;
+
+		const unit = {
+			ms: 1,
+			sec: 1000,
+			min: 60000,
+			hr: 3600000,
+			day: 86400000,
+			week: 86400000 * 7,
+			month: 2629746000,
+			year: 31556952000,
+			LL: 864000,
+			cc: 86400,
+			ii: 864,
+			qm: 108 / 125,
+		};
+		const names: { [key: string]: number } = {
+			ms: unit.ms,
+			milisecond: unit.ms,
+			miliseconds: unit.ms,
+			s: unit.sec,
+			sec: unit.sec,
+			secs: unit.sec,
+			second: unit.sec,
+			seconds: unit.sec,
+			m: unit.min,
+			min: unit.min,
+			mins: unit.min,
+			minute: unit.min,
+			minutes: unit.min,
+			h: unit.hr,
+			hr: unit.hr,
+			hrs: unit.hr,
+			hour: unit.hr,
+			hours: unit.hr,
+			d: unit.day,
+			day: unit.day,
+			days: unit.day,
+			w: unit.week,
+			week: unit.week,
+			weeks: unit.week,
+			mo: unit.month,
+			month: unit.month,
+			months: unit.month,
+			y: unit.year,
+			yr: unit.year,
+			year: unit.year,
+			years: unit.year,
+			ll: unit.LL,
+			cc: unit.cc,
+			ii: unit.ii,
+			qm: unit.qm,
+		};
+
+		if (!str.trim()) {
+			return {
+				duration_ms: null,
+				autocomplete_entries: [
+					"10sec",
+					"3min",
+					"2hr",
+				],
+				error_msg: "missing duration",
+			};
+		}
+
+		let remainder = str.trim();
+		let prev_whole = "";
+		let result = 0;
+		let anyfound = false;
+
+		while (true) {
+			if(!remainder.trim()) break;
+
+			const rem_start = remainder;
+			if (remainder.startsWith(","))
+				remainder = remainder.substr(1).trim();
+			const inum = /^[0-9.-]+/.exec(remainder);
+			if (!inum || isNaN(+inum[0])) return {
+				duration_ms: null,
+				autocomplete_entries: [
+					prev_whole,
+					prev_whole + " 10sec",
+					prev_whole + " 3min",
+					prev_whole + " 2hr",
+				],
+				error_msg: "missing number"
+			};
+			const rmderTemp = remainder.substr(inum[0].length).trim();
+			const numberv = +inum[0];
+			const number_whole = rem_start.substring(0, rem_start.length - rmderTemp.length);
+
+			const unitstr = /^[A-Za-z]+/.exec(rmderTemp);
+			if (!unitstr) {
+				return {
+					duration_ms: null,
+					autocomplete_entries: [
+						prev_whole,
+						number_whole + "sec",
+						number_whole + "min",
+						number_whole + "hr",
+					],
+					error_msg: "missing unit"
+				};
+			}
+			remainder = rmderTemp;
+			const unitname = unitstr[0].toLowerCase();
+
+			if (names[unitname] === undefined) {
+				return {
+					duration_ms: null,
+					autocomplete_entries: [
+						prev_whole,
+						number_whole + "sec",
+						number_whole + "min",
+						number_whole + "hr",
+					],
+					error_msg: "unsupported unit: "+unitname
+				};
+			}
+			remainder = remainder.substring(unitstr[0].length).trim();
+			result += numberv * names[unitname];
+			anyfound = true;
+
+			prev_whole += rem_start.substring(0, rem_start.length - remainder.length);
+		}
+		if (!anyfound) {
+			return {
+				duration_ms: null,
+				autocomplete_entries: [
+					"10sec",
+					"3min",
+					"2hr",
+				],
+				error_msg: "missing a time. example: '10sec'",
+			};
+		}
+
+		const nearestMS = Math.round(result);
+		if (nearestMS < 0) {
+			return {
+				duration_ms: null,
+				autocomplete_entries: [
+					"10sec",
+					"3min",
+					"2hr",
+				],
+				error_msg: "the time cannot be in the past.",
+			};
+		}
+		
+		return {
+			duration_ms: nearestMS,
+			autocomplete_entries: [
+				prev_whole,
+				prev_whole + " 10sec",
+				prev_whole + " 3min",
+				prev_whole + " 2hr",
+			],
+			error_msg: null,
+		};
+	};
 	return {
 		kind: "text",
 		description: props.description,
 		required: props.required ?? true,
-		postprocess: v => {
-			const str = v.value;
-
-			const unit = {
-				ms: 1,
-				sec: 1000,
-				min: 60000,
-				hr: 3600000,
-				day: 86400000,
-				week: 86400000 * 7,
-				month: 2629746000,
-				year: 31556952000,
-				LL: 864000,
-				cc: 86400,
-				ii: 864,
-				qm: 108 / 125,
-			};
-			const names: { [key: string]: number } = {
-				ms: unit.ms,
-				milisecond: unit.ms,
-				miliseconds: unit.ms,
-				s: unit.sec,
-				sec: unit.sec,
-				secs: unit.sec,
-				second: unit.sec,
-				seconds: unit.sec,
-				m: unit.min,
-				min: unit.min,
-				mins: unit.min,
-				minute: unit.min,
-				minutes: unit.min,
-				h: unit.hr,
-				hr: unit.hr,
-				hrs: unit.hr,
-				hour: unit.hr,
-				hours: unit.hr,
-				d: unit.day,
-				day: unit.day,
-				days: unit.day,
-				w: unit.week,
-				week: unit.week,
-				weeks: unit.week,
-				mo: unit.month,
-				month: unit.month,
-				months: unit.month,
-				y: unit.year,
-				yr: unit.year,
-				year: unit.year,
-				years: unit.year,
-				ll: unit.LL,
-				cc: unit.cc,
-				ii: unit.ii,
-				qm: unit.qm,
-			};
-
-			if (!str.trim()) {
-				return {kind: "error", message: "missing duration"};
-			}
-
-			let remainder = str;
-			let result = 0;
-			let anyfound = false;
-
-			while (true) {
-				if (remainder.startsWith(","))
-					remainder = remainder.substr(1).trim();
-				const inum = /^[0-9.-]+/.exec(remainder);
-				// todo(/*check if makes sense as a number, eg remindme 1 day .hi! should not be a number. */);
-				if (!inum) break;
-
-				if (isNaN(+inum[0])) {
-					break; // parsing with ambiguity doesn't have a correct answer
-					// (other than removing the ambiguity)
-					// ip!remindme (2 days) do something
-					// but that looks bad and is weird, ip!remindme 2 days do something is better
-				}
-				const rmderTemp = remainder.substr(inum[0].length).trim();
-				const numberv = +inum[0];
-
-				const unitstr = /^[A-Za-z]+/.exec(rmderTemp);
-				if (!unitstr) {
-					if (!anyfound) {
-						return {kind: "error", message: "could not find unit. example: '10sec'"};
-					}
-					break;
-				}
-				remainder = rmderTemp;
-				const unitname = unitstr[0].toLowerCase();
-
-				if (names[unitname] === undefined) {
-					if (!anyfound) {
-						return {kind: "error", message: "does not support unit "+unitname+". try: '10 sec'/'6 min'/'2 hours'"};
-					}
-				}
-				remainder = remainder.substr(unitstr[0].length).trim();
-				result += numberv * names[unitname];
-				anyfound = true;
-			}
-			if (remainder.startsWith(",")) remainder = remainder.substr(1).trim();
-			if (!anyfound) {
-				return {kind: "error", message: "missing a time. example: '10sec'"};
-			}
-
-			const nearestMS = Math.round(result);
-			if (nearestMS < 0) {
-				return {kind: "error", message: "time cannot be in the past. try: '10 sec'"};
-			}
-			
-			return {kind: "success", value: nearestMS};
+		autocomplete: v => {
+			return {kind: "autocomplete", choices: autocomplete(v).autocomplete_entries};
+		},
+		postprocess: (v): SlashCommandArgPostprocessRes<number> => {
+			const res = autocomplete(v);
+			if(res.duration_ms != null) return {kind: "success", value: res.duration_ms};
+			return {kind: "error", message: res.error_msg ?? "no error message provided"};
 		},
 	};
 }
@@ -578,6 +651,25 @@ function formatComponents(persist_id: string, components: ComponentSpec[]): d.AP
 	});
 }
 
+async function sendAutocompleteResponse(
+	response: AutocompleteInteractionResponse,
+	interaction: d.APIApplicationCommandAutocompleteInteraction,
+): Promise<void> {
+	const res: d.APIApplicationCommandAutocompleteResponse = {
+		type: d.InteractionResponseType.ApplicationCommandAutocompleteResult,
+		data: {
+			choices: response.choices.map(choice => ({
+				name: choice,
+				value: choice,
+			})).filter(choice => !!choice.name.trim()),
+		},
+	};
+	await api.api(d.Routes.interactionCallback(
+		interaction.id,
+		interaction.token,
+	)).post({data: res});
+}
+
 export async function sendCommandResponse(
 	response: SlashCommandInteractionResponse,
 	interaction: d.APIApplicationCommandInteraction,
@@ -806,6 +898,26 @@ function addRoute(router: SlashCommandRouter, command: SlashCommandElement, opts
 	if(command.kind === "slash_command") {
 		const route: SlashCommandRouteBottomLevelCallback = {
 			description: command.description,
+			autocompleteHandler: async (interaction, options) => {
+				// filter options for the focused one
+				// handle that one
+				const focused_option = options.find(opt => {
+					if('focused' in opt) return opt.focused ?? false;
+					return false;
+				});
+				if(focused_option == null) return; // no focused option?
+				const matching_opt = command.args[focused_option.name];
+				if(matching_opt == null) return; // no matching opt?
+				if(matching_opt.kind === "text") {
+					if(focused_option.type !== d.ApplicationCommandOptionType.String) return; // ?
+					if(matching_opt.autocomplete == null) return; // ?
+					const ac_res = matching_opt.autocomplete(focused_option);
+
+					await sendAutocompleteResponse(ac_res, interaction);
+				}else{
+					return; // not the right type?
+				}
+			},
 			handler: async (info, interaction, options) => {
 				let got_error: null | LocalizedString = null;
 				const arg: CallFrom.SlashCommand<SlashCommandArgs> = {
@@ -843,6 +955,7 @@ function addRoute(router: SlashCommandRouter, command: SlashCommandElement, opts
 				};
 				if(arg.kind === "text") return {
 					...shared(d.ApplicationCommandOptionType.String),
+					autocomplete: arg.autocomplete != null,
 				};
 				assertNever(arg);
 			}),
