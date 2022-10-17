@@ -556,10 +556,6 @@ const slash_command_router: SlashCommandRouter = {
 			list: {route: "command list"},
 		},
 	},
-	slashbot: {
-		description: "is slashbot",
-		route: "ping",
-	},
 	button: {
 		description: "create buttons",
 		subcommands: {
