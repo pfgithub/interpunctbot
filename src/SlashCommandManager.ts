@@ -575,6 +575,11 @@ const slash_command_router: SlashCommandRouter = {
 		},
 	},
 	give: {
+		// TODO: give these default_permission 0 and only give permission when needed.
+		// also: link to them with slash command mentions.
+		// > except admins
+		// this is annoying. how do we disable a command for admins too?
+		// - we could make them guild commands and add/remove them when needed. doesn't seem right though.
 		description: "only use these when prompted",
 		subcommands: {
 			text: {route: "givetext", args: {text: opt.string("Text")}},
