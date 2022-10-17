@@ -770,7 +770,9 @@ function normalizeSCO(inv: d.APIApplicationCommandOption[]): d.APIApplicationCom
 		if(typeof value === "object") {
 			for(const [k, v] of Object.entries(value)) {
 				if(Array.isArray(v) && v.length === 0) delete value[k];
-				if(k === "required" && v === false) delete value[k];
+				if(v === false) delete value[k];
+				if(v == null) delete value[k];
+				if(typeof v === "string") value[k] = v.trim();
 			}
 		}
 		return value;
