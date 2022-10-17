@@ -17,6 +17,13 @@ import { Snowflake } from "discord-api-types/v9";
 // unfortunately it's been open for four years and there's a PR but it slows
 // down the compiler so it hasn't been accepted yet.
 
+export type App = {
+	message_context_menu: MessageContextMenuItemElement[],
+	slash_commands: SlashCommandElement[],
+	guildSlashCommands: (guild_id: string) => Promise<SlashCommandElement[]>,
+	// doesn't auto update so you'll need to call updateGuildSlashCommands if you do something that should change this
+};
+
 export type MessageElement = {
     kind: "message",
     text: MarkdownText,
@@ -786,7 +793,7 @@ export type RoutingOpts = {
 };
 
 export function registerFancylib(cmcr: ContextMenuCommandRouter, scr: SlashCommandRouter, opts: RoutingOpts = {}): void {
-	const right_click_commands = fuser.onRightClick();
+	const right_click_commands = fuser.app().message_context_menu;
 	for(const command of right_click_commands) {
 		cmcr.message[command.label] = {
 			handler: async (info, {interaction}) => {
@@ -801,7 +808,7 @@ export function registerFancylib(cmcr: ContextMenuCommandRouter, scr: SlashComma
 		};
 	}
 
-	const slash_commands = fuser.onSlashCommand();
+	const slash_commands = fuser.app().slash_commands;
 	for(const command of slash_commands) {
 		addRoute(scr, command, opts);
 	}
@@ -987,6 +994,10 @@ function addRoute(router: SlashCommandRouter, command: SlashCommandElement, opts
 		if(route.description !== command.description) throw new Error("already exists and different descriptions: "+command.label);
 		for(const cmd of command.children) addRoute(route.subcommands, cmd, opts);
 	}else assertNever(command);
+}
+
+export function updateGuildSlashCommands(guild_id: string): Promise<void> {
+	throw new Error("TODO");
 }
 
 export function destroyFancylib(): void {
