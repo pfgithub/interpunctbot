@@ -24,28 +24,6 @@ inter·punct has the ability to create custom commands and quote lists.
 `,
 );
 
-export async function restrictTextToPerms(
-	member: Discord.GuildMember,
-	text: string,
-	info: Info,
-): Promise<string> {
-	let message = text;
-
-	const theyCanMention = member.permissions.has("MENTION_EVERYONE");
-
-	if (!theyCanMention) {
-		const nmsg = stripMentions(message);
-		if (nmsg !== message)
-			await info.warn(
-				"To include arbitrary mentions in the message, you must have permission to MENTION_EVERYONE.",
-			);
-		message = nmsg;
-	}
-	message = message.trim();
-
-	return message;
-}
-
 nr.globalCommand(
 	"/help/customcommands/add",
 	"command add",
@@ -56,13 +34,8 @@ nr.globalCommand(
 		perms: { runner: ["manage_bot"] },
 	},
 	nr.list(nr.a.backtick(), ...nr.a.words()),
-	async ([safecmdname, unsaferestext], info) => {
+	async ([safecmdname, restext], info) => {
 		if (!info.db) return await info.docs("/errors/pms", "error");
-		const safetext = await restrictTextToPerms(
-			info.message.member!,
-			unsaferestext,
-			info,
-		);
 		
 		const cmdname = safecmdname.toLowerCase();
 		const lists = await info.db.getCustomCommands();
@@ -76,7 +49,7 @@ nr.globalCommand(
 			);
 		lists[cmdname] = {
 			type: "command",
-			text: safetext.trim(),
+			text: restext.trim(),
 		};
 		await info.db.setCustomCommands(lists);
 		await info.success(info.tag`Command added. Try it with {Command|${cmdname}}`);
