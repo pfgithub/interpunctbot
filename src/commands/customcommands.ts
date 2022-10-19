@@ -66,7 +66,7 @@ nr.globalCommand(
 		
 		const cmdname = safecmdname.toLowerCase();
 		const lists = await info.db.getCustomCommands();
-		if (lists[cmdname])
+		if (Object.hasOwnProperty.call(lists, cmdname))
 			return await info.error(
 				info.tag`That command already exists. Remove it with {Command|command remove ${safecmdname}}`,
 			);

@@ -16,6 +16,7 @@ export function app(): App {
 			]}),
 			(require("./user/commands/spoiler") as typeof import("./user/commands/spoiler")).default(),
 			(require("./user/commands/remindme") as typeof import("./user/commands/remindme")).default(),
+			// (require("./user/commands/run") as typeof import("./user/commands/run")).default(),
 		],
 		guildSlashCommands: async (guild_id: string): Promise<SlashCommandElement[]> => [
 

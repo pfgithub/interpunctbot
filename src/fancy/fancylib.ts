@@ -76,6 +76,10 @@ export function u(text: string): LocalizedString {
 	return text as unknown as LocalizedString;
 }
 
+// * we should not have to use a deferred render for a short async wait (ie: db transactions)
+// we should only use this for things we expect might take a while
+// alternatively, we can include a speed in the config. like "speed": slow (for external network requests) or "speed": fast
+// for db requests
 export function renderDeferred(config: InteractionConfig, value: () => Promise<MessageElement>): InteractionResponseNewMessage {
 	return {
 		kind: "new_message",
@@ -170,13 +174,13 @@ export type SlashCommandArgPostprocessRes<U> = {
 export interface SlashCommandArgBase<T, U> {
 	description: string;
 	required: boolean;
-	postprocess: (v: T) => SlashCommandArgPostprocessRes<U>;
+	postprocess: (v: T, c: CallFrom.Interaction) => Promise<SlashCommandArgPostprocessRes<U>>;
 	__t_is?: undefined | T;
 	__u_is?: undefined | U;
 	// autofill?: (current_input) => …
 }
 export interface SlashCommandArgAutocompletable<T, U> extends SlashCommandArgBase<T, U> {
-	autocomplete?: null | ((v: T) => AutocompleteInteractionResponse);
+	autocomplete?: null | ((v: T, c: CallFrom.Interaction) => Promise<AutocompleteInteractionResponse>);
 }
 export interface SlashCommandAttachmentArg<U> extends SlashCommandArgBase<
 	d.APIApplicationCommandInteractionDataAttachmentOption, U
@@ -229,7 +233,7 @@ export function SlashCommandArgAttachment(props: {
 
 		description: props.description,
 		required: props.required ?? true,
-		postprocess: v => ({kind: "success", value: v.value}),
+		postprocess: async (v) => ({kind: "success", value: v.value}),
 	};
 }
 
@@ -242,7 +246,31 @@ export function SlashCommandArgText(props: {
 
 		description: props.description,
 		required: props.required ?? true,
-		postprocess: v => ({kind: "success", value: v.value}),
+		postprocess: async (v) => ({kind: "success", value: v.value}),
+	};
+}
+
+export function SlashCommandArgAutocompletableText<T>(props: {
+	description: string,
+	required?: undefined | boolean,
+	autocomplete: (v: d.APIApplicationCommandInteractionDataStringOption, c: CallFrom.Interaction) => Promise<{
+		value: null | T,
+		autocomplete_entries: string[],
+		error_msg: null | string,
+	}>,
+}): SlashCommandTextArg<T> {
+	return {
+		kind: "text",
+		description: props.description,
+		required: props.required ?? true,
+		autocomplete: async (v, c) => {
+			return {kind: "autocomplete", choices: (await props.autocomplete(v, c)).autocomplete_entries};
+		},
+		postprocess: async (v, c): Promise<SlashCommandArgPostprocessRes<T>> => {
+			const res = await props.autocomplete(v, c);
+			if(res.value != null) return {kind: "success", value: res.value};
+			return {kind: "error", message: res.error_msg ?? "no error message provided"};
+		},
 	};
 }
 
@@ -252,11 +280,11 @@ export function SlashCommandArgDuration(props: {
 }): SlashCommandTextArg<number> {
 	// hmm. this isn't composable. ideally, this would call SlashCommandArgText with a custom postprocess
 	// value. we can do that but not sure if it's good.
-	const autocomplete = (v: d.APIApplicationCommandInteractionDataStringOption): ({
-		duration_ms: null | number,
+	const autocomplete = async (v: d.APIApplicationCommandInteractionDataStringOption): Promise<({
+		value: null | number,
 		autocomplete_entries: string[],
 		error_msg: null | string,
-	}) => {
+	})> => {
 		const str = v.value;
 
 		const unit = {
@@ -313,7 +341,7 @@ export function SlashCommandArgDuration(props: {
 
 		if (!str.trim()) {
 			return {
-				duration_ms: null,
+				value: null,
 				autocomplete_entries: [
 					"10sec",
 					"3min",
@@ -336,7 +364,7 @@ export function SlashCommandArgDuration(props: {
 				remainder = remainder.substr(1).trim();
 			const inum = /^[0-9.-]+/.exec(remainder);
 			if (!inum || isNaN(+inum[0])) return {
-				duration_ms: null,
+				value: null,
 				autocomplete_entries: [
 					prev_whole,
 					prev_whole + " 10sec",
@@ -352,7 +380,7 @@ export function SlashCommandArgDuration(props: {
 			const unitstr = /^[A-Za-z]+/.exec(rmderTemp);
 			if (!unitstr) {
 				return {
-					duration_ms: null,
+					value: null,
 					autocomplete_entries: [
 						prev_whole,
 						number_whole + "sec",
@@ -367,7 +395,7 @@ export function SlashCommandArgDuration(props: {
 
 			if (names[unitname] === undefined) {
 				return {
-					duration_ms: null,
+					value: null,
 					autocomplete_entries: [
 						prev_whole,
 						number_whole + "sec",
@@ -385,7 +413,7 @@ export function SlashCommandArgDuration(props: {
 		}
 		if (!anyfound) {
 			return {
-				duration_ms: null,
+				value: null,
 				autocomplete_entries: [
 					"10sec",
 					"3min",
@@ -398,7 +426,7 @@ export function SlashCommandArgDuration(props: {
 		const nearestMS = Math.round(result);
 		if (nearestMS < 0) {
 			return {
-				duration_ms: null,
+				value: null,
 				autocomplete_entries: [
 					"10sec",
 					"3min",
@@ -409,7 +437,7 @@ export function SlashCommandArgDuration(props: {
 		}
 		
 		return {
-			duration_ms: nearestMS,
+			value: nearestMS,
 			autocomplete_entries: [
 				prev_whole,
 				prev_whole + " 10sec",
@@ -419,19 +447,11 @@ export function SlashCommandArgDuration(props: {
 			error_msg: null,
 		};
 	};
-	return {
-		kind: "text",
+	return SlashCommandArgAutocompletableText({
 		description: props.description,
-		required: props.required ?? true,
-		autocomplete: v => {
-			return {kind: "autocomplete", choices: autocomplete(v).autocomplete_entries};
-		},
-		postprocess: (v): SlashCommandArgPostprocessRes<number> => {
-			const res = autocomplete(v);
-			if(res.duration_ms != null) return {kind: "success", value: res.duration_ms};
-			return {kind: "error", message: res.error_msg ?? "no error message provided"};
-		},
-	};
+		required: props.required,
+		autocomplete,
+	});
 }
 
 export type ButtonClickEvent = {
@@ -541,16 +561,17 @@ export function ErrorMsg(message: LocalizedString): MessageElement {
 }
 
 export declare namespace CallFrom {
-    type MessageContextMenu = {
-        from: "message_context_menu",
-        message: d.APIMessage,
-		interaction: d.APIMessageApplicationCommandInteraction,
-    };
-    type SlashCommand<Args extends SlashCommandArgs> = {
-        from: "slash_command",
-        args: FlattenArgs<Args>,
-		interaction: d.APIChatInputApplicationCommandInteraction,
-    };
+	interface Interaction<T extends d.APIInteraction = d.APIInteraction> {
+		interaction: T;
+	}
+    interface MessageContextMenu extends Interaction<d.APIMessageApplicationCommandInteraction> {
+        from: "message_context_menu";
+        message: d.APIMessage;
+    }
+    interface SlashCommand<Args extends SlashCommandArgs> extends Interaction<d.APIChatInputApplicationCommandInteraction> {
+        from: "slash_command";
+        args: FlattenArgs<Args>;
+    }
 }
 
 function formatMarkdownTextInternal(mdtxt: MarkdownText): {
@@ -676,13 +697,14 @@ async function sendAutocompleteResponse(
 	response: AutocompleteInteractionResponse,
 	interaction: d.APIApplicationCommandAutocompleteInteraction,
 ): Promise<void> {
+	const cres: d.APIApplicationCommandOptionChoice[] = response.choices.filter((choice, i) => !!choice.trim() && i < 25).map(choice => ({
+		name: choice,
+		value: choice,
+	}));
 	const res: d.APIApplicationCommandAutocompleteResponse = {
 		type: d.InteractionResponseType.ApplicationCommandAutocompleteResult,
 		data: {
-			choices: response.choices.map(choice => ({
-				name: choice,
-				value: choice,
-			})).filter(choice => !!choice.name.trim()),
+			choices: cres,
 		},
 	};
 	await api.api(d.Routes.interactionCallback(
@@ -709,8 +731,13 @@ export async function sendCommandResponse(
 			interaction.token,
 		)).post({data});
 
-		const res = await (typeof response.value === "function" ? response.value() : response.value);
-		return sendCommandResponse(res, interaction, {is_deferred: true});
+		try{
+			const res = await (typeof response.value === "function" ? response.value() : response.value);
+			return sendCommandResponse(res, interaction, {is_deferred: true});
+		}catch(e) {
+			console.log("+%internal error", e);
+			return sendCommandResponse(renderError(u("internal error")), interaction, {is_deferred: true});
+		}
 	}
 	const result = response.value;
 
@@ -932,7 +959,7 @@ function addRoute(router: SlashCommandRouter, command: SlashCommandElement, opts
 				if(matching_opt.kind === "text") {
 					if(focused_option.type !== d.ApplicationCommandOptionType.String) return; // ?
 					if(matching_opt.autocomplete == null) return; // ?
-					const ac_res = matching_opt.autocomplete(focused_option);
+					const ac_res = await matching_opt.autocomplete(focused_option, {interaction});
 
 					await sendAutocompleteResponse(ac_res, interaction);
 				}else{
@@ -945,19 +972,19 @@ function addRoute(router: SlashCommandRouter, command: SlashCommandElement, opts
 					from: "slash_command",
 					// TODO: check that the option value type matches the expected one configured in the command
 					// [there is a one hour period where stuff might be wrong]
-					args: Object.fromEntries(options.map((opt): [string, unknown] => {
+					args: Object.fromEntries(await Promise.all(options.map(async (opt): Promise<[string, unknown]> => {
 						const matching_opt = command.args[opt.name];
 						if(matching_opt == null) {
 							got_error = u("arg provided not specified in command");
 							return ["", 0];
 						}
-						const optval = matching_opt.postprocess(opt as unknown as never);
+						const optval = await matching_opt.postprocess(opt as unknown as never, {interaction});
 						if(optval.kind === "error") {
 							got_error = u("error in argument ["+optval.message+"]: "+optval.message);
 							return ["", 0];
 						}
 						return [opt.name, optval.value];
-					})) as any,
+					}))) as any,
 					interaction: interaction as d.APIChatInputApplicationCommandInteraction,
 				};
 				if(got_error != null) return await sendCommandResponse(renderError(got_error), interaction);

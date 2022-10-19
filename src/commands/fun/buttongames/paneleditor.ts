@@ -579,7 +579,7 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 									if(!await info.theyHavePermsToManageBot()) return {kind: "error", msg: "you don't have permission"};
 
 									const lists = await info.db.getCustomCommands();
-									if (lists[cmdname]) {
+									if (Object.hasOwnProperty.call(lists, cmdname)) {
 										// we should upgrade to slash command mentions
 										// https://discord.com/developers/docs/change-log#slash-command-mentions
 										return {kind: "error", msg: info.tag`That command already exists. Remove it with {Command|command remove ${cmdname}}`};

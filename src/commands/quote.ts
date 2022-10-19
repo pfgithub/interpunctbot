@@ -238,7 +238,7 @@ async function addOrEditList(add: boolean, cmd: string, info: Info) {
 	const lists = await info.db.getCustomCommands();
 
 	// If the list should be added but it already exists, error. If the list should be edited but doesn't exist, error. Basically there's no point to doing this at all
-	if (!!lists[listName] === add) {
+	if (Object.hasOwnProperty.call(lists, listName) === add) {
 		// if !a !== b... !!a === b and a == b are the same and probably easier to read
 		if (add) {
 			return await info.error(
@@ -347,7 +347,7 @@ nr.globalCommand(
 			);
 		}
 		const lists = await info.db.getCustomCommands();
-		if (!lists[listName]) {
+		if (!Object.hasOwnProperty.call(lists, listName)) {
 			return await info.error(
 				messages.lists.remove_list_that_does_not_exist(info, listName),
 			);

@@ -525,8 +525,8 @@ ${Object.entries(lists)
 			? `> ${key}: <https://pastebin.com/${value.pastebin}>`
 			: value.type === "sendpanel"
 			? `> ${key}: sendpanel ${value.guild_command_name}`
-			: `> ${key}: ${value.text.substr(0, 50) +
-					(value.text.length > 50 ? "..." : "")}`,
+			: `> ${key}: ${value.text.substring(0, 25).replace(/\n/g, "") +
+					(value.text.length > 25 ? "..." : "")}`,
 		)
 		.join(`\n`) || "> *No lists yet. Create some with {Command|lists add}*"}`,
 		no_list_name_provided: (
