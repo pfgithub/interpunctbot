@@ -70,6 +70,45 @@ Data sharing:
 );
 
 nr.addDocsWebPage(
+	"/tos",
+	"Terms of Service",
+	"Terms of Service",
+	`{Title|Terms of Service}
+
+This TOS applies to all users of {Interpunct}. By using the bot, you agree to these terms.
+
+Do:
+
+- Use the bot to help manage your server
+- Use the bot to have fun
+
+Don't:
+
+- Use the bot to violate discord TOS
+- Use the bot to violate laws
+
+You are responsible if you do these things.
+
+We can:
+
+- Block any user or server from using the bot at any time for any reason
+- Update this TOS at any time with a notice in the support server: {Link|https://interpunct.info/support}
+
+Privacy:
+
+- {LinkDocs|/privacy}
+
+No warranty:
+
+THE SERVICE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT ${""
+}LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. ${""
+}IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, ${""
+}WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE ${""
+}SERVICE OR THE USE OR OTHER DEALINGS IN THE SERVICE.
+`,
+);
+
+nr.addDocsWebPage(
 	"/updates",
 	"Updates",
 	"bot updates",
