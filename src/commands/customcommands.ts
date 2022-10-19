@@ -1,6 +1,5 @@
 import * as Discord from "discord.js";
 import * as nr from "../NewRouter";
-import { stripMentions } from "./channelmanagement";
 import Info from "../Info";
 
 /*

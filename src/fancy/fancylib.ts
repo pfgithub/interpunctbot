@@ -572,6 +572,18 @@ export declare namespace CallFrom {
         from: "slash_command";
         args: FlattenArgs<Args>;
     }
+
+	interface Message {
+		message: d.APIMessage;
+	}
+	interface TextCommand extends Message {
+		from: "text_chat";
+		// hmm
+		// text chat args need to determine when to stop automatically which is kinda
+		// not super fun
+		// and they can't autocomplete and stuff
+		args: string;
+	}
 }
 
 function formatMarkdownTextInternal(mdtxt: MarkdownText): {
