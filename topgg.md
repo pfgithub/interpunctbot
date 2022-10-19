@@ -61,13 +61,14 @@
 > - `ip!ticket category <CATEGORY NAME>` — [Active tickets will be put into the category you set. It must be empty and with the right permissions.](https://interpunct.info/help/ticket/category)
 > - `ip!ticket invitation <invitation message link>` — [Set the invitation message. Reacting to the invitation message will create a ticket.](https://interpunct.info/help/ticket/invitation)
 > - `ip!ticket welcome <Welcome Message...>` — [Set the message to be sent to users when they create a ticket. Do `ip!ticket welcome` to unset.](https://interpunct.info/help/ticket/welcome)
-> - `ip!ticket logs #ticket-logs #uploads` — [Log the last 100 messages in a ticket to #ticket-logs when the ticket is closed. To disable, delete the log channels.](https://interpunct.info/help/ticket/logs)
+> - `ip!ticket logs #ticket-logs` — [Log the last 100 messages in a ticket to #ticket-logs when the ticket is closed. To disable, delete the log channels.](https://interpunct.info/help/ticket/logs)
 > - `ip!ticket logs #ticket-transcripts` — [Log all messages sent in a ticket to #ticket-transcripts. Does not log edits.](https://interpunct.info/help/ticket/transcripts)
 > - `ip!ticket ping <@Who to ping>` — [Set a person/role to @ after someone says something in a new ticket. do `ip!ticket ping` to unset.](https://interpunct.info/help/ticket/ping)
 > - `ip!ticket autoclose <Time eg 15min>` — [automatically close a ticket if no one has sent anything it after the specified period. do `ip!ticket autoclose 0s` to unset.](https://interpunct.info/help/ticket/autoclose)
 > - `ip!ticket deletetime <Time eg 1min>` — [set how long to wait after closing a ticket before deleting the channel. messages sent in this time will show up in transcripts, but not logs. default is 1 minute.](https://interpunct.info/help/ticket/deletetime)
 > - `ip!ticket creatorcanclose <yes or no>` — [set if the creator of the ticket can close it themself. ](https://interpunct.info/help/ticket/creatorcanclose)
 > - `ip!ticket dmonclose <yes or no>` — [set if the creator of the ticket should be dm\'d when the ticket is closed.](https://interpunct.info/help/ticket/dmonclose)
+> - `ip!ticket disable` — [Disable tickets.](https://interpunct.info/help/ticket/disable)
 > 
 > To disable tickets, delete the invitation message and the ticket category.
 > 
