@@ -14,6 +14,8 @@ export function escapeHTML(html: string): string {
 		.join("&lt;")
 		.split(">")
 		.join("&gt;")
+		.split("\n\n")
+		.join("<br /><span style='display:block;height:0.75rem'></span>")
 		.split("\n")
 		.join("<br />")
 	;
@@ -604,7 +606,7 @@ export function dgToMD(text: string): string {
 export function dgToHTML(text: string, pageURL: string): string {
 	const res = parseDG(
 		text.replace(/(\n\s*\n)|(\n)/g, (_, a, b) =>
-			a ? "\n" : b ? "\n" : "uh oh",
+			a ? "\n\n" : b ? "\n" : "uh oh",
 		),
 		(fn, args) => {
 			if (!fn)

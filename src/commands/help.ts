@@ -55,21 +55,13 @@ nr.addDocsWebPage(
 - - Settings you configure
 - Aggregate command usage statistics
 
-,
-
 {Interpunct} does not collect message data. If mods enable message data collection,
 all message data is stored on Discord and is not accessible to {Interpunct}.
 
-,
-
 Cookies: {Interpunct} does not use cookies
-
-,
 
 Data sharing:
 - {Interpunct} shares data with Discord
-
-,
 
 {Interpunct} will delete your data if:
 - You kick {Interpunct} from your server
