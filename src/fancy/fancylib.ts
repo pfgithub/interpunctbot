@@ -193,16 +193,28 @@ export interface SlashCommandTextArg<U> extends SlashCommandArgAutocompletable<
 	kind: "text";
 }
 type ChannelTypesOptions = "all" | Exclude<APIApplicationCommandChannelOption["channel_types"], undefined>;
-export interface SlashCommandChannelArg<U> extends SlashCommandArgAutocompletable<
+export interface SlashCommandChannelArg<U> extends SlashCommandArgBase<
 	d.APIApplicationCommandInteractionDataChannelOption, U
 > {
 	kind: "channel";
 	channel_types: ChannelTypesOptions;
 }
+export interface SlashCommandUserArg<U> extends SlashCommandArgBase<
+	d.APIApplicationCommandInteractionDataUserOption, U
+> {
+	kind: "user";
+}
+export interface SlashCommandRoleArg<U> extends SlashCommandArgBase<
+	d.APIApplicationCommandInteractionDataRoleOption, U
+> {
+	kind: "role";
+}
 export type SlashCommandArg =
 	| SlashCommandAttachmentArg<unknown>
 	| SlashCommandTextArg<unknown>
 	| SlashCommandChannelArg<unknown>
+	| SlashCommandUserArg<unknown>
+	| SlashCommandRoleArg<unknown>
 ;
 export type SlashCommandArgs = {
 	[key: string]: SlashCommandArg,
@@ -268,6 +280,32 @@ export function SlashCommandArgChannel(props: {
 
 		description: props.description,
 		channel_types: props.channel_types,
+		required: props.required ?? true,
+		postprocess: async (v) => ({kind: "success", value: v.value}),
+	};
+}
+
+export function SlashCommandArgUser(props: {
+	description: string,
+	required?: undefined | boolean,
+}): SlashCommandUserArg<string> {
+	return {
+		kind: "user",
+
+		description: props.description,
+		required: props.required ?? true,
+		postprocess: async (v) => ({kind: "success", value: v.value}),
+	};
+}
+
+export function SlashCommandArgRole(props: {
+	description: string,
+	required?: undefined | boolean,
+}): SlashCommandRoleArg<string> {
+	return {
+		kind: "role",
+
+		description: props.description,
 		required: props.required ?? true,
 		postprocess: async (v) => ({kind: "success", value: v.value}),
 	};
@@ -1042,8 +1080,13 @@ function addRoute(router: SlashCommandRouter, command: SlashCommandElement, opts
 				};
 				if(arg.kind === "channel") return {
 					...shared(d.ApplicationCommandOptionType.Channel),
-					autocomplete: arg.autocomplete != null,
 					channel_types: arg.channel_types === "all" ? undefined : arg.channel_types,
+				};
+				if(arg.kind === "user") return {
+					...shared(d.ApplicationCommandOptionType.User),
+				};
+				if(arg.kind === "role") return {
+					...shared(d.ApplicationCommandOptionType.Role),
 				};
 				assertNever(arg);
 			}),

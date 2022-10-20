@@ -23,6 +23,9 @@ export function app(): App {
 			SlashCommandGroup({label: u("autodelete"), description: u("Automatically delete messages"), children: [
 				SlashCommandGroup({label: u("add"), description: u("Add an autodelete rule"), children: [
 					(require("./user/commands/autodelete/add/channel") as typeof import("./user/commands/autodelete/add/channel")).default(),
+					(require("./user/commands/autodelete/add/prefix") as typeof import("./user/commands/autodelete/add/prefix")).default(),
+					(require("./user/commands/autodelete/add/role") as typeof import("./user/commands/autodelete/add/role")).default(),
+					(require("./user/commands/autodelete/add/user") as typeof import("./user/commands/autodelete/add/user")).default(),
 				]}),
 				(require("./user/commands/autodelete/remove") as typeof import("./user/commands/autodelete/remove")).default(),
 				(require("./user/commands/autodelete/list") as typeof import("./user/commands/autodelete/list")).default(),
