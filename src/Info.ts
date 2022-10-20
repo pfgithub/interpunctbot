@@ -260,7 +260,8 @@ export default class Info {
 	};
 	db?: Database;
 	member?: Discord.GuildMember | null;
-	prefix: string;
+	prefix: string; // excuse me what?! this is set in the constructor but the constructor
+	// is synchronous so i guess we just kinda hope that it finishes setting in time?
 	constructor(
 	    message: MessageLike,
 	    other?: {

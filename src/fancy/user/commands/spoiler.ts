@@ -1,5 +1,5 @@
 import fetch from "node-fetch";
-import { InteractionResponseNewMessage, Message, renderError, SlashCommand, SlashCommandArgAttachment, SlashCommandElement, u } from "../../fancylib";
+import { InteractionResponseNewMessage, Message, MessageElement, renderDeferred, renderError, SlashCommand, SlashCommandArgAttachment, SlashCommandElement, u } from "../../fancylib";
 
 export default function Command(): SlashCommandElement {
     return SlashCommand({
@@ -9,7 +9,7 @@ export default function Command(): SlashCommandElement {
             // <arg type="attachment" />
             image: SlashCommandArgAttachment({description: "The image will be uploaded as a spoiler"}),
         },
-        onSend: (ev): InteractionResponseNewMessage => {
+        onSend: async (ev): Promise<InteractionResponseNewMessage> => {
             // deferredInteractionResponse(async () => {
             //     channel.send(…)
             //     return "✓"
@@ -23,29 +23,19 @@ export default function Command(): SlashCommandElement {
             const attachment_data = ev.interaction.data.resolved?.attachments?.[ev.args.image];
             if(!attachment_data) return renderError(u("Internal error - Could not find attachment?"));
 
-            return {
-                kind: "new_message",
-                deferred: true,
-                config: {visibility: "public"},
-                value: (async (): Promise<InteractionResponseNewMessage> => {
-                    return {
-                        kind: "new_message",
-                        deferred: false,
-                        persist: false,
-                        config: {visibility: "public"},
-                        value: Message({
-                            text: u("Spoiler"),
-                            attachments: [
-                                {
-                                    filename: "SPOILER_"+attachment_data.filename,
-                                    description: attachment_data.description,
-                                    value: await fetch(attachment_data.url).then(r => r.arrayBuffer()),
-                                }
-                            ],
-                        }),
-                    };
-                })(),
-            };
+            // deferred for that image fetch which could take a while
+            return renderDeferred({visibility: "public"}, async (): Promise<MessageElement> => {
+                return Message({
+                    text: u("Spoiler"),
+                    attachments: [
+                        {
+                            filename: "SPOILER_"+attachment_data.filename,
+                            description: attachment_data.description,
+                            value: await fetch(attachment_data.url).then(r => r.arrayBuffer()),
+                        }
+                    ],
+                });
+            });
         },
     });
 }

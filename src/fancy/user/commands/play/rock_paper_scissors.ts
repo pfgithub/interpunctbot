@@ -5,7 +5,7 @@ export default function Command(): SlashCommandElement {
     return SlashCommand({label: u("rock_paper_scissors"), description: u("Play a game of rock paper scissors"), args: {
         // player?: User
         // thing?: string, oninput=(text) => [array of suggestions]
-    }, onSend: event => {
+    }, onSend: async (event) => {
         const user = event.interaction.member?.user ?? event.interaction.user;
         if(!user) return renderError(u("No User"));
         return rps({

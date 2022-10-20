@@ -1,7 +1,7 @@
 import * as Discord from "discord.js";
 import { TextChannel } from "discord.js";
 import { assertNever, ilt, perr } from "../..";
-import { messages, raw, safe } from "../../messages";
+import { messages, safe } from "../../messages";
 import { AutodeleteRule, AutodeleteRuleNoID } from "../Database";
 import { durationFormat } from "../durationFormat";
 import Info from "../Info";
@@ -240,32 +240,26 @@ Note: Autodelete rules set to <1 second will PM the user of the deleted message.
 {CmdSummary|autodelete remove}`,
 );
 
-function printrule(rule: AutodeleteRule, info: Info) {
+export function printrule(rule: AutodeleteRule) {
 	if (typeof rule.duration !== "number") return "Other rule";
 	if (rule.type === "prefix") {
-		return safe`Remove messages starting with ${
+		return `Remove messages starting with ${
 			rule.prefix
 		} after ${durationFormat(rule.duration)}`;
 	}
 	if (rule.type === "channel") {
-		return safe`Remove messages in <#${
+		return `Remove messages in <#${
 			rule.channel
 		}> after ${durationFormat(rule.duration)}`;
 	}
 	if (rule.type === "user") {
-		const user = info.guild!.members.resolve(rule.user);
-		return safe`Remove messages from user ${raw(
-			user ? user.toString() : "@deleted-user",
-		)}> after ${durationFormat(rule.duration)}`;
+		return `Remove messages from user <@${rule.user}> after ${durationFormat(rule.duration)}`;
 	}
 	if (rule.type === "role") {
-		const role = info.guild!.roles.resolve(rule.role);
-		return safe`Remove messages from user ${raw(
-			role ? messages.role(role) : "@deleted-role",
-		)}> after ${durationFormat(rule.duration)}`;
+		return `Remove messages from user <@&${rule.role}> after ${durationFormat(rule.duration)}`;
 	}
 	if (rule.type === "counting") {
-		return safe`Remove messages in <#${
+		return `Remove messages in <#${
 			rule.channel
 		}> that do not count after ${durationFormat(rule.duration)}`;
 	}
@@ -313,7 +307,7 @@ nr.globalCommand(
 							"autodelete remove " +
 							rule.id +
 							"` - " +
-							printrule(rule, info),
+							printrule(rule),
 				    )
 				    .join("\n"),
 		);
@@ -342,7 +336,8 @@ nr.globalCommand(
 		);
 		if (!ap) return;
 		const [id] = ap.result;
-		await info.db.removeAutodelete(id);
+		const res = await info.db.removeAutodelete(id);
+		if(!res) return await info.error("Autodelete rule not found? "+info.tag`{Command|autodelete list}`);
 		return await info.success("Autodelete rule removed");
 	},
 );

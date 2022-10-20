@@ -6,7 +6,7 @@ import { assertNever } from "../..";
 import { ginteractionhandler } from "../NewRouter";
 import { ContextMenuCommandRouter, SlashCommandRouteBottomLevelCallback, SlashCommandRouter } from "../SlashCommandManager";
 import { fancylib_persistence } from "./fancyhmr";
-import { Snowflake } from "discord-api-types/v9";
+import { APIApplicationCommandChannelOption, Snowflake } from "discord-api-types/v9";
 
 // NOTE:
 // https://github.com/microsoft/TypeScript/issues/21699
@@ -192,9 +192,17 @@ export interface SlashCommandTextArg<U> extends SlashCommandArgAutocompletable<
 > {
 	kind: "text";
 }
+type ChannelTypesOptions = "all" | Exclude<APIApplicationCommandChannelOption["channel_types"], undefined>;
+export interface SlashCommandChannelArg<U> extends SlashCommandArgAutocompletable<
+	d.APIApplicationCommandInteractionDataChannelOption, U
+> {
+	kind: "channel";
+	channel_types: ChannelTypesOptions;
+}
 export type SlashCommandArg =
 	| SlashCommandAttachmentArg<unknown>
 	| SlashCommandTextArg<unknown>
+	| SlashCommandChannelArg<unknown>
 ;
 export type SlashCommandArgs = {
 	[key: string]: SlashCommandArg,
@@ -204,7 +212,7 @@ export type SlashCommandLeafElement<Args extends SlashCommandArgs> = {
 	label: LocalizedString,
 	description: LocalizedString,
 	args: Args,
-	onSend: (e: CallFrom.SlashCommand<SlashCommandArgs>) => SlashCommandInteractionResponse,
+	onSend: (e: CallFrom.SlashCommand<SlashCommandArgs>) => Promise<SlashCommandInteractionResponse>,
 };
 
 export function SlashCommandGroup(props: Omit<SlashCommandGroupElement, "kind">): SlashCommandGroupElement {
@@ -215,12 +223,12 @@ export function SlashCommandGroup(props: Omit<SlashCommandGroupElement, "kind">)
 }
 
 export function SlashCommand<T extends SlashCommandArgs>(props: Omit<SlashCommandLeafElement<T>, "kind" | "onSend"> & {
-	onSend: (e: CallFrom.SlashCommand<T>) => SlashCommandInteractionResponse,
+	onSend: (e: CallFrom.SlashCommand<T>) => Promise<SlashCommandInteractionResponse>,
 }): SlashCommandLeafElement<T> {
 	return {
 		kind: "slash_command",
 		...props,
-		onSend: props.onSend as (e: CallFrom.SlashCommand<SlashCommandArgs>) => SlashCommandInteractionResponse,
+		onSend: props.onSend as (e: CallFrom.SlashCommand<SlashCommandArgs>) => Promise<SlashCommandInteractionResponse>,
 	};
 }
 
@@ -245,6 +253,21 @@ export function SlashCommandArgText(props: {
 		kind: "text",
 
 		description: props.description,
+		required: props.required ?? true,
+		postprocess: async (v) => ({kind: "success", value: v.value}),
+	};
+}
+
+export function SlashCommandArgChannel(props: {
+	description: string,
+	channel_types: ChannelTypesOptions,
+	required?: undefined | boolean,
+}): SlashCommandChannelArg<string> {
+	return {
+		kind: "channel",
+
+		description: props.description,
+		channel_types: props.channel_types,
 		required: props.required ?? true,
 		postprocess: async (v) => ({kind: "success", value: v.value}),
 	};
@@ -1001,7 +1024,7 @@ function addRoute(router: SlashCommandRouter, command: SlashCommandElement, opts
 				};
 				if(got_error != null) return await sendCommandResponse(renderError(got_error), interaction);
 
-				return await sendCommandResponse(command.onSend(arg), interaction);
+				return await sendCommandResponse(await command.onSend(arg), interaction);
 			},
 			args_raw: Object.entries(command.args).map(([name, arg]): d.APIApplicationCommandBasicOption => {
 				const shared = <T extends d.ApplicationCommandOptionType>(type: T): APIApplicationCommandOptionBase<T> => ({
@@ -1016,6 +1039,11 @@ function addRoute(router: SlashCommandRouter, command: SlashCommandElement, opts
 				if(arg.kind === "text") return {
 					...shared(d.ApplicationCommandOptionType.String),
 					autocomplete: arg.autocomplete != null,
+				};
+				if(arg.kind === "channel") return {
+					...shared(d.ApplicationCommandOptionType.Channel),
+					autocomplete: arg.autocomplete != null,
+					channel_types: arg.channel_types === "all" ? undefined : arg.channel_types,
 				};
 				assertNever(arg);
 			}),

@@ -1,5 +1,5 @@
+import { Message, renderEphemeral, renderError, SlashCommand, SlashCommandArgDuration, SlashCommandArgText, SlashCommandElement, SlashCommandInteractionResponse, u } from "../../fancylib";
 import { queueEvent } from "../../lib/TimedEventsAt2";
-import { ErrorMsg, Message, MessageElement, renderDeferred, SlashCommand, SlashCommandArgDuration, SlashCommandArgText, SlashCommandElement, SlashCommandInteractionResponse, u } from "../../fancylib";
 
 export default function Command(): SlashCommandElement {
     return SlashCommand({label: u("remindme"), description: u("A message to yourself in the future. It's almost like time travel."), args: {
@@ -7,29 +7,27 @@ export default function Command(): SlashCommandElement {
         message: SlashCommandArgText({description: "Message to send to you"}),
         // player?: User
         // thing?: string, oninput=(text) => [array of suggestions]
-    }, onSend: (event): SlashCommandInteractionResponse => {
+    }, onSend: async (event): Promise<SlashCommandInteractionResponse> => {
         const {when, message} = event.args;
 
-        return renderDeferred({visibility: "private"}, async (): Promise<MessageElement> => {
-            if(event.interaction.guild_id == null) return ErrorMsg(u("Not supported in DMs"));
+        if(event.interaction.guild_id == null) return renderError(u("Not supported in DMs"));
 
-            await queueEvent({
-                for_guild: event.interaction.guild_id,
-                content: {
-                    kind: "send_pm",
-                    user_id: event.interaction.member?.user.id ?? event.interaction.user?.id ?? 0 as never,
-                    message: `Reminder in <#${event.interaction.channel_id}> from <t:${Math.floor(Date.now() / 1000)}>:\n${message
-                        .split("\n")
-                        .map(l => "> " + l)
-                        .join("\n")}`,
-                },
-            }, when);
+        await queueEvent({
+            for_guild: event.interaction.guild_id,
+            content: {
+                kind: "send_pm",
+                user_id: event.interaction.member?.user.id ?? event.interaction.user?.id ?? 0 as never,
+                message: `Reminder in <#${event.interaction.channel_id}> from <t:${Math.floor(Date.now() / 1000)}>:\n${message
+                    .split("\n")
+                    .map(l => "> " + l)
+                    .join("\n")}`,
+            },
+        }, when);
 
-            const restime = new Date().getTime() + when;
+        const restime = new Date().getTime() + when;
 
-            return Message({
-                text: u("Reminder set for <t:"+Math.floor(restime / 1000)+"> (<t:"+Math.floor(restime / 1000)+":R>)"),
-            });
-        });
+        return renderEphemeral(Message({
+            text: u("Reminder set for <t:"+Math.floor(restime / 1000)+"> (<t:"+Math.floor(restime / 1000)+":R>)"),
+        }), {visibility: "private"});
     }});
 }

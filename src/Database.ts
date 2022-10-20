@@ -361,10 +361,12 @@ class Database {
 	    await this._setJson("autodelete", autodelete);
 	    return rule.id;
 	}
-	async removeAutodelete(id: number): Promise<void> {
+	async removeAutodelete(id: number): Promise<boolean> {
 	    const autodelete = await this.getAutodelete();
+		const res = !!autodelete.rules.find(rule => rule.id === id);
 	    autodelete.rules = autodelete.rules.filter(rule => rule.id !== id);
-	    return await this._setJson("autodelete", autodelete);
+	    await this._setJson("autodelete", autodelete);
+		return res;
 	}
 	async getQuickrank(): Promise<QuickrankField> {
 	    const res = await this._getJson("quickrank", {

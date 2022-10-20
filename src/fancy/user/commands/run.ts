@@ -1,5 +1,5 @@
 import Database, { CustomCommand } from "../../../Database";
-import { ErrorMsg, MessageElement, renderDeferred, SlashCommand, SlashCommandArgAutocompletableText, SlashCommandElement, SlashCommandInteractionResponse, u } from "../../fancylib";
+import { renderError, SlashCommand, SlashCommandArgAutocompletableText, SlashCommandElement, SlashCommandInteractionResponse, u } from "../../fancylib";
 
 export default function Command(): SlashCommandElement {
     return SlashCommand({label: u("run"), description: u("Run a server command"), args: {
@@ -23,14 +23,12 @@ export default function Command(): SlashCommandElement {
                 };
             },
         }),
-    }, onSend: (event): SlashCommandInteractionResponse => {
+    }, onSend: async (event): Promise<SlashCommandInteractionResponse> => {
         const {command} = event.args;
 
-        return renderDeferred({visibility: "private"}, async (): Promise<MessageElement> => {
-            if(event.interaction.guild_id == null) return ErrorMsg(u("Not supported in DMs"));
+        if(event.interaction.guild_id == null) return renderError(u("Not supported in DMs"));
 
-            throw new Error("TODO implement this & support args like for quotes !"+command.name);
-        });
+        throw new Error("TODO implement this & support args like for quotes !"+command.name);
     }});
 }
 

@@ -7,7 +7,7 @@ export default function Command(): SlashCommandElement {
         description: u("Reload libfancy"),
         args: {},
         // permissions: () => {user_id: "341076015663153153"}
-        onSend: ev => {
+        onSend: async (ev) => {
             // if(dev) {delete require.cache(require.resolve(__filename))
             // return require(require.resolve(__filename)).onSend(ev)}
             // else return onSend(ev);

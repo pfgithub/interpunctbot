@@ -19,6 +19,14 @@ export function app(): App {
 			(require("./user/commands/spoiler") as typeof import("./user/commands/spoiler")).default(),
 			(require("./user/commands/remindme") as typeof import("./user/commands/remindme")).default(),
 			// (require("./user/commands/run") as typeof import("./user/commands/run")).default(),
+
+			SlashCommandGroup({label: u("autodelete"), description: u("Automatically delete messages"), children: [
+				SlashCommandGroup({label: u("add"), description: u("Add an autodelete rule"), children: [
+					(require("./user/commands/autodelete/add/channel") as typeof import("./user/commands/autodelete/add/channel")).default(),
+				]}),
+				(require("./user/commands/autodelete/remove") as typeof import("./user/commands/autodelete/remove")).default(),
+				(require("./user/commands/autodelete/list") as typeof import("./user/commands/autodelete/list")).default(),
+			]}),
 		],
 		guildSlashCommands: async (guild_id: string): Promise<SlashCommandElement[]> => [
 
