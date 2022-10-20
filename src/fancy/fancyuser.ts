@@ -10,10 +10,12 @@ export function app(): App {
 			SlashCommandGroup({label: u("play"), description: u("Play a game"), children: [
 				(require("./user/commands/play/rock_paper_scissors") as typeof import("./user/commands/play/rock_paper_scissors")).default(),
 			]}),
-			SlashCommandGroup({label: u("dev"), default_permission: false, description: u("Developer Commands"), children: [
-				(require("./user/commands/dev/reload_libfancy") as typeof import("./user/commands/dev/reload_libfancy")).default(),
-				(require("./user/commands/dev/restart") as typeof import("./user/commands/dev/restart")).default(),
-			]}),
+			// so uuh
+			// default_permission: false still lets server admins configure the permission
+			// SlashCommandGroup({label: u("dev"), default_permission: false, description: u("Developer Commands"), children: [
+			// 	(require("./user/commands/dev/reload_libfancy") as typeof import("./user/commands/dev/reload_libfancy")).default(),
+			// 	(require("./user/commands/dev/restart") as typeof import("./user/commands/dev/restart")).default(),
+			// ]}),
 			(require("./user/commands/spoiler") as typeof import("./user/commands/spoiler")).default(),
 			(require("./user/commands/remindme") as typeof import("./user/commands/remindme")).default(),
 			// (require("./user/commands/run") as typeof import("./user/commands/run")).default(),
