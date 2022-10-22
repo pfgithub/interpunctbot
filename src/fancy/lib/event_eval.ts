@@ -71,7 +71,7 @@ function addBatchDeleteMessage(channel: string, message: string) {
 }
 
 export async function callEventInternal(event: TimedEvent): Promise<void> {
-    console.log("[EEat2] Evaluating event", event);
+    // console.log("[EEat2] Evaluating event", event);
     const {content, for_guild} = event;
     if(content.kind === "send_pm") {
         // have to make a dm channel to use the api directly
