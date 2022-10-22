@@ -1,6 +1,7 @@
 import client, { api } from "../../../bot";
 import * as d from "discord-api-types/v9";
 import { TimedEvent } from "./TimedEventsAt2";
+import { TextBasedChannel, TextChannel } from "discord.js";
 
 export type EventContent = {
     kind: "send_pm",
@@ -13,6 +14,61 @@ export type EventContent = {
 } | {
     kind: "corrupted",
 };
+
+type msgs = {timeout: boolean, messages: string[]};
+
+function forceStartTimeout(chan: string, msgs: msgs) {
+    msgs.timeout = false;
+    if(msgs.messages.length > 0) {
+        msgs.timeout = true;
+        setTimeout(() => {
+            handleMsgs(chan, msgs);
+        }, 2000);
+    }
+}
+
+function handleMsgs(chan: string, msgs: msgs) {
+    const messages = msgs.messages.splice(0, 100);
+    console.log("batch delete", messages);
+
+    (async () => {
+        const channl = client.channels.cache.get(chan);
+        if(!channl) return;
+        if(!(channl instanceof TextChannel)) return;
+        await channl.bulkDelete(messages, true);
+        // if(messages.length === 1) {
+        //     await api.api(d.Routes.channelMessage(chan, messages[0])).delete();
+        // }else if(messages.length === 0) {
+        //     // ?
+        // await this.client.rest.post(Routes.channelBulkDelete(this.id), { body: { messages: messageIds } });
+        // what is different about this code i am so confused
+        // it says it has the wrong content type
+        // should i put 'data: {messages}'?
+        // } else await api.api(d.Routes.channelBulkDelete(chan)).post({
+        //     body: {
+        //         messages,
+        //     },
+        // });
+    })().then(() => {
+        forceStartTimeout(chan, msgs);
+    }).catch((e) => {
+        console.log("batch delete error", e);
+        forceStartTimeout(chan, msgs);
+    });
+}
+
+const channel_bulkdelete_cache = new Map<string, msgs>();
+function addBatchDeleteMessage(channel: string, message: string) {
+    let q: msgs | undefined = channel_bulkdelete_cache.get(channel);
+    if(q == null) {
+        q = {timeout: false, messages: []};
+        channel_bulkdelete_cache.set(channel, q);
+    }
+    q.messages.push(message);
+    if(!q.timeout) {
+        forceStartTimeout(channel, q);
+    }
+}
 
 export async function callEventInternal(event: TimedEvent): Promise<void> {
     console.log("[EEat2] Evaluating event", event);
@@ -27,7 +83,7 @@ export async function callEventInternal(event: TimedEvent): Promise<void> {
             allowedMentions: {parse: []},
         });
     }else if(content.kind === "delete_message") {
-        await api.api(d.Routes.channelMessage(content.channel_id, content.message_id)).delete();
+        addBatchDeleteMessage(content.channel_id, content.message_id);
     }else{
         throw new Error("unsupported content kind: " + content.kind);
     }

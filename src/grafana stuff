@@ -1,0 +1,5 @@
+select count(completed), for_guild from timed_events_at2 where completed = false group by for_guild order by count(completed) desc;
+
+select count(completed) from timed_events_at2 where completed = false;
+
+huh i'd be interested in knowing the average completion delay. we have to add another field.

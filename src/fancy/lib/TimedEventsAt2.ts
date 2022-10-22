@@ -51,7 +51,6 @@ export async function queueEvent(event: TimedEvent, from_now_ms: number): Promis
         event: JSON.stringify(event.content),
         completed: false,
     });
-    console.log("[TEat2] insert res:", insert_res);
     await updateNextEvent();
 }
 
@@ -59,8 +58,6 @@ export async function queueEvent(event: TimedEvent, from_now_ms: number): Promis
 // if it turns out this fn gets called too much, we can limit it and have it only call
 // if the next event looks near
 export async function updateNextEvent(): Promise<void> {
-    console.log("[TEat2] updating next event");
-
     const all_guilds = [...client.guilds.cache.values()].map(g => g.id); // can't use .keys for some reason
 
     // this is a pretty big 'whereIn' list. should never be more than 2000 items though.
@@ -68,13 +65,10 @@ export async function updateNextEvent(): Promise<void> {
     const next_event = await ourk().where({
         'completed': false,
     }).whereIn("for_guild", [...all_guilds]).orderBy('time', "asc").select("*").first();
-    console.log("[TEat2] next event:", next_event);
     
     if(next_event == null) return;
     
     const ms_until_event = (+next_event.time) - Date.now();
-
-    console.log("[TEat2] next event:", next_event, "ms:", ms_until_event);
 
     if(next_event_timeout != null) clearTimeout(next_event_timeout);
 
@@ -84,7 +78,6 @@ export async function updateNextEvent(): Promise<void> {
         return await updateNextEvent();
     }
     if(ms_until_event > 2_000_000_000) { // near the 32 bit integer limit timeouts have
-        console.log("[TEat2] too far in the future");
         next_event_timeout = setTimeout(() => {
             next_event_timeout = null;
             updateNextEvent().catch(e => console.log("[TEat2] timeout updatenextevent failure", e));
