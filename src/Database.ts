@@ -389,6 +389,10 @@ class Database {
 	async setLogEnabled(bool: boolean) : Promise<void>{
 	    return await this._set("logging", bool.toString());
 	}
+	async ticketConfigured(): Promise<boolean> {
+		const v = await this._get("ticket");
+		return v != null;
+	}
 	async getTicket(): Promise<TicketConfig> {
 	    return await this._getJson("ticket", {
 	        main: {

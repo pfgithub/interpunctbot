@@ -18,6 +18,7 @@ export function app(): App {
 			// ]}),
 			(require("./user/commands/spoiler") as typeof import("./user/commands/spoiler")).default(),
 			(require("./user/commands/remindme") as typeof import("./user/commands/remindme")).default(),
+			(require("./user/commands/diagnose") as typeof import("./user/commands/diagnose")).default(),
 			// (require("./user/commands/run") as typeof import("./user/commands/run")).default(),
 
 			SlashCommandGroup({label: u("autodelete"), description: u("Automatically delete messages"), children: [
