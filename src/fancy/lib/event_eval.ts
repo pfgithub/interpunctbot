@@ -2,6 +2,7 @@ import client, { api } from "../../../bot";
 import * as d from "discord-api-types/v9";
 import { TimedEvent } from "./TimedEventsAt2";
 import { TextBasedChannel, TextChannel } from "discord.js";
+import { reportError } from "./report_error";
 
 export type EventContent = {
     kind: "send_pm",
@@ -17,17 +18,17 @@ export type EventContent = {
 
 type msgs = {timeout: boolean, messages: string[]};
 
-function forceStartTimeout(chan: string, msgs: msgs) {
+function forceStartTimeout(guild_id: string, chan: string, msgs: msgs) {
     msgs.timeout = false;
     if(msgs.messages.length > 0) {
         msgs.timeout = true;
         setTimeout(() => {
-            handleMsgs(chan, msgs);
+            handleMsgs(guild_id, chan, msgs);
         }, 2000);
     }
 }
 
-function handleMsgs(chan: string, msgs: msgs) {
+function handleMsgs(guild_id: string, chan: string, msgs: msgs) {
     const messages = msgs.messages.splice(0, 100);
     console.log("batch delete", messages);
 
@@ -50,15 +51,14 @@ function handleMsgs(chan: string, msgs: msgs) {
         //     },
         // });
     })().then(() => {
-        forceStartTimeout(chan, msgs);
+        forceStartTimeout(guild_id, chan, msgs);
     }).catch((e) => {
-        console.log("batch delete error", e);
-        forceStartTimeout(chan, msgs);
+        reportError(guild_id, "BatchDelete", e, {chan, messages});
     });
 }
 
 const channel_bulkdelete_cache = new Map<string, msgs>();
-function addBatchDeleteMessage(channel: string, message: string) {
+function addBatchDeleteMessage(guild_id: string, channel: string, message: string) {
     let q: msgs | undefined = channel_bulkdelete_cache.get(channel);
     if(q == null) {
         q = {timeout: false, messages: []};
@@ -66,7 +66,7 @@ function addBatchDeleteMessage(channel: string, message: string) {
     }
     q.messages.push(message);
     if(!q.timeout) {
-        forceStartTimeout(channel, q);
+        forceStartTimeout(guild_id, channel, q);
     }
 }
 
@@ -83,7 +83,7 @@ export async function callEventInternal(event: TimedEvent): Promise<void> {
             allowedMentions: {parse: []},
         });
     }else if(content.kind === "delete_message") {
-        addBatchDeleteMessage(content.channel_id, content.message_id);
+        addBatchDeleteMessage(for_guild, content.channel_id, content.message_id);
     }else{
         throw new Error("unsupported content kind: " + content.kind);
     }

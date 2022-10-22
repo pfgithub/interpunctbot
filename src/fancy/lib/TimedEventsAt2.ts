@@ -3,6 +3,7 @@ import client from "../../../bot";
 import { globalKnex } from "../../db";
 import { QueryBuilder } from "knex";
 import { callEventInternal, EventContent } from "./event_eval";
+import { reportError } from "./report_error";
 
 /*
 notes:
@@ -136,7 +137,16 @@ async function markCompletedThenCallDBEvent(db_ev: DBEvent) {
 }
 
 export function callEvent(event: TimedEvent): void {
-    callEventInternal(event).catch(e => console.log("[TEat2] callEventInternal error", e));
+    // TODO: note that the event is completed, for average event completion time stats
+    // we can note as
+    // - in_progress
+    // - completed
+    // - errored
+    // note that we will never automatically retry any events
+    callEventInternal(event).catch(e => {
+        console.log("[TEat2] callEventInternal error", e);
+        reportError(event.for_guild, "TEat2", e, event);
+    });
 }
 
 // 30, 15, 30, 30
