@@ -24,7 +24,7 @@ function stringifyv<T>(v: T): StringOrObject<T> {
 }
 
 export function reportError(guild_id: string, source: string, error: Error, context: unknown): void {
-    if(process.env.NODE_ENV !== "PRODUCTION") {
+    if(process.env.NODE_ENV !== "production") {
         console.log("[error reported to db]", {guild_id, source, error, context});
     }
     try {
