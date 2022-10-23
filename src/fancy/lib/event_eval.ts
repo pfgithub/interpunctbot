@@ -29,14 +29,21 @@ function forceStartTimeout(guild_id: string, chan: string, msgs: msgs) {
 }
 
 function handleMsgs(guild_id: string, chan: string, msgs: msgs) {
-    const messages = msgs.messages.splice(0, 100);
+    const messages = new Set(msgs.messages.splice(0, 100)); // making a set because sometimes
+    // messages get double-added?
     console.log("batch delete", messages);
 
     (async () => {
         const channl = client.channels.cache.get(chan);
         if(!channl) return;
         if(!(channl instanceof TextChannel)) return;
-        await channl.bulkDelete(messages, true);
+        if(messages.size > 5) {
+            await channl.bulkDelete([...messages], true);
+        }else{
+            for(const message of messages) {
+                await api.api(d.Routes.channelMessage(chan, message)).delete();
+            }
+        }
         // if(messages.length === 1) {
         //     await api.api(d.Routes.channelMessage(chan, messages[0])).delete();
         // }else if(messages.length === 0) {
