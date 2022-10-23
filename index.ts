@@ -43,6 +43,7 @@ import * as SlashCommandManager from "./src/SlashCommandManager";
 import { getPanelByInfo, encodePanel, displayPanel } from "./src/commands/fun/buttongames/paneleditor";
 import { SampleMessage } from "./src/commands/fun/buttongames/tictactoe";
 import { queueEvent } from "./src/fancy/lib/TimedEventsAt2";
+import { reportError } from "./src/fancy/lib/report_error";
 
 mdf(moment as any);
 
@@ -808,7 +809,7 @@ client.on("disconnect", () => {
 
 let handlingCount = 0;
 client.on("messageCreate", msg => {
-	if (handlingCount > 100)
+	if (handlingCount > 100) 
 		return console.log("Handling too many messages, skipping one.");
 	perr(
 		(async () => {
@@ -817,7 +818,9 @@ client.on("messageCreate", msg => {
 			// console.log(myid + " start (handling " + handlingCount + ")");
 			try {
 				await onMessage(msg);
-			} catch (e) {}
+			} catch (e) {
+				reportError(msg.guildId ?? "0", "MessageCreate", e, {content: msg.content, channel_id: msg.channelId, message_id: msg.id});
+			}
 			handlingCount--;
 			// console.log(myid + " done (handling " + handlingCount + ")");
 		})(),

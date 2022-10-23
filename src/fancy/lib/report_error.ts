@@ -23,14 +23,15 @@ function stringifyv<T>(v: T): StringOrObject<T> {
     return JSON.stringify(v) as StringOrObject<T>;
 }
 
-export function reportError(guild_id: string, source: string, error: Error, context: unknown): void {
+export function reportError(guild_id: string, source: string, errorv: unknown, context: unknown): void {
     if(process.env.NODE_ENV !== "production") {
-        console.log("[error reported to db]", {guild_id, source, error, context});
+        console.log("[error reported to db]", {guild_id, source, errorv, context});
     }
     try {
+        const error = errorv as Error;
         const error_content: ErrorContent = {
             message: error.message,
-            stack: error.stack ?? "",
+            stack: error?.stack ?? "",
             context,
         };
 
@@ -45,6 +46,6 @@ export function reportError(guild_id: string, source: string, error: Error, cont
             console.log("[REPORT_ERROR] Fail to save error report:", err, error_content);
         });
     }catch(err) {
-        console.log("[REPORT_ERROR] Fail to report error:", err, guild_id, source, error, context);
+        console.log("[REPORT_ERROR] Fail to report error:", err, guild_id, source, errorv, context);
     }
 }
