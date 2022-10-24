@@ -3,7 +3,7 @@
 		"baseUrl": ".",
 		"paths": { "*": ["types/*"] },
 		"outDir": "./built",
-		"target": "es2017",
+		"target": "es2020",
 		"module": "commonjs",
 		"noImplicitAny": true,
 		"lib": ["es2019"],
