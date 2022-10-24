@@ -42,6 +42,12 @@ use @discordjs/rest which handles:
 - ✓ ratelimiting
 - ✗ caching stuff
 
+we need to cache:
+
+- guilds
+- channels
+- nothing else. fetch it if you need it.
+
 ## huh, interesting
 
 https://github.com/discordjs/discord.js/tree/dee27db35af379b0835f9fd5cc19563f7bf3dfc0/packages/rest
