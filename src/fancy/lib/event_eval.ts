@@ -23,6 +23,7 @@ function forceStartTimeout(guild_id: string, chan: string, msgs: msgs) {
     if(msgs.messages.length > 0) {
         msgs.timeout = true;
         setTimeout(() => {
+            msgs.timeout = false;
             handleMsgs(guild_id, chan, msgs);
         }, 2000);
     }
