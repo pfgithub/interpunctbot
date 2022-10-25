@@ -34,6 +34,20 @@ the bot seperately. that is a good idea i think. we should do that too.
 
 for now we're using discord.js for those
 
+→ @discordjs/rest
+
+use @discordjs/rest which handles:
+
+- ✓ gateway connection
+- ✓ ratelimiting
+- ✗ caching stuff
+
+we need to cache:
+
+- guilds
+- channels
+- nothing else. fetch it if you need it.
+
 ## huh, interesting
 
 https://github.com/discordjs/discord.js/tree/dee27db35af379b0835f9fd5cc19563f7bf3dfc0/packages/rest
