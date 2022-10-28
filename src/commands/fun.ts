@@ -1257,6 +1257,7 @@ nr.globalCommand(
 
 		await queueEvent({
 			for_guild: info.guild.id,
+			search: "REMINDME:"+info.message.author.id,
 			content: {
 				kind: "send_pm",
 				user_id: info.message.author.id,

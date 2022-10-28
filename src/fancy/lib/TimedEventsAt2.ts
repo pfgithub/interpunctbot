@@ -12,7 +12,13 @@ notes:
 
 const ourk = (): QueryBuilder<DBEvent, DBEvent[]> => globalKnex!<DBEvent, DBEvent[]>("timed_events_at2");
 
-export type TimedEvent = {
+export interface TimedEvent extends TimedEventExclSearch {
+    // search can be used to for instance:
+    // - find all my upcoming remindme s to cancel a specific one
+    // - find a delete request for a specified message and cancel it
+    search: string;
+}
+export type TimedEventExclSearch = {
     for_guild: string,
     content: EventContent,
 };
@@ -23,6 +29,13 @@ type DBEvent = {
     time: `${number}`,
     event: string, // EventContent
     completed: boolean,
+
+    created_time: null | `${string}`,
+    started_at_time: null | `${string}`,
+    completed_at_time: null | `${string}`,
+    status: null | "NEW" | "LOAD" | "SUCCESS" | "ERROR" | "unsupported", // MAX LEN 10
+    error_id: null | number,
+    search: null | string, // MAX LEN 100
 };
 
 //* if we find an event but it's more than 2,147,483,647ms in the future:
@@ -33,9 +46,13 @@ let next_event_timeout: {njst: NodeJS.Timeout, time: number} | null = null;
 //! always queue events for a guild that your shard is on. never queue events for a different guild.
 export async function queueEvent(event: TimedEvent, from_now_ms: number): Promise<void> {
     if(from_now_ms < 10_000) {
-        setTimeout(() => callEvent(event), from_now_ms);
+        setTimeout(() => callEvent(null, event), from_now_ms);
         return;
     }
+
+    if(event.search.length > 100) throw new Error("search string too long"); // postgres counts codepoints
+    // i think so this isn't quite right but it should never not error when it won't fit
+    // *! consider hashing the search string to remove the 100 character limit.
 
     /*
 		t.increments("id")
@@ -52,9 +69,19 @@ export async function queueEvent(event: TimedEvent, from_now_ms: number): Promis
         time: `${(next_event_time)}`,
         event: JSON.stringify(event.content),
         completed: false,
+
+        created_time: `${Date.now()}`,
+        started_at_time: null,
+        completed_at_time: null,
+        status: "NEW",
+        error_id: null,
+        search: event.search,
     });
     await updateNextEvent(next_event_time);
 }
+
+// async function cancelEventBySearch(search: string)
+// : cancels all events that equal the search string
 
 // do a db fetch and update known_next_event
 export async function updateNextEvent(nxtvt: number): Promise<void> {
@@ -125,27 +152,56 @@ async function markCompletedThenCallDBEvent(db_ev: DBEvent) {
         kind: "corrupted",
     });
 
-    // async start calling the event. *do not error*
-    callEvent({for_guild: db_ev.for_guild, content: ev_content});
-
     // mark the event completed
+    // ideally, we would do this after triggering the call
+    // but we can't because of the potential race conditoin of the thing getting
+    // updated by this after getting updated by the other thing
     await ourk().where({
         id: db_ev.id,
     }).update({
         completed: true,
+
+        status: "LOAD",
+        started_at_time: `${Date.now()}`,
     });
+
+    // async start calling the event. *do not error*
+    callEvent(db_ev.id, {for_guild: db_ev.for_guild, content: ev_content});
 }
 
-export function callEvent(event: TimedEvent): void {
+export function callEvent(ev_id: null | number, event: TimedEventExclSearch): void {
     // TODO: note that the event is completed, for average event completion time stats
     // we can note as
     // - in_progress
     // - completed
     // - errored
     // note that we will never automatically retry any events
-    callEventInternal(event).catch(e => {
+    callEventInternal(event).then(r => {
+        if(ev_id != null) ourk().where({
+            id: ev_id,
+        }).update({
+            status: "SUCCESS",
+            completed_at_time: `${Date.now()}`,
+        }).catch(em => {
+            // failed to mark event as an error event
+            // funny
+            console.log('[TEat2] failed to mark event as a success.', em);
+        });
+    }).catch(e => {
         console.log("[TEat2] callEventInternal error", e);
         reportError(event.for_guild, "TEat2", e, event);
+        // oh reporterror can't give us the error id in a callback or something, unfortunate
+
+        if(ev_id != null) ourk().where({
+            id: ev_id,
+        }).update({
+            status: "ERROR",
+            completed_at_time: `${Date.now()}`,
+        }).catch(em => {
+            // failed to mark event as an error event
+            // funny
+            console.log('[TEat2] failed to mark event as an error. ironic.', em);
+        });
     });
 }
 

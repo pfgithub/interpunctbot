@@ -1,6 +1,6 @@
 import * as d from "discord-api-types/v9";
 import client, { api } from "../../../bot";
-import { TimedEvent } from "./TimedEventsAt2";
+import { TimedEventExclSearch } from "./TimedEventsAt2";
 
 export type EventContent = {
     kind: "send_pm",
@@ -14,7 +14,7 @@ export type EventContent = {
     kind: "corrupted",
 };
 
-export async function callEventInternal(event: TimedEvent): Promise<void> {
+export async function callEventInternal(event: TimedEventExclSearch): Promise<void> {
     // console.log("[EEat2] Evaluating event", event);
     const {content, for_guild} = event;
     if(content.kind === "send_pm") {

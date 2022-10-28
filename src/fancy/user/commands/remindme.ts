@@ -12,11 +12,14 @@ export default function Command(): SlashCommandElement {
 
         if(event.interaction.guild_id == null) return renderError(u("Not supported in DMs"));
 
+        const user_id = event.interaction.member?.user.id ?? event.interaction.user?.id ?? "0" as never;
+
         await queueEvent({
             for_guild: event.interaction.guild_id,
+			search: "REMINDME:"+user_id,
             content: {
                 kind: "send_pm",
-                user_id: event.interaction.member?.user.id ?? event.interaction.user?.id ?? 0 as never,
+                user_id,
                 message: `Reminder in <#${event.interaction.channel_id}> from <t:${Math.floor(Date.now() / 1000)}>:\n${message
                     .split("\n")
                     .map(l => "> " + l)

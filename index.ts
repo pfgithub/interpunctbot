@@ -728,6 +728,7 @@ async function onMessage(msg: Discord.Message | Discord.PartialMessage) {
 					} else {
 						await queueEvent({
 							for_guild: info.guild.id,
+							search: "AUTODELETE:"+info.raw_message.id,
 							content: {
 								kind: "delete_message",
 								channel_id: info.message.channel.id,
