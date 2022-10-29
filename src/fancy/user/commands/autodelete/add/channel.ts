@@ -48,7 +48,7 @@ export default function Command(): SlashCommandElement {
             if(!target_member.permissions.has("ManageMessages")) {
                 return renderError(u("You need permission to MANAGE_MESSAGES to use this command."));
             }
-            if(!(target_channel instanceof TextChannel)) {
+            if(!(target_channel instanceof TextChannel) && !(target_channel instanceof VoiceChannel)) {
                 return renderError(u("The selected channel is not a text channel"));
             }
             if(!target_channel.permissionsFor(await target_guild.members.fetchMe()).has("ManageMessages")) {
