@@ -362,7 +362,6 @@ export type SlashCommandRouteBottomLevel =
 ;
 export type SlashCommandRouteSubcommand = {
     description: string,
-	default_permission?: boolean | undefined,
     subcommands: {[key: string]: SlashCommandRouteBottomLevel} | {[key: string]: SlashCommandRouteSubcommand},
 };
 export type SlashCommandRoute = SlashCommandRouteBottomLevel | SlashCommandRouteSubcommand;
@@ -665,6 +664,7 @@ function createBottomLevelCommand(cmdname: string, cmddata: SlashCommandRouteBot
 		options: [...Object.entries(cmddata.args ?? {}).map(([optname, optvalue]): d.APIApplicationCommandBasicOption => {
 			return {...optvalue, name: optname};
 		}), ...(cmddata.args_raw ?? [])],
+		default_member_permissions: null,
 	};
 }
 
@@ -674,7 +674,7 @@ for(const [cmdname, cmddata] of Object.entries(slash_command_router)) {
 		global_slash_commands[cmdname] = {
 			type: d.ApplicationCommandType.ChatInput,
 			description: cmddata.description,
-			default_permission: cmddata.default_permission,
+			default_member_permissions: null,
 			options: Object.entries(cmddata.subcommands).map(([scname, scdata_raw]): d.APIApplicationCommandOption => {
 				const scdata = scdata_raw as SlashCommandRouteBottomLevel | SlashCommandRouteSubcommand;
 				if('subcommands' in scdata) {
@@ -711,12 +711,14 @@ for(const [cmdname] of Object.entries(context_menu_command_router.user)) {
 	global_slash_commands[cmdname] = {
 		type: d.ApplicationCommandType.User,
 		description: "",
+		default_member_permissions: null,
 	};
 }
 for(const [cmdname] of Object.entries(context_menu_command_router.message)) {
 	global_slash_commands[cmdname] = {
 		type: d.ApplicationCommandType.Message,
 		description: "",
+		default_member_permissions: null,
 	};
 }
 

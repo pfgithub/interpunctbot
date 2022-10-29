@@ -159,7 +159,6 @@ export type FlattenArgs<Args extends SlashCommandArgs> = {
 export type SlashCommandElement = SlashCommandGroupElement | SlashCommandLeafElement<SlashCommandArgs>;
 export type SlashCommandGroupElement = {
 	kind: "slash_command_group",
-	default_permission?: undefined | boolean,
 	label: LocalizedString,
 	description: LocalizedString,
 	children: SlashCommandElement[],
@@ -1097,7 +1096,6 @@ function addRoute(router: SlashCommandRouter, command: SlashCommandElement, opts
 	}else if(command.kind === "slash_command_group") {
 		const route = router[command.label] ??= {
 			description: command.description,
-			default_permission: command.default_permission,
 			subcommands: {},
 		};
 		if(!('subcommands' in route)) throw new Error("already exists label: "+command.label+" not subcommands");
