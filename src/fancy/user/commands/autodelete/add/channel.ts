@@ -1,4 +1,4 @@
-import { TextChannel } from "discord.js";
+import { TextChannel, VoiceChannel } from "discord.js";
 import client from "../../../../../../bot";
 import Database, { AutodeleteRuleNoID } from "../../../../../Database";
 import { durationFormat } from "../../../../../durationFormat";
@@ -14,6 +14,7 @@ export default function Command(): SlashCommandElement {
                 description: "Channel to delete messages in",
                 channel_types: [
                     d.ChannelType.GuildText,
+                    d.ChannelType.GuildVoice,
                 ],
             }),
             time: SlashCommandArgDuration({

@@ -770,7 +770,7 @@ async function removeCommand(command_id: string): Promise<void> {
 
 function normalizeSCO(inv: d.APIApplicationCommandOption[]): d.APIApplicationCommandOption[] {
 	return JSON.parse(JSON.stringify(inv), (key, value) => {
-		if(typeof value === "object") {
+		if(typeof value === "object" && value != null) {
 			for(const [k, v] of Object.entries(value)) {
 				if(Array.isArray(v) && v.length === 0) delete value[k];
 				if(v === false) delete value[k];
