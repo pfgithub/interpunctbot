@@ -12,6 +12,7 @@ import { safehtml } from "../parseDiscordDG";
 import { durationFormat } from "../durationFormat";
 import { ilt } from "../../";
 import { confirm } from "../RequestManager";
+import { ChannelType } from "discord.js";
 
 type DiscordMarkdownOptions = {
 	/// Boolean (default: false), if it should parse embed contents (rules are slightly different)
@@ -36,7 +37,7 @@ const discordMarkdown = discordMarkdownAny as {
 	toHTML: (dsmd: string, options?: DiscordMarkdownOptions) => string,
 };
 
-const msgopts: discord.MessageOptions = {
+const msgopts: discord.BaseMessageOptions = {
 	allowedMentions: { parse: [], roles: [], users: [] },
 };
 
@@ -384,23 +385,23 @@ nr.globalCommand(
 	},
 );
 
-function confirmLogPermissions(
+async function confirmLogPermissions(
 	channels: {
 		logsChan: discord.GuildChannel,
 	},
 	info: Info,
-): string[] {
+): Promise<string[]> {
 	const errors: string[] = [];
 	//prettier-ignore
 	const makeError = (why: string, what: string, where: discord.GuildChannel) =>
 		"In order to "+why+", I need permission to "+what+" in "+where.toString();
 
 	for (const channel of [channels.logsChan]) {
-		const myPerms = channel.permissionsFor(info.guild!.me!)!;
-		if (!myPerms.has("VIEW_CHANNEL")) {
+		const myPerms = channel.permissionsFor(await info.guild!.members.fetchMe())!;
+		if (!myPerms.has("ViewChannel")) {
 			errors.push(makeError("create logs", "read messages", channel));
 		}
-		if (!myPerms.has("SEND_MESSAGES")) {
+		if (!myPerms.has("SendMessages")) {
 			errors.push(makeError("create logs", "send messages", channel));
 		}
 	}
@@ -422,7 +423,7 @@ nr.globalCommand(
 		if (!(await Info.theirPerm.manageBot(info))) return;
 		if (!info.db || !info.guild) return await info.error("pms");
 		// make sure I have send messages perms on each
-		const perm_errors = confirmLogPermissions(
+		const perm_errors = await confirmLogPermissions(
 			{ logsChan },
 			info,
 		);
@@ -460,14 +461,14 @@ nr.globalCommand(
 		if (!(await Info.theirPerm.manageBot(info))) return;
 		if (!info.db || !info.guild) return await info.error("pms");
 		// make sure I have send messages perms
-		const myPerms = transcriptsChan.permissionsFor(info.guild.me!)!;
-		if (!myPerms.has("VIEW_CHANNEL")) {
+		const myPerms = transcriptsChan.permissionsFor(await info.guild.members.fetchMe())!;
+		if (!myPerms.has("ViewChannel")) {
 			return await info.error(
 				"I need permission to read messages in " +
 					transcriptsChan.toString(),
 			);
 		}
-		if (!myPerms.has("SEND_MESSAGES")) {
+		if (!myPerms.has("SendMessages")) {
 			return await info.error(
 				"I need permission to send messages in " +
 					transcriptsChan.toString(),
@@ -505,7 +506,7 @@ nr.globalCommand(
 			chan =>
 				(chan.name.toUpperCase() === catnme.toUpperCase() ||
 					chan.id === catnme) &&
-				chan.type === "GUILD_CATEGORY",
+				chan.type === discord.ChannelType.GuildCategory,
 		) as discord.CategoryChannel | null;
 		if (!foundCategory)
 			return await info.error(
@@ -516,47 +517,49 @@ nr.globalCommand(
 		const everyonePerms = foundCategory.permissionOverwrites.resolve(
 			info.guild.roles.everyone.id,
 		);
-		const myPerms = foundCategory.permissionsFor(info.guild.me!);
+		const myPerms = foundCategory.permissionsFor(await info.guild.members.fetchMe());
 		if (!everyonePerms)
 			return await info.error(
 				"Make sure your permissions for <#" +
 					foundCategory.id +
 					"> are set up like this: https://i.imgur.com/IgmAku7.png",
 			);
-		if (everyonePerms.allow.has("VIEW_CHANNEL")) {
+		if (everyonePerms.allow.has("ViewChannel")) {
 			return await info.error(
 				"@everyone must not be allowed to Read Text Channels & See Voice Channels in <#" +
 					foundCategory.id +
 					">. Your permissions should look something like this: https://i.imgur.com/IgmAku7.png",
 			);
 		}
-		if (everyonePerms.deny.has("SEND_MESSAGES")) {
+		if (everyonePerms.deny.has("SendMessages")) {
 			return await info.error(
 				"@everyone needs to be allowed to send messages in <#" +
 					foundCategory.id +
 					">. https://i.imgur.com/UkAp4ZW.png",
 			);
 		}
-		if (!myPerms.has("VIEW_CHANNEL")) {
+		if (!myPerms.has("ViewChannel")) {
 			return await info.error(
 				"I need permission to View Channels in <#"+foundCategory.id+">. Check that my permissions and channel overwrites are correct.",
 			);
 		}
-		if (!myPerms.has("MANAGE_CHANNELS")) {
+		if (!myPerms.has("ManageChannels")) {
 			return await info.error(
 				"I need permission to MANAGE CHANNELS in <#"+foundCategory.id+">. Check that my permissions and channel overwrites are correct.",
 			);
 		}
 
 		// make sure it's empty
-		const fchild = [...foundCategory.children.values()];
-		if (fchild.length > 0) {
-			return await info.error(
-				"<#" +
-					foundCategory.id +
-					"> already has channels in it! Select a category that is empty to use for tickets.",
-			);
-		}
+		// not actually necessary and category.children is gone so I'm removing it
+		// the trash reaction only works on channels who's names start with "ticket-"
+		// const fchild = [...foundCategory.children.values()];
+		// if (fchild.length > 0) {
+		// 	return await info.error(
+		// 		"<#" +
+		// 			foundCategory.id +
+		// 			"> already has channels in it! Select a category that is empty to use for tickets.",
+		// 	);
+		// }
 
 		const currentTickets = await info.db.getTicket();
 		currentTickets.main.category = foundCategory.id;
@@ -613,7 +616,7 @@ nr.globalCommand(
 		// TODO: confirm that permissions for join message is set correctly
 
 		// if(log channels) check 1: that log channels exist and 2: log perms
-		// confirmLogPermissions()
+		// await confirmLogPermissions()
 
 		return await info.result("TODO    " + suggestions.join("\n"));
 	},
@@ -666,15 +669,15 @@ nr.globalCommand(
 		}
 
 		// check for the ability to remove reactions in the invitation message's channel
-		const chanperms = msgchan.permissionsFor(info.guild.me!);
+		const chanperms = msgchan.permissionsFor(await info.guild.members.fetchMe());
 		if (chanperms) {
-			if (!chanperms.has("MANAGE_MESSAGES"))
+			if (!chanperms.has("ManageMessages"))
 				return await info.error(
 					"In order for me to remove reactions, I need permission to Manage Messages in <#" +
 						channelID +
 						">.",
 				);
-			if (!chanperms.has("ADD_REACTIONS"))
+			if (!chanperms.has("AddReactions"))
 				return await info.error(
 					"In order for me to add reactions, I need permission to Add Reactions in <#" +
 						channelID +
@@ -682,7 +685,7 @@ nr.globalCommand(
 				);
 		}
 
-		if (!info.myChannelPerms!.has("MANAGE_CHANNELS")) {
+		if (!info.myChannelPerms!.has("ManageChannels")) {
 			// check for basic ticketing perms
 			await info.error(
 				info.tag`In order for me to be able to open and close tickets, I need permission to Manage Channels.`,
@@ -850,7 +853,6 @@ function genLogOneMessage(msg: discord.Message) {
 	return {
 		top: safehtml`<div class="message"
             ><img class="profile" src="${msg.author.displayAvatarURL({
-		dynamic: true,
 		size: 64,
 	})}"
             /><div class="author" style="color: ${memberColor}"
@@ -930,8 +932,9 @@ async function sendChannelLogMayError(
 	sendTo: discord.TextChannel,
 ) {
 	await sendTo.sendTyping();
+	const fmo: discord.FetchMessagesOptions = { limit: 100, cache: true };
 	const lastMessages = [...(
-		await channel.messages.fetch({ limit: 100 }, {cache: true, force: false})
+		await channel.messages.fetch(fmo)
 	).values()];
 	for (const lmsg of lastMessages) {
 		if (lmsg.partial) await lmsg.fetch();
@@ -996,13 +999,13 @@ async function closeTicketMayError(
 ) {
 	if(ctx.ticket.main.creator_cannot_close && (channel.topic ?? "").includes(closer.id) && (channel.topic ?? "").startsWith("+")) {
 		const member = await channel.guild.members.fetch(closer.id);
-		if(!member.permissions.has("MANAGE_CHANNELS")) {
+		if(!member.permissions.has("ManageChannels")) {
 			await channel.send("You cannot close your own ticket after sending messages in it.");
 			return;
 		}
 	}
 
-	if (channel.deleted) return;
+	if ((channel as any).__IS_DELETED) return;
 	if ((channel as any).__IS_CLOSING) return;
 	(channel as any).__IS_CLOSING = true;
 
@@ -1010,7 +1013,8 @@ async function closeTicketMayError(
 	await channel.edit({
 		name: "closing-" + channel.name,
 		topic: (channel.topic || "").replace("~", "×").replace("+", "×"),
-	}, "Ticket closed by "+closer.toString());
+		reason: "Ticket closed by "+closer.toString(),
+	});
 
 	const forinactive = inactivity ? " for inactivity" : "";
 	const deletetime = ctx.ticket.main.deletetime || 60 * 1000;
@@ -1059,6 +1063,7 @@ async function closeTicketMayError(
 	}
 
 	await new Promise(r => setTimeout(r, deletetime));
+	(channel as any).__IS_DELETED = true;
 	const iltr = await ilt(channel.delete(), "deleting channel for ticket");
 	if(iltr.error) {
 		await channel.send(":x: There was an error deleting this channel. Maybe I don't have permissions? Error code: `"+iltr.error.errorCode+"`");
@@ -1107,7 +1112,7 @@ async function createTicket(
 	if (!(cat instanceof discord.CategoryChannel)) return; // oop can't create a ticket in a text channel
 
 	const ncperms: discord.OverwriteResolvable[] = [...cat.permissionOverwrites.cache.values()];
-	ncperms.push({ id: creator.id, allow: ["VIEW_CHANNEL"] });
+	ncperms.push({ id: creator.id, allow: ["ViewChannel"] });
 	const channelName = "ticket-" + creator.id;
 	// todo by topic?
 	const foundch = cat.guild.channels.cache.find(
@@ -1120,7 +1125,9 @@ async function createTicket(
 		}catch(e) {}
 		return;
 	}
-	const cre8tedchan = await cat.guild.channels.create(channelName, {
+	const cre8tedchan = await cat.guild.channels.create({
+		name: channelName,
+		type: ChannelType.GuildText,
 		parent: cat,
 		permissionOverwrites: ncperms,
 		topic: "~ " + creator.toString() + "'s ticket",
@@ -1134,7 +1141,7 @@ async function createTicket(
 				"\n\nMessages sent in this channel will be logged and visible to moderators." : ""),
 	);
 	const hndlfn = async () => {
-		if (cre8tedchan.deleted) return;
+		if ((cre8tedchan as any).__IS_DELETED) return;
 		if ((cre8tedchan.topic || "").startsWith("~")) {
 			await cre8tedchan.send(
 				durationFormat(ctx.ticket.main.autoclose || 0) + " inactivity",
@@ -1173,11 +1180,11 @@ async function ticketLog(
 	if (!logsChannel) return;
 	if (!(logsChannel instanceof discord.TextChannel)) return;
 
-	const logEmbed = new discord.MessageEmbed();
+	const logEmbed: discord.APIEmbed = {};
 	if (rylActioner)
 		logEmbed.author = {
 			name: rylActioner.username + "#" + rylActioner.discriminator,
-			iconURL: rylActioner.displayAvatarURL({ dynamic: true, size: 32 }),
+			icon_url: rylActioner.displayAvatarURL({ size: 32 }),
 		};
 	else
 		logEmbed.author = {
@@ -1234,7 +1241,7 @@ export async function onMessage(
 		}
 		const chantopic = (msg.channel as TopicHolder).topic || "";
 		if (chantopic.startsWith("~") && chantopic.includes(msg.author.id)) {
-			if(msg.channel.type !== "GUILD_TEXT") never();
+			if(msg.channel.type !== discord.ChannelType.GuildText) never();
 			await msg.channel.setTopic(
 				(msg.channel.topic || "").replace("~", "+"),
 				"active",
@@ -1268,7 +1275,7 @@ export async function onMessageReactionAdd(
 
 	const ctx: TicketCtx = { guild: rxn.message.guild, ticket: ticketData };
 
-	if (rxn.message.channel.type !== "GUILD_TEXT") {
+	if (rxn.message.channel.type !== discord.ChannelType.GuildText) {
 		return false;
 	}
 

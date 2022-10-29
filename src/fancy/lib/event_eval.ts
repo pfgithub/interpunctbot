@@ -1,5 +1,5 @@
-import * as d from "discord-api-types/v9";
-import client, { api } from "../../../bot";
+import * as d from "discord-api-types/v10";
+import client from "../../../bot";
 import { TimedEventExclSearch } from "./TimedEventsAt2";
 
 export type EventContent = {
@@ -27,7 +27,7 @@ export async function callEventInternal(event: TimedEventExclSearch): Promise<vo
             allowedMentions: {parse: []},
         });
     }else if(content.kind === "delete_message") {
-        await api.api(d.Routes.channelMessage(content.channel_id, content.message_id)).delete();
+        await client.rest.delete(d.Routes.channelMessage(content.channel_id, content.message_id));
     }else{
         throw new Error("unsupported content kind: " + content.kind);
     }

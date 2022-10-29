@@ -124,7 +124,7 @@ nr.globalCommand(
 			const progressPerdeci = Math.floor(
 				(deletedCount / toSlowDelete.size) * 10,
 			);
-			const iltres = await ilt(
+			const iltres = await ilt<Discord.Message<boolean>>(
 				progressMessage.edit(
 					`Deleting messages... [\`${"X".repeat(progressPerdeci) +
 						" ".repeat(
@@ -195,14 +195,14 @@ nr.globalCommand(
 			);
 		}
 
-		if (!channel.isText() || channel.type === "GUILD_NEWS") {
+		if (channel.type !== Discord.ChannelType.GuildText) {
 			return await info.error(
 				"Slowmode can only be set on text channels.",
 			);
 		}
 		const finalTime = Math.ceil(time / 1000);
 		const finalTimeMS = finalTime * 1000;
-		await channel.setRateLimitPerUser(
+		await (channel as Discord.GuildTextBasedChannel).setRateLimitPerUser(
 			finalTime,
 			"set by " + info.message.author.toString(),
 		);
@@ -561,7 +561,7 @@ nr.globalCommand(
 		const failures: Discord.Channel[] = [];
 		const successes: Discord.Channel[] = []; // maybe do Message[] and link to every message i.p sent?
 		for (const channel of channelsToSendTo) {
-			if(!channel.isText()) {
+			if (channel.type !== Discord.ChannelType.GuildText) {
 				failures.push(channel);
 				continue;
 			}
@@ -600,11 +600,11 @@ nr.globalCommand(
 );
 
 async function cannotSendIn(channel: Discord.GuildChannel, info: Info): Promise<boolean> {
-	if(!channel.isText()) {
+	if (channel.type !== Discord.ChannelType.GuildText) {
 		await info.error("Cannot send messages in a "+channel.type+" channel. Please select a text channel.");
 		return true;
 	}
-	if(!channel.permissionsFor(channel.guild.me!)?.has("SEND_MESSAGES")) {
+	if(!channel.permissionsFor(channel.guild.members.me!)?.has("SendMessages")) {
 		await info.error("I do not have permissions to send messages in "+channel.toString()+".");
 		return true;
 	}
@@ -635,7 +635,7 @@ nr.globalCommand(
 			return await info.docs("/errors/pms", "error");
 		}
 		const theyCanMention = info.message.member!.permissions.has(
-			"MENTION_EVERYONE",
+			"MentionEveryone",
 		);
 
 		if(await cannotSendIn(channel, info)) return;
@@ -750,7 +750,7 @@ nr.globalCommand(
 			return await info.docs("/errors/pms", "error");
 		}
 		const theyCanMention = info.message.member!.permissions.has(
-			"MENTION_EVERYONE",
+			"MentionEveryone",
 		);
 
 		if(await cannotSendIn(channel, info)) return;
@@ -846,7 +846,7 @@ nr.globalCommand(
 			return await info.docs("/errors/pms", "error");
 		}
 		const theyCanMention = info.message.member!.permissions.has(
-			"MENTION_EVERYONE",
+			"MentionEveryone",
 		);
 
 		if (!theyCanMention) {

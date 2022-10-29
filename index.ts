@@ -4,7 +4,7 @@ import moment from "moment";
 import mdf from "moment-duration-format";
 import path from "path";
 
-import client, { api } from "./bot";
+import client from "./bot";
 import { messages, safe } from "./messages";
 import "./src/commands/about";
 import "./src/commands/channelmanagement";
@@ -44,6 +44,7 @@ import { getPanelByInfo, encodePanel, displayPanel } from "./src/commands/fun/bu
 import { SampleMessage } from "./src/commands/fun/buttongames/tictactoe";
 import { queueEvent } from "./src/fancy/lib/TimedEventsAt2";
 import { reportError } from "./src/fancy/lib/report_error";
+import { Routes } from "discord.js";
 
 mdf(moment as any);
 
@@ -297,8 +298,8 @@ async function unknownCommandHandler(cmd: string, info: Info) {
 						return await info.error("Error displaying a panel: " + display_res.error);
 					}
 
-					await api.api.channels(info.message.channel.id).messages.post<{data: SampleMessage}, unknown>({data:
-						display_res.message,
+					await client.rest.post(Routes.channelMessages(info.message.channel.id), {
+						body: display_res.message,
 					});
 					return;
 				}
@@ -355,7 +356,7 @@ async function updateActivity() {
 					count === -1
 						? "ip!help on a bunch of servers"
 						: `ip!help on ${count} servers`,
-				type: "WATCHING",
+				type: Discord.ActivityType.Watching,
 				url: "https://interpunct.info/",
 			}],
 			status: production ? "online" : "idle",
@@ -533,7 +534,7 @@ async function runEvent(
 				"",
 			);
 		}
-		if (!channelDiscord.isText()) {
+		if (channelDiscord.type !== Discord.ChannelType.GuildText) {
 			return await db.addError(
 				"/errors/ipscript/channel-not-text-channel",
 				"",
@@ -829,16 +830,16 @@ client.on("messageCreate", msg => {
 	);
 });
 
-function channelNameForLog(channel: Discord.TextBasedChannels): string {
-	if(channel.type === "GUILD_PRIVATE_THREAD" || channel.type === "GUILD_PUBLIC_THREAD") {
+function channelNameForLog(channel: Discord.TextBasedChannel): string {
+	if(channel.type === Discord.ChannelType.PrivateThread || channel.type === Discord.ChannelType.PublicThread) {
 		const parent = channel.parent;
 
 		if(parent) {
-			return "<#"+parent.name+"→"+(channel.type === "GUILD_PRIVATE_THREAD" ? "[private]" : "")+channel.name+">";
+			return "<#"+parent.name+"→"+(channel.type === Discord.ChannelType.PrivateThread ? "[private]" : "")+channel.name+">";
 		}
 		// channel.
 	}
-	if(channel.type === "DM") {
+	if(channel.type === Discord.ChannelType.DM) {
 		return "<DM?>";
 	}
 	return "<#"+channel.name+">";
@@ -891,7 +892,7 @@ async function rankingMessageReactionAdd(
 	const qr = await db.getQuickrank();
 
 	const isManager = qr.managerRole && reactor.roles.cache.has(qr.managerRole);
-	if (!(isManager || reactor.permissions.has("MANAGE_ROLES"))) {
+	if (!(isManager || reactor.permissions.has("ManageRoles"))) {
 		delete ignoreReactionsOnFrom[irfKey];
 		return false; // bad person
 	}
@@ -1023,7 +1024,7 @@ async function rankingMessageReactionAdd(
 			return true;
 		}
 
-		if (!memberCanManageRole(guild.me!, role)) {
+		if (!memberCanManageRole(await guild.members.fetchMe(), role)) {
 			await msg.channel.send(
 				reactor.toString() +
 					", :x: I do not have permission to manage " +

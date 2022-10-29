@@ -31,17 +31,17 @@ export default function Command(): SlashCommandElement {
 	        // @ts-expect-error
             const sender = guild.members._add(ev.interaction.member);
 
-            if(!sender.permissions.has("MANAGE_GUILD")) {
+            if(!sender.permissions.has("ManageGuild")) {
                 const db = new Database(guild.id);
                 const mng_bot_role = await db.getManageBotRole();
                 if(mng_bot_role.role === "" || !ev.interaction.member.roles.includes(mng_bot_role.role)) {
                     return renderError(u("You need permission to MANAGE_GUILD or have <@&"+mng_bot_role.role+"> to use this command."));
                 }
             }
-            if(!sender.permissions.has("MANAGE_MESSAGES")) {
+            if(!sender.permissions.has("ManageMessages")) {
                 return renderError(u("You need permission to MANAGE_MESSAGES to use this command."));
             }
-            if(!guild.me!.permissions.has("MANAGE_MESSAGES")) {
+            if(!(await guild.members.fetchMe()).permissions.has("ManageMessages")) {
                 return renderError(u("Interpunct needs permission to MANAGE_MESSAGES to use this command. Check:\n- Interpunct has permission to manage messages"));
             }
 

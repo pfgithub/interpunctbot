@@ -1,8 +1,8 @@
 import fetch from "node-fetch";
-import { MessageEmbed } from "discord.js";
 import Info from "../Info";
 import { messages, safe } from "../../messages";
 import * as nr from "../NewRouter";
+import { EmbedBuilder } from "@discordjs/builders";
 
 function escapeMarkdown(text: string) {
 	const unescaped = text.replace(/\\(\*|_|`|~|\\)/g, "$1"); // unescape any "backslashed" character // why is this required?
@@ -101,16 +101,16 @@ export async function handleList(
 	const quoteAuthor = quoteSplit[1];
 	const quoteFull = quoteSplit[0];
 
-	if (info.myChannelPerms!.has("EMBED_LINKS")) {
+	if (info.myChannelPerms!.has("EmbedLinks")) {
 		// Create the resulting embed and populate it, in the future this could use a messagebuilder
-		const quoteEmbed = new MessageEmbed();
+		const quoteEmbed = new EmbedBuilder();
 		quoteEmbed.setDescription(`*${quoteFull}*`);
 		if (quoteAuthor) {
-			quoteEmbed.setAuthor(quoteAuthor);
+			quoteEmbed.setAuthor({name: quoteAuthor});
 		} else {
 			quoteEmbed.setTitle("Quote");
 		}
-		quoteEmbed.setFooter(`${line + 1}/${allQuotesList.length}`);
+		quoteEmbed.setFooter({text: `${line + 1}/${allQuotesList.length}`});
 		quoteEmbed.setColor(3092790);
 
 		// Return the result

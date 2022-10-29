@@ -224,8 +224,7 @@ export function globalAlias(original: string, aliasname: string): void {
 }
 
 export function reportError(error: Error, info: Info): void {
-	// TODO if discord api error no permission, say "interpunct does not have permission"
-	if ( info.raw_message ? !info.raw_message.deleted : true ) {
+	if ( info.raw_message ? !false : true ) {
 		if (error instanceof Discord.DiscordAPIError) {
 			perr(
 				info.error(

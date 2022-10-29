@@ -347,7 +347,7 @@ async function displayLeaderboard(
 		mb.setThumbnail(assetIcon.uri);
 	}
 
-	if (info.myChannelPerms!.has("EMBED_LINKS")) {
+	if (info.myChannelPerms!.has("EmbedLinks")) {
 		await info.result(mb.build(true));
 	} else {
 		await info.result(mb.build(false));
@@ -437,7 +437,7 @@ nr.globalCommand(
 		mb.description.put(category.rules);
 		mb.footer.tag`Took ${`${ctime() - startTime}`} ms`;
 
-		if (info.myChannelPerms!.has("EMBED_LINKS")) {
+		if (info.myChannelPerms!.has("EmbedLinks")) {
 			await info.result(mb.build(true));
 		} else {
 			await info.result(mb.build(false));

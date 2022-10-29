@@ -1,4 +1,4 @@
-import * as d from "discord-api-types/v9";
+import * as d from "discord-api-types/v10";
 
 type Permissions = bigint;
 

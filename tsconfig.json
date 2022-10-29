@@ -11,7 +11,8 @@
 		"declaration": false,
 		"strict": true,
 		"esModuleInterop": true,
-		"inlineSourceMap": true
+		"inlineSourceMap": true,
+		"skipLibCheck": true
 	},
 	"include": ["src/**/*", "assets/**/*", "index.ts"]
 }

@@ -640,7 +640,7 @@ export function getRankSuccessMessage(
 	rolesToGive: Discord.Role[],
 	preExistingRoles: Discord.Role[],
 	explicitRolesToGive: string[],
-): Discord.MessageOptions {
+): Discord.BaseMessageOptions {
 	const allowedMentions: Discord.MessageMentionOptions = {
 		roles: [], users: [...new Set([giver.id, reciever.id])], repliedUser: false,
 	};

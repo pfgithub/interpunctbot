@@ -3,7 +3,7 @@ import client from "../../../../../../bot";
 import Database, { AutodeleteRuleNoID } from "../../../../../Database";
 import { durationFormat } from "../../../../../durationFormat";
 import { Message, renderEphemeral, renderError, SlashCommand, SlashCommandArgChannel, SlashCommandArgDuration, SlashCommandElement, u } from "../../../../fancylib";
-import * as d from "discord-api-types/v9";
+import * as d from "discord-api-types/v10";
 
 export default function Command(): SlashCommandElement {
     return SlashCommand({
@@ -38,20 +38,20 @@ export default function Command(): SlashCommandElement {
 	        // @ts-expect-error
             const target_member = target_guild.members._add(ev.interaction.member);
 
-            if(!target_member.permissions.has("MANAGE_GUILD")) {
+            if(!target_member.permissions.has("ManageGuild")) {
                 const db = new Database(target_guild.id);
                 const mng_bot_role = await db.getManageBotRole();
                 if(mng_bot_role.role === "" || !ev.interaction.member.roles.includes(mng_bot_role.role)) {
                     return renderError(u("You need permission to MANAGE_GUILD or have <@&"+mng_bot_role.role+"> to use this command."));
                 }
             }
-            if(!target_member.permissions.has("MANAGE_MESSAGES")) {
+            if(!target_member.permissions.has("ManageMessages")) {
                 return renderError(u("You need permission to MANAGE_MESSAGES to use this command."));
             }
             if(!(target_channel instanceof TextChannel)) {
                 return renderError(u("The selected channel is not a text channel"));
             }
-            if(!target_channel.permissionsFor(target_guild.me!).has("MANAGE_MESSAGES")) {
+            if(!target_channel.permissionsFor(await target_guild.members.fetchMe()).has("ManageMessages")) {
                 return renderError(u("Interpunct needs permission to MANAGE_MESSAGES in <#"+target_channel.id+"> to use this command. Check:\n- Interpunct has permission to manage messages\n- No channel override permissions are set in the channel settings to block this"));
             }
 

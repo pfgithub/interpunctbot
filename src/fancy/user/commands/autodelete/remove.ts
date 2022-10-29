@@ -66,7 +66,7 @@ export default function Command(): SlashCommandElement {
 	        // @ts-expect-error
             const target_member = target_guild.members._add(ev.interaction.member);
 
-            if(!target_member.permissions.has("MANAGE_GUILD")) {
+            if(!target_member.permissions.has("ManageGuild")) {
                 const db = new Database(target_guild.id);
                 const mng_bot_role = await db.getManageBotRole();
                 if(mng_bot_role.role === "" || !ev.interaction.member.roles.includes(mng_bot_role.role)) {

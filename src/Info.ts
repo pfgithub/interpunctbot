@@ -20,15 +20,15 @@ export function memberCanManageRole(
 ): boolean {
 	if (!member) return false;
 	return (
-		member.permissions.has("MANAGE_ROLES") &&
+		member.permissions.has("ManageRoles") &&
 		(member.roles.highest.comparePositionTo(role) >= 0 ||
-			member.permissions.has("ADMINISTRATOR"))
+			member.permissions.has("Administrator"))
 		// technically admins can't manage roles above them but too bad
 	);
 }
 
 export async function permTheyCanManageRole(role: Discord.Role, info: Info): Promise<boolean> {
-	if (!info.message.member!.permissions.has("MANAGE_ROLES")) {
+	if (!info.message.member!.permissions.has("ManageRoles")) {
 		await info.docs("/errors/perm/manage-roles", "error");
 		return false;
 	}
@@ -43,11 +43,11 @@ export async function permTheyCanManageRole(role: Discord.Role, info: Info): Pro
 }
 
 export async function permWeCanManageRole(role: Discord.Role, info: Info): Promise<boolean> {
-	if (!info.myChannelPerms!.has("MANAGE_ROLES")) {
+	if (!(info.myChannelPerms!).has("ManageRoles")) {
 		await info.docs("/errors/ourperms/manage-roles", "error");
 		return false;
 	}
-	if (!memberCanManageRole(info.guild!.me!, role)) {
+	if (!memberCanManageRole(await info.guild!.members.fetchMe(), role)) {
 		await info.docs(
 			"/errors/ourperms/manage-roles/not-high-enough",
 			"error",
@@ -229,12 +229,12 @@ export const ourPerm = {
 };
 
 export type MessageOptionsParameter =
-	| Discord.MessageOptions
-	| Discord.MessageEmbed
-	| Discord.MessageAttachment;
+	| Discord.BaseMessageOptions
+	| Discord.APIEmbed
+	| Discord.Attachment;
 
 export type MessageParametersType =
-	| Discord.MessageOptions
+	| Discord.BaseMessageOptions
 	| string
 ;
 
@@ -249,7 +249,7 @@ export type MessageLike = {
 };
 
 export default class Info {
-	channel: Discord.TextBasedChannels;
+	channel: Discord.TextBasedChannel;
 	guild?: Discord.Guild | null;
 	message: MessageLike;
 	raw_message?: Discord.Message;
@@ -309,28 +309,28 @@ export default class Info {
 	    return ourPerm;
 	}
 	get atme(): string {
-	    return this.message.client.user!.toString();
+	    return this.message.client.user.toString();
 	}
-	get authorChannelPerms(): Readonly<Discord.Permissions> | undefined | null {
+	get authorChannelPerms(): Readonly<Discord.PermissionsBitField> | undefined | null {
 	    if ('guild' in this.channel) {
 	        return this.channel.permissionsFor(this.member!);
 	    }
 	    return undefined;
 	}
-	get authorGuildPerms(): Readonly<Discord.Permissions> | undefined | null {
+	get authorGuildPerms(): Readonly<Discord.PermissionsBitField> | undefined | null {
 	    if (this.member) {
 	        return this.member.permissions;
 	    }
 	    return undefined;
 	}
-	get myChannelPerms(): Readonly<Discord.Permissions> | undefined | null {
+	get myChannelPerms(): Readonly<Discord.PermissionsBitField> | undefined | null {
 	    if ('guild' in this.channel) {
-	        return this.channel.permissionsFor(this.guild!.me!);
+	        return this.channel.permissionsFor(this.guild!.members.me!);
 	    }
 	    return undefined;
 	}
 	async theyHavePermsToManageBot(): Promise<boolean> {
-		if(this.authorGuildPerms?.has("MANAGE_GUILD") ?? true) {
+		if(this.authorGuildPerms?.has("ManageGuild") ?? true) {
 			return true; // in pm or author has perm
 		}
 		const mngbotrol = await this.db!.getManageBotRole();
@@ -342,35 +342,35 @@ export default class Info {
 	get authorPerms(): {manageChannel: boolean, manageEmoji: boolean, manageMessages: boolean, banMembers: boolean} {
 	    return {
 	        manageChannel: this.authorGuildPerms
-				? this.authorGuildPerms.has("MANAGE_CHANNELS")
+				? this.authorGuildPerms.has("ManageChannels")
 				: true,
 	        manageEmoji: this.authorGuildPerms
-				? this.authorGuildPerms.has("MANAGE_EMOJIS_AND_STICKERS")
+				? this.authorGuildPerms.has("ManageEmojisAndStickers")
 				: true,
 	        manageMessages: this.authorChannelPerms
-				? this.authorChannelPerms.has("MANAGE_MESSAGES")
+				? this.authorChannelPerms.has("ManageMessages")
 				: true,
 	        banMembers: this.authorGuildPerms
-				? this.authorGuildPerms.has("BAN_MEMBERS")
+				? this.authorGuildPerms.has("BanMembers")
 				: true,
 	    };
 	}
 	get myPerms(): {manageBot: boolean, manageChannel: boolean, manageEmoji: boolean, manageMessages: boolean, banMembers: boolean} {
 	    return {
 	        manageBot: this.myChannelPerms
-				? this.myChannelPerms.has("MANAGE_GUILD")
+				? this.myChannelPerms.has("ManageGuild")
 				: true,
 	        manageChannel: this.myChannelPerms
-				? this.myChannelPerms.has("MANAGE_CHANNELS")
+				? this.myChannelPerms.has("ManageChannels")
 				: true,
 	        manageEmoji: this.myChannelPerms
-				? this.myChannelPerms.has("MANAGE_EMOJIS_AND_STICKERS")
+				? this.myChannelPerms.has("ManageEmojisAndStickers")
 				: true,
 	        manageMessages: this.myChannelPerms
-				? this.myChannelPerms.has("MANAGE_MESSAGES")
+				? this.myChannelPerms.has("ManageMessages")
 				: true,
 	        banMembers: this.myChannelPerms
-				? this.myChannelPerms.has("BAN_MEMBERS")
+				? this.myChannelPerms.has("BanMembers")
 				: true,
 	    };
 	}
@@ -390,7 +390,7 @@ export default class Info {
 	    }
 	}
 	async _tryReply(
-	    values: Discord.MessageOptions
+	    values: Discord.BaseMessageOptions
 	): Promise<Discord.Message[] | undefined> {
 	    const atThem = this.message.author.toString();
 	    const shouldAlert = this.shouldAlert();
@@ -400,11 +400,11 @@ export default class Info {
 		// TODO reply
 		
 	    const msgtxt = atThem + ", " + values.content;
-	    const splitmsg = Discord.Util.splitMessage(msgtxt);
+	    const splitmsg = splitMessage(msgtxt);
 
 	    const resmsgs: Discord.Message[] = [];
 	    for (const [i, msgpart] of splitmsg.entries()) {
-	        const iltres = await ilt(
+	        const iltres = await ilt<Discord.Message>(
 	            this.message.channel.send({
 	                allowedMentions,
 					...(i === 0 ? values : {}),
@@ -436,7 +436,7 @@ export default class Info {
 	        } catch(e) {console.log(e)}
 	    }
 
-	    let message: Discord.MessageOptions = typeof value === "string" ? {content: value} : value;
+	    let message: Discord.BaseMessageOptions = typeof value === "string" ? {content: value} : value;
 
 	    // Format the message with the correct result type
 		message = {...message, content: resultType + " " + (message.content ?? "")};
@@ -474,7 +474,7 @@ export default class Info {
 	    }
 	    if (
 	        !this.myChannelPerms ||
-			this.myChannelPerms.has("USE_EXTERNAL_EMOJIS")
+			this.myChannelPerms.has("UseExternalEmojis")
 	    ) {
 	        await this.reply("<:error:508841130503438356>", msg);
 	    } else {
@@ -497,7 +497,7 @@ export default class Info {
 	    let res;
 	    if (
 	        !this.myChannelPerms ||
-			this.myChannelPerms.has("USE_EXTERNAL_EMOJIS")
+			this.myChannelPerms.has("UseExternalEmojis")
 	    ) {
 	        res = await this.reply("<:warning:508842207089000468>", msg);
 	    } else {
@@ -521,7 +521,7 @@ export default class Info {
 	    let res;
 	    if (
 	        !this.myChannelPerms ||
-			this.myChannelPerms.has("USE_EXTERNAL_EMOJIS")
+			this.myChannelPerms.has("UseExternalEmojis")
 	    ) {
 	        res = await this.reply("<:success:508840840416854026>", msg);
 	    } else {
@@ -587,6 +587,22 @@ export default class Info {
 	    return handleReactions;
 	}
 }
+
+export function splitMessage(text: string, { maxLength = 2000, char = '\n', prepend = '', append = '' } = {}): string[] {
+    if (text.length <= maxLength) return [text];
+    const splitText = text.split(char);
+    if (splitText.length === 1) throw new RangeError('SPLIT_MAX_LEN');
+    const vdsajkn = [];
+    let msg = '';
+    for (const chunk of splitText) {
+      if (msg && (msg + char + chunk + append).length > maxLength) {
+        vdsajkn.push(msg + append);
+        msg = prepend;
+      }
+      msg += (msg && msg !== prepend ? char : '') + chunk;
+    }
+    return vdsajkn.concat(msg).filter(m => m);
+  }
 
 export function handleReactions(
 	msg: Discord.Message,

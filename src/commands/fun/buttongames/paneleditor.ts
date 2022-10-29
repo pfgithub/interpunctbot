@@ -14,7 +14,7 @@ import {
 
 	requestEmojiInput, requestLongTextInput, requestRoleInput, requestTextInput, SampleMessage
 } from "./tictactoe";
-import * as d from "discord-api-types/v9";
+import * as d from "discord-api-types/v10";
 
 // NOTE this will retain all fields, even those
 // that are not of the active tag.
@@ -161,7 +161,7 @@ export function displayPanel(saved_in: SavedState, info: Info, mode: "error" | "
 					line.action = {kind: "show_error", message: error_msg};
 					continue;
 				}
-				if(!memberCanManageRole(info.guild!.me!, role)) {
+				if(!memberCanManageRole(info.guild!.members.me!, role)) {
 					const error_msg = "I do not have permission to give people "+role_mention+". I "+
 					"must have permission to Manage Roles and my highest role must be higher than the role I am "+
 					"trying to give.";
@@ -783,7 +783,7 @@ function newRender(state: PanelState): RenderResult<PanelState> {
 									return {kind: "error", msg: "You do not have permission to give people <@&"+role.id+">.\n"
 									+ "You need permission to Manage Roles and your highest role must be above <@&"+role.id+">."};
 								}
-								if(!memberCanManageRole(role.guild.me!, role)) {
+								if(!memberCanManageRole(role.guild.members.me!, role)) {
 									return {kind: "error", msg: "I do not have permission to give people <@&"+role.id+">.\n"
 									+ "I need permission to Manage Roles and my highest role must be above <@&"+role.id+">."};
 								}

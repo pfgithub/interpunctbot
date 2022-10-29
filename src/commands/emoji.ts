@@ -144,8 +144,7 @@ nr.globalCommand(
 		newRoles.push(role);
 		newRoles = [...new Set(newRoles)];
 		await emoji.edit(
-			{ roles: newRoles },
-			`@${info.message.member!.displayName}`,
+			{ roles: newRoles, reason: `@${info.message.member!.displayName}` },
 		);
 		await info.success(
 			messages.emoji.added_restriction(info, emoji, role, newRoles),
@@ -185,8 +184,7 @@ nr.globalCommand(
 
 		if (!role) {
 			await emoji.edit(
-				{ roles: [] },
-				`@${info.message.member!.displayName}`,
+				{ roles: [], reason: `@${info.message.member!.displayName}` },
 			);
 			return await info.success(
 				messages.emoji.removed_all_restrictions(info, emoji),
@@ -194,8 +192,7 @@ nr.globalCommand(
 		}
 		newRoles = newRoles.filter(roles => roles.id !== role.id);
 		await emoji.edit(
-			{ roles: newRoles },
-			`@${info.message.member!.displayName}`,
+			{ roles: newRoles, reason: `@${info.message.member!.displayName}` },
 		);
 		await info.success(
 			messages.emoji.removed_restriction(info, emoji, role, newRoles),

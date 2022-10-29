@@ -1,7 +1,7 @@
 /* eslint-disable */
 // obsolete. do not use.
 
-import { MessageEmbed } from "discord.js";
+import { APIEmbed } from "discord.js";
 import { MessageParametersType } from "./Info";
 
 type TextBuilderType = "discord" | "url";
@@ -111,10 +111,10 @@ export class MessageBuilder {
 	build(useEmbed?: boolean): MessageParametersType {
 	    // useEmbed may be overrided if fields goes over the max
 	    // converts to an array containing [msg, {embed: thing}]
-	    const embed = new MessageEmbed();
+	    const embed: APIEmbed = {};
 	    let msg = "";
 
-	    embed.setColor(3092790);
+		embed.color = 3092790;
 
 	    if (this.author) {
 	        embed.author = this.author;
@@ -145,11 +145,11 @@ export class MessageBuilder {
 
 	    this._fields.forEach(field => {
 	        if (embed.fields && embed.fields.length < 25) {
-	            embed.addField(
-	                field.title.build(),
-	                field.description.build(),
-	                field.inline,
-	            );
+				embed.fields.push({
+	                name: field.title.build(),
+	                value: field.description.build(),
+	                inline: field.inline,
+				});
 	        }
 	        if (field.inline) {
 	            msg += `\n**${field.title.build()}**: ${field.description.build()}`;

@@ -131,12 +131,12 @@ nr.globalCommand(
 	nr.list(),
 	async ([], info) => {
 		if (info.myChannelPerms) {
-			if (!info.myChannelPerms.has("ADD_REACTIONS")) {
+			if (!info.myChannelPerms.has("AddReactions")) {
 				return await info.error(
 					"I need permission to `add reactions` here to play trivia\n> https://interpunct.info/help/fun/trivia",
 				);
 			}
-			if (!info.myChannelPerms.has("MANAGE_MESSAGES")) {
+			if (!info.myChannelPerms.has("ManageMessages")) {
 				return await info.error(
 					"I need permission to `manage messages` here to remove people's reactions in trivia\n> https://interpunct.info/help/fun/trivia",
 				);

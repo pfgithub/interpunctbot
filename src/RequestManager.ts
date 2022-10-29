@@ -3,6 +3,7 @@ import * as discord from "discord.js";
 import Info from "./Info";
 import { getMsgFrom } from "./commands/fun";
 import { fixID } from "./commands/fun/buttongames/tictactoe";
+import { ButtonStyle } from "discord.js";
 
 export type ResponseType = {
     kind: "text",
@@ -131,18 +132,16 @@ export async function confirm(info: Info, question: string, options: {
 	});
 	await info.reply(question, {
 		components: [
-			new discord.MessageActionRow().addComponents(
-				new discord.MessageButton()
+			new discord.ActionRowBuilder<discord.MessageActionRowComponentBuilder>().addComponents(
+				new discord.ButtonBuilder()
 					.setCustomId(fixID("CONFIRM|"+confirmid+"|destructive"))
 					.setLabel(options.destructive)
-					.setStyle("DANGER")
-				,
-				new discord.MessageButton()
+					.setStyle(ButtonStyle.Danger),
+				new discord.ButtonBuilder()
 					.setCustomId(fixID("CONFIRM|"+confirmid+"|cancel"))
 					.setLabel(options.cancel)
-					.setStyle("PRIMARY")
-				,
-			),
+					.setStyle(ButtonStyle.Primary),
+			).toJSON(),
 		],
 	});
 	return await res;

@@ -1,4 +1,3 @@
-import { MessageAttachment } from "discord.js";
 import { promises as fs } from "fs";
 import path from "path";
 import Info from "../Info";
@@ -43,49 +42,9 @@ nr.globalCommand(
 	},
 	nr.list(),
 	async ([], info) => {
-		const days_remaining = ((LOG_END_TIME - Date.now()) / 1000 / 60 / 60 / 24) |0;
-		if(days_remaining <= 0) {
-			return await info.error(
-				logging_removed_message,
-			);
-		}
-		await info.warn(
-			"Logging will be removed from interpunctbot in"
-			+ " " + days_remaining
-			+ " days"
-			+ logging_removed_extended_reason,
+		return await info.error(
+			logging_removed_message,
 		);
-
-		if (!info.db || !info.guild) {
-			return await info.error("This command cannot be used in PMs");
-		}
-		//
-		if (!(await info.db.getLogEnabled())) {
-			return await info.error("Logging is not enabled on your server");
-		}
-		if (!info.myChannelPerms!.has("ATTACH_FILES")) {
-			return await info.error(messages.logging.attach_files(info));
-		}
-		await info.typing();
-		const logDownloadMessageResult = await ilt(
-			info.raw_message!.reply({
-			    content: "Log files:",
-			    files: [new MessageAttachment(
-			        `./logs/${info.guild.id}.log`,
-			        `${info.guild.name}.log`,
-			    )],
-			}),
-			"downloading log",
-		);
-		if (logDownloadMessageResult.error) {
-			return await info.error(
-				messages.logging.upload_probably_failed(
-					info,
-					logDownloadMessageResult.error.errorCode,
-				),
-			);
-		}
-		await info.result(messages.logging.log_sent(info));
 	},
 );
 

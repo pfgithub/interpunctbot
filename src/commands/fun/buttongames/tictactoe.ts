@@ -1,13 +1,13 @@
 import * as nr from "../../../NewRouter";
 import {globalKnex} from "../../../db";
-import { api } from "../../../../bot";
+import client from "../../../../bot";
 import Info, {permTheyCanManageRole, permWeCanManageRole} from "../../../Info";
 import { InteractionHandled, InteractionHelper } from "../../../SlashCommandManager";
 import { assertNever, perr } from "../../../..";
 import { clearRequest, requestInput2, ResponseType } from "../../../RequestManager";
 import * as discord from "discord.js";
 
-import * as d from "discord-api-types/v9";
+import * as d from "discord-api-types/v10";
 
 nr.addDocsWebPage(
 	"/help/buttons",
@@ -105,6 +105,8 @@ export function componentRow(children: d.APIMessageComponent[]): ActionRow {
 	return {type: 1, components: children as Exclude<d.APIMessageComponent, d.APIActionRowComponent<d.APIMessageActionRowComponent>>[]};
 }
 
+// what is this what
+// shouldn't this be the discord api type
 export type SampleMessage = {
 	content: string,
 	components: ActionRow[],
@@ -249,7 +251,7 @@ nr.globalCommand(
 	},
 	nr.list(),
 	async ([], info) => {
-		await api.api.channels(info.message.channel.id).messages.post<{data: SampleMessage}, unknown>({data: {
+		const v: SampleMessage = {
 			content: "spooky",
 			embeds: [],
 			components: [
@@ -258,7 +260,10 @@ nr.globalCommand(
 				]),
 			],
 			allowed_mentions: {parse: []},
-		}});
+		};
+		await client.rest.post(Routes.channelMessages(info.message.channel.id), {
+			body: v,
+		});
 	},
 );
 
@@ -319,7 +324,7 @@ nr.globalCommand(
 	},
 	nr.list(),
 	async ([], info) => {
-		await api.api.channels(info.message.channel.id).messages.post<{data: SampleMessage}, unknown>({data: {
+		const data: SampleMessage = {
 			content: "help2",
 			embeds: [],
 			components: [
@@ -353,7 +358,10 @@ nr.globalCommand(
 				]),
 			],
 			allowed_mentions: {parse: []},
-		}});
+		};
+		await client.rest.post(Routes.channelMessages(info.message.channel.id), {
+			body: data,
+		});
 	},
 );
 
@@ -413,8 +421,8 @@ async function renderGame(info: Info, game_id: GameID) {
 	const game_data = await getGameData(game_id);
 
 	const key = (name: string) => getInteractionKey(game_id, game_data.kind, game_data.stage, name);
-	await api.api.channels(info.message.channel.id).messages.post<{data: SampleMessage}, unknown>({data:
-        games[game_data.kind].render(game_data.state, key, info),
+	await client.rest.post(Routes.channelMessages(info.message.channel.id), {body:
+		games[game_data.kind].render(game_data.state, key, info),
 	});
 }
 
@@ -481,8 +489,8 @@ export async function updateGameState<T>(info: Info, ikey: IKey,
 		});
 	}else{
 		await info.accept();
-		await api.api.channels(info.message.channel.id).messages.post<{data: SampleMessage}, unknown>({data:
-            msgv
+		await client.rest.post(Routes.channelMessages(info.message.channel.id), {
+			body: msgv,
 		});
 	}
 
@@ -861,7 +869,7 @@ nr.globalCommand(
 		if(!await permTheyCanManageRole(role, info)) return;
 		if(!await permWeCanManageRole(role, info)) return;
 
-		await api.api.channels(info.message.channel.id).messages.post<{data: SampleMessage}, unknown>({data: {
+		const data: SampleMessage = {
 			content: "​",
 			embeds: [],
 			components: [
@@ -870,7 +878,10 @@ nr.globalCommand(
 				]),
 			],
 			allowed_mentions: {parse: []},
-		}});
+		};
+		await client.rest.post(Routes.channelMessages(info.message.channel.id), {
+			body: data,
+		});
 	},
 );
 
@@ -885,7 +896,7 @@ nr.globalCommand(
 	},
 	nr.list(nr.a.backtick()),
 	async ([word], info) => {
-		await api.api.channels(info.message.channel.id).messages.post<{data: SampleMessage}, unknown>({data: {
+		const data: SampleMessage = {
 			content: "​",
 			embeds: [],
 			components: [
@@ -894,7 +905,10 @@ nr.globalCommand(
 				]),
 			],
 			allowed_mentions: {parse: []},
-		}});
+		};
+		await client.rest.post(Routes.channelMessages(info.message.channel.id), {
+			body: data,
+		});
 	},
 );
 
@@ -1935,6 +1949,7 @@ let battleshipgame = require("./battleship") as typeof import("./battleship");
 
 import * as fs from "fs";
 import { GOIGame } from "../goi";
+import { Routes } from "discord-api-types/v10";
 if(process.env.NODE_ENV !== "production") {
 	fs.watchFile(require.resolve("./paneleditor"), (curr, prev) => {
 		try {
@@ -2149,7 +2164,7 @@ nr.globalCommand(
 	nr.list(),
 	async ([], info) => {
 		if (info.myChannelPerms) {
-			if (!info.myChannelPerms.has("USE_EXTERNAL_EMOJIS")) {
+			if (!info.myChannelPerms.has("UseExternalEmojis")) {
 				return await info.error(
 					"I need permission to `use external emojis` here to play goi\n> https://interpunct.info/help/fun/goi",
 				);

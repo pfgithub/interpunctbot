@@ -1,4 +1,4 @@
-import * as d from "discord-api-types/v9";
+import * as d from "discord-api-types/v10";
 import { getPermissions } from "./get_permissions";
 
 export function canManageMessages(user: d.APIUser, member: d.APIGuildMember, guild: d.APIGuild, channel: d.APIGuildChannel<

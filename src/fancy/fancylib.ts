@@ -1,12 +1,13 @@
-import { api } from "../../bot";
+import client from "../../bot";
 import * as crypto from "crypto";
-import { APIApplicationCommandOptionBase } from "discord-api-types/payloads/v9/_interactions/_applicationCommands/_chatInput/base";
-import * as d from "discord-api-types/v9";
+import { APIApplicationCommandOptionBase } from "discord-api-types/payloads/v10/_interactions/_applicationCommands/_chatInput/base";
+import * as d from "discord-api-types/v10";
 import { assertNever } from "../..";
 import { ginteractionhandler } from "../NewRouter";
 import { ContextMenuCommandRouter, SlashCommandRouteBottomLevelCallback, SlashCommandRouter } from "../SlashCommandManager";
 import { fancylib_persistence } from "./fancyhmr";
-import { APIApplicationCommandChannelOption, Snowflake } from "discord-api-types/v9";
+import { APIApplicationCommandChannelOption, Snowflake } from "discord-api-types/v10";
+import { RawFile } from "discord.js";
 
 // NOTE:
 // https://github.com/microsoft/TypeScript/issues/21699
@@ -779,10 +780,12 @@ async function sendAutocompleteResponse(
 			choices: cres,
 		},
 	};
-	await api.api(d.Routes.interactionCallback(
+	await client.rest.post(d.Routes.interactionCallback(
 		interaction.id,
 		interaction.token,
-	)).post({data: res});
+	), {
+		body: res,
+	});
 }
 
 export async function sendCommandResponse(
@@ -798,10 +801,10 @@ export async function sendCommandResponse(
 			},
 		};
 
-		if(!opts.is_deferred) await api.api(d.Routes.interactionCallback(
+		if(!opts.is_deferred) await client.rest.post(d.Routes.interactionCallback(
 			interaction.id,
 			interaction.token,
-		)).post({data});
+		), {body: data});
 
 		try{
 			const res = await (typeof response.value === "function" ? response.value() : response.value);
@@ -837,11 +840,11 @@ export async function sendCommandResponse(
 			},
 		};
 
-		const files: djs_request_manager.RawFileOld[] | undefined = result.attachments ? result.attachments.map((ach, i): djs_request_manager.RawFileOld => {
+		const files: RawFile[] | undefined = result.attachments ? result.attachments.map((ach, i): RawFile => {
 			return {
 				name: ach.filename,
 				key: "files["+i+"]",
-				file: Buffer.from(ach.value),
+				data: Buffer.from(ach.value),
 			};
 		}) : undefined;
 
@@ -849,42 +852,26 @@ export async function sendCommandResponse(
 
 		if(opts.is_deferred) {
 			try {
-				await api.api(d.Routes.webhookMessage(
+				await client.rest.patch(d.Routes.webhookMessage(
 					interaction.application_id, interaction.token,
-				)).patch({data: data.data, files});
+				), {body: data.data, files});
 			}catch(e) {
 				// [!] don't do this for update message events
 				// oh we can send a followup message maybe instead
 				// but it can't be ephemeral
 				console.log("EBAD", e);
-				await api.api(d.Routes.webhookMessage(
+				await client.rest.patch(d.Routes.webhookMessage(
 					interaction.application_id, interaction.token,
-				)).patch({data: {
+				), {body: {
 					content: "✗ An error occured.",
 				}});
 			}
-		} else await api.api(d.Routes.interactionCallback(
+		} else await client.rest.post(d.Routes.interactionCallback(
 			interaction.id,
 			interaction.token,
-		)).post({data, files});
+		), {body: data, files});
 		console.log("✓ sent!", opts.is_deferred);
 	}
-}
-
-export declare namespace djs_request_manager {
-	// https://github.com/discordjs/discord.js/blob/main/packages/rest/src/lib/RequestManager.ts
-	export type RawFile = {
-		name: string,
-		key?: undefined | string, // `files[${index}]` by default.
-		data: Buffer,
-	};
-	// https://github.com/discordjs/discord.js/blob/ac26d9b1307d63e116b043505e5f925db7ed01aa/packages/discord.js/src/rest/APIRequest.js#L55
-	// for discord js v12 or 13 or something, not using the new rest manager
-	export type RawFileOld = {
-		file: Buffer,
-		key: string,
-		name: string,
-	};
 }
 
 export type RoutingOpts = {
@@ -942,10 +929,10 @@ async function sendButtonClickResponse(interaction: d.APIMessageComponentInterac
 			},
 		};
 
-		await api.api(d.Routes.interactionCallback(
+		await client.rest.post(d.Routes.interactionCallback(
 			interaction.id,
 			interaction.token,
-		)).post({data});
+		), {body: data});
 	}
 }
 

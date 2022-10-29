@@ -6,34 +6,35 @@ import { durationFormat } from "./src/durationFormat";
 import { initHelper } from "./src/ShardHelper";
 import { initializeTimedEvents } from "./src/fancy/lib/TimedEventsAt2";
 const client = new Discord.Client({
-	partials: ["USER", "MESSAGE", "CHANNEL", "GUILD_MEMBER", "REACTION"],
+	partials: [
+		Discord.Partials.User,
+		Discord.Partials.Message, // why? i don't want partial messages? so confused
+		Discord.Partials.Channel,
+		Discord.Partials.GuildMember,
+		Discord.Partials.Reaction,
+	],
 	intents: [
-		"GUILDS",
-		"GUILD_MEMBERS", // privileged
-		"GUILD_BANS",
-		"GUILD_EMOJIS_AND_STICKERS",
-		// "GUILD_INTEGRATIONS" // unneeded
-		// "GUILD_WEBHOOKS" // unneeded
-		// "GUILD_INVITES" // unneeded currently
-		// "GUILD_VOICE_STATES" // unneeded
-		// "GUILD_PRESENCES" // unneeded
-		"GUILD_MESSAGES",
-		"GUILD_MESSAGE_REACTIONS", // hopefully going to get rid of this
-		// "GUILD_MESSAGE_TYPING", // unneeded
-		"DIRECT_MESSAGES",
-		"DIRECT_MESSAGE_REACTIONS",
-		// "DIRECT_MESSAGE_TYPING"
+		"Guilds",
+		"GuildMembers", // privileged
+		"GuildBans",
+		"GuildEmojisAndStickers",
+		// "GuildIntegrations", // unneeded
+		// "GuildWebhooks", // unneeded
+		// "GuildInvites", // unneeded currently
+		// "GuildVoiceStates", // unneeded
+		// "GuildPresences", // unneeded
+		"GuildMessages",
+		"GuildMessageReactions",
+		// "GuildMessageTyping", // unneeded
+		"DirectMessages",
+		"DirectMessageReactions",
+		// "DirectMessageTyping", // unneeded
+		"MessageContent", // privileged
+		// "GuildScheduledEvents", // unneeded
+		// "AutoModerationConfiguration", // not needed yet
+		// "AutoModerationExecution" // not needed yet
 	],
 });
-export const api = client as any as ApiHolder;
-
-type ApiHandler = {
-    get: <T>() => Promise<T>,
-    post: <T, Q>(value: T) => Promise<Q>,
-    patch: (value: any) => Promise<any>,
-    delete: () => Promise<any>,
-} & {[key: string]: ApiHandler} & ((...data: any[]) => ApiHandler);
-type ApiHolder = {api: ApiHandler};
 
 //eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
 function ignorePromise(_p: Promise<unknown>) {}

@@ -3,7 +3,7 @@ import { serverStartTime } from "../..";
 import { messages, safe, raw } from "../../messages";
 import { durationFormat } from "../durationFormat";
 import { setEditInterval } from "../editInterval";
-import Info from "../Info";
+import Info, { splitMessage } from "../Info";
 import * as discord from "discord.js";
 import * as nr from "../NewRouter";
 import { a, AP } from "./argumentparser";
@@ -786,7 +786,7 @@ nr.globalCommand(
 			);
 		const msgval = await getMsgFrom(info, wrds, "c", "R", "/help/sendmsg"); // zig: getMsgFrom(wrds) orelse return (or more likely, catch |err| return reportMsgFromErr(err))
 		if (!msgval) return;
-		const msgsplit = discord.Util.splitMessage(msgval);
+		const msgsplit = splitMessage(msgval);
 		for(const line of msgsplit) {
 			await info.channel.send({ content: line, ...Info.msgopts });
 		}
@@ -797,7 +797,7 @@ async function confirmEditable(
 	msgtoedit: discord.Message,
 	info: Info,
 ): Promise<boolean> {
-	if (msgtoedit.author.id !== info.message.client.user!.id) {
+	if (msgtoedit.author.id !== info.message.client.user.id) {
 		await info.error(
 			"The message you linked was sent by " +
 				msgtoedit.author.toString() +
@@ -808,7 +808,7 @@ async function confirmEditable(
 	const theirPerms = (msgtoedit.channel as discord.TextChannel).permissionsFor(
 		info.message.author,
 	);
-	if (!theirPerms || !theirPerms.has("MANAGE_MESSAGES")) {
+	if (!theirPerms || !theirPerms.has("ManageMessages")) {
 		await info.error(
 			"You need permission to Manage Messages in <#" +
 				msgtoedit.channel.id +
@@ -937,8 +937,8 @@ nr.globalCommand(
 		);
 		if (
 			!theirPerms ||
-			!theirPerms.has("READ_MESSAGE_HISTORY") ||
-			!theirPerms.has("VIEW_CHANNEL")
+			!theirPerms.has("ReadMessageHistory") ||
+			!theirPerms.has("ViewChannel")
 		) {
 			return await info.error(
 				"You need permission to Read Messages + Read Message History in <#" +

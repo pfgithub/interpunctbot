@@ -176,7 +176,10 @@ async function createPaperSoccer(_cwd: string): Promise<ProjectResult[]> {
 			if(!emoji) continue;
 			
 			process.stdout.write("+ :"+emoji.emojiname+":");
-			await guild.emojis.create(emoji.path, emoji.emojiname);
+			await guild.emojis.create({
+				name: emoji.emojiname,
+				attachment: emoji.path,
+			});
 			console.log("\r√ :"+emoji.emojiname+":\x1b[K");
 			
 		}

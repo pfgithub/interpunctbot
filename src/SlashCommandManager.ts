@@ -1,4 +1,4 @@
-import client, { api } from "../bot";
+import client from "../bot";
 import * as discord from "discord.js";
 import { ilt, logCommand, production } from "..";
 import { globalConfig } from "./config";
@@ -6,9 +6,10 @@ import Info, {MessageLike} from "./Info";
 import { ginteractionhandler, globalCommandNS, globalDocs } from "./NewRouter";
 import deepEqual from "deep-equal";
 import * as util from "util";
-import * as d from "discord-api-types/v9";
+import * as d from "discord-api-types/v10";
 import { registerFancylib } from "./fancy/fancyhmr";
 import { textinput_handlers } from "./commands/fun/buttongames/tictactoe";
+import { Routes } from "discord-api-types/v10";
 
 type DistributiveOmit<T, K extends keyof any> = T extends any
 	? Omit<T, K>
@@ -44,22 +45,26 @@ export class InteractionHelper {
     }
     async sendRaw(value: d.APIInteractionResponse | d.APIModalInteractionResponse): Promise<void> {
     	if(this.has_ackd) throw new Error("cannot double interact");
-		const iltres = await ilt(api.api.interactions(this.raw_interaction.id, this.raw_interaction.token).callback.post({data: value}), "interaction sendraw");
+		const iltres = await ilt(client.rest.post(Routes.interactionCallback(this.raw_interaction.id, this.raw_interaction.token), {
+			body: value,
+		}), "interaction sendraw");
 		if(iltres.error) {
 			const e = iltres.error;
 			if(e.toString().includes("Invalid Form Body")) {
-				await api.api.interactions(this.raw_interaction.id, this.raw_interaction.token).callback.post({
-					data: enterSafeMode(e.toString(), value),
+				await client.rest.post(Routes.interactionCallback(this.raw_interaction.id, this.raw_interaction.token), {
+					body: enterSafeMode(e.toString(), value),
 				});
 			}
 		}
     	this.has_ackd = true;
     }
     async editOriginal(value: unknown): Promise<void> {
-    	await api.api.webhooks(this.raw_interaction.application_id, this.raw_interaction.token).messages("@original").patch({data: value});
+    	await client.rest.patch(Routes.webhookMessage(this.raw_interaction.application_id, this.raw_interaction.token, "@original"), {
+			body: value,
+		});
     }
     async delete(): Promise<void> {
-    	await api.api.webhooks(this.raw_interaction.application_id, this.raw_interaction.token).messages("@original").delete();
+		await client.rest.delete(Routes.webhookMessage(this.raw_interaction.application_id, this.raw_interaction.token, "@original"));
     }
     async acceptLater(): Promise<InteractionHandled<any>> {
     	await this.sendRaw({
@@ -297,7 +302,7 @@ async function do_handle_interaction(interaction: d.APIInteraction) {
 	});
 
 	const my_channel_perms = info.myChannelPerms!;
-	if(!my_channel_perms.has("VIEW_CHANNEL")) {
+	if(!my_channel_perms.has("ViewChannel")) {
 		return await interaction_helper.replyHiddenHideCommand("Commands cannot be used in this channel because I don't have permission to see it.");
 	}
 
@@ -744,27 +749,35 @@ const devCommandGuild = globalConfig.slashCommandServer;
 async function getCommands(): Promise<d.APIApplicationCommand[]> {
 	if(!shouldUpdateCommandsHere()) throw new Error("Not supposed to update commands here");
 	if(production) {
-		return await api.api.applications(client.user!.id).commands.get<d.APIApplicationCommand[]>();
+		const res = await client.rest.get(Routes.applicationCommands(client.user!.id));
+		return res as d.APIApplicationCommand[];
 	}else{
-		return await api.api.applications(client.user!.id).guilds(devCommandGuild).commands.get<d.APIApplicationCommand[]>();
+		const res = await client.rest.get(Routes.applicationGuildCommands(client.user!.id, devCommandGuild!));
+		return res as d.APIApplicationCommand[];
 	}
 }
 
 async function addCommand(command_data: UnsubmittedAPIApplicationCommand): Promise<d.APIApplicationCommand> {
 	if(!shouldUpdateCommandsHere()) throw new Error("Not supposed to update commands here");
 	if(production) {
-		return await api.api.applications(client.user!.id).commands.post<{data: UnsubmittedAPIApplicationCommand}, d.APIApplicationCommand>({data: command_data});
+		const res = await client.rest.post(Routes.applicationCommands(client.user!.id), {
+			body: command_data,
+		});
+		return res as d.APIApplicationCommand;
 	}else{
-		return await api.api.applications(client.user!.id).guilds(devCommandGuild).commands.post<{data: UnsubmittedAPIApplicationCommand}, d.APIApplicationCommand>({data: command_data});
+		const res = await client.rest.post(Routes.applicationGuildCommands(client.user!.id, devCommandGuild!), {
+			body: command_data,
+		});
+		return res as d.APIApplicationCommand;
 	}
 }
 
 async function removeCommand(command_id: string): Promise<void> {
 	if(!shouldUpdateCommandsHere()) throw new Error("Not supposed to update commands here");
 	if(production) {
-		await api.api.applications(client.user!.id).commands(command_id).delete();
+		await client.rest.delete(Routes.applicationCommand(client.user!.id, command_id));
 	}else{
-		await api.api.applications(client.user!.id).guilds(devCommandGuild).commands(command_id).delete();
+		await client.rest.delete(Routes.applicationGuildCommand(client.user!.id, devCommandGuild!, command_id));
 	}
 }
 
