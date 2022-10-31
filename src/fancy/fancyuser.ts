@@ -31,6 +31,9 @@ export function app(): App {
 				(require("./user/commands/autodelete/remove") as typeof import("./user/commands/autodelete/remove")).default(),
 				(require("./user/commands/autodelete/list") as typeof import("./user/commands/autodelete/list")).default(),
 			]}),
+			SlashCommandGroup({label: u("autopublish"), description: u("Automatically publish announcements"), children: [
+				(require("./user/commands/autopublish/add") as typeof import("./user/commands/autopublish/add")).default(),
+			]}),
 		],
 		guildSlashCommands: async (guild_id: string): Promise<SlashCommandElement[]> => [
 

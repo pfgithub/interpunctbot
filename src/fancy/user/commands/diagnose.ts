@@ -27,7 +27,7 @@ export default function Command(): SlashCommandElement {
 
         {
             modules.push(`Diagnostics:
-Guild ID: \`${guild_id}\`${shardv}`);
+Server ID: \`${guild_id}\`${shardv}`);
         }
 
         const autodelete_info = await db.getAutodelete();

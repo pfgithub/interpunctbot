@@ -41,7 +41,6 @@ import { sendPinBottom } from "./src/commands/channelmanagement";
 
 import * as SlashCommandManager from "./src/SlashCommandManager";
 import { getPanelByInfo, encodePanel, displayPanel } from "./src/commands/fun/buttongames/paneleditor";
-import { SampleMessage } from "./src/commands/fun/buttongames/tictactoe";
 import { queueEvent } from "./src/fancy/lib/TimedEventsAt2";
 import { reportError } from "./src/fancy/lib/report_error";
 import { Routes } from "discord.js";
@@ -739,6 +738,8 @@ async function onMessage(msg: Discord.Message | Discord.PartialMessage) {
 					}
 				} else if (rule.duration.type === "autoreact") {
 					// TODO
+				} else if (rule.duration.type === "autopublish") {
+					await client.rest.post(Routes.channelMessageCrosspost(msg.channelId, msg.id));
 				}
 			}
 		}

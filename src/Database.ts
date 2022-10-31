@@ -21,7 +21,10 @@ type AutodeleteDuration =
 	| {
 			type: "autoreact",
 			reactions: string[],
-	  };
+	  }
+	| {
+		type: "autopublish",
+	};
 type OneAutodeleteRule<key extends keyof AutodeleteInfo> = {
 	type: key,
 	duration: AutodeleteDuration,

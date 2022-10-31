@@ -240,8 +240,12 @@ Note: Autodelete rules set to <1 second will PM the user of the deleted message.
 {CmdSummary|autodelete remove}`,
 );
 
-export function printrule(rule: AutodeleteRule) {
-	if (typeof rule.duration !== "number") return "Other rule";
+export function printrule(rule: AutodeleteRule): string {
+	if (typeof rule.duration !== "number") {
+		if(rule.duration.type === "autopublish" && rule.type === "channel") {
+			return "Automatically publish messages in #"+rule.channel;
+		}else return "Other rule";
+	}
 	if (rule.type === "prefix") {
 		return `Remove messages starting with ${
 			rule.prefix

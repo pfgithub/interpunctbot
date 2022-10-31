@@ -748,7 +748,7 @@ function shouldUpdateCommandsHere() {
 const devCommandGuild = globalConfig.slashCommandServer;
 async function getCommands(): Promise<d.APIApplicationCommand[]> {
 	if(!shouldUpdateCommandsHere()) throw new Error("Not supposed to update commands here");
-	if(production) {
+	if(production || true) {
 		const res = await client.rest.get(Routes.applicationCommands(client.user!.id));
 		return res as d.APIApplicationCommand[];
 	}else{
@@ -759,7 +759,7 @@ async function getCommands(): Promise<d.APIApplicationCommand[]> {
 
 async function addCommand(command_data: UnsubmittedAPIApplicationCommand): Promise<d.APIApplicationCommand> {
 	if(!shouldUpdateCommandsHere()) throw new Error("Not supposed to update commands here");
-	if(production) {
+	if(production || true) {
 		const res = await client.rest.post(Routes.applicationCommands(client.user!.id), {
 			body: command_data,
 		});
@@ -774,7 +774,7 @@ async function addCommand(command_data: UnsubmittedAPIApplicationCommand): Promi
 
 async function removeCommand(command_id: string): Promise<void> {
 	if(!shouldUpdateCommandsHere()) throw new Error("Not supposed to update commands here");
-	if(production) {
+	if(production || true) {
 		await client.rest.delete(Routes.applicationCommand(client.user!.id, command_id));
 	}else{
 		await client.rest.delete(Routes.applicationGuildCommand(client.user!.id, devCommandGuild!, command_id));
