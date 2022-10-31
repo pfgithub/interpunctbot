@@ -1,21 +1,26 @@
-import { TextChannel } from "discord.js";
 import client from "../../../../../bot";
-import Database, { AutodeleteRule } from "../../../../Database";
+import Database, { AutodeleteDuration, AutodeleteRule } from "../../../../Database";
 import { durationFormat } from "../../../../durationFormat";
-import { Message, renderEphemeral, renderError, SlashCommand, SlashCommandElement, u } from "../../../fancylib";
-import { InteractionResponseNewMessage, SlashCommandArgAutocompletableText } from "../../../fancylib";
+import { InteractionResponseNewMessage, Message, renderEphemeral, renderError, SlashCommand, SlashCommandArgAutocompletableText, SlashCommandElement, u } from "../../../fancylib";
 
 function shortfmtrule(rule: AutodeleteRule): string {
     if(rule.type === "channel") {
         const channel = client.channels.cache.get(rule.channel);
         if(channel == null) return "channel";
-        if(!(channel instanceof TextChannel)) {
-            return "channel";
+        if(!('name' in channel)) {
+            return "DM";
         }
         return "#"+channel.name;
     }else{
         return rule.type;
     }
+}
+function shortfmtduration(duration: AutodeleteDuration): string {
+    if(typeof duration === "number") {
+        return "after " + (typeof duration === "number" ? durationFormat(duration) : "never");
+    }else if(duration.type === "autopublish") {
+        return "automatically publish";
+    }else return "?"+duration.type;
 }
 
 export default function Command(): SlashCommandElement {
@@ -31,7 +36,7 @@ export default function Command(): SlashCommandElement {
                     const rules = await db.getAutodelete();
 
                     const targets = rules.rules.map(rule => {
-                        return rule.id + " - " + shortfmtrule(rule) + " after " + (typeof rule.duration === "number" ? durationFormat(rule.duration) : "never");
+                        return rule.id + " - " + shortfmtrule(rule) + " " + shortfmtduration(rule.duration);
                     });
 
                     const num_v = v.value.match(/^[0-9]+/);

@@ -16,7 +16,7 @@ type AutodeleteInfo = {
 	role: { role: Snowflake },
 	counting: { channel: Snowflake },
 };
-type AutodeleteDuration =
+export type AutodeleteDuration =
 	| number
 	| {
 			type: "autoreact",
