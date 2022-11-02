@@ -64,7 +64,7 @@ export async function queueEvent(event: TimedEvent, from_now_ms: number): Promis
 		t.boolean("completed").notNull();
     */
     const next_event_time = Date.now() + from_now_ms;
-    const insert_res = await ourk().insert({
+    const insert_data: Omit<DBEvent, "id"> = {
         for_guild: event.for_guild,
         time: `${(next_event_time)}`,
         event: JSON.stringify(event.content),
@@ -76,15 +76,31 @@ export async function queueEvent(event: TimedEvent, from_now_ms: number): Promis
         status: "NEW",
         error_id: null,
         search: event.search,
-    });
+    };
+    const insert_res = await ourk().insert(insert_data);
+    if(insert_res.length !== 1) throw new Error("res length wrong?");
+    // db_cache.add({
+    //     ...insert_data,
+    //     id: insert_res[0],
+    // });
     await updateNextEvent(next_event_time);
 }
+
+
+let currently_updating_next_event = false;
+
 
 // async function cancelEventBySearch(search: string)
 // : cancels all events that equal the search string
 
 // do a db fetch and update known_next_event
 export async function updateNextEvent(nxtvt: number): Promise<void> {
+    if(currently_updating_next_event) {
+        return;
+    }
+    currently_updating_next_event = true;
+    try {
+
     if(next_event_timeout != null && nxtvt !== -1 && nxtvt > next_event_timeout.time) {
         return;
     }
@@ -94,8 +110,8 @@ export async function updateNextEvent(nxtvt: number): Promise<void> {
     // this is a pretty big 'whereIn' list. should never be more than 2000 items though.
     // especially for a .limit(1) query, wow
     const next_event = await ourk().where({
-        'completed': false,
-    }).whereIn("for_guild", [...all_guilds]).orderBy('time', "asc").select("*").limit(1).first();
+            'completed': false,
+        }).whereIn("for_guild", [...all_guilds]).orderBy('time', "asc").select("*").first();
     
     if(next_event == null) return;
     
@@ -130,6 +146,10 @@ export async function updateNextEvent(nxtvt: number): Promise<void> {
         });
     }, ms_until_event), time: event_time};
     // tryParse<TimedEvent>()
+
+    } finally {
+        currently_updating_next_event = false;
+    }
 }
 
 export function initializeTimedEvents(): void {
