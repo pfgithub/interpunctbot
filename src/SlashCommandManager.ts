@@ -811,7 +811,7 @@ export async function start(): Promise<void> {
 	// get list of global slash commands
 	// update to match
 
-	client.ws.on("INTERACTION_CREATE" as any, on_interaction);
+	client.ws.on(d.GatewayDispatchEvents.InteractionCreate, on_interaction);
 
 	// NOTE that this only has to be done on shard 0
 	if(!shouldUpdateCommandsHere()) {

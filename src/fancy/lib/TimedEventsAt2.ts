@@ -8,6 +8,10 @@ import { reportError } from "./report_error";
 /*
 notes:
 - we only get one try. if we call the event and the message doesn't go out, too bad.
+
+ok so:
+- currently TimedEvents are per-shard
+- we could switch them to per-guild
 */
 
 const ourk = (): QueryBuilder<DBEvent, DBEvent[]> => globalKnex!<DBEvent, DBEvent[]>("timed_events_at2");
@@ -33,15 +37,30 @@ type DBEvent = {
     created_time: null | `${string}`,
     started_at_time: null | `${string}`,
     completed_at_time: null | `${string}`,
-    status: null | "NEW" | "LOAD" | "SUCCESS" | "ERROR" | "unsupported", // MAX LEN 10
+    status: null | "NEW" | "LOAD" | "SUCCESS" | "ERROR" | "CANCELED" | "unsupported", // MAX LEN 10
     error_id: null | number,
     search: null | string, // MAX LEN 100
 };
 
-//* if we find an event but it's more than 2,147,483,647ms in the future:
-// - setTimeout(that long)
+// *!WARNING: this leaks memory and only recovers it on process restart
+// hopefully not too many events will be canceled
+let canceled_events = new Set<string>();
 
 let next_event_timeout: {njst: NodeJS.Timeout, time: number} | null = null;
+
+export async function cancelAllEventsForSearch(search: string): Promise<void> {
+    console.log("canceled:", search);
+    canceled_events.add(search);
+    await ourk().where({
+        completed: false,
+        search: search,
+    }).update({
+        completed: true,
+
+        status: "CANCELED",
+        completed_at_time: `${Date.now()}`,
+    });
+}
 
 //! always queue events for a guild that your shard is on. never queue events for a different guild.
 export async function queueEvent(event: TimedEvent, from_now_ms: number): Promise<void> {
@@ -145,8 +164,11 @@ async function updateNextEvent(nxtvt: number): Promise<void> {
 
     if(ms_until_event < 0) {
         console.log("[TEat2] backlogged event");
-        await markCompletedThenCallDBEvent(next_event);
-        return queueUpdateNextEvent("0", -1);
+        try {
+            await markCompletedThenCallDBEvent(next_event);
+        }finally {
+            return queueUpdateNextEvent("0", -1);
+        }
     }
     if(ms_until_event > 2_000_000_000) { // near the 32 bit integer limit timeouts have
         next_event_timeout = {njst: setTimeout(() => {
@@ -183,28 +205,38 @@ export function initializeTimedEvents(): void {
 // }
 
 async function markCompletedThenCallDBEvent(db_ev: DBEvent) {
-    const ev_content = tryParse<EventContent>(db_ev.event, {
-        kind: "corrupted",
-    });
+    if(canceled_events.has(db_ev.search ?? "*NONE*")) return; // skip
 
-    // mark the event completed
-    // ideally, we would do this after triggering the call
-    // but we can't because of the potential race conditoin of the thing getting
-    // updated by this after getting updated by the other thing
-    await ourk().where({
+    // mark the event completed (status=load)
+    // I guess we could check here 'where status != canceled'
+    // how do we check if the update succeeded?
+    const update_count = await ourk().where({
         id: db_ev.id,
+        completed: false,
     }).update({
         completed: true,
 
         status: "LOAD",
         started_at_time: `${Date.now()}`,
     });
+    if(update_count === 0) {
+        return; // did not update any event; maybe it was canceled
+    }
+
+    const ev_content = tryParse<EventContent>(db_ev.event, {
+        kind: "corrupted",
+    });
 
     // async start calling the event. *do not error*
-    callEvent(db_ev.id, {for_guild: db_ev.for_guild, content: ev_content});
+    callEvent(db_ev.id, {for_guild: db_ev.for_guild, content: ev_content, search: db_ev.search ?? "*NONE*"});
 }
 
-export function callEvent(ev_id: null | number, event: TimedEventExclSearch): void {
+export function callEvent(ev_id: null | number, event: TimedEvent): void {
+    if(canceled_events.has(event.search)) {
+        // canceled; nvm
+        return;
+    }
+
     // TODO: note that the event is completed, for average event completion time stats
     // we can note as
     // - in_progress

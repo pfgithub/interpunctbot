@@ -574,8 +574,8 @@ Try it out with \`${info.prefix}${listName}\``,
 					: `Message limit must be an integer.`,
 			in_progress: (info: Info, messagesToDelete: number): string =>
 				`Deleting ${messagesToDelete} messages...`,
-			success: (info: Info, messagesToDelete: number): string =>
-				`Succesfully deleted ${messagesToDelete} messages.`,
+			success: (info: Info, messagesToDelete: number, skip_count: number): string =>
+				`Succesfully deleted ${messagesToDelete} messages.` + (skip_count != 0 ? " (Skipped "+skip_count+" pinned messages)" : ""),
 		},
 		spacing: {
 			no_channels_to_space: (info: Info): string =>

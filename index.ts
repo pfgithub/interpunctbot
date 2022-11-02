@@ -2,6 +2,7 @@ import * as Discord from "discord.js";
 import { mkdirSync, promises as fs } from "fs";
 import moment from "moment";
 import mdf from "moment-duration-format";
+import * as d from "discord-api-types/v10";
 import path from "path";
 
 import client from "./bot";
@@ -41,7 +42,7 @@ import { sendPinBottom } from "./src/commands/channelmanagement";
 
 import * as SlashCommandManager from "./src/SlashCommandManager";
 import { getPanelByInfo, encodePanel, displayPanel } from "./src/commands/fun/buttongames/paneleditor";
-import { queueEvent } from "./src/fancy/lib/TimedEventsAt2";
+import { cancelAllEventsForSearch, queueEvent } from "./src/fancy/lib/TimedEventsAt2";
 import { reportError } from "./src/fancy/lib/report_error";
 import { Routes } from "discord.js";
 
@@ -805,6 +806,19 @@ async function onMessage(msg: Discord.Message | Discord.PartialMessage) {
 		}
 	}
 }
+
+// 'edit message' is also emitted when pinned messages update so we can use that instead
+client.ws.on(d.GatewayDispatchEvents.MessageCreate, (msg: d.GatewayMessageCreateDispatchData) => {
+	if(msg.guild_id == null) return;
+	const guild_id = msg.guild_id;
+	if(msg.type === d.MessageType.ChannelPinnedMessage) {
+		if(msg.message_reference != null) {
+			cancelAllEventsForSearch("AUTODELETE:"+msg.message_reference.message_id).catch(e => {
+				reportError(guild_id, "CancelPin", e, {msg});
+			});
+		}
+	}
+});
 
 client.on("disconnect", () => {
 	console.log("Bot disconnected!");

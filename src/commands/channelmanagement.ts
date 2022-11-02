@@ -70,7 +70,7 @@ nr.globalCommand(
 	"purge",
 	{
 		usage: "purge {Required|message count}",
-		description: "Purge messages in a channel",
+		description: "Purge messages in a channel. Skips pinned messages.",
 		examples: [
 			{
 				in: "purge 1",
@@ -99,15 +99,18 @@ nr.globalCommand(
 		}
 
 		const channel = info.message.channel as TextChannel;
-		const messagesToDelete = await channel.messages.fetch({
+		const messagesToDeleteOrig = (await channel.messages.fetch({
 			limit: messageLimit,
-		});
+		}));
+		const messagesToDelete = messagesToDeleteOrig.filter(msg => !msg.pinned);
+		const skip_count = messagesToDeleteOrig.size - messagesToDelete.size;
 		// const confirmationResult = await info.confirm("are you sure?");
 		// if (!confirmationResult) {
 		// 	return;
 		// }
 		// if(!await info.confirm("are you sure?")){ return; }
 		// this can be done with an emoji reaction system like goirankbot has
+		// this can be done with our await confirm() thing that uses buttons
 		const progressMessage = await info.channel.send(
 			messages.channels.purge.in_progress(info, messagesToDelete.size),
 		);
@@ -148,7 +151,7 @@ nr.globalCommand(
 		}
 		clearInterval(updateProgressInterval);
 		await info.success(
-			messages.channels.purge.success(info, messagesToDelete.size),
+			messages.channels.purge.success(info, messagesToDelete.size, skip_count),
 		);
 		await progressMessage.delete();
 	},
