@@ -95,7 +95,7 @@ export async function updateNextEvent(nxtvt: number): Promise<void> {
     // especially for a .limit(1) query, wow
     const next_event = await ourk().where({
         'completed': false,
-    }).whereIn("for_guild", [...all_guilds]).orderBy('time', "asc").select("*").first();
+    }).whereIn("for_guild", [...all_guilds]).orderBy('time', "asc").select("*").limit(1).first();
     
     if(next_event == null) return;
     
