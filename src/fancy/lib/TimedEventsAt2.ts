@@ -83,24 +83,43 @@ export async function queueEvent(event: TimedEvent, from_now_ms: number): Promis
     //     ...insert_data,
     //     id: insert_res[0],
     // });
-    await updateNextEvent(next_event_time);
+    queueUpdateNextEvent(event.for_guild, next_event_time);
 }
 
 
+let should_update_next_event_after: number | null = null;
 let currently_updating_next_event = false;
 
+function queueUpdateNextEvent(guild_id: string, nxtvt: number): void {
+    if(currently_updating_next_event) {
+        console.log("requeue canceled for timeout");
+        should_update_next_event_after = Math.min(nxtvt, should_update_next_event_after ?? Infinity);
+    }else{
+        currently_updating_next_event = true;
+        console.log("start update next event");
+        updateNextEvent(nxtvt).catch(e => {
+            reportError(guild_id, "TEat2", e, {
+                guild_id, nxtvt,
+            });
+        }).finally(() => {
+            console.log("done update next event");
+            currently_updating_next_event = false;
+            if(should_update_next_event_after != null) {
+                const snea = should_update_next_event_after
+                should_update_next_event_after = null;
+                console.log("auto requeue");
+                updateNextEvent(snea);
+            }
+        });
+    }
+}
 
 // async function cancelEventBySearch(search: string)
 // : cancels all events that equal the search string
 
 // do a db fetch and update known_next_event
-export async function updateNextEvent(nxtvt: number): Promise<void> {
-    if(currently_updating_next_event) {
-        return;
-    }
-    currently_updating_next_event = true;
-    try {
-
+async function updateNextEvent(nxtvt: number): Promise<void> {
+    console.log("[TEat2] nextev update", nxtvt);
     if(next_event_timeout != null && nxtvt !== -1 && nxtvt > next_event_timeout.time) {
         return;
     }
@@ -110,8 +129,8 @@ export async function updateNextEvent(nxtvt: number): Promise<void> {
     // this is a pretty big 'whereIn' list. should never be more than 2000 items though.
     // especially for a .limit(1) query, wow
     const next_event = await ourk().where({
-            'completed': false,
-        }).whereIn("for_guild", [...all_guilds]).orderBy('time', "asc").select("*").first();
+        'completed': false,
+    }).whereIn("for_guild", [...all_guilds]).orderBy('time', "asc").select("*").first();
     
     if(next_event == null) return;
     
@@ -126,12 +145,12 @@ export async function updateNextEvent(nxtvt: number): Promise<void> {
     if(ms_until_event < 0) {
         console.log("[TEat2] backlogged event");
         await markCompletedThenCallDBEvent(next_event);
-        return await updateNextEvent(event_time);
+        return queueUpdateNextEvent("0", -1);
     }
     if(ms_until_event > 2_000_000_000) { // near the 32 bit integer limit timeouts have
         next_event_timeout = {njst: setTimeout(() => {
             next_event_timeout = null;
-            updateNextEvent(event_time).catch(e => console.log("[TEat2] timeout updatenextevent failure", e));
+            queueUpdateNextEvent(next_event.for_guild, event_time);
         }, 2_000_000_000), time: event_time};
         return;
     }
@@ -140,22 +159,17 @@ export async function updateNextEvent(nxtvt: number): Promise<void> {
         next_event_timeout = null;
         (async () => {
             await markCompletedThenCallDBEvent(next_event);
-            await updateNextEvent(event_time);
         })().catch(e => {
             console.log("[TEat2] complete failure", e);
+        }).finally(() => {
+            queueUpdateNextEvent("0", -1);
         });
     }, ms_until_event), time: event_time};
     // tryParse<TimedEvent>()
-
-    } finally {
-        currently_updating_next_event = false;
-    }
 }
 
 export function initializeTimedEvents(): void {
-    updateNextEvent(-1).catch(e => {
-        console.log("[TEat2] initialize error", e);
-    });
+    queueUpdateNextEvent("0", -1);
 }
 
 // to start a timeout:
