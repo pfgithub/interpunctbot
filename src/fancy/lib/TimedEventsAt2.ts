@@ -78,7 +78,8 @@ export async function queueEvent(event: TimedEvent, from_now_ms: number): Promis
         search: event.search,
     };
     const insert_res = await ourk().insert(insert_data);
-    if(insert_res.length !== 1) throw new Error("res length wrong?");
+    // for some reason, insert_res.length !== 1 on production (postgres) but it is in sqlite
+    // if(insert_res.length !== 1) throw new Error("res length wrong?");
     // db_cache.add({
     //     ...insert_data,
     //     id: insert_res[0],
