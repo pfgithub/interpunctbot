@@ -491,7 +491,7 @@ const slash_command_router: SlashCommandRouter = {
 			invitation: {route: "ticket invitation", args: {category: opt.string("Link to the invitation message")}},
 			welcome: {route: "ticket welcome", args: {message: opt.optional(opt.string("The message. Use `{Mention}` and `{Name}`, or leave empty to unset"))}},
 			logs: {route: "ticket logs", args: {log_channel: opt.channel("Channel for pretty logs")}},
-			logs_transcripts: {route: "ticket logs", args: {log_channel: opt.channel("Channel for immediate transcripts of every message sent in a ticket")}},
+			logs_transcripts: {route: "ticket transcripts", args: {log_channel: opt.channel("Channel for immediate transcripts of every message sent in a ticket")}},
 			ping: {route: "ticket ping", args: {who: opt.string("Who to ping after someone says something in their ticket")}},
 			autoclose: {route: "ticket autoclose", args: {time: opt.string("How long until the ticket is auto closed. Eg: 15 min. Use 0s to disable.")}},
 			deletetime: {route: "ticket deletetime", args: {time: opt.string("How long from trash can to gone ticket. Default: 1 min")}},

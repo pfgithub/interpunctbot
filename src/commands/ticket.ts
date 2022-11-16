@@ -450,7 +450,7 @@ nr.globalCommand(
 	"/help/ticket/transcripts",
 	"ticket transcripts",
 	{
-		usage: "ticket logs {Channel|ticket-transcripts}",
+		usage: "ticket transcripts {Channel|ticket-transcripts}",
 		description:
 			"Log all messages sent in a ticket to {Channel|ticket-transcripts}. Does not log edits.",
 		examples: [],
