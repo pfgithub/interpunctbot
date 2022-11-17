@@ -78,7 +78,9 @@ Tickets are set up. To try it out, click the reaction on your invitation message
 {Heading|Ticket logs}
 {Blockquote|For logs like this:
 {Screenshot|https://i.imgur.com/3S6YtZI.png}
-{ExampleUserMessage|ticket logs {Channel|ticket-logs}}
+you need 2 channels. The second one will have messages like this in it:
+{Screenshot|https://i.imgur.com/8AdVa6k.png}
+{ExampleUserMessage|ticket logs {Channel|ticket-logs} {Channel|uploads}}
 Note that only the last 100 messages in a ticket will be logged.}
 
 {Blockquote|For logs like this:
@@ -387,7 +389,8 @@ nr.globalCommand(
 
 async function confirmLogPermissions(
 	channels: {
-		logsChan: discord.GuildChannel,
+		logs_channel: discord.GuildChannel,
+		uploads_channel: discord.GuildChannel,
 	},
 	info: Info,
 ): Promise<string[]> {
@@ -396,13 +399,16 @@ async function confirmLogPermissions(
 	const makeError = (why: string, what: string, where: discord.GuildChannel) =>
 		"In order to "+why+", I need permission to "+what+" in "+where.toString();
 
-	for (const channel of [channels.logsChan]) {
+	for (const channel of [channels.logs_channel, channels.uploads_channel]) {
 		const myPerms = channel.permissionsFor(await info.guild!.members.fetchMe())!;
 		if (!myPerms.has("ViewChannel")) {
 			errors.push(makeError("create logs", "read messages", channel));
 		}
 		if (!myPerms.has("SendMessages")) {
 			errors.push(makeError("create logs", "send messages", channel));
+		}
+		if(channel === channels.uploads_channel && !myPerms.has("AttachFiles")) {
+			errors.push(makeError("create logs", "attach files", channel));
 		}
 	}
 	return errors;
@@ -412,19 +418,19 @@ nr.globalCommand(
 	"/help/ticket/logs",
 	"ticket logs",
 	{
-		usage: "ticket logs {Channel|ticket-logs}",
+		usage: "ticket logs {Channel|ticket-logs} {Channel|uploads}",
 		description:
 			"Log the last 100 messages in a ticket to #ticket-logs when the ticket is closed. To disable, delete the log channels.",
 		examples: [],
 		perms: { runner: ["manage_bot"] },
 	},
-	nr.list(nr.a.channel()),
-	async ([logsChan], info) => {
+	nr.list(nr.a.channel(), nr.a.channel()),
+	async ([logs_channel, uploads_channel], info) => {
 		if (!(await Info.theirPerm.manageBot(info))) return;
 		if (!info.db || !info.guild) return await info.error("pms");
 		// make sure I have send messages perms on each
 		const perm_errors = await confirmLogPermissions(
-			{ logsChan },
+			{ logs_channel, uploads_channel },
 			info,
 		);
 		if (perm_errors.length > 1) {
@@ -433,14 +439,16 @@ nr.globalCommand(
 
 		// save
 		const ticket = await info.db.getTicket();
-		ticket.main.logs = { pretty: logsChan.id };
+		ticket.main.logs = { pretty: logs_channel.id, uploads_2: uploads_channel.id };
 		await info.db.setTicket(ticket);
 
 		const suggestions = ticketSuggestions(ticket, info);
 
 		await info.success(
 			"Success! Pretty ticket logs will show up in " +
-				logsChan.toString() +
+				logs_channel.toString() +
+				" and uploads will be in " +
+				uploads_channel.toString() +
 				suggestions.map(sg => "\n" + sg).join(""),
 		);
 	},
@@ -827,20 +835,20 @@ function genLogOneMessage(msg: discord.Message) {
 
 	const attachments: string[] = [];
 	for (const attachment of msg.attachments.values()) {
-		const nmelcase = (attachment.name || "").toLowerCase();
-		if (
-			nmelcase.endsWith(".jpg") ||
-			nmelcase.endsWith(".png") ||
-			nmelcase.endsWith(".gif") ||
-			nmelcase.endsWith(".jpeg")
-		) {
-			attachments.push(
-				safehtml`<div><img src="${attachment.proxyURL}" class="sizimg" /></div>`,
-			);
-			continue;
-		}
+		// const nmelcase = (attachment.name || "").toLowerCase();
+		// if (
+		// 	nmelcase.endsWith(".jpg") ||
+		// 	nmelcase.endsWith(".png") ||
+		// 	nmelcase.endsWith(".gif") ||
+		// 	nmelcase.endsWith(".jpeg")
+		// ) {
+		// 	attachments.push(
+		// 		safehtml`<div><img src="${attachment.proxyURL}" class="sizimg" /></div>`,
+		// 	);
+		// 	continue;
+		// }
 		attachments.push(
-			safehtml`<div>[attachment, ${"" + attachment.size}b] <a href="${
+			safehtml`<div>[attachments are not shown here. set a transcripts channel with /ticket transcripts to save attachments there.] [attachment, ${"" + attachment.size}b] <a href="${
 				attachment.url
 			}">${attachment.name || "ATCHMNT"}</a></div>`,
 		);
@@ -1031,12 +1039,20 @@ async function closeTicketMayError(
 	);
 
 	let chanLogUrl: string | undefined;
-	if (ctx.ticket.main.logs) {
-		chanLogUrl = await sendChannelLog(
-			getTicketOwnerID(channel),
-			channel,
-			channel,
-		);
+	let logssetupneedsupdating = false;
+	if (ctx.ticket.main.logs != null) {
+		if(ctx.ticket.main.logs.uploads_2 != null) {
+			const logs_chan = ctx.guild.channels.resolve(ctx.ticket.main.logs.uploads_2);
+			if(logs_chan != null && logs_chan instanceof discord.TextChannel) {
+				chanLogUrl = await sendChannelLog(
+					getTicketOwnerID(channel),
+					channel,
+					logs_chan,
+				);
+			}
+		}else{
+			logssetupneedsupdating = true;
+		}
 	}
 
 	await ticketLog(
@@ -1044,7 +1060,8 @@ async function closeTicketMayError(
 		"Closed by " +
 			closer.toString() +
 			forinactive +
-			(chanLogUrl ? "\n[View Log](" + chanLogUrl + ")" : ""),
+			(chanLogUrl ? "\n[View Log](" + chanLogUrl + ")" : "") +
+			(logssetupneedsupdating ? "\nDiscord changed and logs need to be set up again. /ticket logs #this-channel #uploads-channel" : ""),
 		"red",
 		ctx,
 	);
@@ -1231,9 +1248,14 @@ export async function onMessage(
 						: [],
 					...msgopts,
 				});
-				for (const atchmnt of msg.attachments) {
+				for (const [key, atchmnt] of msg.attachments) {
 					await transcriptsChan.send({
-						content: "Attachment: " + atchmnt[1].url,
+						content: "Attachment:",
+						files: [{
+							attachment: atchmnt.url,
+							name: atchmnt.name ?? "error",
+							spoiler: atchmnt.spoiler,
+						}],
 						...msgopts,
 					});
 				}

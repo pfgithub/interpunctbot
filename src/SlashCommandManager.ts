@@ -488,9 +488,9 @@ const slash_command_router: SlashCommandRouter = {
 		subcommands: {
 			setup: {route: "help", preload: "ticket setup", description: "Get help setting up tickets"},
 			category: {route: "ticket category", args: {category: opt.channel("Category to use tickets in")}},
-			invitation: {route: "ticket invitation", args: {category: opt.string("Link to the invitation message")}},
+			invitation: {route: "ticket invitation", args: {message_link: opt.string("Link to the invitation message")}},
 			welcome: {route: "ticket welcome", args: {message: opt.optional(opt.string("The message. Use `{Mention}` and `{Name}`, or leave empty to unset"))}},
-			logs: {route: "ticket logs", args: {log_channel: opt.channel("Channel for pretty logs")}},
+			logs: {route: "ticket logs", args: {log_channel: opt.channel("Channel for pretty logs"), uploads_channel: opt.channel("Channel for uploading files.")}},
 			logs_transcripts: {route: "ticket transcripts", args: {log_channel: opt.channel("Channel for immediate transcripts of every message sent in a ticket")}},
 			ping: {route: "ticket ping", args: {who: opt.string("Who to ping after someone says something in their ticket")}},
 			autoclose: {route: "ticket autoclose", args: {time: opt.string("How long until the ticket is auto closed. Eg: 15 min. Use 0s to disable.")}},

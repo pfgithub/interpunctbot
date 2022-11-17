@@ -86,7 +86,7 @@ export type TicketConfig = {
 		/// message id (globally unique but channel is included for resolution if necessary)
 		invitation?: { channel: string, message: string },
 		joinmsg?: string,
-		logs?: { pretty: Snowflake },
+		logs?: { uploads_2: undefined | Snowflake, pretty: Snowflake },
 		transcripts?: Snowflake,
 		/// autodelete ms
 		autoclose?: number,
