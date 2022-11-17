@@ -4,15 +4,9 @@ exports.up = async (knex, Promise) => {
         // - search (requires a full scan to uses a where clause)
         // - time, sorted
         // - for_guild
-        t.index(["search"], "idx_search", {
-            indexType: "hash", // for '=' only
-        });
-        t.index(["for_guild"], "idx_for_guild", {
-            indexType: "hash", // for '=' only
-        });
-        t.index(["time"], "idx_time", {
-            indexType: "btree", // for operators like '<', '>'
-        });
+        t.index(["search"], "idx_search", "hash"); // for '=' only
+        t.index(["for_guild"], "idx_for_guild", "hash"); // for '=' only
+        t.index(["time"], "idx_time", "btree"); // for '<', '>'
 	});
 };
 
