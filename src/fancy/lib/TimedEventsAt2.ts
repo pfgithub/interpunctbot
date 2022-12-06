@@ -49,7 +49,7 @@ let canceled_events = new Set<string>();
 let next_event_timeout: {njst: NodeJS.Timeout, time: number} | null = null;
 
 export async function cancelAllEventsForSearch(search: string): Promise<void> {
-    console.log("canceled:", search);
+    // console.log("canceled:", search);
     canceled_events.add(search);
     await ourk().where({
         completed: false,
@@ -112,22 +112,22 @@ let currently_updating_next_event = false;
 
 function queueUpdateNextEvent(guild_id: string, nxtvt: number): void {
     if(currently_updating_next_event) {
-        console.log("requeue canceled for timeout");
+       // console.log("requeue canceled for timeout");
         should_update_next_event_after = Math.min(nxtvt, should_update_next_event_after ?? Infinity);
     }else{
         currently_updating_next_event = true;
-        console.log("start update next event");
+        // console.log("start update next event");
         updateNextEvent(nxtvt).catch(e => {
             reportError(guild_id, "TEat2", e, {
                 guild_id, nxtvt,
             });
         }).finally(() => {
-            console.log("done update next event");
+            // console.log("done update next event");
             currently_updating_next_event = false;
             if(should_update_next_event_after != null) {
                 const snea = should_update_next_event_after
                 should_update_next_event_after = null;
-                console.log("auto requeue");
+                // console.log("auto requeue");
                 updateNextEvent(snea);
             }
         });
@@ -139,7 +139,7 @@ function queueUpdateNextEvent(guild_id: string, nxtvt: number): void {
 
 // do a db fetch and update known_next_event
 async function updateNextEvent(nxtvt: number): Promise<void> {
-    console.log("[TEat2] nextev update", nxtvt);
+    // console.log("[TEat2] nextev update", nxtvt);
     if(next_event_timeout != null && nxtvt !== -1 && nxtvt > next_event_timeout.time) {
         return;
     }
@@ -163,7 +163,7 @@ async function updateNextEvent(nxtvt: number): Promise<void> {
     }
 
     if(ms_until_event < 0) {
-        console.log("[TEat2] backlogged event");
+        // console.log("[TEat2] backlogged event");
         try {
             await markCompletedThenCallDBEvent(next_event);
         }finally {
@@ -183,7 +183,7 @@ async function updateNextEvent(nxtvt: number): Promise<void> {
         (async () => {
             await markCompletedThenCallDBEvent(next_event);
         })().catch(e => {
-            console.log("[TEat2] complete failure", e);
+            // console.log("[TEat2] complete failure", e);
         }).finally(() => {
             queueUpdateNextEvent("0", -1);
         });
@@ -252,10 +252,10 @@ export function callEvent(ev_id: null | number, event: TimedEvent): void {
         }).catch(em => {
             // failed to mark event as an error event
             // funny
-            console.log('[TEat2] failed to mark event as a success.', em);
+            // console.log('[TEat2] failed to mark event as a success.', em);
         });
     }).catch(e => {
-        console.log("[TEat2] callEventInternal error", e);
+        // console.log("[TEat2] callEventInternal error", e);
         reportError(event.for_guild, "TEat2", e, event);
         // oh reporterror can't give us the error id in a callback or something, unfortunate
 
@@ -267,7 +267,7 @@ export function callEvent(ev_id: null | number, event: TimedEvent): void {
         }).catch(em => {
             // failed to mark event as an error event
             // funny
-            console.log('[TEat2] failed to mark event as an error. ironic.', em);
+            // console.log('[TEat2] failed to mark event as an error. ironic.', em);
         });
     });
 }
