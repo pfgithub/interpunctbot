@@ -270,6 +270,11 @@ export function printrule(rule: AutodeleteRule): string {
 			rule.channel
 		}> that do not count after ${durationFormat(rule.duration)}`;
 	}
+	if (rule.type === "textonly") {
+		return `Remove text-only messages in <#${
+			rule.channel
+		}>`;
+	}
 	return assertNever(rule);
 }
 
@@ -417,7 +422,8 @@ nr.globalCommand(
 		extendedDescription: `{UsageSummary|/help/autodelete/add/prefix}
 {UsageSummary|/help/autodelete/add/user}
 {UsageSummary|/help/autodelete/add/channel}
-{UsageSummary|/help/autodelete/add/role}`,
+{UsageSummary|/help/autodelete/add/role}
+{UsageSummary|/help/autodelete/add/textonly}`,
 		examples: [],
 		perms: autodelete_perms,
 	},
@@ -431,7 +437,7 @@ nr.globalCommand(
 		const root_ap = await AP(
 			{ info, cmd, partial: true, help: "/help/autodelete/add" },
 			a.duration(),
-			a.enum("prefix", "user", "channel", "role", "counting"),
+			a.enum("prefix", "user", "channel", "role", "textonly"),
 		);
 		if (!root_ap) return;
 		const [duration, mode] = root_ap.result;
@@ -458,6 +464,14 @@ nr.globalCommand(
 			if (!ap) return;
 			const [channel] = ap.result;
 			autodeleteInfo = { type: "channel", channel: channel.id, duration };
+		} else if (mode === "textonly") {
+			const ap = await AP(
+				{ info, cmd, help: "/help/autodelete/add/channel" },
+				a.channel(),
+			);
+			if (!ap) return;
+			const [channel] = ap.result;
+			autodeleteInfo = { type: "textonly", channel: channel.id, duration };
 		} else if (mode === "role") {
 			const ap = await AP(
 				{ info, cmd, help: "/help/autodelete/add/role" },
@@ -466,18 +480,6 @@ nr.globalCommand(
 			if (!ap) return;
 			const [role] = ap.result;
 			autodeleteInfo = { type: "role", role: role.id, duration };
-		} else if (mode === "counting") {
-			const ap = await AP(
-				{ info, cmd, help: "/help/autodelete/add/counting" },
-				a.channel(),
-			);
-			if (!ap) return;
-			const [channel] = ap.result;
-			autodeleteInfo = {
-				type: "counting",
-				channel: channel.id,
-				duration,
-			};
 		} else {
 			assertNever(mode);
 		}

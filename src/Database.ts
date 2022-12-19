@@ -15,6 +15,7 @@ type AutodeleteInfo = {
 	channel: { channel: Snowflake },
 	role: { role: Snowflake },
 	counting: { channel: Snowflake },
+	textonly: { channel: Snowflake },
 };
 export type AutodeleteDuration =
 	| number
