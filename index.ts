@@ -682,6 +682,14 @@ async function onMessage(msg: Discord.Message | Discord.PartialMessage) {
 			let deleteMsg = false;
 			if (rule.type === "channel" && msg.channel.id === rule.channel) {
 				deleteMsg = true;
+			}else if(rule.type === "textonly" && msg.channel.id === rule.channel) {
+				if(!msg.author.bot
+				&& msg.attachments.size === 0
+				&& msg.components.length === 0
+				&& msg.embeds.length === 0
+				&& !(msg.content.includes("http://") || msg.content.includes("https://"))) {
+					deleteMsg = true;
+				}
 			} else if (rule.type === "user" && msg.author.id === rule.user) {
 				deleteMsg = true;
 			} else if (
