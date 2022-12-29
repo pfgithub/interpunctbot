@@ -64,7 +64,7 @@ export async function cancelAllEventsForSearch(search: string): Promise<void> {
 
 //! always queue events for a guild that your shard is on. never queue events for a different guild.
 export async function queueEvent(event: TimedEvent, from_now_ms: number): Promise<void> {
-    if(from_now_ms < 10_000) {
+    if(from_now_ms < (60 * 60 * 1000)) { // 1h
         setTimeout(() => callEvent(null, event), from_now_ms);
         return;
     }
