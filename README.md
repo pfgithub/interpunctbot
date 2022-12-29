@@ -17,9 +17,10 @@
 
 # running
 
-requires: yarn package manager, node >=12 (preferrably >=13)
+requires: node >=16.9
 
 ```bash
+corepack enable
 git clone https://github.com/pfgithub/interpunctbot
 cd interpunctbot
 yarn install
