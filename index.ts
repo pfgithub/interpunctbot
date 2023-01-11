@@ -833,8 +833,13 @@ client.on("disconnect", () => {
 });
 
 let handlingCount = 0;
+// maybe don't try to limit the max concurrent things
+// without putting a timeout limit on how long stuff
+// can run for. if anything gets stuck (ie 'await
+// new Promise(r => {})'), it will refuse to accept
+// any more messages
 client.on("messageCreate", msg => {
-	if (handlingCount > 100) 
+	if (handlingCount > Infinity) 
 		return console.log("Handling too many messages, skipping one.");
 	perr(
 		(async () => {
