@@ -1,0 +1,7 @@
+version: '3'
+
+services:
+   interpunctbot:
+    build: .
+    volumes:
+      - ./config:/bot/config
