@@ -489,7 +489,7 @@ nr.globalCommand(
 			return await info.error(
 				"This server has reached its autodelete limit (" +
 					autodeleteLimit +
-					").\n> To increase this limit, ask on the support server\n> Make sure to include your server id which is `"+info.guild?.id+"`\n> https://discord.gg/fYFZCaG25k",
+					").\n> List autodelete rules with /autodelete list and remove any you aren't using with /autodelete remove\n> If you really need more, ask on the support server and include your server id which is `"+info.guild?.id+"`\n> <https://discord.gg/fYFZCaG25k>",
 			); // !!!
 		const autodeleteID = await info.db.addAutodelete(autodeleteInfo);
 		return await info.success(
