@@ -1200,6 +1200,18 @@ nr.globalCommand(
 		const totalMembers = await getMembers(info.message.client);
 		const now = new Date().getTime();
 		const shardv = info.guild ? ` (id ${info.guild.shardId})` : "";
+
+
+// For each shard, get the shard ID and the number of guilds it owns
+let values: {a: number[], b: number}[] = [];
+    if(info.message.client.shard != null) {try {values = (await info.message.client.shard.broadcastEval((client): {a: number[], b: number} =>
+    ({a: client.shard?.ids ?? [-1],
+        b: client.guilds.cache.size
+    })
+))}catch(ex){
+console.log("failed to get shard stats", ex);
+}}
+
 		const msg = `**Statistics**:
 > **Servers**: ${totalServers.toLocaleString()} total, ${
 	info.message.client.guilds.cache.size
@@ -1209,6 +1221,7 @@ nr.globalCommand(
 		.format(
 			"y [years] M [months] w [weeks] d [days,] h[h]:mm[m]:s.SSS[s]",
 		)}
+> **Shards**: ${values.map(({a,b})=>""+a.map(c=>""+c).join(":")+": "+b).join(", ")}
 > **Handled in**: ${new Date().getTime() - info.other!.startTime}ms.`;
 		const msgs = await info.result(msg);
 		if (msgs && msgs[0] && info.raw_message)
