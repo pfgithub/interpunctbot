@@ -9,11 +9,10 @@ if (globalConfig.token == null)
 	);
 const manager = new ShardingManager("built/index.js", {
 	token: globalConfig.token,
-	totalShards: 20,
-	timeout: -1,
+	totalShards: 40,
 });
 
-manager.spawn().catch(e => console.log("spawn error", e));
+manager.spawn({timeout: -1}).catch(e => console.log("spawn error", e));
 manager.on("shardCreate", shard => {
 	console.log(`Launched shard ${shard.id}`);
 	// shard.
