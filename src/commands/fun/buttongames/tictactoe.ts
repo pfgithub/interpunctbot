@@ -93,7 +93,7 @@ export function button(id: string, label: string | undefined, style: ButtonStyle
 	return {
 		type: 2,
 		style: buttonStyles[style],
-		label: label,
+		label: label != null ? label.trim() || "\u200b" : undefined,
 		custom_id: fixID(id),
 		...opts,
 	};
@@ -218,11 +218,12 @@ export function renderResultToResult(rr: RenderResult<unknown>, key: (a: string)
 			}
 			const custom_id = itm.action.kind === "callback" ? key(itm.action.id) : itm.action.kind === "link" ? undefined : "NONE";
 			if(itm.kind === "button") {
+				const lbl = itm.label.trim() || "\u200b";
 				return {
 					type: 2,
 					style: itm.action.kind === "link" ? 5 : buttonStyles[itm.color],
 					url: itm.action.kind === "link" ? itm.action.url : undefined as unknown as string,
-					label: itm.label.length > 80 ? itm.label.substr(0, 79) + "…" : itm.label || "\u200b",
+					label: lbl.length > 80 ? lbl.substring(0, 79) + "…" : lbl,
 					custom_id: fixID(custom_id),
 					disabled: itm.disabled,
 					emoji: itm.emoji,
@@ -624,7 +625,7 @@ const TTTGame: Game<TicTacToeState> & GameInit<TicTacToeState, [CreateOpts]> = {
 				components: [
 					...state.board.grid.map((yr, y) => componentRow(
 						yr.map((tile, x) =>
-							button(key("T,"+x+","+y), tile.trim() ? tile : "\u200b", ({" ": "secondary", "X": "primary", "O": "accept"} as const)[tile], {}),
+							button(key("T,"+x+","+y), tile, ({" ": "secondary", "X": "primary", "O": "accept"} as const)[tile], {}),
 						)
 					)),
 					...state.mode === "playing" ?
@@ -966,7 +967,7 @@ const CGGame: Game<CirclegameState> & GameInit<CirclegameState, [CreateOpts]> = 
 						const vc = yr.filter(itm => itm === " ").length;
 						return componentRow([
 							...yr.map((tile, x) =>
-								button(key("C,"+(vc - x)+","+y), tile === " " ? "" + (vc - x) : " ",
+								button(key("C,"+(vc - x)+","+y), tile === " " ? "\u200b" + (vc - x) : " ",
 									({" ": "secondary", "X": "primary", "O": "accept"} as const)[tile],
 									{disabled: tile === " " ? false : true},
 								),
