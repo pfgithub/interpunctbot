@@ -222,7 +222,7 @@ export function renderResultToResult(rr: RenderResult<unknown>, key: (a: string)
 					type: 2,
 					style: itm.action.kind === "link" ? 5 : buttonStyles[itm.color],
 					url: itm.action.kind === "link" ? itm.action.url : undefined as unknown as string,
-					label: itm.label.length > 80 ? itm.label.substr(0, 79) + "…" : itm.label || "\u200B",
+					label: itm.label.length > 80 ? itm.label.substr(0, 79) + "…" : itm.label || ".",
 					custom_id: fixID(custom_id),
 					disabled: itm.disabled,
 					emoji: itm.emoji,
@@ -624,7 +624,7 @@ const TTTGame: Game<TicTacToeState> & GameInit<TicTacToeState, [CreateOpts]> = {
 				components: [
 					...state.board.grid.map((yr, y) => componentRow(
 						yr.map((tile, x) =>
-							button(key("T,"+x+","+y), tile, ({" ": "secondary", "X": "primary", "O": "accept"} as const)[tile], {}),
+							button(key("T,"+x+","+y), tile.trim() ? tile : ".", ({" ": "secondary", "X": "primary", "O": "accept"} as const)[tile], {}),
 						)
 					)),
 					...state.mode === "playing" ?
