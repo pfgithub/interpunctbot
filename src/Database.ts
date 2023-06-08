@@ -278,8 +278,11 @@ class Database {
 	}
 	async _setJson<Name extends keyof JSONFields>(
 	    name: Name,
-	    newValue: JSONFields[Name],
+	    newValue: JSONFields[Name] | null | undefined,
 	): Promise<void> {
+		if(newValue == null) {
+			return await this._set(name, null as unknown as undefined);
+		}
 	    await this._set(name, JSON.stringify(newValue));
 	}
 	async _getBool<Name extends keyof BooleanFields>(
@@ -405,7 +408,6 @@ class Database {
 	    });
 	}
 	async setTicket(nt: TicketConfig | undefined): Promise<void> {
-		if(!nt) return await this._set("ticket", "");
 	    return await this._setJson("ticket", nt);
 	}
 	async getUnknownCommandMessages(): Promise<"always" | "admins" | "never"> {
