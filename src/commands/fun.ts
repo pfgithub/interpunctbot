@@ -1124,10 +1124,11 @@ nr.globalCommand(
 			if (guessed) return;
 			const mytrphies = (localtrophycount["MEMEME"] || 0) + 1;
 			localtrophycount["MEMEME"] = mytrphies;
-			await msg.channel.send(rword);
-			await msg.channel.send(
-				"Ha! I win\nMy trophy collection: " + trophyprint(mytrphies),
-			);
+			await msg.channel.send({content: rword, ...Info.msgopts});
+			await msg.channel.send({
+				content: "Ha! I win\nMy trophy collection: " + trophyprint(mytrphies),
+				...Info.msgopts,
+			});
 		};
 		collectr.on("end", () => {
 			clxtrnded().catch(() => {});
@@ -1141,7 +1142,7 @@ nr.globalCommand(
 				(localtrophycount[finalmsg.author.id] || 0) + 1;
 			const tc = localtrophycount[finalmsg.author.id];
 			await finalmsg.channel.send(
-				"Congrats " +
+				{...Info.msgopts, content: "Congrats " +
 					finalmsg.author.toString() +
 					", you typed it first in " +
 					time +
@@ -1149,7 +1150,7 @@ nr.globalCommand(
 					(tc > 1
 						? "\nYour trophies this session: " + trophyprint(tc)
 						: " Here is your prize: 🏆"),
-			);
+			});
 			await finalmsg.react("🏆");
 		};
 		collectr.on("collect", msg_ => {
@@ -1426,7 +1427,7 @@ nr.globalCommand(
 				flag ? "flag " : ""
 			}${group ? "group" : ""}`,
 		);
-		await info.channel.send(splitQuotedBoard.join("\n")); // minesweeper is broken atm. also not splitting anymore so even more broken.
+		await info.channel.send({...Info.msgopts, content: splitQuotedBoard.join("\n")}); // minesweeper is broken atm. also not splitting anymore so even more broken.
 	},
 );
 

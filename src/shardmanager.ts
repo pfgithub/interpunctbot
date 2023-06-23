@@ -16,6 +16,7 @@ manager.spawn({timeout: -1}).catch(e => console.log("spawn error", e));
 manager.on("shardCreate", shard => {
 	console.log(`Launched shard ${shard.id}`);
 	// shard.
+shard.on("error", e => console.log("shard error", e));
 });
 
 async function cleanLogs() {
